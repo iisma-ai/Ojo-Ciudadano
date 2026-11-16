@@ -8,7 +8,7 @@
 | --- | --- | --- | --- | --- | --- |
 | R-01 | Licitador único | Procedimiento abierto o restringido con una sola oferta | Indicador básico del índice de riesgo de corrupción de [Fazekas y Kocsis (2020)](https://doi.org/10.1017/S0007123417000461); indica competencia nula | Nº de ofertas, procedimiento | Alta |
 | R-02 | Procedimiento sin publicidad | Peso de negociados sin publicidad y emergencias en el gasto de cada órgano | Evita la concurrencia abierta | Tipo de procedimiento, importe | Alta |
-| R-03 | Posible fraccionamiento | Varios contratos menores al mismo NIF, mismo CPV y órgano en 12 meses cuya suma supera el umbral legal (**15.000 €** servicios y suministros, **40.000 €** obras) | Dividir un contrato evita la licitación | Menores con NIF, CPV, fecha, importe | Alta |
+| R-03 | Posible fraccionamiento | Dos o más contratos menores al mismo adjudicatario, mismo órgano y mismo tipo de contrato en una ventana móvil de 12 meses cuya suma **con IVA** supera **18.150 €** (servicios y suministros) o **48.400 €** (obras), es decir, el umbral legal de 15.000 € / 40.000 € × 1,21 (D-014) | Dividir un contrato evita la licitación | Menores con NIF, órgano, tipo, fecha e importe con IVA | Alta |
 | R-04 | Concentración de proveedor | Cuota de una empresa en el gasto de un órgano o CPV; índice HHI por mercado | Dependencia o captura de un mercado | Adjudicaciones por NIF | Alta |
 | R-05 | Sobrecoste por modificaciones | (Importe final − adjudicado) / adjudicado, sumando modificaciones y prórrogas | Ganar barato y recuperar después | Importes de modificaciones y prórrogas | Media |
 | R-06 | Baja anormal o nula | Diferencia entre presupuesto base y adjudicación cercana a cero, o extrema | Sin baja sugiere poca competencia; baja extrema, riesgo de ejecución | Presupuesto base, importe adjudicado | Media |
@@ -40,11 +40,11 @@ Comprobar con casos ya fiscalizados por la Cámara de Cuentas o recogidos en pre
 
 | ID | Estado | Fichero | Notas |
 | --- | --- | --- | --- |
-| R-01 | Pendiente | — | Depende de P-02 |
+| R-01 | Pendiente | — | P-02 resuelta: nº de ofertas disponible en PLACSP y en el CSV del portal |
 | R-02 | Pendiente | — | |
-| R-03 | Pendiente | — | |
+| R-03 | Pendiente | — | Definición fijada en D-014. Limitaciones: agrupa por tipo de contrato (los menores no publican CPV) y el umbral con IVA es conservador |
 | R-04 | Pendiente | — | |
-| R-05 | Pendiente | — | |
+| R-05 | Pendiente | — | Importes de modificaciones y prórrogas disponibles en el CSV del portal (con IVA) |
 | R-06 | Pendiente | — | |
 | R-07 | Pendiente | — | Recortable |
 | R-08 | Pendiente | — | Recortable |

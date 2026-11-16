@@ -109,7 +109,7 @@ Plantilla:
 
 ## D-010 · Proveedor de LLM e índice híbrido del asistente
 - **Fecha:** 2026-11-15
-- **Estado:** Propuesta (pendiente de decidir por el equipo)
+- **Estado:** Propuesta (aplazada: El Harrak indicó el 2026-11-16 que el LLM se decide más adelante; no bloquea ingesta, esquema ni indicadores)
 - **Autor:** Claude (agente)
 - **Contexto:** La propuesta dice «LLM por API con llamada a herramientas» y «LanceDB o Chroma», sin concretar.
 - **Decisión:** _Por decidir el día 1._ Criterios: soporte sólido de *tool calling*, calidad en texto a SQL en español, coste para la demo, disponibilidad de un modelo alternativo como respaldo (K-14).
@@ -124,3 +124,30 @@ Plantilla:
 - **Decisión:** Documentación, interfaz, mensajes de commit y comentarios en **español**. Identificadores de código en inglés salvo términos del dominio sin traducción clara (`organo`, `adjudicatario`, `cpv`, `expediente`), que se documentan en el glosario. Nombres de tablas y columnas de DuckDB en español y `snake_case`. Una rama por tarea (`feat/…`, `fix/…`, `docs/…`) y PR a `main`. Los commits no incluyen a Claude como co-autor.
 - **Alternativas consideradas:** Todo en inglés (alejaría el código del dominio y del jurado).
 - **Consecuencias:** Recogido en `CLAUDE.md`.
+
+## D-012 · PLACSP como fuente principal de licitaciones; portal regional como complemento con exportación manual
+- **Fecha:** 2026-11-16
+- **Estado:** Aceptada (El Harrak, 2026-11-16)
+- **Autor:** Claude (agente), trabajando con El Harrak
+- **Contexto:** El plan daba al portal regional (F-01) el papel de fuente principal. Su exportación a CSV está protegida por captcha y limitada a 50.000 filas, así que no es reproducible por código. PLACSP (F-02) se descarga libremente y trae nº de ofertas, NIF, CPV, lotes y código de órgano, pero no contratos menores ni modificaciones o prórrogas. El catálogo CKAN (F-06) no tiene contratos a nivel de registro.
+- **Decisión:** Las licitaciones se ingieren desde **PLACSP**. Del **portal regional** se toman los **contratos menores** y los **importes de modificaciones, prórrogas y liquidación**, a partir de CSV exportados a mano (una persona resuelve el captcha) y guardados en `data/raw/portal_cm/`. El captcha no se automatiza. El catálogo CKAN se usa como contexto y validación.
+- **Alternativas consideradas:** Mantener el portal como fuente principal (depende entera de trabajo manual y pierde CPV, lotes y fechas); prescindir de menores y modificaciones (caerían R-03, R-05 y las preguntas de demo 1 y 3).
+- **Consecuencias:** La parte del portal no se regenera solo con el pipeline: hay que documentar el procedimiento de exportación y la fecha de cada fichero. Los menores cubren 2023-01-01 a 2026-09-30 (descargados el 2026-11-16). Hay que cruzar las dos fuentes por expediente y órgano (P-06, P-11) y resolver la mezcla de importes con y sin IVA (P-10). Actualizados 02 y 09.
+
+## D-013 · R-03 (posible fraccionamiento) sin CPV
+- **Fecha:** 2026-11-16
+- **Estado:** Sustituida por D-014
+- **Autor:** Claude (agente), trabajando con El Harrak
+- **Contexto:** La definición de R-03 agrupa menores por NIF, CPV y órgano. Los contratos menores del portal no traen CPV, y sus importes van con IVA mientras que los umbrales legales (15.000 € y 40.000 €) son sin IVA.
+- **Decisión:** _Por decidir._ Propuesta: agrupar por NIF + órgano + **tipo de contrato** en 12 meses y resolver el tratamiento del IVA en P-10 antes de fijar el umbral.
+- **Alternativas consideradas:** Inferir el CPV del título con IA (segundo recorte del plan, poco fiable); recortar R-03.
+- **Consecuencias:** Agrupar por tipo de contrato es más grueso que por CPV y dará más señales; hay que decirlo en la nota de limitaciones del indicador. Cambia 04 cuando se acepte.
+
+## D-014 · Definición de R-03 (posible fraccionamiento) con los datos disponibles
+- **Fecha:** 2026-11-16
+- **Estado:** Aceptada (El Harrak pidió «calcularla de la manera más fiable» y delegó la definición; 2026-11-16)
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** Concreta D-013. Comprobado en tres fichas oficiales el 2026-11-16: la columna «Importe de adjudicación» del CSV de menores es el importe **con IVA**; el tipo de IVA varía de un contrato a otro (0 % en dos de las tres fichas, 21 % en la otra); la ficha tampoco publica CPV. No hay forma de recuperar el importe sin IVA ni el CPV sin abrir 1,3 millones de fichas.
+- **Decisión:** R-03 se activa cuando la **suma de los contratos menores de un mismo adjudicatario, mismo órgano y mismo tipo de contrato en una ventana móvil de 12 meses** supera el umbral legal **multiplicado por 1,21**: **18.150 €** en servicios y suministros (15.000 € × 1,21) y **48.400 €** en obras (40.000 € × 1,21), con al menos dos contratos en la ventana. Como el IVA nunca supera el 21 %, una suma con IVA por encima de ese valor implica una suma sin IVA por encima del umbral legal, sea cual sea el tipo aplicado.
+- **Alternativas consideradas:** Comparar el importe con IVA directamente con 15.000 € / 40.000 € (daría señales falsas en todos los contratos entre el umbral y el umbral más IVA); dividir todo entre 1,21 (infravalora los contratos exentos o con tipo reducido y también falla); inferir el CPV del título con IA (poco fiable y segundo recorte del plan).
+- **Consecuencias:** El criterio es conservador: no señala los casos cuya suma sin IVA supera el umbral pero con IVA queda por debajo de 18.150 € / 48.400 €. Agrupar por tipo de contrato en lugar de CPV es más grueso y puede juntar prestaciones distintas; ambas limitaciones se explican en la nota del indicador y en la interfaz. Los contratos de tipo «Otros» o sin tipo quedan fuera (no aplicable). Actualizado 04; P-10 queda resuelta para R-03 y abierta para las sumas que mezclen fuentes.

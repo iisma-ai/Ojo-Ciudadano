@@ -26,12 +26,12 @@ Cuatro fases en 11 días, con hitos internos que protegen la entrega: **esquema 
 
 ### Tareas del día 1 (Fase 1)
 
-- [ ] Revisar el Catálogo de Datos Abiertos (CKAN): qué datasets de contratos y presupuesto hay (P-01).
-- [ ] Exportar un CSV del Portal de la Contratación Pública y comprobar si trae el número de licitadores (P-02).
+- [x] Revisar el Catálogo de Datos Abiertos (CKAN): qué datasets de contratos y presupuesto hay (P-01). Sin contratos a nivel de registro.
+- [x] Exportar un CSV del Portal de la Contratación Pública y comprobar si trae el número de licitadores (P-02). Sí lo trae; exportados licitaciones, sin publicidad y menores 2023–2026.
 - [ ] Revisar licencias y avisos legales de reutilización (P-03).
-- [ ] Descargar una muestra del Atom de PLACSP filtrada a órganos de la Comunidad de Madrid.
-- [ ] Probar la API de la BDNS con concesiones de la Comunidad.
-- [ ] Decidir proveedor de LLM (D-010).
+- [x] Descargar una muestra del Atom de PLACSP filtrada a órganos de la Comunidad de Madrid (octubre de 2026).
+- [ ] Probar la API de la BDNS con concesiones de la Comunidad. La API responde; falta el filtro de la Comunidad de Madrid.
+- [ ] Decidir proveedor de LLM (D-010). Aplazado el 16-nov: no bloquea datos ni indicadores.
 - [ ] Asignar nombres a las personas 1–4 de la tabla de responsables.
 
 ## Responsables
@@ -68,3 +68,4 @@ Todo lo marcado «tras el datatón» o «largo plazo» en [01-vision.md](01-visi
 | Fecha | Fase | Resumen |
 | --- | --- | --- |
 | 15-nov | 1 | Repositorio, entorno (uv), estructura para agentes y documentación del plan inicial creados. Desarrollo sin empezar. |
+| 16-nov | 1 | Fuentes exploradas con datos reales: P-01 y P-02 resueltas. Descargados del portal regional licitaciones, sin publicidad y 1,32 M de menores (2023–sep 2026). Aceptadas D-012 (PLACSP principal) y D-014 (definición de R-03 sin CPV y con IVA); D-010 aplazada. **Sin código de ingesta ni esquema todavía: H1 (17-nov) en riesgo.** |

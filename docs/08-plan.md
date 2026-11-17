@@ -69,3 +69,4 @@ Todo lo marcado «tras el datatón» o «largo plazo» en [01-vision.md](01-visi
 | --- | --- | --- |
 | 15-nov | 1 | Repositorio, entorno (uv), estructura para agentes y documentación del plan inicial creados. Desarrollo sin empezar. |
 | 16-nov | 1 | Fuentes exploradas con datos reales: P-01 y P-02 resueltas. Descargados del portal regional licitaciones, sin publicidad y 1,32 M de menores (2023–sep 2026). Aceptadas D-012 (PLACSP principal) y D-014 (definición de R-03 sin CPV y con IVA); D-010 aplazada. **Sin código de ingesta ni esquema todavía: H1 (17-nov) en riesgo.** |
+| 17-nov (madrugada) | 1 | Ingesta de PLACSP y del CSV del portal, normalización y seudonimización, propuesta de esquema (`sql/esquema/001_tablas.sql`) y primera carga real en DuckDB (1,37 M de contratos). P-06 y P-11 resueltas. **Falta para H1:** que el equipo revise y congele el esquema; subvenciones (BDNS) sin incorporar. |

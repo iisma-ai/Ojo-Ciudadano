@@ -21,7 +21,7 @@
 ## Desviaciones del plan
 - El portal regional deja de ser la fuente principal prevista (D-012, propuesta).
 - La parte del portal no es reproducible por código: depende de exportaciones manuales con captcha.
-- No se ha escrito código de ingesta ni esquema. H1 es mañana, 17-nov.
+- El esquema es una propuesta: falta que el equipo lo congele (H1, 17-nov).
 
 ## Problemas y hallazgos
 - El portal toma los filtros de la sesión de búsqueda: entrar a la exportación con el filtro pegado en la dirección da «error inesperado». Hay que llegar desde la página de resultados.
@@ -31,8 +31,26 @@
 - Menores sin CPV; DNI/NIE de personas físicas sin enmascarar en el CSV (seudonimizar en la ingesta, D-007).
 - Julio–septiembre de 2026 casi vacíos de menores: parece retraso de publicación (P-12).
 - Dos cortes de conexión con el navegador durante las descargas; no se perdió ningún fichero.
-- Los scripts de exploración se quedaron en una carpeta temporal y no están en el repositorio.
+- Los scripts de exploración se quedaron en una carpeta temporal y no están en el repositorio; lo útil pasó a los módulos de ingesta.
+
+## Segunda parte de la sesión: código de ingesta, esquema y primera carga
+- `src/ojo_ciudadano/normalizacion/`: NIF (prefijos, UTE, clasificación), seudonimización de personas físicas con sal secreta, importes, fechas y tipos de contrato.
+- `src/ojo_ciudadano/ingesta/portal_cm.py`: lee los CSV exportados; separa contratos y adjudicaciones (las filas sin cabecera son lotes del contrato anterior). Los contratos sin referencia no se cargan porque no tienen enlace a su ficha.
+- `src/ojo_ciudadano/ingesta/placsp.py`: descarga con caché de los zip mensuales y lectura de los Atom; última versión por expediente y órgano; entradas borradas descartadas. Descargados los 47 meses de 2023-01 a 2026-11.
+- `sql/esquema/001_tablas.sql` y `src/ojo_ciudadano/modelo/carga.py`: propuesta de esquema (organo, adjudicatario, contrato, adjudicacion y la vista contrato_unico) y carga completa en DuckDB.
+- Tests con datos sintéticos: 27, todos en verde; `ruff` limpio. Se añadió en `pyproject.toml` la excepción de longitud de línea para `tests/` (filas CSV y XML sintéticas).
+- Primera carga real: 1.371.693 contratos, 1.404.789 adjudicaciones, 28.045 adjudicatarios, 131 órganos. Ningún DNI en claro.
+- Cruce entre fuentes medido (P-06 y P-11 resueltas): 98 % de PLACSP tiene pareja en el portal.
+
+### Hallazgos de esta parte
+- El percentil 99 del importe de los menores es 18.148,80 € (15.000 € × 1,21): confirma que el CSV va con IVA y el umbral de D-014.
+- Hay menores muy por encima del umbral (suscripciones a bases de datos y revistas, hasta 266.000 €): existe una excepción legal para esas suscripciones, a tener en cuenta en R-03 para no señalarlas.
+- En PLACSP falta el importe de adjudicación en buena parte de los resultados sin lotes; hay que tomarlo del portal.
+- 2.292 adjudicaciones no tienen adjudicatario identificado (desiertos, desistimientos o NIF vacío).
+- Los órganos se identifican por nombre normalizado; las consejerías cambian de nombre entre legislaturas y aparecen como órganos distintos.
 
 ## Siguiente paso
-- Módulos de ingesta de PLACSP y del CSV del portal, normalización (NIF, importes, fechas, seudonimización) y DDL en `sql/esquema/` para congelar el esquema (H1).
-- Descargar PLACSP 2023–2026 y medir la cobertura frente al portal (P-11).
+- Que el equipo revise y congele el esquema (H1) y comparta la sal de seudónimos.
+- Incorporar las subvenciones (BDNS) y los datasets del catálogo CKAN.
+- Unificar nombres de órganos y consejerías (tabla de alias).
+- Empezar los indicadores con `/nuevo-indicador`: R-01, R-03 (D-014) y R-05 ya tienen datos.

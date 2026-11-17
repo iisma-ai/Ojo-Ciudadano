@@ -32,12 +32,16 @@ Otras referencias útiles:
 - URL de cada mes: `https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_1044/PlataformasAgregadasSinMenores_AAAAMM.zip`. Responde a una petición GET normal; las peticiones HEAD se cortan.
 - Las entradas de la Comunidad de Madrid se reconocen porque su `link` apunta a `contratos-publicos.comunidad.madrid`. Muestra de octubre de 2026: 3.423 entradas, 1.731 expedientes distintos (822 con más de una versión en el mes).
 - Campos comprobados en esa muestra: expediente (`ContractFolderID`), código de órgano (`ID_OC_PLAT`) y jerarquía (consejería → … → órgano), CPV y presupuesto base sin IVA en el 100 %, tipo de contrato, procedimiento, fechas de fin de plazo, documentos (pliegos) y, en los resultados, **nº de ofertas en el 100 %** (`ReceivedTenderQuantity`), NIF del adjudicatario, lote e importe de adjudicación sin IVA.
-- Carencias: sin contratos menores, sin modificaciones ni prórrogas, sin fecha de adjudicación en el resultado; el importe de adjudicación solo aparece en 2.734 de 5.950 resultados (causa sin analizar).
-- Solo se ha explorado un mes. No se ha medido aún la cobertura frente al portal regional (P-11).
+- Carencias: sin contratos menores, sin modificaciones ni prórrogas, sin fecha de adjudicación en el resultado (sí la de formalización, cuando la hay).
+- **El importe de adjudicación falta en parte de los resultados**: en octubre de 2026, tras quedarse con la última versión de cada expediente, 775 de 2.164 resultados formalizados y 703 de 1.281 adjudicados no lo traen. Casi todos son resultados sin número de lote. Para esos contratos el importe hay que tomarlo del CSV del portal (con IVA).
+- Módulo de ingesta: `src/ojo_ciudadano/ingesta/placsp.py` (descarga con caché en `data/raw/placsp/`, una petición cada vez). Las listas de códigos de procedimiento, tipo, estado y resultado se tomaron de `https://contrataciondelestado.es/codice/cl/` el 2026-11-16; la de resultados está en inglés y la traducción es nuestra.
+- Descargados los 47 zip de enero de 2023 a noviembre de 2026 (494 MB en `data/raw/placsp/`, fuera de git) el 2026-11-16. Tras quedarse con la última versión de cada expediente y órgano quedan **17.589 licitaciones** de la Comunidad de Madrid.
+- **Cruce con el portal** (por expediente y órgano): 17.244 de las 17.589 tienen su fila en el CSV del portal. Los fallos se deben sobre todo a nombres de órgano escritos de forma distinta en cada fuente («Hospital Dr. Rodríguez Lafora» / «Hospital Universitario Dr. Rodríguez Lafora», consejerías renombradas).
 
 ### F-01 · Portal de la Contratación Pública (exportación CSV)
 
 - La exportación exige resolver una pregunta matemática (captcha) y está limitada a 50.000 filas. **No se automatiza el captcha**: lo resuelve una persona; la preparación de filtros y la descarga se hicieron con el navegador asistido (Claude in Chrome) el 2026-11-16.
+- Módulo de ingesta: `src/ojo_ciudadano/ingesta/portal_cm.py` (lee todos los CSV de `data/raw/portal_cm/`; los 44 ficheros se procesan en unos 6 segundos).
 - Hay que llegar a la exportación desde la página de resultados (el portal toma los filtros de la sesión de búsqueda). El filtro de fechas del buscador avanzado exige formato `dd-mm-aaaa`. Para menores se usó «Fecha del contrato o encargo».
 - Ficheros descargados en `data/raw/portal_cm/` (494 MB, fuera de git):
 

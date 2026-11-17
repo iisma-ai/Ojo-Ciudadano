@@ -63,10 +63,33 @@ Ojo-Ciudadano/
 └── data/                     # (ignorado por git) raw/, interim/, ojo_ciudadano.duckdb
 ```
 
-## Modelo de datos (borrador, se congela el 17 de noviembre)
+## Modelo de datos (propuesta para congelar en H1, 17 de noviembre)
 
-Entidades mínimas: **órgano** (código de órgano), **empresa/beneficiario** (NIF normalizado; personas físicas seudonimizadas), **contrato** (expediente + órgano, procedimiento, CPV, importes base/adjudicado/final, fechas, nº ofertas si existe, URL de origen), **modificación/prórroga**, **concesión de subvención**, **UTE ↔ miembros**, **documento** (para el corpus).
+El DDL está en [`sql/esquema/001_tablas.sql`](../sql/esquema/001_tablas.sql) y la base se regenera con:
 
-Toda tabla de hechos lleva `fuente`, `url_origen` y `fecha_descarga`.
+```bash
+uv run python -m ojo_ciudadano.modelo.carga
+```
 
-El esquema definitivo se documentará aquí y en `sql/esquema/` cuando se congele (hito H1). A partir de ahí, cambiarlo requiere decisión registrada, porque bloquea al resto del equipo.
+| Tabla | Una fila por | Clave | Notas |
+| --- | --- | --- | --- |
+| `organo` | Órgano de contratación | `organo_id` = nombre normalizado (mayúsculas, sin tildes) | Lleva consejería, jerarquía y, si existe, el código de PLACSP |
+| `adjudicatario` | Empresa, UTE o persona física seudonimizada | `adjudicatario_id` = NIF, `UTE:…` o `PF-…` | Las personas físicas no llevan NIF ni nombre (D-007) |
+| `contrato` | Contrato o licitación de una fuente | `contrato_id` = `placsp:<n>` o `portal_cm:<referencia>` | `duplicado_de` enlaza la fila del portal con la de PLACSP cuando es la misma licitación |
+| `adjudicacion` | Adjudicatario de un contrato (uno por lote) | `contrato_id` + `orden` | Nº de ofertas, importes, modificaciones y prórrogas |
+| `contrato_unico` (vista) | Contrato sin repetir entre fuentes | — | `contrato` donde `duplicado_de` está vacío |
+
+Reglas del modelo:
+
+- Toda tabla de hechos lleva `fuente`, `url_origen` y `fecha_descarga`.
+- **Los importes no se mezclan**: PLACSP los da sin IVA (`…_sin_iva`) y el portal regional con IVA (`…_con_iva`). Cada columna dice su base (P-10).
+- Dos filas son el mismo contrato si coinciden **expediente y órgano**. De PLACSP se conserva la última versión de cada expediente y órgano. Los menores solo existen en el portal.
+- El órgano se identifica por su nombre normalizado porque el CSV del portal no trae código. Si un órgano cambia de nombre aparecerá como dos órganos (limitación conocida).
+
+Primera carga con datos reales (2026-11-17): 131 órganos, 28.045 adjudicatarios (5.070 personas físicas seudonimizadas), 1.371.693 contratos (17.589 de PLACSP, 36.029 licitaciones y adjudicaciones sin publicidad del portal —17.252 marcadas como duplicadas de PLACSP— y 1.318.075 menores) y 1.404.789 adjudicaciones. Tarda unos 3 minutos; el fichero ocupa unos 350 MB.
+
+Seudónimos: se calculan con una sal secreta (`SEUDONIMO_SAL` en `.env`, o `data/.sal_seudonimos` si no está definida). **Todo el equipo debe usar la misma sal** para que los identificadores `PF-…` coincidan entre máquinas; nunca se sube al repositorio.
+
+Pendiente de añadir antes o después de congelar (requiere acuerdo del equipo): concesiones de subvenciones (BDNS), miembros de UTE como tabla propia, documentos para el corpus.
+
+Cuando el equipo lo congele, cambiarlo requiere decisión registrada, porque bloquea al resto.

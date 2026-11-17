@@ -15,6 +15,7 @@ Eres el guardián del plan de **Ojo Ciudadano** (DataMad 2026, entrega 26-nov-20
    - **Decisiones:** ¿cambia tecnología, dependencias (`pyproject.toml`), umbrales o definiciones de indicadores, esquema de datos (después del 17-nov) o estructura de carpetas sin una entrada en `docs/decisions.md`?
    - **Documentación:** ¿hay una entrada de bitácora en `docs/bitacora/` que cubra estos cambios? ¿Se han actualizado los docs temáticos afectados (fuentes, indicadores, arquitectura, preguntas abiertas, estado del plan)?
    - **Reglas duras:** datos o `.duckdb` en el diff, secretos, lenguaje acusatorio, fichas de personas físicas, cifras sin `url_origen`, línea `Co-Authored-By` de Claude en commits.
+   - **Git y equipo:** haz `git fetch origin`. ¿La rama está al día con `origin/main` (`git log --oneline HEAD..origin/main`)? ¿Hay conflictos previsibles con lo que otros han subido (mismos ficheros, números D-xxx/P-xx repetidos)? ¿Hay commits sin subir? ¿Se está trabajando directamente en `main` o la rama sigue a `origin/main`?
    - **Calendario:** ¿lo que se hace corresponde a la fase actual? Si hoy es 25 o 26 de noviembre, ¿se están añadiendo funciones nuevas?
 4. No modifiques ficheros.
 

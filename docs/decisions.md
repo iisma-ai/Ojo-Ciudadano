@@ -122,8 +122,9 @@ Plantilla:
 - **Autor:** Claude (agente)
 - **Contexto:** Evitar discusiones de estilo con 4 personas trabajando en paralelo.
 - **Decisión:** Documentación, interfaz, mensajes de commit y comentarios en **español**. Identificadores de código en inglés salvo términos del dominio sin traducción clara (`organo`, `adjudicatario`, `cpv`, `expediente`), que se documentan en el glosario. Nombres de tablas y columnas de DuckDB en español y `snake_case`. Una rama por tarea (`feat/…`, `fix/…`, `docs/…`) y PR a `main`. Los commits no incluyen a Claude como co-autor.
-- **Alternativas consideradas:** Todo en inglés (alejaría el código del dominio y del jurado).
-- **Consecuencias:** Recogido en `CLAUDE.md`.
+  - **Ampliación (2026-11-17, a petición de El Harrak):** como trabajan varias personas a la vez, se sincroniza, se hace commit y se sube a menudo. Al empezar y antes de cada tarea: `git fetch`, revisar qué han subido los demás e integrarlo. Durante el trabajo: commits pequeños, push de la rama tras cada commit y `git merge origin/main` antes de subir (merge y no rebase en ramas ya subidas, porque nunca se fuerza el push). Ramas de menos de un día. Al cerrar, nada se queda solo en local (commit `wip:` si está a medias). Push a `main` solo si la persona lo pide. Mensajes de commit con prefijo (`feat:`, `fix:`, `docs:`, `wip:`…).
+- **Alternativas consideradas:** Todo en inglés (alejaría el código del dominio y del jurado). Para git: rebase sobre `main` (historial más limpio, pero obliga a forzar el push en ramas ya subidas); commit solo al final de la sesión (más conflictos y trabajo invisible para el resto).
+- **Consecuencias:** Recogido en `CLAUDE.md` (sección «Trabajo en equipo con git»), en las skills `/estado` y `/cerrar-sesion` y en el agente `guardian-plan`.
 
 ## D-012 · PLACSP como fuente principal de licitaciones; portal regional como complemento con exportación manual
 - **Fecha:** 2026-11-16

@@ -41,3 +41,8 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# --- Archivos comprimidos con datos ---
+*.rar
+*.zip
+*.7z

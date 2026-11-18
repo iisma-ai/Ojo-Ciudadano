@@ -90,6 +90,16 @@ Primera carga con datos reales (2026-11-17): 131 órganos, 28.045 adjudicatarios
 
 Seudónimos: se calculan con una sal secreta (`SEUDONIMO_SAL` en `.env`, o `data/.sal_seudonimos` si no está definida). **Todo el equipo debe usar la misma sal** para que los identificadores `PF-…` coincidan entre máquinas; nunca se sube al repositorio.
 
+### Resultados de los indicadores
+
+Tabla derivada `indicador_resultado`, que se regenera entera (unos 10 segundos) con:
+
+```bash
+uv run python -m ojo_ciudadano.indicadores.ejecutor
+```
+
+El ejecutor (`src/ojo_ciudadano/indicadores/ejecutor.py`) crea las funciones de `sql/indicadores/000_funciones.sql` y une el resultado de cada `sql/indicadores/rXX_*.sql`. Cada indicador devuelve una fila por contrato **aplicable** con `contrato_id`, `indicador`, `aplicable`, `activado`, `valor`, `motivo` y `url_origen`. Si un contrato no aparece para un indicador, ese indicador **no le es aplicable** y no cuenta en la puntuación. `contrato_id` siempre es el de `contrato_unico`: si la licitación está en las dos fuentes, se usa el de PLACSP. Para la interfaz, a las personas físicas (`PF-…`) que aparecen en alertas de R-03 se les aplica D-007: se muestran agregadas, nunca con ficha.
+
 Pendiente de añadir antes o después de congelar (requiere acuerdo del equipo): concesiones de subvenciones (BDNS), miembros de UTE como tabla propia, documentos para el corpus.
 
 Cuando el equipo lo congele, cambiarlo requiere decisión registrada, porque bloquea al resto.

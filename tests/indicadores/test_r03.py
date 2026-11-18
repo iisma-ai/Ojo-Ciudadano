@@ -11,8 +11,9 @@ def test_dos_menores_que_suman_mas_del_umbral_activan(base):
         assert resultado[contrato]["activado"] is True
         assert resultado[contrato]["valor"] == 19000.0
     assert resultado["m1"]["motivo"] == (
-        "2 contratos menores con el mismo adjudicatario, órgano y tipo de contrato suman "
-        "19.000,00 € con IVA en 12 meses (umbral de referencia: 18.150,00 € con IVA)"
+        "2 contratos menores de al menos 6.050,00 € con el mismo adjudicatario, órgano y tipo "
+        "de contrato suman 19.000,00 € con IVA en 12 meses (umbral de referencia: "
+        "18.150,00 € con IVA)"
     )
 
 
@@ -64,12 +65,25 @@ def test_obras_usa_su_umbral(base):
 
 def test_un_contrato_anterior_se_activa_por_una_ventana_posterior(base):
     # m1 y m2 no superan el umbral; m3 completa la ventana de los tres.
-    base.menor("m1", date(2025, 1, 10), 6000.0)
-    base.menor("m2", date(2025, 5, 10), 6000.0)
+    base.menor("m1", date(2025, 1, 10), 6100.0)
+    base.menor("m2", date(2025, 5, 10), 6100.0)
     base.menor("m3", date(2025, 12, 10), 6200.0)
     resultado = base.resultado(SQL)
     assert all(resultado[m]["activado"] for m in ("m1", "m2", "m3"))
     assert resultado["m1"]["motivo"].startswith("3 contratos menores")
+
+
+def test_los_menores_por_debajo_de_un_tercio_del_umbral_no_cuentan(base):
+    # D-015: diez pedidos de 2.000 € no activan, aunque sumen 20.000 €.
+    for i in range(10):
+        base.menor(f"p{i}", date(2025, 1, 1 + i), 2000.0)
+    # Uno de 6.049 € tampoco cuenta junto a otro grande.
+    base.menor("casi", date(2025, 3, 1), 6049.0, adjudicatario="B2")
+    base.menor("grande", date(2025, 3, 2), 15000.0, adjudicatario="B2")
+    resultado = base.resultado(SQL)
+    assert len(resultado) == 12
+    assert resultado["p0"]["aplicable"] is True
+    assert not any(f["activado"] for f in resultado.values())
 
 
 def test_no_aplicable_otros_tipos_sin_fecha_y_suscripciones(base):

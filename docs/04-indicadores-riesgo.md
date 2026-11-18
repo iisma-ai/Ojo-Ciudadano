@@ -41,10 +41,10 @@ Comprobar con casos ya fiscalizados por la Cámara de Cuentas o recogidos en pre
 | ID | Estado | Fichero | Notas |
 | --- | --- | --- | --- |
 | R-01 | Implementado | [`r01_licitador_unico.sql`](../sql/indicadores/r01_licitador_unico.sql) | Abierto, abierto simplificado y restringido; por contrato, activado si algún lote resuelto tuvo una sola oferta. Datos del 16-nov: 20.693 aplicables, **8.144 activados (39,4 %)**. Hallazgo: tasa alta; revisarla por procedimiento, tipo y CPV al construir la puntuación |
-| R-02 | Pendiente | — | |
+| R-02 | Implementado | [`r02_sin_publicidad.sql`](../sql/indicadores/r02_sin_publicidad.sql) | Señal por contrato; el peso en el gasto de cada órgano se calcula al agregar. Activado si es negociado sin publicidad (PLACSP o portal) o si el portal lo publica como «otro procedimiento» en su lista de adjudicados sin publicidad, donde están las emergencias. No aplica a contratos derivados de acuerdo marco o sistema dinámico. 36.297 aplicables, **11.250 activados (31,0 %)**: 6.937 negociados y 4.313 «otro procedimiento» |
 | R-03 | Implementado | [`r03_posible_fraccionamiento.sql`](../sql/indicadores/r03_posible_fraccionamiento.sql) | D-014 + D-015. Con D-014 sola se activaba el 84,8 % (pedidos recurrentes de los hospitales); con D-015: 1.317.145 aplicables, **222.122 activados (16,9 %)**. Limitaciones: agrupa por tipo de contrato (sin CPV), umbral con IVA conservador, no ve la división en muchos trozos pequeños. 1.661 alertas son de personas físicas seudonimizadas: solo agregadas (D-007) |
 | R-04 | Pendiente | — | |
-| R-05 | Implementado | [`r05_sobrecoste_modificaciones.sql`](../sql/indicadores/r05_sobrecoste_modificaciones.sql) | D-016. Solo portal regional (con IVA). 31.406 aplicables, **635 activados (2,0 %)**. Las prórrogas se muestran en el motivo |
+| R-05 | Implementado | [`r05_sobrecoste_modificaciones.sql`](../sql/indicadores/r05_sobrecoste_modificaciones.sql) | D-016. Solo portal regional (con IVA). 31.406 aplicables, **573 activados (1,8 %)**, superando el 20 % en más de 1 € para que no decida el redondeo. Hallazgo: 362 contratos tienen las modificaciones justo en el 20 %, el máximo legal. Las prórrogas se muestran en el motivo |
 | R-06 | Pendiente | — | |
 | R-07 | Pendiente | — | Recortable |
 | R-08 | Pendiente | — | Recortable |

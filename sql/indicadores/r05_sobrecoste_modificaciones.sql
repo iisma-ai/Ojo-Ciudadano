@@ -7,7 +7,9 @@
 --   * Aplicable: licitación (no menor) del portal regional con importe adjudicado mayor que
 --     cero y con el dato de modificaciones publicado (aunque sea 0).
 --   * Valor: modificaciones / importe adjudicado, sumando todos los adjudicatarios o lotes.
---   * Activado: valor > 0,20.
+--   * Activado: las modificaciones superan el 20 % del adjudicado en más de 1 €. El margen
+--     evita que el redondeo de céntimos active contratos que están justo en el 20 %, que
+--     son muchos (es el máximo legal de las modificaciones previstas).
 --   * Las prórrogas NO cuentan: suelen ser anualidades previstas en el pliego (mediana del
 --     100 % del importe adjudicado). Se mencionan en el motivo como contexto.
 --
@@ -55,9 +57,9 @@ SELECT
     contrato_id,
     'R-05' AS indicador,
     TRUE AS aplicable,
-    modificaciones / adjudicado > 0.20 AS activado,
+    modificaciones > 0.20 * adjudicado + 1 AS activado,
     modificaciones / adjudicado AS valor,
-    CASE WHEN modificaciones / adjudicado > 0.20 THEN
+    CASE WHEN modificaciones > 0.20 * adjudicado + 1 THEN
         'Las modificaciones (' || euros(modificaciones) || ' € con IVA) suponen el '
         || replace(CAST(round(100 * modificaciones / adjudicado, 1) AS VARCHAR), '.', ',')
         || ' % del importe adjudicado (' || euros(adjudicado) || ' € con IVA); referencia: '

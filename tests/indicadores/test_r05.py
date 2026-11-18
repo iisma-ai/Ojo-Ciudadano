@@ -39,6 +39,14 @@ def test_justo_el_20_por_ciento_no_activa(base):
     assert fila["motivo"] is None
 
 
+def test_un_redondeo_de_centimos_sobre_el_20_por_ciento_no_activa(base):
+    _licitacion(base, "portal_cm:A", 100000.0, 20000.5)
+    _licitacion(base, "portal_cm:B", 100000.0, 20001.01)
+    resultado = base.resultado(SQL)
+    assert resultado["portal_cm:A"]["activado"] is False
+    assert resultado["portal_cm:B"]["activado"] is True
+
+
 def test_las_prorrogas_no_cuentan(base):
     _licitacion(base, "portal_cm:A", 100000.0, 0.0, prorrogas=300000.0)
     fila = base.resultado(SQL)["portal_cm:A"]

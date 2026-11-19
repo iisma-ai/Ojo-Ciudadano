@@ -245,3 +245,86 @@ def proveedores_organo(
         """,
         [organo_id, limite],
     )
+
+
+_FILTRO_FLUJO = """
+    c.fuente = ?
+    AND d.tipo_persona <> 'fisica'
+    AND (? OR NOT c.es_menor)
+    AND (? IS NULL
+         OR year(coalesce(c.fecha_contrato, a.fecha_formalizacion, c.fecha_fin_plazo)) = ?)
+    AND (? IS NULL OR c.tipo_contrato = ?)
+"""
+
+
+def _parametros_flujo(fuente, incluir_menores, anio, tipo_contrato) -> list:
+    return [fuente, incluir_menores, anio, anio, tipo_contrato, tipo_contrato]
+
+
+def flujos(
+    con: duckdb.DuckDBPyConnection,
+    fuente: str,
+    incluir_menores: bool = False,
+    anio: int | None = None,
+    tipo_contrato: str | None = None,
+    limite: int = 25,
+) -> list[dict]:
+    """Mayores flujos órgano → empresa. El importe es sin IVA en PLACSP y con IVA en el portal
+    (se elige una fuente cada vez: no se suman importes de bases distintas). Sin personas
+    físicas (D-007)."""
+    campo = "a.importe_sin_iva" if fuente == "placsp" else "a.importe_con_iva"
+    return _filas(
+        con,
+        f"""
+        SELECT c.organo_id, o.nombre AS organo, a.adjudicatario_id, d.nombre AS empresa,
+               count(DISTINCT c.contrato_id) AS n_contratos, sum({campo}) AS importe
+        FROM adjudicacion AS a
+        JOIN contrato_unico AS c USING (contrato_id)
+        JOIN organo AS o USING (organo_id)
+        JOIN adjudicatario AS d USING (adjudicatario_id)
+        WHERE {_FILTRO_FLUJO} AND {campo} > 0
+        GROUP BY ALL ORDER BY importe DESC LIMIT ?
+        """,
+        [*_parametros_flujo(fuente, incluir_menores, anio, tipo_contrato), limite],
+    )
+
+
+def contratos_flujo(
+    con: duckdb.DuckDBPyConnection,
+    organo_id: str,
+    adjudicatario_id: str,
+    fuente: str,
+    incluir_menores: bool = False,
+    anio: int | None = None,
+    tipo_contrato: str | None = None,
+    limite: int = 50,
+) -> list[dict]:
+    """Contratos de un flujo, con el enlace a la ficha oficial de cada uno."""
+    campo = "a.importe_sin_iva" if fuente == "placsp" else "a.importe_con_iva"
+    return _filas(
+        con,
+        f"""
+        SELECT c.contrato_id, c.titulo, c.tipo_contrato, c.procedimiento,
+               year(coalesce(c.fecha_contrato, a.fecha_formalizacion, c.fecha_fin_plazo)) AS anio,
+               {campo} AS importe, c.url_origen
+        FROM adjudicacion AS a
+        JOIN contrato_unico AS c USING (contrato_id)
+        JOIN adjudicatario AS d USING (adjudicatario_id)
+        WHERE {_FILTRO_FLUJO} AND c.organo_id = ? AND a.adjudicatario_id = ? AND {campo} > 0
+        ORDER BY importe DESC LIMIT ?
+        """,
+        [
+            *_parametros_flujo(fuente, incluir_menores, anio, tipo_contrato),
+            organo_id,
+            adjudicatario_id,
+            limite,
+        ],
+    )
+
+
+def tipos_contrato(con: duckdb.DuckDBPyConnection) -> list[str]:
+    filas = con.execute(
+        "SELECT DISTINCT tipo_contrato FROM contrato_unico WHERE tipo_contrato IS NOT NULL "
+        "ORDER BY 1"
+    ).fetchall()
+    return [f[0] for f in filas]

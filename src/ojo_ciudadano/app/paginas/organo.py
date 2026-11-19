@@ -24,10 +24,16 @@ if elegido:
     c1.metric("Contratos", f"{ficha['n_contratos']:,}".replace(",", "."))
     c2.metric("Con alguna alerta", f"{ficha['n_con_alertas']:,}".replace(",", "."))
     if ficha["puntuacion_ponderada"] is not None:
-        c3.metric("Puntuación ponderada", f"{ficha['puntuacion_ponderada']:.0%}")
+        c3.metric(
+            "Nivel medio de señales",
+            f"{ficha['puntuacion_ponderada']:.0%}",
+            help="Media ponderada de los indicadores de riesgo activados sobre los aplicables "
+            "en sus contratos. No mide legalidad ni calidad de gestión; con pocos indicadores "
+            "aplicables es poco fiable.",
+        )
     if ficha["percentil"] is not None:
         st.caption(
-            f"Su puntuación es igual o inferior a la del {ficha['percentil']:.0%} de los "
+            f"Su puntuación es igual o superior a la del {ficha['percentil']:.0%} de los "
             f"{ficha['n_comparables']} órganos con al menos 100 contratos puntuados. "
             "Es una comparación entre órganos, no una valoración de su gestión: depende "
             "del tipo de gasto (p. ej. los hospitales compran de forma recurrente)."
@@ -36,7 +42,7 @@ if elegido:
         "Importes adjudicados: "
         f"{(ficha['importe_sin_iva'] or 0):,.0f} € sin IVA (Plataforma de Contratación) y "
         f"{(ficha['importe_con_iva'] or 0):,.0f} € con IVA (portal de la Comunidad). "
-        "Son fuentes distintas y no se suman."
+        "Son fuentes distintas y no se suman. " + textos.FUENTES
     )
 
     st.subheader("Indicadores frente al conjunto de órganos")
@@ -50,6 +56,10 @@ if elegido:
     tendencia = datos.tendencia_organo(conexion(), ficha["organo_id"])
     if tendencia:
         st.subheader("Evolución anual de la puntuación")
+        st.caption(
+            "Proporción anual de señales activadas; depende del número y tipo de contratos de "
+            "cada año y no mide la gestión del órgano."
+        )
         st.bar_chart({str(t["anio"]): t["puntuacion_ponderada"] or 0 for t in tendencia})
 
     col_a, col_b = st.columns(2)
@@ -58,7 +68,12 @@ if elegido:
         for p in datos.procedimientos_organo(conexion(), ficha["organo_id"]):
             st.write(f"{p['procedimiento']}: {p['n_contratos']:,}".replace(",", "."))
     with col_b:
-        st.subheader("Principales empresas (por nº de contratos)")
+        st.subheader("Empresas con más contratos adjudicados (recuento)")
+        st.caption(
+            "Que una empresa concentre contratos en un órgano es una señal de dependencia que "
+            "puede tener causas legítimas (mercado reducido, exclusividad); no implica trato "
+            "de favor."
+        )
         for e in datos.proveedores_organo(conexion(), ficha["organo_id"]):
             st.write(
                 f"{e['nombre']} ({e['nif']}): {e['n_contratos']:,} contratos".replace(",", ".")

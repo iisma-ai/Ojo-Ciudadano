@@ -105,3 +105,23 @@ def test_procedimientos_y_proveedores_sin_personas_fisicas(con):
 
 def test_tendencia_del_organo(con):
     assert datos.tendencia_organo(con, "ORG")[0]["anio"] == 2025
+
+
+def test_flujos_por_fuente_sin_personas_fisicas(con):
+    flujos = datos.flujos(con, "placsp")
+    assert [(f["organo_id"], f["adjudicatario_id"], f["importe"]) for f in flujos] == [
+        ("ORG", "A1", 1000)
+    ]
+    assert datos.flujos(con, "portal_cm") == []  # no mezcla fuentes
+
+
+def test_flujos_filtran_por_anio_y_tipo(con):
+    assert len(datos.flujos(con, "placsp", anio=2025)) == 1
+    assert datos.flujos(con, "placsp", anio=2024) == []
+    assert datos.flujos(con, "placsp", tipo_contrato="obras") == []
+
+
+def test_contratos_del_flujo_con_enlace(con):
+    contratos = datos.contratos_flujo(con, "ORG", "A1", "placsp")
+    assert [c["contrato_id"] for c in contratos] == ["c1"]
+    assert contratos[0]["url_origen"] == "https://ejemplo.test/c1"

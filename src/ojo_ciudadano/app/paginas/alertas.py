@@ -6,7 +6,10 @@ from ojo_ciudadano.app import datos, textos
 from ojo_ciudadano.app.conexion import conexion
 
 st.header("Panel de alertas")
-st.write("Contratos ordenados por la proporción de indicadores de riesgo activados.")
+st.write(
+    "Contratos con más señales de riesgo activadas respecto a las que se pudieron calcular. "
+    "Una señal no es una irregularidad."
+)
 
 col1, col2 = st.columns(2)
 min_aplicables = col1.slider("Mínimo de indicadores aplicables", 1, 5, 3)
@@ -24,14 +27,21 @@ st.caption(
 
 for fila in filas:
     titulo = fila["titulo"] or fila["contrato_id"]
-    with st.expander(f"{fila['puntuacion']:.0%} · {titulo[:90]} · {fila['organo']}"):
+    cabecera = textos.encabezado_contrato(
+        titulo, fila["n_activados"], fila["n_aplicables"], fila["organo"]
+    )
+    with st.expander(cabecera):
         st.write(
-            f"{fila['n_activados']} de {fila['n_aplicables']} indicadores aplicables activados "
+            f"Proporción de indicadores activados: {fila['puntuacion']:.0%} (no es una "
+            "probabilidad) "
             f"· {fila['tipo_contrato'] or 'tipo no indicado'} · {fila['procedimiento'] or ''} "
             f"· {fila['anio'] or 'sin fecha'}"
         )
         for m in datos.motivos(conexion(), fila["contrato_id"]):
             nombre = textos.NOMBRES_INDICADOR.get(m["indicador"], m["indicador"])
-            valor = "—" if m["valor"] is None else format(m["valor"], ".3g")
-            st.markdown(f"- **{m['indicador']} · {nombre}** (valor {valor}): {m['motivo']}")
-        st.link_button("Ver el expediente en la fuente oficial", fila["url_origen"])
+            valor = textos.formatear_valor(m["indicador"], m["valor"])
+            st.markdown(f"- **{m['indicador']} · {nombre}** (valor: {valor}): {m['motivo']}")
+        if fila["url_origen"]:
+            st.link_button("Ver el expediente en la fuente oficial", fila["url_origen"])
+        else:
+            st.caption("Sin enlace oficial disponible para este contrato.")

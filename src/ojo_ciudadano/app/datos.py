@@ -130,3 +130,118 @@ def motivos(con: duckdb.DuckDBPyConnection, contrato_id: str) -> list[dict]:
         """,
         [contrato_id],
     )
+
+
+def buscar_organos(con: duckdb.DuckDBPyConnection, texto: str, limite: int = 30) -> list[dict]:
+    """Órganos por nombre (o todos, los de más contratos, si no se escribe nada)."""
+    return _filas(
+        con,
+        """
+        SELECT o.organo_id, o.nombre, p.n_contratos, p.puntuacion_ponderada
+        FROM organo AS o
+        JOIN puntuacion_organo AS p USING (organo_id)
+        WHERE o.nombre ILIKE '%' || ? || '%'
+        ORDER BY p.n_contratos DESC
+        LIMIT ?
+        """,
+        [texto.strip(), limite],
+    )
+
+
+def ficha_organo(con: duckdb.DuckDBPyConnection, organo_id: str) -> dict | None:
+    """Resumen de un órgano y su posición frente al resto (percentil de puntuación entre los
+    órganos con al menos 100 contratos puntuados). Importes por separado según el IVA."""
+    filas = _filas(
+        con,
+        """
+        WITH comparables AS (
+            SELECT organo_id, puntuacion_ponderada FROM puntuacion_organo
+            WHERE n_contratos >= 100 AND puntuacion_ponderada IS NOT NULL
+        )
+        SELECT o.organo_id, o.nombre, o.consejeria, p.n_contratos, p.n_con_alertas,
+               p.puntuacion_ponderada,
+               (SELECT count(*) FROM comparables WHERE puntuacion_ponderada
+                    <= p.puntuacion_ponderada) / nullif((SELECT count(*) FROM comparables), 0)
+                    AS percentil,
+               (SELECT count(*) FROM comparables) AS n_comparables,
+               (SELECT sum(a.importe_sin_iva) FROM adjudicacion AS a
+                 JOIN contrato_unico AS c USING (contrato_id)
+                 WHERE c.organo_id = o.organo_id) AS importe_sin_iva,
+               (SELECT sum(a.importe_con_iva) FROM adjudicacion AS a
+                 JOIN contrato_unico AS c USING (contrato_id)
+                 WHERE c.organo_id = o.organo_id) AS importe_con_iva
+        FROM organo AS o
+        JOIN puntuacion_organo AS p USING (organo_id)
+        WHERE o.organo_id = ?
+        """,
+        [organo_id],
+    )
+    return filas[0] if filas else None
+
+
+def tendencia_organo(con: duckdb.DuckDBPyConnection, organo_id: str) -> list[dict]:
+    return _filas(
+        con,
+        """
+        SELECT anio, n_contratos, n_con_alertas, puntuacion_ponderada
+        FROM puntuacion_organo_anio WHERE organo_id = ? ORDER BY anio
+        """,
+        [organo_id],
+    )
+
+
+def indicadores_organo(con: duckdb.DuckDBPyConnection, organo_id: str) -> list[dict]:
+    """Por indicador: % de contratos del órgano con la señal activada frente al % global."""
+    return _filas(
+        con,
+        """
+        WITH r AS (
+            SELECT i.indicador, c.organo_id = ? AS del_organo, i.activado
+            FROM indicador_resultado AS i
+            JOIN contrato_unico AS c USING (contrato_id)
+            WHERE i.aplicable
+        )
+        SELECT indicador,
+               count_if(del_organo) AS aplicables,
+               count_if(del_organo AND activado) AS activados,
+               count_if(del_organo AND activado) / nullif(count_if(del_organo), 0) AS pct_organo,
+               count_if(activado) / count(*) AS pct_global
+        FROM r
+        GROUP BY indicador
+        HAVING count_if(del_organo) > 0
+        ORDER BY indicador
+        """,
+        [organo_id],
+    )
+
+
+def procedimientos_organo(con: duckdb.DuckDBPyConnection, organo_id: str) -> list[dict]:
+    """Nº de contratos por procedimiento (los menores aparecen como «Contrato menor»)."""
+    return _filas(
+        con,
+        """
+        SELECT coalesce(procedimiento, 'No indicado') AS procedimiento, count(*) AS n_contratos
+        FROM contrato_unico WHERE organo_id = ?
+        GROUP BY 1 ORDER BY 2 DESC
+        """,
+        [organo_id],
+    )
+
+
+def proveedores_organo(
+    con: duckdb.DuckDBPyConnection, organo_id: str, limite: int = 10
+) -> list[dict]:
+    """Principales empresas por número de contratos; sin personas físicas (D-007)."""
+    return _filas(
+        con,
+        """
+        SELECT d.adjudicatario_id, d.nombre, d.nif, count(DISTINCT a.contrato_id) AS n_contratos,
+               sum(a.importe_sin_iva) AS importe_sin_iva, sum(a.importe_con_iva) AS importe_con_iva
+        FROM adjudicacion AS a
+        JOIN contrato_unico AS c USING (contrato_id)
+        JOIN adjudicatario AS d USING (adjudicatario_id)
+        WHERE c.organo_id = ? AND d.tipo_persona <> 'fisica'
+        GROUP BY ALL ORDER BY n_contratos DESC LIMIT ?
+        """,
+        [organo_id, limite],
+    )

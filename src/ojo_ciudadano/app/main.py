@@ -22,6 +22,7 @@ paginas = st.navigation(
     [
         st.Page("paginas/alertas.py", title="Panel de alertas", default=True),
         st.Page("paginas/empresa.py", title="Ficha de empresa"),
+        st.Page("paginas/organo.py", title="Ficha de órgano"),
     ]
 )
 cabecera()

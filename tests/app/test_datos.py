@@ -80,3 +80,28 @@ def test_motivos_solo_los_activados(con):
 
 def test_fecha_datos(con):
     assert datos.fecha_datos(con) is not None
+
+
+def test_ficha_de_organo(con):
+    ficha = datos.ficha_organo(con, "ORG")
+    assert ficha["n_contratos"] == 2
+    assert ficha["importe_sin_iva"] == 1050
+    assert datos.ficha_organo(con, "NO_EXISTE") is None
+    assert [o["organo_id"] for o in datos.buscar_organos(con, "órgano")] == ["ORG"]
+
+
+def test_indicadores_del_organo_frente_al_global(con):
+    por_ind = {i["indicador"]: i for i in datos.indicadores_organo(con, "ORG")}
+    assert por_ind["R-01"]["activados"] == 2
+    assert por_ind["R-01"]["pct_organo"] == 1.0
+    assert por_ind["R-02"]["pct_organo"] == 0.0
+
+
+def test_procedimientos_y_proveedores_sin_personas_fisicas(con):
+    assert datos.procedimientos_organo(con, "ORG")[0]["n_contratos"] >= 1
+    proveedores = datos.proveedores_organo(con, "ORG")
+    assert [p["adjudicatario_id"] for p in proveedores] == ["A1"]
+
+
+def test_tendencia_del_organo(con):
+    assert datos.tendencia_organo(con, "ORG")[0]["anio"] == 2025

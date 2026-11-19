@@ -74,3 +74,4 @@ Todo lo marcado «tras el datatón» o «largo plazo» en [01-vision.md](01-visi
 | 19-nov | 2 | Aceptada D-017: esquema v1 congelado (H1 cumplido, con dos días de retraso). Rama `feat/indicadores-r01-r03-r05` con R-01, R-02, R-03 y R-05 pendiente de PR a `main`. |
 | 19-nov (tarde) | 2 | R-04 implementado con test (D-018): 84 contratos activados de 1.348.715. Cinco indicadores listos (R-01 a R-05) para el H2. **Pendiente:** R-06, puntuación por contrato, órgano y empresa. |
 | 19-nov (noche) | 2 | R-06 implementado con test (D-019): 2.226 activados de 11.909. Seis indicadores (R-01 a R-06), por encima del mínimo del H2. **Pendiente:** puntuación por contrato, órgano y empresa. |
+| 19-nov (noche) | 2 | Puntuación por contrato, órgano y empresa (D-020), incluida en el ejecutor. Entregable de la persona 2 para el H2 completo. **Pendiente:** PR a `main`, revisión por el equipo e interfaz sobre estas tablas. |

@@ -25,6 +25,10 @@
 4. **Explicabilidad**: toda alerta muestra qué indicador la disparó, con qué valor y el enlace al expediente.
 5. **Puntuación gradual, no binaria.** Se excluyen causas legales de exclusividad (exclusividad técnica, emergencias justificadas) para reducir falsos positivos.
 
+## Implementación de la puntuación
+
+`sql/indicadores/900_puntuacion.sql` (D-020) crea `puntuacion_contrato`, `puntuacion_organo[_anio]` y `puntuacion_empresa[_anio]`. Con los datos del 16-nov: la mayoría de contratos (1,3 M menores) tiene solo 2 indicadores aplicables (R-03, R-04); las licitaciones tienen 3–5. Hay que mostrar siempre `n_aplicables` y comparar entre pares.
+
 ## Validación (si hay tiempo)
 
 Comprobar con casos ya fiscalizados por la Cámara de Cuentas o recogidos en prensa: deberían puntuar más alto que la media.

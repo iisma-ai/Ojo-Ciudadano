@@ -42,6 +42,12 @@ def calcular_todos(con: duckdb.DuckDBPyConnection, carpeta: Path = CARPETA_SQL) 
     consultas = [ejecutar(con, ruta).sql_query() for ruta in ficheros_indicadores(carpeta)]
     union = "\nUNION ALL\n".join(f"SELECT * FROM ({q})" for q in consultas)
     con.execute(f"CREATE OR REPLACE TABLE indicador_resultado AS {union}")
+    calcular_puntuacion(con, carpeta)
+
+
+def calcular_puntuacion(con: duckdb.DuckDBPyConnection, carpeta: Path = CARPETA_SQL) -> None:
+    """Puntuación por contrato, órgano y empresa a partir de indicador_resultado."""
+    con.execute((carpeta / "900_puntuacion.sql").read_text(encoding="utf-8"))
 
 
 def resumen(con: duckdb.DuckDBPyConnection) -> duckdb.DuckDBPyRelation:

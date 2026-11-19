@@ -8,7 +8,7 @@ Cuatro fases en 11 días, con hitos internos que protegen la entrega: **esquema 
 
 | ID | Fecha | Hito | Criterio de cumplido | Estado |
 | --- | --- | --- | --- | --- |
-| H1 | 17-nov | Esquema de datos y alcance del MVP **congelados** | DDL en `sql/esquema/` + muestra de datos limpia compartida + preguntas P-01/P-02 resueltas | Pendiente |
+| H1 | 17-nov | Esquema de datos y alcance del MVP **congelados** | DDL en `sql/esquema/` + muestra de datos limpia compartida + preguntas P-01/P-02 resueltas | Cumplido el 19-nov (D-017) |
 | H2 | 21-nov | Entregables por persona | Ver tabla de responsables | Pendiente |
 | H3 | 24-nov | **Demo funcional** de extremo a extremo | Las 4 preguntas de demo funcionan; las 4 pantallas muestran datos reales | Pendiente |
 | H4 | 26-nov | **Entrega** a DataMad 2026 | Proyecto enviado según las bases | Pendiente |
@@ -70,3 +70,4 @@ Todo lo marcado «tras el datatón» o «largo plazo» en [01-vision.md](01-visi
 | 15-nov | 1 | Repositorio, entorno (uv), estructura para agentes y documentación del plan inicial creados. Desarrollo sin empezar. |
 | 16-nov | 1 | Fuentes exploradas con datos reales: P-01 y P-02 resueltas. Descargados del portal regional licitaciones, sin publicidad y 1,32 M de menores (2023–sep 2026). Aceptadas D-012 (PLACSP principal) y D-014 (definición de R-03 sin CPV y con IVA); D-010 aplazada. **Sin código de ingesta ni esquema todavía: H1 (17-nov) en riesgo.** |
 | 17-nov (madrugada) | 1 | Ingesta de PLACSP y del CSV del portal, normalización y seudonimización, propuesta de esquema (`sql/esquema/001_tablas.sql`) y primera carga real en DuckDB (1,37 M de contratos). P-06 y P-11 resueltas. **Falta para H1:** que el equipo revise y congele el esquema; subvenciones (BDNS) sin incorporar. |
+| 19-nov | 2 | Aceptada D-017: esquema v1 congelado (H1 cumplido, con dos días de retraso). Rama `feat/indicadores-r01-r03-r05` con R-01, R-02, R-03 y R-05 pendiente de PR a `main`. |

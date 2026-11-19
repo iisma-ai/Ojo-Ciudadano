@@ -155,7 +155,7 @@ Plantilla:
 
 ## D-017 · Congelar el esquema v1 (`sql/esquema/001_tablas.sql`) con ampliaciones aditivas
 - **Fecha:** 2026-11-19
-- **Estado:** Propuesta
+- **Estado:** Aceptada (El Harrak, 2026-11-19)
 - **Autor:** Claude (agente), trabajando con El Harrak
 - **Contexto:** El plan fijaba el congelado del esquema para H1 (17-nov). Existe una propuesta (`sql/esquema/001_tablas.sql`) con la que ya se cargaron 1,37 M de contratos y sobre la que se construyen los indicadores. Sin congelarlo, las cuatro personas trabajan sobre una base que puede cambiar. (Citada antes como D-015 en la bitácora del 17-nov; renumerada porque D-015 y D-016 se usaron en la rama de indicadores.)
 - **Decisión:** Se congela la versión 1 del esquema tal como está en `001_tablas.sql`. Se permiten **ampliaciones aditivas** (tablas o columnas nuevas, p. ej. subvenciones) en ficheros nuevos `002_…sql`, avisando al equipo. Cambiar o borrar columnas existentes requiere una decisión nueva.

@@ -179,3 +179,12 @@ Plantilla:
 - **Decisión:** Se congela la versión 1 del esquema tal como está en `001_tablas.sql`. Se permiten **ampliaciones aditivas** (tablas o columnas nuevas, p. ej. subvenciones) en ficheros nuevos `002_…sql`, avisando al equipo. Cambiar o borrar columnas existentes requiere una decisión nueva.
 - **Alternativas consideradas:** Seguir sin congelar (bloquea el trabajo en paralelo); congelar sin permitir ampliaciones (obligaría a una decisión para incorporar la BDNS).
 - **Consecuencias:** Al aceptarla, H1 pasa a cumplido en 08. Falta la parte de subvenciones, que irá en una ampliación aditiva.
+
+## D-018 · R-04 señala cuota superior al 50 % por órgano y tipo de contrato
+- **Fecha:** 2026-11-19
+- **Estado:** Aceptada (El Harrak pidió seguir con los indicadores del plan; umbral revisable, 2026-11-19)
+- **Autor:** Claude (agente), trabajando con El Harrak
+- **Contexto:** 04 define R-04 como «cuota de una empresa en el gasto de un órgano o CPV; índice HHI por mercado», sin umbral. No tenemos CPV en el portal regional (D-013) y los importes de las dos fuentes no se pueden sumar (con y sin IVA).
+- **Decisión:** Mercado = fuente + órgano + tipo de contrato, sobre todo el periodo. Un contrato activa R-04 si algún adjudicatario suyo concentra **más del 50 %** del importe del mercado. Solo es aplicable si el mercado tiene al menos **10 contratos y 3 empresas**. El HHI del mercado se muestra en el motivo. Resultado con los datos del 16-nov: 1.348.715 aplicables, 84 activados (0,006 %).
+- **Alternativas consideradas:** Umbral del 30 % (cientos de contratos más, sin referencia clara); HHI > 0,25 del mercado (marcaría a todas las empresas del mercado, no a la dominante); mercado por CPV (no disponible).
+- **Consecuencias:** Es un indicador muy selectivo: casi no moverá la puntuación por contrato, pero sí sirve en la ficha de órgano y de empresa (cuota y HHI). No distingue exclusividades legítimas ni mercados pequeños por naturaleza. Actualizado 04.

@@ -170,3 +170,12 @@ Plantilla:
 - **Decisión:** R-05 se activa cuando el **importe de las modificaciones supera el 20 % del importe adjudicado** (con IVA, ambos del portal regional). El 20 % es el límite de la LCSP para las modificaciones previstas en el pliego (art. 204). Valor = modificaciones / adjudicado. Las prórrogas se muestran en el motivo, pero no cuentan. Para evitar que el redondeo de céntimos decida, se exige superar el 20 % en más de 1 €: 362 contratos tienen las modificaciones justo en el 20 %, el máximo legal. Resultado con los datos del 16-nov: 573 contratos (1,8 %).
 - **Alternativas consideradas:** Umbral del 10 % (1.531 contratos, 4,9 %, sin referencia legal); modificaciones + prórrogas > 20 % (8.072 contratos, mayoría de prórrogas previstas).
 - **Consecuencias:** Solo aplica a contratos del portal regional (PLACSP no publica modificaciones). Si la licitación también está en PLACSP, el resultado se asigna al contrato de PLACSP para que la puntuación no la cuente dos veces. Actualizado 04.
+
+## D-017 · Congelar el esquema v1 (`sql/esquema/001_tablas.sql`) con ampliaciones aditivas
+- **Fecha:** 2026-11-19
+- **Estado:** Aceptada (El Harrak, 2026-11-19)
+- **Autor:** Claude (agente), trabajando con El Harrak
+- **Contexto:** El plan fijaba el congelado del esquema para H1 (17-nov). Existe una propuesta (`sql/esquema/001_tablas.sql`) con la que ya se cargaron 1,37 M de contratos y sobre la que se construyen los indicadores. Sin congelarlo, las cuatro personas trabajan sobre una base que puede cambiar. (Citada antes como D-015 en la bitácora del 17-nov; renumerada porque D-015 y D-016 se usaron en la rama de indicadores.)
+- **Decisión:** Se congela la versión 1 del esquema tal como está en `001_tablas.sql`. Se permiten **ampliaciones aditivas** (tablas o columnas nuevas, p. ej. subvenciones) en ficheros nuevos `002_…sql`, avisando al equipo. Cambiar o borrar columnas existentes requiere una decisión nueva.
+- **Alternativas consideradas:** Seguir sin congelar (bloquea el trabajo en paralelo); congelar sin permitir ampliaciones (obligaría a una decisión para incorporar la BDNS).
+- **Consecuencias:** Al aceptarla, H1 pasa a cumplido en 08. Falta la parte de subvenciones, que irá en una ampliación aditiva.

@@ -23,9 +23,9 @@ Plataforma de transparencia del gasto público de la Comunidad de Madrid para **
 
 ## Alcance (resumen; detalle en `docs/`)
 
-- **Dentro:** contratos 2023–2026 de la Comunidad de Madrid (núcleo) + subvenciones (BDNS). Cinco módulos: mapa del dinero, ficha de empresa, ficha de órgano, panel de alertas, asistente.
+- **Dentro:** contratos 2023–2026 de la Comunidad de Madrid (núcleo) + subvenciones (BDNS). Cinco módulos: mapa del dinero, ficha de empresa, ficha de órgano, panel de alertas, asistente. Señal complementaria de detección de anomalías con aprendizaje automático (D-021: no supervisado por defecto, fuera de la puntuación hasta validarla).
 - **Fuera hasta el 26-nov:** otras administraciones, Registro Mercantil, trazabilidad partida → contrato, retribuciones individuales, OCDS, API pública.
-- **Recortes si vamos tarde, en orden:** 1) RAG documental, 2) extracción de PDFs con IA, 3) indicadores de prioridad baja, 4) subvenciones.
+- **Recortes si vamos tarde, en orden:** 1) detección de anomalías con aprendizaje automático, 2) RAG documental, 3) extracción de PDFs con IA, 4) indicadores de prioridad baja, 5) subvenciones.
 - **No se recorta:** datos limpios de contratos, ≥3 indicadores, ficha de empresa, enlace al origen en cada cifra.
 - **Hitos:** H1 esquema congelado 17-nov · H2 entregables 21-nov · H3 demo funcional 24-nov · H4 entrega 26-nov. **El 25 no se añaden funciones.**
 

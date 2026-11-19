@@ -54,6 +54,7 @@ Ojo-Ciudadano/
 │   ├── normalizacion/        # NIF, alias, UTE, deduplicación
 │   ├── modelo/               # Esquema DuckDB y carga
 │   ├── indicadores/          # Ejecutor de los SQL de indicadores y puntuación
+│   ├── anomalias/            # Detección de anomalías con aprendizaje automático (D-021)
 │   ├── asistente/            # Agente, herramientas texto a SQL y RAG
 │   └── app/                  # Streamlit
 ├── sql/

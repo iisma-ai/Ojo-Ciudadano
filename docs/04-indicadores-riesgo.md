@@ -29,6 +29,10 @@
 
 `sql/indicadores/900_puntuacion.sql` (D-020) crea `puntuacion_contrato`, `puntuacion_organo[_anio]` y `puntuacion_empresa[_anio]`. Con los datos del 16-nov: la mayoría de contratos (1,3 M menores) tiene solo 2 indicadores aplicables (R-03, R-04); las licitaciones tienen 3–5. Hay que mostrar siempre `n_aplicables` y comparar entre pares.
 
+## Detección de anomalías (complementaria, D-021)
+
+Además de los indicadores con reglas, un modelo de aprendizaje automático marca los contratos **atípicos respecto a contratos similares**. Por defecto se usa un método no supervisado: clustering por tipo de contrato y distancia a su grupo, o Isolation Forest. Solo se usaría uno supervisado si hubiera etiquetas legítimas (p. ej. casos de la Cámara de Cuentas), nunca etiquetas de «corrupción» (D-002). Cada contrato atípico se muestra con las variables que más lo alejan de sus pares y el enlace al expediente. **No entra en la puntuación** hasta validarlo. Es el primer recorte si vamos tarde.
+
 ## Validación (si hay tiempo)
 
 Comprobar con casos ya fiscalizados por la Cámara de Cuentas o recogidos en prensa: deberían puntuar más alto que la media.

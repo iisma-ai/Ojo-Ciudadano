@@ -42,13 +42,15 @@ Cuatro fases en 11 días, con hitos internos que protegen la entrega: **esquema 
 | 2 | _por asignar_ | Indicadores de riesgo | Cinco indicadores de prioridad alta y media en SQL, con puntuación por contrato, órgano y empresa |
 | 3 | _por asignar_ | Interfaz | Mapa del dinero, ficha de empresa, ficha de órgano y panel de alertas en Streamlit |
 | 4 | _por asignar_ | Asistente | Agente con texto a SQL y RAG sobre un corpus pequeño, respondiendo bien a las 4 preguntas de demo |
+| _por asignar_ | _por asignar_ | Detección de anomalías (D-021) | Para el 23-nov: tabla `anomalia_resultado` con contratos atípicos respecto a sus pares (no supervisado por defecto), con las variables que lo explican y su test |
 
 ## Qué recortamos si vamos tarde, en este orden
 
-1. **RAG documental**: el asistente queda solo con texto a SQL.
-2. **Extracción de PDFs con IA**: solo campos estructurados.
-3. **Indicadores de prioridad baja** (R-07 plazo corto, R-08 opacidad documental).
-4. **Subvenciones**: el MVP se queda solo con contratos.
+1. **Detección de anomalías con aprendizaje automático** (D-021): quedan solo los indicadores en SQL.
+2. **RAG documental**: el asistente queda solo con texto a SQL.
+3. **Extracción de PDFs con IA**: solo campos estructurados.
+4. **Indicadores de prioridad baja** (R-07 plazo corto, R-08 opacidad documental).
+5. **Subvenciones**: el MVP se queda solo con contratos.
 
 Aplicar un recorte = registrar decisión en `decisions.md`.
 

@@ -188,3 +188,12 @@ Plantilla:
 - **Decisión:** Mercado = fuente + órgano + tipo de contrato, sobre todo el periodo. Un contrato activa R-04 si algún adjudicatario suyo concentra **más del 50 %** del importe del mercado. Solo es aplicable si el mercado tiene al menos **10 contratos y 3 empresas**. El HHI del mercado se muestra en el motivo. Resultado con los datos del 16-nov: 1.348.715 aplicables, 84 activados (0,006 %).
 - **Alternativas consideradas:** Umbral del 30 % (cientos de contratos más, sin referencia clara); HHI > 0,25 del mercado (marcaría a todas las empresas del mercado, no a la dominante); mercado por CPV (no disponible).
 - **Consecuencias:** Es un indicador muy selectivo: casi no moverá la puntuación por contrato, pero sí sirve en la ficha de órgano y de empresa (cuota y HHI). No distingue exclusividades legítimas ni mercados pequeños por naturaleza. Actualizado 04.
+
+## D-019 · R-06 señala baja nula (≤ 0,5 %) o extrema (≥ 50 %) en procedimientos con concurrencia
+- **Fecha:** 2026-11-19
+- **Estado:** Aceptada (El Harrak pidió seguir con los indicadores del plan; umbrales revisables, 2026-11-19)
+- **Autor:** Claude (agente), trabajando con El Harrak
+- **Contexto:** 04 define R-06 como diferencia entre presupuesto base y adjudicación «cercana a cero, o extrema», sin cifras. En los datos del 16-nov, la baja es cero en el 78 % de los negociados sin publicidad (donde es esperable, no hay competencia) y en el 13 % de los abiertos. El 4 % de los contratos con concurrencia tienen una baja del 50 % o más.
+- **Decisión:** Baja = 1 − adjudicado / presupuesto base, con la misma base en ambos (sin IVA en PLACSP, con IVA en el portal). Solo aplica a procedimientos abierto, abierto simplificado y restringido, con al menos dos ofertas, todos los lotes resueltos y presupuesto e importe positivos. Se activa con baja **≤ 0,5 %** (incluye adjudicar por encima del presupuesto) o **≥ 50 %**. Resultado con los datos del 16-nov: 11.909 aplicables, 2.226 activados (18,7 %).
+- **Alternativas consideradas:** Incluir negociados (activaría casi todos sin aportar nada); baja exacta cero (el redondeo y pequeñas diferencias lo esquivarían); umbral extremo del 30 % (mucho más amplio); comparar con la media de las ofertas como pide el art. 149 LCSP (no tenemos las ofertas).
+- **Consecuencias:** La tasa es alta y mezcla dos señales distintas; la interfaz debe mostrar cuál se dio (el motivo lo dice). Un solo licitador queda fuera (lo cubre R-01). Actualizado 04.

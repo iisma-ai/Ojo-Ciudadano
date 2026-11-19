@@ -67,9 +67,11 @@ SELECT
     negociado OR otro_sin_publicidad AS activado,
     CAST(NULL AS DOUBLE) AS valor,
     CASE
-        WHEN negociado THEN 'Adjudicado por procedimiento negociado sin publicidad'
+        WHEN negociado THEN 'Adjudicado por procedimiento negociado sin publicidad. La ley '
+            || 'lo permite en supuestos concretos; los datos publicados no indican cuál se alegó'
         WHEN otro_sin_publicidad THEN 'Adjudicado sin publicidad: el portal regional lo '
-            || 'clasifica como «otro procedimiento» (incluye las tramitaciones de emergencia)'
+            || 'clasifica como «otro procedimiento», categoría en la que aparecen, entre otras, '
+            || 'las tramitaciones de emergencia. Los datos no indican si este contrato lo es'
     END AS motivo,
     url_origen
 FROM senales

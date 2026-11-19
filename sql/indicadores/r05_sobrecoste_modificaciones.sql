@@ -68,6 +68,8 @@ SELECT
             THEN '. Prórrogas, no incluidas en el cálculo: ' || euros(prorrogas) || ' €'
             ELSE ''
         END
+        || '. Superar esta referencia no implica por sí solo un incumplimiento: la ley admite '
+        || 'otras modificaciones justificadas'
     END AS motivo,
     url_origen
 FROM por_contrato

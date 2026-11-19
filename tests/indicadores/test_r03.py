@@ -11,9 +11,10 @@ def test_dos_menores_que_suman_mas_del_umbral_activan(base):
         assert resultado[contrato]["activado"] is True
         assert resultado[contrato]["valor"] == 19000.0
     assert resultado["m1"]["motivo"] == (
-        "2 contratos menores de al menos 6.050,00 € con el mismo adjudicatario, órgano y tipo "
-        "de contrato suman 19.000,00 € con IVA en 12 meses (umbral de referencia: "
-        "18.150,00 € con IVA)"
+        "Posible fraccionamiento: 2 contratos menores de al menos 6.050,00 € con el mismo "
+        "adjudicatario, órgano y tipo de contrato suman 19.000,00 € con IVA en 12 meses "
+        "(umbral de referencia: 18.150,00 € con IVA). Es una señal para revisar, no una "
+        "prueba: pueden ser necesidades distintas"
     )
 
 
@@ -70,7 +71,7 @@ def test_un_contrato_anterior_se_activa_por_una_ventana_posterior(base):
     base.menor("m3", date(2025, 12, 10), 6200.0)
     resultado = base.resultado(SQL)
     assert all(resultado[m]["activado"] for m in ("m1", "m2", "m3"))
-    assert resultado["m1"]["motivo"].startswith("3 contratos menores")
+    assert resultado["m1"]["motivo"].startswith("Posible fraccionamiento: 3 contratos menores")
 
 
 def test_los_menores_por_debajo_de_un_tercio_del_umbral_no_cuentan(base):

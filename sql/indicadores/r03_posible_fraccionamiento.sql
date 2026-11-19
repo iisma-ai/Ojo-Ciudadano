@@ -109,10 +109,11 @@ SELECT
     a.contrato_id IS NOT NULL AS activado,
     a.suma_ventana AS valor,
     CASE WHEN a.contrato_id IS NOT NULL THEN
-        a.n_ventana || ' contratos menores de al menos ' || euros(p.umbral / 3)
-        || ' € con el mismo adjudicatario, órgano y tipo de contrato suman '
-        || euros(a.suma_ventana) || ' € con IVA en 12 meses (umbral de referencia: '
-        || euros(p.umbral) || ' € con IVA)'
+        'Posible fraccionamiento: ' || a.n_ventana || ' contratos menores de al menos '
+        || euros(p.umbral / 3) || ' € con el mismo adjudicatario, órgano y tipo de contrato '
+        || 'suman ' || euros(a.suma_ventana) || ' € con IVA en 12 meses (umbral de referencia: '
+        || euros(p.umbral) || ' € con IVA). Es una señal para revisar, no una prueba: '
+        || 'pueden ser necesidades distintas'
     END AS motivo,
     p.url_origen
 FROM por_contrato AS p

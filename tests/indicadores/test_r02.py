@@ -8,7 +8,8 @@ def test_negociado_sin_publicidad_activa(base):
     assert fila["aplicable"] is True
     assert fila["activado"] is True
     assert fila["valor"] is None
-    assert fila["motivo"] == "Adjudicado por procedimiento negociado sin publicidad"
+    assert fila["motivo"].startswith("Adjudicado por procedimiento negociado sin publicidad.")
+    assert "no indican cuál se alegó" in fila["motivo"]
 
 
 def test_abierto_no_activa(base):
@@ -34,6 +35,7 @@ def test_otro_procedimiento_en_la_lista_sin_publicidad_del_portal(base):
     resultado = base.resultado(SQL)
     assert resultado["portal_cm:E"]["activado"] is True
     assert "emergencia" in resultado["portal_cm:E"]["motivo"]
+    assert "no indican si este contrato lo es" in resultado["portal_cm:E"]["motivo"]
     assert resultado["portal_cm:F"]["activado"] is False
 
 

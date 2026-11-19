@@ -27,7 +27,9 @@ def test_modificaciones_por_encima_del_20_por_ciento_activan(base):
     assert fila["motivo"] == (
         "Las modificaciones (25.000,00 € con IVA) suponen el 25,0 % del importe adjudicado "
         "(100.000,00 € con IVA); referencia: 20 %, límite de las modificaciones previstas en "
-        "la LCSP. Prórrogas, no incluidas en el cálculo: 100.000,00 €"
+        "la LCSP. Prórrogas, no incluidas en el cálculo: 100.000,00 €. Superar esta referencia "
+        "no implica por sí solo un incumplimiento: la ley admite otras modificaciones "
+        "justificadas"
     )
     assert fila["url_origen"] == "https://ejemplo.test/portal_cm:A"
 

@@ -8,7 +8,7 @@ import pytest
 
 from ojo_ciudadano.indicadores import ejecutor
 
-RAIZ = Path(__file__).resolve().parents[2]
+RAIZ = Path(__file__).resolve().parents[1]
 HOY = date(2026, 11, 17)
 
 

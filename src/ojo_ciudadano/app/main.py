@@ -13,10 +13,12 @@ st.set_page_config(page_title="Ojo Ciudadano", page_icon="👁️", layout="wide
 
 def cabecera() -> None:
     st.title("Ojo Ciudadano")
-    st.caption(f"Datos descargados el {datos.fecha_datos(conexion())}. {textos.PIE}")
+    st.caption(f"{textos.fechas_descarga(datos.fechas_datos(conexion()))} {textos.PIE}")
     st.info(textos.AVISO_CORTO)
     with st.expander("Metodología y fuentes", expanded=False):
         st.markdown(textos.AVISO)
+        st.markdown("**Qué mide cada indicador**")
+        st.markdown(textos.lista_indicadores())
 
 
 paginas = st.navigation(

@@ -67,21 +67,25 @@ AYUDA_INDICADOR = {
     "un mercado con pocas empresas o a requisitos técnicos muy específicos.",
     "R-02": "Adjudicado sin publicidad (negociado sin publicidad u «otro procedimiento» del "
     "portal regional). La ley lo permite en supuestos concretos, como las emergencias.",
-    "R-03": "Varios contratos menores al mismo adjudicatario, órgano y tipo de contrato que en "
-    "12 meses suman más que el límite del contrato menor. Pueden ser necesidades distintas.",
+    "R-03": "Dos o más contratos menores al mismo adjudicatario, órgano y tipo de contrato "
+    "que en 12 meses suman, con IVA, más de 18.150 € (servicios y suministros) o 48.400 € "
+    "(obras). Solo cuentan los menores de al menos 6.050 € / 16.133,33 €. Pueden ser "
+    "necesidades distintas.",
     "R-04": "Un adjudicatario recibe más del 50 % del importe que un órgano adjudica en un tipo "
-    "de contrato. Puede deberse a exclusividad técnica o a un mercado pequeño.",
+    "de contrato (si ese mercado tiene al menos 10 contratos y 3 empresas). Puede deberse a "
+    "exclusividad técnica o a un mercado pequeño.",
     "R-05": "Las modificaciones suman más del 20 % del importe adjudicado. La ley admite otras "
     "modificaciones justificadas; las prórrogas no se cuentan.",
     "R-06": "La baja es cuánto rebaja la oferta ganadora el presupuesto de licitación "
     "(1 − adjudicado / presupuesto). Se activa si es nula o casi nula (≤ 0,5 %), lo que puede "
     "indicar poca competencia, o si es muy alta (≥ 50 %), lo que puede comprometer la "
-    "ejecución. Solo en procedimientos con al menos dos ofertas.",
+    "ejecución. Solo en procedimientos abiertos, abiertos simplificados y restringidos con "
+    "al menos dos ofertas. Incluye las adjudicaciones por encima del presupuesto.",
 }
 
 NOMBRES_FUENTE = {
     "placsp": "Plataforma de Contratación del Sector Público",
-    "portal_cm": "Portal de la Contratación de la Comunidad de Madrid",
+    "portal_cm": "Portal de la Contratación Pública de la Comunidad de Madrid",
 }
 
 
@@ -94,5 +98,7 @@ def lista_indicadores() -> str:
 
 def fechas_descarga(fechas: list[dict]) -> str:
     """«Datos descargados: <fuente> el <fecha>; …», una fecha por fuente."""
+    if not fechas:
+        return ""
     partes = [f"{NOMBRES_FUENTE.get(f['fuente'], f['fuente'])} el {f['fecha']}" for f in fechas]
     return "Datos descargados: " + "; ".join(partes) + "."

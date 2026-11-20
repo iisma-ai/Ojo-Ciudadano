@@ -15,3 +15,7 @@ def test_fechas_de_descarga_nombran_cada_fuente():
     )
     assert "Plataforma de Contratación del Sector Público el 2026-11-16" in texto
     assert "Comunidad de Madrid el 2026-11-17" in texto
+
+
+def test_sin_fechas_no_se_muestra_nada():
+    assert textos.fechas_descarga([]) == ""

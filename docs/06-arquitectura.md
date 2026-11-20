@@ -89,6 +89,8 @@ Reglas del modelo:
 
 Primera carga con datos reales (2026-11-17): 131 órganos, 28.045 adjudicatarios (5.070 personas físicas seudonimizadas), 1.371.693 contratos (17.589 de PLACSP, 36.029 licitaciones y adjudicaciones sin publicidad del portal —17.252 marcadas como duplicadas de PLACSP— y 1.318.075 menores) y 1.404.789 adjudicaciones. Tarda unos 3 minutos; el fichero ocupa unos 350 MB.
 
+Personas físicas: además de los DNI y NIE válidos, se tratan como físicas las formas con errata habituales en las fuentes (DNI sin el cero inicial, `1234567L`; NIE con una cifra de más). Algunos NIF-IVA extranjeros con la misma forma (p. ej. irlandeses) quedan también ocultos: prima la privacidad (D-007). Con esta regla, la carga del 20-nov tiene 5.095 personas físicas seudonimizadas (25 más que el 17-nov). La interfaz vuelve a filtrar por la forma del NIF por si la base es anterior.
+
 Seudónimos: se calculan con una sal secreta (`SEUDONIMO_SAL` en `.env`, o `data/.sal_seudonimos` si no está definida). **Todo el equipo debe usar la misma sal** para que los identificadores `PF-…` coincidan entre máquinas; nunca se sube al repositorio.
 
 ### Resultados de los indicadores
@@ -107,4 +109,4 @@ Cuando el equipo lo congele, cambiarlo requiere decisión registrada, porque blo
 
 ## Interfaz (Streamlit)
 
-`uv run streamlit run src/ojo_ciudadano/app/main.py`. `app/main.py` define la navegación y la cabecera (fecha de datos, aviso de metodología); `app/paginas/` tiene una pantalla por fichero (`alertas.py`, `empresa.py`, `organo.py`); `app/datos.py` reúne todas las consultas (solo lectura, con tests en `tests/app/`); `app/textos.py` guarda los textos fijos revisados para el lenguaje no acusatorio. Las pantallas leen `puntuacion_*` e `indicador_resultado` de `data/ojo_ciudadano.duckdb`, que hay que regenerar con el ejecutor de indicadores.
+`uv run streamlit run src/ojo_ciudadano/app/main.py`. `app/main.py` define la navegación y la cabecera (fecha de descarga de cada fuente, aviso de metodología y qué mide cada indicador); `app/paginas/` tiene una pantalla por fichero (`alertas.py`, `empresa.py`, `organo.py`, `mapa.py`); `app/datos.py` reúne todas las consultas (solo lectura, con tests en `tests/app/`); `app/textos.py` guarda los textos fijos revisados para el lenguaje no acusatorio. Las pantallas leen `puntuacion_*` e `indicador_resultado` de `data/ojo_ciudadano.duckdb`, que hay que regenerar con el ejecutor de indicadores.

@@ -30,9 +30,9 @@ WITH ultima AS (
     SELECT max(fecha_contrato) AS fecha FROM contrato_unico WHERE es_menor
 )
 SELECT
-    CASE WHEN d.tipo_persona = 'fisica' THEN 'Personas físicas (agregadas)'
-         ELSE coalesce(d.nombre, d.adjudicatario_id) END AS adjudicatario,
-    CASE WHEN d.tipo_persona = 'fisica' THEN NULL ELSE d.nif END AS nif,
+    CASE WHEN d.tipo_persona IN ('juridica', 'ute') THEN coalesce(d.nombre, d.adjudicatario_id)
+         ELSE 'Personas físicas o sin identificar (agregadas)' END AS adjudicatario,
+    CASE WHEN d.tipo_persona IN ('juridica', 'ute') THEN d.nif END AS nif,
     count(DISTINCT c.contrato_id) AS n_contratos,
     sum(a.importe_con_iva) AS importe_con_iva,
     min(c.fecha_contrato) AS desde,
@@ -55,13 +55,15 @@ LIMIT 20
         "Contratos menores del portal regional (importes con IVA) de los órganos cuya "
         "consejería contiene el texto indicado, en los dos años anteriores al último contrato "
         "publicado. Las consejerías cambian de nombre entre legislaturas y 21 órganos no "
-        "tienen consejería en la fuente. Las personas físicas se muestran agregadas."
+        "tienen consejería en la fuente. Las personas físicas y los adjudicatarios cuyo NIF "
+        "no se reconoce como de empresa española se muestran agregados."
     ),
 )
 
 SIN_PUBLICIDAD_POR_ORGANO = ConsultaDemo(
     pregunta=(
-        "¿Qué órganos adjudican más por procedimientos sin publicidad, en proporción a su gasto?"
+        "¿Qué órganos adjudican más por negociado sin publicidad u otros procedimientos "
+        "(R-02), en proporción a su gasto?"
     ),
     parametros=(),
     sql="""
@@ -73,14 +75,16 @@ WITH importe AS (
 )
 SELECT
     o.nombre AS organo,
-    c.fuente,
+    CASE c.fuente WHEN 'placsp' THEN 'Plataforma de Contratación del Sector Público'
+         ELSE 'Portal de la Contratación Pública de la Comunidad de Madrid' END AS fuente,
     CASE c.fuente WHEN 'placsp' THEN 'sin IVA' ELSE 'con IVA' END AS base_importe,
     count(*) AS n_contratos,
-    count_if(r.activado) AS n_sin_publicidad,
+    count_if(r.activado) AS n_alerta_r02,
     sum(i.importe) AS importe_total,
-    coalesce(sum(i.importe) FILTER (WHERE r.activado), 0) AS importe_sin_publicidad,
+    coalesce(sum(i.importe) FILTER (WHERE r.activado), 0) AS importe_alerta_r02,
     coalesce(sum(i.importe) FILTER (WHERE r.activado), 0) / sum(i.importe)
-        AS proporcion_importe_sin_publicidad
+        AS proporcion_importe_alerta_r02,
+    max(c.fecha_descarga) AS fecha_descarga
 FROM indicador_resultado AS r
 JOIN contrato_unico AS c USING (contrato_id)
 JOIN organo AS o USING (organo_id)
@@ -88,7 +92,7 @@ JOIN importe AS i USING (contrato_id)
 WHERE r.indicador = 'R-02' AND i.importe > 0
 GROUP BY ALL
 HAVING count(*) >= 20
-ORDER BY proporcion_importe_sin_publicidad DESC
+ORDER BY proporcion_importe_alerta_r02 DESC
 LIMIT 20
 """,
     nota=(
@@ -101,7 +105,10 @@ LIMIT 20
 )
 
 SOBRECOSTE_MODIFICACIONES = ConsultaDemo(
-    pregunta="Enséñame los contratos con mayor sobrecoste por modificaciones y prórrogas.",
+    pregunta=(
+        "Enséñame los contratos en los que las modificaciones pesan más sobre el importe "
+        "adjudicado."
+    ),
     parametros=(),
     sql="""
 SELECT
@@ -109,22 +116,25 @@ SELECT
     o.nombre AS organo,
     r.valor AS modificaciones_sobre_adjudicado,
     r.activado AS supera_referencia_20,
+    r.valor > 10 AS importe_a_comprobar,
     r.motivo,
+    'Portal de la Contratación Pública de la Comunidad de Madrid' AS fuente,
+    c.fecha_descarga,
     r.url_origen
 FROM indicador_resultado AS r
 JOIN contrato_unico AS c USING (contrato_id)
 JOIN organo AS o USING (organo_id)
 WHERE r.indicador = 'R-05' AND r.valor > 0
-ORDER BY r.valor DESC
+ORDER BY r.valor > 10, r.valor DESC
 LIMIT 20
 """,
     nota=(
         "Contratos del portal regional ordenados por el peso de sus modificaciones sobre el "
         "importe adjudicado (indicador R-05). Las prórrogas aparecen en el motivo pero no "
         "cuentan: suelen ser anualidades previstas en el pliego (D-016). Superar el 20 % no "
-        "implica por sí solo un incumplimiento. PLACSP no publica modificaciones. Un porcentaje "
-        "desmesurado (más del 1.000 %) suele deberse a un error en el importe publicado: "
-        "compruébalo en la ficha oficial."
+        "implica por sí solo un incumplimiento. PLACSP no publica modificaciones. Los porcentajes "
+        "de más del 1.000 % aparecen al final, marcados en «importe_a_comprobar»: "
+        "probablemente son un error del importe publicado, no un aumento real."
     ),
 )
 
@@ -135,10 +145,12 @@ RECIBIDO_POR_EMPRESA = ConsultaDemo(
 SELECT
     d.nombre AS empresa,
     d.nif,
-    c.fuente,
+    CASE c.fuente WHEN 'placsp' THEN 'Plataforma de Contratación del Sector Público'
+         ELSE 'Portal de la Contratación Pública de la Comunidad de Madrid' END AS fuente,
     year(coalesce(c.fecha_contrato, a.fecha_formalizacion, c.fecha_fin_plazo)) AS anio,
     count(DISTINCT c.contrato_id) AS n_contratos,
-    count(DISTINCT c.contrato_id) FILTER (WHERE p.n_activados > 0) AS n_con_alertas,
+    count(DISTINCT c.contrato_id) FILTER (WHERE p.n_activados > 0)
+        AS n_con_indicadores_activados,
     sum(a.importe_sin_iva) AS importe_sin_iva,
     sum(a.importe_con_iva) AS importe_con_iva,
     max(c.fecha_descarga) AS fecha_descarga
@@ -146,7 +158,7 @@ FROM adjudicatario AS d
 JOIN adjudicacion AS a USING (adjudicatario_id)
 JOIN contrato_unico AS c USING (contrato_id)
 LEFT JOIN puntuacion_contrato AS p USING (contrato_id)
-WHERE d.tipo_persona <> 'fisica'
+WHERE d.tipo_persona IN ('juridica', 'ute')
   AND (d.nif = upper($empresa) OR d.nombre ILIKE '%' || $empresa || '%')
 GROUP BY ALL
 ORDER BY empresa, fuente, anio
@@ -155,8 +167,9 @@ LIMIT 100
     nota=(
         "Contratos adjudicados a la empresa por fuente y año: sin IVA en la Plataforma de "
         "Contratación y con IVA en el portal regional (no se suman). **Las subvenciones aún "
-        "no están cargadas**, así que esta respuesta solo cubre contratos. No hay fichas de "
-        "personas físicas."
+        "no están cargadas**, así que esta respuesta solo cubre contratos. Solo se buscan "
+        "empresas españolas y UTE: no hay fichas de personas físicas ni de adjudicatarios "
+        "cuyo NIF no se puede verificar."
     ),
 )
 

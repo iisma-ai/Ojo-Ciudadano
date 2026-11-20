@@ -51,7 +51,7 @@ if not filas:
 else:
     configuracion = {c: st.column_config.NumberColumn(format="%.1f %%") for c in columnas_pct}
     configuracion["url_origen"] = st.column_config.LinkColumn(
-        "Expediente oficial", display_text="Ver ficha"
+        "Expediente oficial", display_text="Ver en el portal oficial"
     )
     for c in resultado["columnas"]:
         if c.startswith("importe"):

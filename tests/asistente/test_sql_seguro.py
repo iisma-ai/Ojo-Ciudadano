@@ -103,8 +103,9 @@ def test_menores_por_consejeria_agrega_personas_fisicas(con):
 
     r = sql_seguro.ejecutar(con, q.sql, {"consejeria": "sanidad"})
     filas = {f[0]: f for f in r["filas"]}
-    assert filas["Personas físicas (agregadas)"][1] is None  # sin NIF
-    assert filas["Personas físicas (agregadas)"][2] == 2
+    agregadas = filas["Personas físicas o sin identificar (agregadas)"]
+    assert agregadas[1] is None  # sin NIF
+    assert agregadas[2] == 2
     assert filas["Servicios Ejemplo SL"][2] == 1
 
 
@@ -112,7 +113,19 @@ def test_recibido_por_empresa_separa_fuentes(con):
     from ojo_ciudadano.asistente.consultas_demo import RECIBIDO_POR_EMPRESA as q
 
     r = sql_seguro.ejecutar(con, q.sql, {"empresa": "b12345678"})
-    por_fuente = {f[2]: f for f in r["filas"]}
-    assert por_fuente["placsp"][6] == 1000 and por_fuente["placsp"][7] is None
-    assert por_fuente["portal_cm"][7] == 900 and por_fuente["portal_cm"][6] is None
+    filas = [dict(zip(r["columnas"], f, strict=True)) for f in r["filas"]]
+    por_fuente = {f["fuente"].split()[0]: f for f in filas}
+    assert por_fuente["Plataforma"]["importe_sin_iva"] == 1000
+    assert por_fuente["Plataforma"]["importe_con_iva"] is None
+    assert por_fuente["Portal"]["importe_con_iva"] == 900
+    assert por_fuente["Portal"]["importe_sin_iva"] is None
     assert sql_seguro.ejecutar(con, q.sql, {"empresa": "PF-abc"})["filas"] == []
+
+
+def test_recibido_por_empresa_no_muestra_nif_sin_verificar(con):
+    from ojo_ciudadano.asistente.consultas_demo import RECIBIDO_POR_EMPRESA as q
+
+    con.execute(
+        "INSERT INTO adjudicatario VALUES ('1234567L', '1234567L', 'Nombre Apellido', 'otro')"
+    )
+    assert sql_seguro.ejecutar(con, q.sql, {"empresa": "Apellido"})["filas"] == []

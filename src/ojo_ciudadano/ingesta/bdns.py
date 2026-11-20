@@ -88,7 +88,7 @@ def descargar_mes(
         )
         respuesta.raise_for_status()
         datos = respuesta.json()
-        filas.extend(datos["content"])
+        filas.extend(minimizar(f) for f in datos["content"])
         time.sleep(PAUSA_SEGUNDOS)
         if datos["last"]:
             break
@@ -117,6 +117,15 @@ def descargar(anios=ANIOS, carpeta: Path = CARPETA, forzar: bool = False) -> lis
     return rutas
 
 
+def minimizar(fila: dict) -> dict:
+    """Quita el nombre de las personas físicas antes de guardar la descarga: no hace falta para
+    nada y la BDNS lo publica junto al NIF enmascarado (D-007, minimización)."""
+    nif_texto, _ = separar_beneficiario(fila.get("beneficiario"))
+    if nif_texto is None or n_nif.tipo_persona(n_nif.normalizar_nif(nif_texto)) != "juridica":
+        return {**fila, "beneficiario": nif_texto}
+    return fila
+
+
 def separar_beneficiario(texto: str | None) -> tuple[str | None, str | None]:
     """«B12345678 EMPRESA SL» → («B12345678», «EMPRESA SL»). El NIF es la primera palabra."""
     if not texto or not texto.strip():
@@ -128,11 +137,12 @@ def separar_beneficiario(texto: str | None) -> tuple[str | None, str | None]:
 
 
 def identificar_beneficiario(texto: str | None, id_persona, sal: bytes | None = None) -> dict:
-    """Identidad que guardamos. Si el NIF está enmascarado o solo hay un nombre, se trata como
+    """Identidad que guardamos. Solo las personas jurídicas y las UTE conservan NIF y nombre.
+    Todo lo demás (NIF enmascarado, extranjero o erróneo, o solo un nombre) se trata como
     persona física: sin NIF ni nombre, con el seudónimo de su idPersona (D-007)."""
     nif_texto, nombre = separar_beneficiario(texto)
     identidad = n_nif.identificar(nif_texto, nombre, sal)
-    if identidad["tipo_persona"] != "fisica" and nif_texto is not None:
+    if identidad["tipo_persona"] in ("juridica", "ute"):
         return identidad
     seudonimo = n_nif.seudonimo(f"BDNS:{id_persona}", sal) if id_persona is not None else None
     return {"adjudicatario_id": seudonimo, "nif": None, "nombre": None, "tipo_persona": "fisica"}

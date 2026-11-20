@@ -106,3 +106,18 @@ def test_sin_bdns_la_carga_no_crea_concesiones(tmp_path):
 def test_organos_con_otro_nombre_en_la_bdns_usan_el_de_los_contratos():
     assert bdns.organo_id("SERVICIO MADRILEÑO DE SALUD (SERMAS)") == "SERVICIO MADRILENO DE SALUD"
     assert bdns.organo_id("CONSEJERÍA DE SANIDAD") == "CONSEJERIA DE SANIDAD"
+
+
+def test_la_cache_no_guarda_nombres_de_personas():
+    persona = bdns.minimizar(_fila("SB9", "***1234** NOMBRE APELLIDO", 20, 1.0))
+    assert persona["beneficiario"] == "***1234**"
+    extranjero = bdns.minimizar(_fila("SB8", "ZZ999 NOMBRE EXTRANJERO", 22, 1.0))
+    assert extranjero["beneficiario"] == "ZZ999"
+    empresa = bdns.minimizar(_fila("SB7", "B11111111 EMPRESA UNO, S.L.", 10, 1.0))
+    assert empresa["beneficiario"] == "B11111111 EMPRESA UNO, S.L."
+
+
+def test_nif_extranjero_o_erroneo_se_trata_como_persona():
+    identidad = bdns.identificar_beneficiario("ZZ999 NOMBRE EXTRANJERO", 22, SAL)
+    assert identidad["tipo_persona"] == "fisica"
+    assert identidad["nombre"] is None and identidad["nif"] is None

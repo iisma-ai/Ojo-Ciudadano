@@ -44,13 +44,19 @@ if elegida:
 
     subvenciones = datos.subvenciones_empresa(conexion(), ficha["adjudicatario_id"])
     if subvenciones:
+        st.caption(
+            "Adjudicatario o beneficiario: puede ser una empresa, una entidad pública "
+            "(ayuntamiento, universidad) o una entidad sin ánimo de lucro."
+        )
         total = subvenciones[0]["importe_total"] or 0
         n_total = subvenciones[0]["n_convocatorias_total"]
         with st.expander(f"Subvenciones concedidas: {total:,.0f} € en {n_total} convocatorias"):
             st.caption(
                 "Fuente: [Base de Datos Nacional de Subvenciones]"
-                "(https://www.infosubvenciones.es/bdnstrans/GE/es/concesiones). Importes "
-                "concedidos; no se suman con los de los contratos. Se muestran las 20 "
+                "(https://www.infosubvenciones.es/bdnstrans/GE/es/concesiones), datos "
+                f"descargados el {subvenciones[0]['fecha_descarga']}. Importes concedidos; no se "
+                "suman con los de los contratos. Cada enlace lleva a la ficha de la convocatoria "
+                "en la BDNS (las concesiones no tienen página propia). Se muestran las 20 "
                 "convocatorias de mayor importe."
             )
             for sv in subvenciones:

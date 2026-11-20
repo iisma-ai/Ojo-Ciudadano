@@ -76,15 +76,30 @@ def ficha_empresa(con: duckdb.DuckDBPyConnection, adjudicatario_id: str) -> dict
     return filas[0] if filas else None
 
 
+def hay_subvenciones(con: duckdb.DuckDBPyConnection) -> bool:
+    """La base tiene la tabla `concesion` (se cargó con la BDNS)."""
+    return bool(
+        con.execute(
+            "SELECT count(*) FROM duckdb_tables() WHERE table_name = 'concesion'"
+        ).fetchone()[0]
+    )
+
+
+# Beneficiario que se puede mostrar con nombre; el resto (personas físicas, NIF extranjeros o
+# erróneos) se agrupa en una sola fila por órgano (D-007).
+AGREGADO_PERSONAS = "Personas físicas y otros beneficiarios (agregados)"
+
+
+def _beneficiario_visible(alias: str) -> str:
+    return f"({alias}.tipo_persona IN ('juridica', 'ute') AND {_sin_personas(alias)})"
+
+
 def subvenciones_empresa(
     con: duckdb.DuckDBPyConnection, adjudicatario_id: str, limite: int = 20
 ) -> list[dict]:
     """Subvenciones concedidas a la empresa por convocatoria, con enlace a la BDNS. Vacío si la
     base no tiene la tabla `concesion` (se cargó sin la BDNS)."""
-    hay_tabla = con.execute(
-        "SELECT count(*) FROM duckdb_tables() WHERE table_name = 'concesion'"
-    ).fetchone()[0]
-    if not hay_tabla:
+    if not hay_subvenciones(con):
         return []
     return _filas(
         con,
@@ -376,3 +391,150 @@ def tipos_contrato(con: duckdb.DuckDBPyConnection) -> list[str]:
         "ORDER BY 1"
     ).fetchall()
     return [f[0] for f in filas]
+
+
+def subvenciones_organo(con: duckdb.DuckDBPyConnection, organo_id: str) -> dict | None:
+    """Resumen de las subvenciones concedidas por un órgano (None si no hay)."""
+    if not hay_subvenciones(con):
+        return None
+    filas = _filas(
+        con,
+        f"""
+        SELECT count(*) AS n_concesiones, sum(s.importe) AS importe,
+               count(DISTINCT s.beneficiario_id) FILTER (WHERE {_beneficiario_visible("a")})
+                   AS n_entidades,
+               coalesce(sum(s.importe) FILTER (WHERE NOT {_beneficiario_visible("a")}), 0)
+                   AS importe_agregado,
+               count(*) FILTER (WHERE NOT {_beneficiario_visible("a")}) AS n_agregado,
+               min(s.fecha_concesion) AS desde, max(s.fecha_concesion) AS hasta,
+               max(s.fecha_descarga) AS fecha_descarga
+        FROM concesion AS s
+        JOIN adjudicatario AS a ON a.adjudicatario_id = s.beneficiario_id
+        WHERE s.organo_id = ?
+        """,
+        [organo_id],
+    )
+    return filas[0] if filas and filas[0]["n_concesiones"] else None
+
+
+def convocatorias_organo(
+    con: duckdb.DuckDBPyConnection, organo_id: str, limite: int = 10
+) -> list[dict]:
+    """Convocatorias del órgano con más importe concedido, con enlace a su ficha en la BDNS."""
+    if not hay_subvenciones(con):
+        return []
+    return _filas(
+        con,
+        """
+        SELECT convocatoria, count(*) AS n_concesiones, sum(importe) AS importe,
+               any_value(url_origen) AS url_origen
+        FROM concesion WHERE organo_id = ?
+        GROUP BY convocatoria ORDER BY importe DESC LIMIT ?
+        """,
+        [organo_id, limite],
+    )
+
+
+def beneficiarios_organo(
+    con: duckdb.DuckDBPyConnection, organo_id: str, limite: int = 10
+) -> list[dict]:
+    """Entidades (personas jurídicas) con más importe concedido por el órgano."""
+    if not hay_subvenciones(con):
+        return []
+    return _filas(
+        con,
+        f"""
+        SELECT a.adjudicatario_id, a.nombre, a.nif, count(*) AS n_concesiones,
+               sum(s.importe) AS importe
+        FROM concesion AS s
+        JOIN adjudicatario AS a ON a.adjudicatario_id = s.beneficiario_id
+        WHERE s.organo_id = ? AND {_beneficiario_visible("a")}
+        GROUP BY ALL ORDER BY importe DESC LIMIT ?
+        """,
+        [organo_id, limite],
+    )
+
+
+def _beneficiario_flujo() -> str:
+    return f"CASE WHEN {_beneficiario_visible('a')} THEN a.adjudicatario_id ELSE 'AGREGADO' END"
+
+
+def flujos_subvenciones(
+    con: duckdb.DuckDBPyConnection, anio: int | None = None, limite: int = 25
+) -> list[dict]:
+    """Mayores flujos órgano → beneficiario de subvenciones. Las personas físicas y los NIF no
+    verificables de cada órgano forman un solo flujo agregado (D-007)."""
+    if not hay_subvenciones(con):
+        return []
+    return _filas(
+        con,
+        f"""
+        SELECT s.organo_id, o.nombre AS organo,
+               {_beneficiario_flujo()} AS adjudicatario_id,
+               CASE WHEN {_beneficiario_visible("a")} THEN a.nombre
+                    ELSE '{AGREGADO_PERSONAS}' END AS empresa,
+               count(*) AS n_contratos, sum(s.importe) AS importe
+        FROM concesion AS s
+        JOIN organo AS o USING (organo_id)
+        JOIN adjudicatario AS a ON a.adjudicatario_id = s.beneficiario_id
+        WHERE (? IS NULL OR year(s.fecha_concesion) = ?) AND s.importe > 0
+        GROUP BY ALL ORDER BY importe DESC LIMIT ?
+        """,
+        [anio, anio, limite],
+    )
+
+
+MIN_CONCESIONES_AGREGADO = 5
+
+
+def fecha_subvenciones(con: duckdb.DuckDBPyConnection):
+    """Fecha de descarga de la BDNS (None si la base no tiene subvenciones)."""
+    if not hay_subvenciones(con):
+        return None
+    return con.execute("SELECT max(fecha_descarga) FROM concesion").fetchone()[0]
+
+
+def concesiones_flujo(
+    con: duckdb.DuckDBPyConnection,
+    organo_id: str,
+    adjudicatario_id: str,
+    anio: int | None = None,
+    limite: int = 50,
+) -> list[dict]:
+    """Convocatorias de un flujo de subvenciones, con el enlace a su ficha en la BDNS.
+
+    En el flujo agregado de personas físicas solo se listan las convocatorias con al menos
+    MIN_CONCESIONES_AGREGADO concesiones; las demás se suman en una fila «Otras convocatorias»
+    sin enlace, para que una convocatoria con una o dos personas no permita identificarlas.
+    """
+    filas = _filas(
+        con,
+        f"""
+        SELECT s.convocatoria AS titulo, count(*) AS n_concesiones,
+               min(year(s.fecha_concesion)) AS anio, sum(s.importe) AS importe,
+               any_value(s.url_origen) AS url_origen
+        FROM concesion AS s
+        JOIN adjudicatario AS a ON a.adjudicatario_id = s.beneficiario_id
+        WHERE s.organo_id = ? AND {_beneficiario_flujo()} = ?
+          AND (? IS NULL OR year(s.fecha_concesion) = ?) AND s.importe > 0
+        GROUP BY s.convocatoria ORDER BY importe DESC
+        """,
+        [organo_id, adjudicatario_id, anio, anio],
+    )
+    if adjudicatario_id != "AGREGADO":
+        return filas[:limite]
+    visibles = [f for f in filas if f["n_concesiones"] >= MIN_CONCESIONES_AGREGADO]
+    resto = [f for f in filas if f["n_concesiones"] < MIN_CONCESIONES_AGREGADO]
+    if resto:
+        visibles = visibles[:limite]
+        visibles.append(
+            {
+                "titulo": f"Otras convocatorias ({len(resto)}), con menos de "
+                f"{MIN_CONCESIONES_AGREGADO} concesiones cada una",
+                "n_concesiones": sum(f["n_concesiones"] for f in resto),
+                "anio": None,
+                "importe": sum(f["importe"] for f in resto),
+                "url_origen": None,
+            }
+        )
+    return visibles

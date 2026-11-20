@@ -27,6 +27,7 @@ paginas = st.navigation(
         st.Page("paginas/empresa.py", title="Ficha de empresa"),
         st.Page("paginas/organo.py", title="Ficha de órgano"),
         st.Page("paginas/mapa.py", title="Mapa del dinero"),
+        st.Page("paginas/preguntas.py", title="Preguntas guiadas"),
     ]
 )
 cabecera()

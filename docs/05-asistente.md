@@ -40,6 +40,16 @@ Objetivo: responder bien a las 4 para el 21 de noviembre. Además, una **baterí
 - **Vídeo de respaldo**.
 - **Modelo alternativo** configurado.
 
+## Estado (20-nov)
+
+Hecho, sin depender del LLM (D-010):
+
+- `src/ojo_ciudadano/asistente/sql_seguro.py`: **validación y ejecución** del SQL. Una sola sentencia `SELECT`; se recorre el árbol de `json_serialize_sql` y solo se admiten las tablas de `TABLAS_PERMITIDAS` (esquema y tablas de indicadores; `contrato_unico` en lugar de `contrato`), subconsultas, CTE y `VALUES`. Se rechazan funciones de tabla (`read_csv`, `glob`…), `SHOW`/`DESCRIBE`, otros esquemas (`information_schema`) y funciones como `getenv`. La conexión es de solo lectura y con `enable_external_access = false`, que no se puede reactivar desde SQL. El resultado tiene límite de 200 filas y 20 s, y los seudónimos `PF-…` se sustituyen por «Persona física (seudonimizada)». La interfaz entera usa esta conexión.
+- `src/ojo_ciudadano/asistente/consultas_demo.py`: **consultas verificadas de las 4 preguntas de demo**, cada una con una nota de qué cubre y qué no. Serán los ejemplos del modelo y las respuestas de respaldo. Pregunta 4: las subvenciones aún no están cargadas y la nota lo dice.
+- Pantalla **«Preguntas guiadas»** (`app/paginas/preguntas.py`): las 4 preguntas con su tabla, nota, consulta SQL y enlace al expediente cuando la respuesta es por contrato.
+
+Falta: el modelo que traduce la pregunta libre a SQL (D-010), la batería de 20 preguntas y el RAG.
+
 ## Pendiente
 
 - Proveedor y modelo de LLM: decisión **D-010 (pendiente)** en [decisions.md](decisions.md).

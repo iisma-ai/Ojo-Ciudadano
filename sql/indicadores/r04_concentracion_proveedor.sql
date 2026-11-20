@@ -91,7 +91,7 @@ SELECT
     cuota > 0.5 AS activado,
     cuota AS valor,
     CASE
-        WHEN cuota > 0.5 THEN 'Una empresa concentra el '
+        WHEN cuota > 0.5 THEN 'Un adjudicatario concentra el '
             || replace(CAST(round(100 * cuota, 1) AS VARCHAR), '.', ',')
             || ' % del importe adjudicado por este órgano en contratos de '
             || lower(tipo_contrato) || ' (' || n_contratos || ' contratos, ' || n_empresas

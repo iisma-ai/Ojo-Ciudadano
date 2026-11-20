@@ -13,9 +13,26 @@ def _filas(con: duckdb.DuckDBPyConnection, sql: str, parametros: list | None = N
     return [dict(zip(columnas, fila, strict=True)) for fila in cursor.fetchall()]
 
 
-def fecha_datos(con: duckdb.DuckDBPyConnection):
-    """Fecha de la última descarga de datos (se muestra en todas las pantallas)."""
-    return con.execute("SELECT max(fecha_descarga) FROM contrato").fetchone()[0]
+# NIF con forma de DNI o NIE, también con erratas (sin el cero inicial, una cifra de más).
+_PATRON_DNI_NIE = r"^([0-9]{7,8}[A-Z]|[XYZ][0-9]{7,8}[A-Z]|[KLM][0-9]{7}[0-9A-Z])$"
+
+
+def _sin_personas(alias: str) -> str:
+    """Condición SQL que deja fuera a las personas físicas (D-007): las marcadas como tales y,
+    por si la base es anterior a la corrección de la normalización, cualquier NIF con forma
+    de DNI o NIE."""
+    return (
+        f"{alias}.tipo_persona <> 'fisica' "
+        f"AND NOT regexp_matches(coalesce({alias}.nif, ''), '{_PATRON_DNI_NIE}')"
+    )
+
+
+def fechas_datos(con: duckdb.DuckDBPyConnection) -> list[dict]:
+    """Fecha de la última descarga de cada fuente (se muestra en todas las pantallas)."""
+    return _filas(
+        con,
+        "SELECT fuente, max(fecha_descarga) AS fecha FROM contrato GROUP BY fuente ORDER BY 1",
+    )
 
 
 def buscar_empresas(con: duckdb.DuckDBPyConnection, texto: str, limite: int = 20) -> list[dict]:
@@ -25,12 +42,12 @@ def buscar_empresas(con: duckdb.DuckDBPyConnection, texto: str, limite: int = 20
         return []
     return _filas(
         con,
-        """
+        f"""
         SELECT a.adjudicatario_id, a.nif, a.nombre, a.tipo_persona,
                p.n_contratos, p.n_con_alertas, p.puntuacion_ponderada
         FROM adjudicatario AS a
         JOIN puntuacion_empresa AS p USING (adjudicatario_id)
-        WHERE a.tipo_persona <> 'fisica'
+        WHERE {_sin_personas("a")}
           AND (a.nombre ILIKE '%' || ? || '%' OR a.nif = upper(?))
         ORDER BY p.n_contratos DESC
         LIMIT ?
@@ -43,7 +60,7 @@ def ficha_empresa(con: duckdb.DuckDBPyConnection, adjudicatario_id: str) -> dict
     """Resumen de una empresa. Los importes se dan por separado según el IVA de la fuente."""
     filas = _filas(
         con,
-        """
+        f"""
         SELECT a.adjudicatario_id, a.nif, a.nombre, a.tipo_persona,
                p.n_contratos, p.n_con_alertas, p.puntuacion_ponderada, p.puntuacion_media,
                (SELECT sum(importe_sin_iva) FROM adjudicacion
@@ -52,7 +69,7 @@ def ficha_empresa(con: duckdb.DuckDBPyConnection, adjudicatario_id: str) -> dict
                  WHERE adjudicatario_id = a.adjudicatario_id) AS importe_con_iva
         FROM adjudicatario AS a
         JOIN puntuacion_empresa AS p USING (adjudicatario_id)
-        WHERE a.adjudicatario_id = ? AND a.tipo_persona <> 'fisica'
+        WHERE a.adjudicatario_id = ? AND {_sin_personas("a")}
         """,
         [adjudicatario_id],
     )
@@ -234,22 +251,22 @@ def proveedores_organo(
     """Principales empresas por número de contratos; sin personas físicas (D-007)."""
     return _filas(
         con,
-        """
+        f"""
         SELECT d.adjudicatario_id, d.nombre, d.nif, count(DISTINCT a.contrato_id) AS n_contratos,
                sum(a.importe_sin_iva) AS importe_sin_iva, sum(a.importe_con_iva) AS importe_con_iva
         FROM adjudicacion AS a
         JOIN contrato_unico AS c USING (contrato_id)
         JOIN adjudicatario AS d USING (adjudicatario_id)
-        WHERE c.organo_id = ? AND d.tipo_persona <> 'fisica'
+        WHERE c.organo_id = ? AND {_sin_personas("d")}
         GROUP BY ALL ORDER BY n_contratos DESC LIMIT ?
         """,
         [organo_id, limite],
     )
 
 
-_FILTRO_FLUJO = """
+_FILTRO_FLUJO = f"""
     c.fuente = ?
-    AND d.tipo_persona <> 'fisica'
+    AND {_sin_personas("d")}
     AND (? OR NOT c.es_menor)
     AND (? IS NULL
          OR year(coalesce(c.fecha_contrato, a.fecha_formalizacion, c.fecha_fin_plazo)) = ?)

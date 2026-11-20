@@ -22,8 +22,19 @@ def con(base):
         titulo="Suministro",
         fecha_fin_plazo="2025-02-01",
     )
+    # Persona física con el DNI sin el cero inicial, mal clasificada como en una base antigua.
+    base.contrato(
+        "c3",
+        [{"adjudicatario_id": "1234567L", "importe_sin_iva": 70}],
+        organo_id="OTRO",
+        fecha_fin_plazo="2025-02-01",
+    )
     con.execute(
         "UPDATE adjudicatario SET nombre = 'Limpiezas Ejemplo SA', nif = 'B12345678' WHERE adjudicatario_id='A1'"
+    )
+    con.execute(
+        "UPDATE adjudicatario SET tipo_persona = 'otro', nombre = 'Nombre Apellido' "
+        "WHERE adjudicatario_id = '1234567L'"
     )
     con.execute(
         "UPDATE adjudicatario SET tipo_persona='fisica', nif=NULL, nombre=NULL "
@@ -78,8 +89,20 @@ def test_motivos_solo_los_activados(con):
     assert [m["indicador"] for m in datos.motivos(con, "c1")] == ["R-01"]
 
 
-def test_fecha_datos(con):
-    assert datos.fecha_datos(con) is not None
+def test_nif_con_forma_de_dni_no_aparece_en_ningun_listado(con):
+    assert datos.buscar_empresas(con, "1234567L") == []
+    assert datos.buscar_empresas(con, "Apellido") == []
+    assert datos.ficha_empresa(con, "1234567L") is None
+    assert datos.proveedores_organo(con, "OTRO") == []
+    todos = datos.flujos(con, "placsp", limite=100)
+    assert "1234567L" not in [f["adjudicatario_id"] for f in todos]
+    assert datos.contratos_flujo(con, "OTRO", "1234567L", "placsp") == []
+
+
+def test_fecha_de_descarga_por_fuente(con):
+    fechas = datos.fechas_datos(con)
+    assert [f["fuente"] for f in fechas] == ["placsp"]
+    assert fechas[0]["fecha"] is not None
 
 
 def test_ficha_de_organo(con):

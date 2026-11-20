@@ -55,16 +55,19 @@ if elegido:
             "(https://www.infosubvenciones.es/bdnstrans/GE/es/concesiones) (datos descargados "
             f"el {subvenciones['fecha_descarga']}). No se suman con los importes de los "
             f"contratos. {subvenciones['n_agregado']:,} concesiones "
-            f"({subvenciones['importe_agregado']:,.0f} €) son a personas físicas u otros "
-            "beneficiarios que solo se muestran agregados."
+            f"({subvenciones['importe_agregado']:,.0f} €) son a personas físicas o a "
+            "beneficiarios cuyo NIF no se puede verificar; solo se muestran agregados (RGPD). "
+            "Cada enlace lleva a la ficha de la convocatoria en la BDNS (las concesiones no "
+            "tienen página propia)."
         )
         col_s1, col_s2 = st.columns(2)
         with col_s1:
             st.markdown("**Convocatorias con más importe**")
             for cv in datos.convocatorias_organo(conexion(), ficha["organo_id"]):
+                titulo = (cv["convocatoria"] or "Convocatoria sin título")[:90]
+                enlace = f"[{titulo}]({cv['url_origen']})" if cv["url_origen"] else titulo
                 st.markdown(
-                    f"- [{cv['convocatoria'][:90]}]({cv['url_origen']}): "
-                    f"{cv['importe']:,.0f} € ({cv['n_concesiones']:,} concesiones)"
+                    f"- {enlace}: {cv['importe']:,.0f} € ({cv['n_concesiones']:,} concesiones)"
                 )
         with col_s2:
             st.markdown("**Entidades con más importe concedido**")

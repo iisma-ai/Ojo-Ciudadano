@@ -36,12 +36,25 @@ limite = st.slider("Flujos a mostrar", 5, 40, 20)
 if es_subvencion:
     filas = datos.flujos_subvenciones(conexion(), anio, limite)
     st.caption(
-        "Las personas físicas y los beneficiarios cuyo NIF no se puede verificar de cada órgano "
-        "aparecen en un único flujo agregado. Un beneficiario puede ser una empresa, una entidad "
-        "pública o una entidad sin ánimo de lucro."
+        "Fuente: [Base de Datos Nacional de Subvenciones]"
+        "(https://www.infosubvenciones.es/bdnstrans/GE/es/concesiones), datos descargados el "
+        f"{datos.fecha_subvenciones(conexion())}. Importes concedidos. Las personas físicas y "
+        "los beneficiarios cuyo NIF no se puede verificar aparecen en un único flujo agregado "
+        "por órgano (RGPD). Un beneficiario puede ser una empresa, una entidad pública o una "
+        "entidad sin ánimo de lucro. El tamaño de un flujo refleja sobre todo el tipo de "
+        "convocatoria: algunas entidades gestionan programas enteros (p. ej. la asistencia "
+        "jurídica gratuita) y las becas se reparten entre muchas personas. Un flujo grande no es "
+        "una señal de riesgo por sí mismo."
     )
 else:
     filas = datos.flujos(conexion(), fuente, menores, anio, tipo, limite)
+    fecha = next(
+        (f["fecha"] for f in datos.fechas_datos(conexion()) if f["fuente"] == fuente), None
+    )
+    st.caption(
+        f"Datos descargados el {fecha}. Un flujo grande refleja el volumen de compras del órgano "
+        "y no es una señal de riesgo por sí mismo."
+    )
 if not filas:
     st.info("No hay flujos con estos filtros.")
     st.stop()
@@ -65,7 +78,8 @@ st.plotly_chart(figura, width="stretch")
 st.subheader("Detalle de los flujos")
 unidad = "concesiones" if es_subvencion else "contratos"
 st.caption(
-    "Elige un flujo para ver sus convocatorias, cada una con el enlace a su ficha en la BDNS."
+    "Elige un flujo para ver sus convocatorias. Cada enlace lleva a la ficha de la convocatoria "
+    "en la BDNS (las concesiones no tienen página propia)."
     if es_subvencion
     else "Elige un flujo para ver sus contratos, cada uno con el enlace a su ficha oficial."
 )
@@ -80,10 +94,9 @@ if es_subvencion:
     for c in datos.concesiones_flujo(
         conexion(), flujo["organo_id"], flujo["adjudicatario_id"], anio
     ):
-        st.markdown(
-            f"- [{(c['titulo'] or 'Convocatoria sin título')[:100]}]({c['url_origen']}) · "
-            f"{c['n_concesiones']:,} concesiones · {c['importe']:,.0f} €"
-        )
+        titulo = (c["titulo"] or "Convocatoria sin título")[:100]
+        enlace = f"[{titulo}]({c['url_origen']})" if c["url_origen"] else titulo
+        st.markdown(f"- {enlace} · {c['n_concesiones']:,} concesiones · {c['importe']:,.0f} €")
 else:
     for c in datos.contratos_flujo(
         conexion(), flujo["organo_id"], flujo["adjudicatario_id"], fuente, menores, anio, tipo

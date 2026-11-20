@@ -200,5 +200,10 @@ def test_flujos_de_subvenciones_con_personas_agregadas(con):
     assert flujos[datos.AGREGADO_PERSONAS]["adjudicatario_id"] == "AGREGADO"
     assert flujos["Limpiezas Ejemplo SA"]["importe"] == 300
     assert len(datos.flujos_subvenciones(con, anio=2024)) == 1
+    # Con solo 2 concesiones, «Ayudas B» no se muestra por su nombre en el flujo agregado.
     detalle = datos.concesiones_flujo(con, "ORG", "AGREGADO")
-    assert [(d["titulo"], d["importe"]) for d in detalle] == [("Ayudas B", 70)]
+    assert len(detalle) == 1
+    assert detalle[0]["titulo"].startswith("Otras convocatorias (1)")
+    assert (detalle[0]["importe"], detalle[0]["url_origen"]) == (70, None)
+    assert datos.concesiones_flujo(con, "ORG", "A1")[0]["titulo"] == "Ayudas A"
+    assert datos.fecha_subvenciones(con) is not None

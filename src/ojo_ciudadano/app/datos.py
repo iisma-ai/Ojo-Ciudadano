@@ -484,6 +484,16 @@ def flujos_subvenciones(
     )
 
 
+MIN_CONCESIONES_AGREGADO = 5
+
+
+def fecha_subvenciones(con: duckdb.DuckDBPyConnection):
+    """Fecha de descarga de la BDNS (None si la base no tiene subvenciones)."""
+    if not hay_subvenciones(con):
+        return None
+    return con.execute("SELECT max(fecha_descarga) FROM concesion").fetchone()[0]
+
+
 def concesiones_flujo(
     con: duckdb.DuckDBPyConnection,
     organo_id: str,
@@ -491,8 +501,13 @@ def concesiones_flujo(
     anio: int | None = None,
     limite: int = 50,
 ) -> list[dict]:
-    """Convocatorias de un flujo de subvenciones, con el enlace a su ficha en la BDNS."""
-    return _filas(
+    """Convocatorias de un flujo de subvenciones, con el enlace a su ficha en la BDNS.
+
+    En el flujo agregado de personas físicas solo se listan las convocatorias con al menos
+    MIN_CONCESIONES_AGREGADO concesiones; las demás se suman en una fila «Otras convocatorias»
+    sin enlace, para que una convocatoria con una o dos personas no permita identificarlas.
+    """
+    filas = _filas(
         con,
         f"""
         SELECT s.convocatoria AS titulo, count(*) AS n_concesiones,
@@ -502,7 +517,24 @@ def concesiones_flujo(
         JOIN adjudicatario AS a ON a.adjudicatario_id = s.beneficiario_id
         WHERE s.organo_id = ? AND {_beneficiario_flujo()} = ?
           AND (? IS NULL OR year(s.fecha_concesion) = ?) AND s.importe > 0
-        GROUP BY s.convocatoria ORDER BY importe DESC LIMIT ?
+        GROUP BY s.convocatoria ORDER BY importe DESC
         """,
-        [organo_id, adjudicatario_id, anio, anio, limite],
+        [organo_id, adjudicatario_id, anio, anio],
     )
+    if adjudicatario_id != "AGREGADO":
+        return filas[:limite]
+    visibles = [f for f in filas if f["n_concesiones"] >= MIN_CONCESIONES_AGREGADO]
+    resto = [f for f in filas if f["n_concesiones"] < MIN_CONCESIONES_AGREGADO]
+    if resto:
+        visibles = visibles[:limite]
+        visibles.append(
+            {
+                "titulo": f"Otras convocatorias ({len(resto)}), con menos de "
+                f"{MIN_CONCESIONES_AGREGADO} concesiones cada una",
+                "n_concesiones": sum(f["n_concesiones"] for f in resto),
+                "anio": None,
+                "importe": sum(f["importe"] for f in resto),
+                "url_origen": None,
+            }
+        )
+    return visibles

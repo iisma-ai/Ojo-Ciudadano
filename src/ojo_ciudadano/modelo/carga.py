@@ -10,13 +10,14 @@ from pathlib import Path
 import duckdb
 import polars as pl
 
-from ojo_ciudadano.ingesta import placsp, portal_cm
+from ojo_ciudadano.ingesta import bdns, placsp, portal_cm
 from ojo_ciudadano.normalizacion import texto as n_texto
 
 RUTA_DB = Path("data/ojo_ciudadano.duckdb")
 RUTA_ESQUEMA = Path("sql/esquema")
 CARPETA_PORTAL = Path("data/raw/portal_cm")
 CARPETA_PLACSP = Path("data/raw/placsp")
+CARPETA_BDNS = Path("data/raw/bdns")
 
 COLUMNAS_CONTRATO = {
     "contrato_id": pl.String,
@@ -97,8 +98,11 @@ def marcar_duplicados(portal: pl.DataFrame, de_placsp: pl.DataFrame) -> pl.DataF
     )
 
 
-def unificar(tablas_portal: list[dict], tablas_placsp: dict | None) -> dict[str, pl.DataFrame]:
-    """Combina las tablas de las dos fuentes en las cuatro tablas del esquema."""
+def unificar(
+    tablas_portal: list[dict], tablas_placsp: dict | None, tablas_bdns: dict | None = None
+) -> dict[str, pl.DataFrame]:
+    """Combina las tablas de las fuentes en las tablas del esquema. Las subvenciones (BDNS)
+    son opcionales: añaden la tabla `concesion` y sus órganos y beneficiarios."""
     c_portal = pl.concat([t["contratos"] for t in tablas_portal]).unique(
         "contrato_id", keep="first"
     )
@@ -131,8 +135,9 @@ def unificar(tablas_portal: list[dict], tablas_placsp: dict | None) -> dict[str,
                 )
                 for c in crudos_contratos
             ]
+            + _organos_bdns(tablas_bdns)
         )
-        .group_by("organo_id")
+        .group_by("organo_id", maintain_order=True)
         .agg(
             pl.col("nombre").drop_nulls().first(),
             pl.col("consejeria").drop_nulls().first(),
@@ -148,9 +153,10 @@ def unificar(tablas_portal: list[dict], tablas_placsp: dict | None) -> dict[str,
                 a.select("adjudicatario_id", "nif", "nombre", "tipo_persona")
                 for a in crudos_adjudicaciones
             ]
+            + ([tablas_bdns["beneficiarios"]] if tablas_bdns else [])
         )
         .filter(pl.col("adjudicatario_id").is_not_null())
-        .group_by("adjudicatario_id")
+        .group_by("adjudicatario_id", maintain_order=True)
         .agg(
             pl.col("nif").first(),
             pl.col("nombre").drop_nulls().first(),
@@ -158,14 +164,30 @@ def unificar(tablas_portal: list[dict], tablas_placsp: dict | None) -> dict[str,
         )
         .sort("adjudicatario_id")
     )
+    concesiones = tablas_bdns["concesiones"] if tablas_bdns else None
     return {
         "organo": organos,
         "adjudicatario": adjudicatarios,
+        "concesion": concesiones,
         "contrato": pl.concat([_con_columnas(c, COLUMNAS_CONTRATO) for c in crudos_contratos]),
         "adjudicacion": pl.concat(
             [_con_columnas(a, COLUMNAS_ADJUDICACION) for a in crudos_adjudicaciones]
         ),
     }
+
+
+def _organos_bdns(tablas_bdns: dict | None) -> list[pl.DataFrame]:
+    """Órganos de la BDNS con las mismas columnas que los de contratos. Van detrás, así que
+    si el órgano ya existe en los contratos se conserva su nombre y su consejería."""
+    if not tablas_bdns:
+        return []
+    return [
+        tablas_bdns["organos"].with_columns(
+            pl.lit(None, dtype=pl.String).alias("consejeria"),
+            pl.lit(None, dtype=pl.String).alias("jerarquia"),
+            pl.lit(None, dtype=pl.String).alias("codigo_placsp"),
+        )
+    ]
 
 
 def escribir(
@@ -178,7 +200,9 @@ def escribir(
     try:
         for ddl in sorted(ruta_esquema.glob("*.sql")):
             con.execute(ddl.read_text(encoding="utf-8"))
-        for nombre in ("organo", "adjudicatario", "contrato", "adjudicacion"):
+        for nombre in ("organo", "adjudicatario", "contrato", "adjudicacion", "concesion"):
+            if tablas.get(nombre) is None:
+                continue
             df = tablas[nombre].to_arrow()  # noqa: F841 (DuckDB lo lee por su nombre)
             con.execute(f"INSERT INTO {nombre} BY NAME SELECT * FROM df")
     finally:
@@ -193,6 +217,7 @@ def _fecha_fichero(ruta: Path) -> date:
 def construir(
     carpeta_portal: Path = CARPETA_PORTAL,
     carpeta_placsp: Path = CARPETA_PLACSP,
+    carpeta_bdns: Path = CARPETA_BDNS,
     ruta_db: Path = RUTA_DB,
 ) -> dict[str, pl.DataFrame]:
     """Lee los ficheros brutos de las dos fuentes y regenera la base analítica."""
@@ -204,11 +229,16 @@ def construir(
     tablas_portal = [portal_cm.leer(f, _fecha_fichero(f)) for f in csv_portal]
     zips = sorted(carpeta_placsp.glob("*.zip"))
     tablas_placsp = placsp.leer_zips(zips, max(_fecha_fichero(z) for z in zips)) if zips else None
-    tablas = unificar(tablas_portal, tablas_placsp)
+    meses_bdns = sorted(carpeta_bdns.glob("*.json"))
+    tablas_bdns = (
+        bdns.leer(meses_bdns, max(_fecha_fichero(m) for m in meses_bdns)) if meses_bdns else None
+    )
+    tablas = unificar(tablas_portal, tablas_placsp, tablas_bdns)
     escribir(tablas, ruta_db)
     return tablas
 
 
 if __name__ == "__main__":
     for nombre, tabla in construir().items():
-        print(f"{nombre}: {tabla.height} filas")
+        if tabla is not None:
+            print(f"{nombre}: {tabla.height} filas")

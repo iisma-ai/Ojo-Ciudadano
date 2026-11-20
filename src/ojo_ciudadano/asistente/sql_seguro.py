@@ -16,13 +16,15 @@ from pathlib import Path
 
 import duckdb
 
-# Tablas que puede consultar el asistente: las del esquema congelado (D-017) y las derivadas
+# Tablas que puede consultar el asistente: las del esquema congelado (D-017), las subvenciones
+# (002) y las derivadas
 # de los indicadores. `contrato` no está: se usa `contrato_unico` para no contar dos veces.
 TABLAS_PERMITIDAS = {
     "organo",
     "adjudicatario",
     "contrato_unico",
     "adjudicacion",
+    "concesion",
     "indicador_resultado",
     "puntuacion_contrato",
     "puntuacion_empresa_contrato",

@@ -15,7 +15,8 @@ HOY = date(2026, 11, 17)
 class Base:
     def __init__(self):
         self.con = duckdb.connect()
-        self.con.execute((RAIZ / "sql" / "esquema" / "001_tablas.sql").read_text("utf-8"))
+        for ddl in sorted((RAIZ / "sql" / "esquema").glob("*.sql")):
+            self.con.execute(ddl.read_text("utf-8"))
         ejecutor.crear_funciones(self.con)
         self.con.execute("INSERT INTO organo (organo_id, nombre) VALUES ('ORG', 'Órgano')")
         self.con.execute("INSERT INTO organo (organo_id, nombre) VALUES ('OTRO', 'Otro órgano')")

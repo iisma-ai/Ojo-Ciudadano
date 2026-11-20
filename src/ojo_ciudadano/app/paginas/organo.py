@@ -45,6 +45,39 @@ if elegido:
         "Son fuentes distintas y no se suman. " + textos.FUENTES
     )
 
+    subvenciones = datos.subvenciones_organo(conexion(), ficha["organo_id"])
+    if subvenciones:
+        st.subheader("Subvenciones concedidas")
+        st.caption(
+            f"{subvenciones['n_concesiones']:,} concesiones por {subvenciones['importe']:,.0f} € "
+            f"entre {subvenciones['desde']} y {subvenciones['hasta']}, según la "
+            "[Base de Datos Nacional de Subvenciones]"
+            "(https://www.infosubvenciones.es/bdnstrans/GE/es/concesiones) (datos descargados "
+            f"el {subvenciones['fecha_descarga']}). No se suman con los importes de los "
+            f"contratos. {subvenciones['n_agregado']:,} concesiones "
+            f"({subvenciones['importe_agregado']:,.0f} €) son a personas físicas u otros "
+            "beneficiarios que solo se muestran agregados."
+        )
+        col_s1, col_s2 = st.columns(2)
+        with col_s1:
+            st.markdown("**Convocatorias con más importe**")
+            for cv in datos.convocatorias_organo(conexion(), ficha["organo_id"]):
+                st.markdown(
+                    f"- [{cv['convocatoria'][:90]}]({cv['url_origen']}): "
+                    f"{cv['importe']:,.0f} € ({cv['n_concesiones']:,} concesiones)"
+                )
+        with col_s2:
+            st.markdown("**Entidades con más importe concedido**")
+            st.caption(
+                "Pueden ser empresas, entidades públicas (ayuntamientos, universidades) o "
+                "entidades sin ánimo de lucro."
+            )
+            for b in datos.beneficiarios_organo(conexion(), ficha["organo_id"]):
+                st.write(
+                    f"{b['nombre']} ({b['nif']}): {b['importe']:,.0f} € "
+                    f"({b['n_concesiones']:,} concesiones)"
+                )
+
     st.subheader("Indicadores frente al conjunto de órganos")
     for i in datos.indicadores_organo(conexion(), ficha["organo_id"]):
         nombre = textos.NOMBRES_INDICADOR.get(i["indicador"], i["indicador"])

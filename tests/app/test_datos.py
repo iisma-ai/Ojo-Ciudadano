@@ -165,3 +165,40 @@ def test_subvenciones_de_la_empresa_con_enlace(con):
     ]
     assert filas[0]["importe_total"] == 300
     assert datos.subvenciones_empresa(con, "PF-x") == []
+
+
+def _con_subvenciones(con):
+    con.execute(
+        "INSERT INTO concesion (concesion_id, fuente, organo_id, beneficiario_id, convocatoria, "
+        "fecha_concesion, importe, url_origen, fecha_descarga) VALUES "
+        "('bdns:1', 'bdns', 'ORG', 'A1', 'Ayudas A', '2025-04-01', 300, 'https://bdns.test/1', "
+        "'2026-11-20'), "
+        "('bdns:2', 'bdns', 'ORG', 'PF-x', 'Ayudas B', '2025-04-01', 50, 'https://bdns.test/2', "
+        "'2026-11-20'), "
+        "('bdns:3', 'bdns', 'ORG', '1234567L', 'Ayudas B', '2024-04-01', 20, "
+        "'https://bdns.test/2', '2026-11-20')"
+    )
+    return con
+
+
+def test_subvenciones_del_organo_agregan_personas(con):
+    _con_subvenciones(con)
+    resumen = datos.subvenciones_organo(con, "ORG")
+    assert resumen["n_concesiones"] == 3 and resumen["importe"] == 370
+    assert resumen["n_entidades"] == 1
+    assert (resumen["n_agregado"], resumen["importe_agregado"]) == (2, 70)
+    assert [b["adjudicatario_id"] for b in datos.beneficiarios_organo(con, "ORG")] == ["A1"]
+    convocatorias = datos.convocatorias_organo(con, "ORG")
+    assert [c["convocatoria"] for c in convocatorias] == ["Ayudas A", "Ayudas B"]
+    assert datos.subvenciones_organo(con, "OTRO") is None
+
+
+def test_flujos_de_subvenciones_con_personas_agregadas(con):
+    _con_subvenciones(con)
+    flujos = {f["empresa"]: f for f in datos.flujos_subvenciones(con)}
+    assert flujos[datos.AGREGADO_PERSONAS]["importe"] == 70
+    assert flujos[datos.AGREGADO_PERSONAS]["adjudicatario_id"] == "AGREGADO"
+    assert flujos["Limpiezas Ejemplo SA"]["importe"] == 300
+    assert len(datos.flujos_subvenciones(con, anio=2024)) == 1
+    detalle = datos.concesiones_flujo(con, "ORG", "AGREGADO")
+    assert [(d["titulo"], d["importe"]) for d in detalle] == [("Ayudas B", 70)]

@@ -101,3 +101,8 @@ def test_la_carga_une_beneficiarios_y_organos_con_los_de_contratos(tmp_path):
 def test_sin_bdns_la_carga_no_crea_concesiones(tmp_path):
     tablas = carga.unificar([_portal()], None)
     assert tablas["concesion"] is None
+
+
+def test_organos_con_otro_nombre_en_la_bdns_usan_el_de_los_contratos():
+    assert bdns.organo_id("SERVICIO MADRILEÑO DE SALUD (SERMAS)") == "SERVICIO MADRILENO DE SALUD"
+    assert bdns.organo_id("CONSEJERÍA DE SANIDAD") == "CONSEJERIA DE SANIDAD"

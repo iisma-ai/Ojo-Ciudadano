@@ -182,14 +182,18 @@ subvenciones AS (
     JOIN concesion AS s ON s.beneficiario_id = e.adjudicatario_id
     GROUP BY ALL
 )
-SELECT * FROM contratos
-UNION ALL BY NAME
-SELECT * FROM subvenciones
+SELECT * FROM (
+    SELECT * FROM contratos
+    UNION ALL BY NAME
+    SELECT * FROM subvenciones
+)
+WHERE anio IS NULL OR anio BETWEEN 2023 AND 2026
 ORDER BY empresa, tipo, fuente, anio
 LIMIT 100
 """,
     nota=(
-        "Lo recibido por la empresa por fuente y año. Contratos adjudicados: sin IVA en la "
+        "Lo recibido por la empresa por fuente y año, de 2023 a 2026 (más los contratos sin "
+        "fecha en la fuente). Contratos adjudicados: sin IVA en la "
         "Plataforma de Contratación y con IVA en el portal regional. Subvenciones: importe "
         "concedido según la Base de Datos Nacional de Subvenciones. Son bases distintas y no "
         "se suman entre sí. Solo se buscan empresas españolas y UTE: no hay fichas de "

@@ -103,7 +103,9 @@ uv run python -m ojo_ciudadano.indicadores.ejecutor
 
 El ejecutor (`src/ojo_ciudadano/indicadores/ejecutor.py`) crea las funciones de `sql/indicadores/000_funciones.sql` y une el resultado de cada `sql/indicadores/rXX_*.sql`. Cada indicador devuelve una fila por contrato **aplicable** con `contrato_id`, `indicador`, `aplicable`, `activado`, `valor`, `motivo` y `url_origen`. Si un contrato no aparece para un indicador, ese indicador **no le es aplicable** y no cuenta en la puntuación. `contrato_id` siempre es el de `contrato_unico`: si la licitación está en las dos fuentes, se usa el de PLACSP. Para la interfaz, a las personas físicas (`PF-…`) que aparecen en alertas de R-03 se les aplica D-007: se muestran agregadas, nunca con ficha.
 
-Pendiente de añadir antes o después de congelar (requiere acuerdo del equipo): concesiones de subvenciones (BDNS), miembros de UTE como tabla propia, documentos para el corpus.
+**Subvenciones (20-nov, ampliación aditiva de D-017):** [`sql/esquema/002_subvenciones.sql`](../sql/esquema/002_subvenciones.sql) crea `concesion` (una fila por concesión de la BDNS, clave `bdns:<codConcesion>`, con `organo_id`, `beneficiario_id`, convocatoria, fecha, importe y `url_origen` a la ficha de la convocatoria). Los beneficiarios van a `adjudicatario` con la misma identidad que en los contratos: una empresa con contratos y subvenciones es una sola fila. Los órganos nuevos de la BDNS se añaden a `organo`; si ya existían, se conservan el nombre y la consejería de los contratos. `modelo.carga` lee `data/raw/bdns/*.json` si existen; sin ellos la base se crea igual, sin concesiones.
+
+Pendiente de añadir (requiere acuerdo del equipo): miembros de UTE como tabla propia, documentos para el corpus.
 
 Cuando el equipo lo congele, cambiarlo requiere decisión registrada, porque bloquea al resto.
 

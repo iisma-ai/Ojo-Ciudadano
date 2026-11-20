@@ -91,7 +91,9 @@ def subvenciones_empresa(
         f"""
         SELECT s.convocatoria, o.nombre AS organo, count(*) AS n_concesiones,
                sum(s.importe) AS importe, min(s.fecha_concesion) AS desde,
-               max(s.fecha_concesion) AS hasta, any_value(s.url_origen) AS url_origen
+               max(s.fecha_concesion) AS hasta, any_value(s.url_origen) AS url_origen,
+               count(*) OVER () AS n_convocatorias_total,
+               sum(sum(s.importe)) OVER () AS importe_total
         FROM concesion AS s
         JOIN organo AS o USING (organo_id)
         JOIN adjudicatario AS a ON a.adjudicatario_id = s.beneficiario_id

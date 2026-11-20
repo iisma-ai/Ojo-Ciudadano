@@ -163,4 +163,5 @@ def test_subvenciones_de_la_empresa_con_enlace(con):
     assert [(f["n_concesiones"], f["importe"], f["url_origen"]) for f in filas] == [
         (1, 300, "https://bdns.test/1")
     ]
+    assert filas[0]["importe_total"] == 300
     assert datos.subvenciones_empresa(con, "PF-x") == []

@@ -34,6 +34,29 @@ TAMANO_PAGINA = 10_000
 PAUSA_SEGUNDOS = 1.0
 ANIOS = (2023, 2024, 2025, 2026)
 
+# Órganos que la BDNS nombra distinto que los portales de contratación (clave normalizada de
+# la BDNS → organo_id de los contratos). Comprobado con los datos del 20-nov.
+EQUIVALENCIAS_ORGANO = {
+    "CONSEJERIA ECONOMIA HACIENDA Y EMPLEO": "CONSEJERIA DE ECONOMIA HACIENDA Y EMPLEO",
+    "SERVICIO MADRILENO DE SALUD SERMAS": "SERVICIO MADRILENO DE SALUD",
+    "AGENCIA DE SEGURIDAD Y EMERGENCIAS MADRID 112 ASEM": (
+        "AGENCIA DE SEGURIDAD Y EMERGENCIAS MADRID 112"
+    ),
+    "INSTITUTO MADRILENO DE INVESTIGACION Y DESARROLLO RURAL AGRARIO Y ALIMENTARIO IMIDRA": (
+        "ORGANISMO AUTONOMO INSTITUTO MADRILENO DE INVESTIGACION Y DESARROLLO RURAL AGRARIO "
+        "Y ALIMENTARIO IMIDRA"
+    ),
+    "INSTITUTO REGIONAL DE SEGURIDAD Y SALUD EN EL TRABAJO IRSST": (
+        "ORGANISMO AUTONOMO INSTITUTO REGIONAL DE SEGURIDAD Y SALUD EN EL TRABAJO IRSST"
+    ),
+}
+
+
+def organo_id(nombre: str) -> str:
+    """Identificador del órgano, el mismo que en los contratos cuando es el mismo órgano."""
+    clave = n_texto.clave(nombre)
+    return EQUIVALENCIAS_ORGANO.get(clave, clave)
+
 
 def organos_comunidad(cliente: httpx.Client) -> list[int]:
     """Identificadores BDNS de los órganos de la Comunidad. La BDNS asigna las concesiones
@@ -169,13 +192,13 @@ def leer(rutas: list[Path], fecha_descarga: date, sal: bytes | None = None) -> d
     nombres = tabla["organo_nombre"].drop_nulls().unique().to_list()
     organos = pl.DataFrame(
         {
-            "organo_id": [n_texto.clave(n) for n in nombres],
-            "nombre": [n.capitalize() if n.isupper() else n for n in nombres],
+            "organo_id": [organo_id(n) for n in nombres],
+            "nombre": nombres,
         },
         schema={"organo_id": pl.String, "nombre": pl.String},
     ).unique("organo_id")
     claves = pl.DataFrame(
-        {"organo_nombre": nombres, "organo_id": [n_texto.clave(n) for n in nombres]},
+        {"organo_nombre": nombres, "organo_id": [organo_id(n) for n in nombres]},
         schema={"organo_nombre": pl.String, "organo_id": pl.String},
     )
     tabla = tabla.join(claves, on="organo_nombre", how="left").drop("organo_nombre")

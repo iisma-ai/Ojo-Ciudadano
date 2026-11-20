@@ -15,6 +15,9 @@ RUTA_SAL = Path("data/.sal_seudonimos")
 # Letra inicial de las personas jurídicas españolas (antiguo CIF).
 _JURIDICA = re.compile(r"^[ABCDEFGHJNPQRSUVW]\d{7}[0-9A-J]$")
 _FISICA = re.compile(r"^(\d{8}[A-Z]|[XYZ]\d{7}[A-Z]|[KLM]\d{7}[0-9A-Z])$")
+# DNI al que la fuente quitó el cero inicial o NIE con una cifra de más. Algunos NIF-IVA
+# extranjeros tienen la misma forma, pero prima la privacidad (D-007): se tratan como físicas.
+_FISICA_ERRATA = re.compile(r"^(\d{7}[A-Z]|[XYZ]\d{8}[A-Z])$")
 _SEPARADOR_UTE = re.compile(r"\s*[-/;,+]\s*")
 _PREFIJO = re.compile(r"^(NIF|CIF|DNI|NIE)[:.\s]*")
 
@@ -54,7 +57,7 @@ def tipo_persona(nif: str | None) -> str:
         return "fisica"  # las fuentes enmascaran con asteriscos a las personas físicas
     if _JURIDICA.match(nif):
         return "juridica"
-    if _FISICA.match(nif):
+    if _FISICA.match(nif) or _FISICA_ERRATA.match(nif):
         return "fisica"
     return "otro"
 

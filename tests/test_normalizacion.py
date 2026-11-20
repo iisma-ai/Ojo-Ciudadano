@@ -20,6 +20,9 @@ def test_tipo_persona():
     assert nif.tipo_persona("X1234567L") == "fisica"
     assert nif.tipo_persona("***1234**") == "fisica"
     assert nif.tipo_persona("NL859153885B01") == "otro"
+    # DNI sin el cero inicial y NIE con una cifra de más: personas físicas (D-007)
+    assert nif.tipo_persona("1234567L") == "fisica"
+    assert nif.tipo_persona("X12345678Z") == "fisica"
     assert nif.tipo_persona(None) == "desconocido"
 
 

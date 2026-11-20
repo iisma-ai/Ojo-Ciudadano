@@ -18,6 +18,8 @@ indicador = col2.selectbox(
     [None, *textos.NOMBRES_INDICADOR],
     format_func=lambda i: "Todos" if i is None else f"{i} · {textos.NOMBRES_INDICADOR[i]}",
 )
+if indicador:
+    st.caption(textos.AYUDA_INDICADOR[indicador])
 
 filas = datos.alertas(conexion(), min_aplicables, indicador)
 st.caption(

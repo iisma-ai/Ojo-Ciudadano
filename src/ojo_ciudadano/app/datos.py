@@ -76,6 +76,34 @@ def ficha_empresa(con: duckdb.DuckDBPyConnection, adjudicatario_id: str) -> dict
     return filas[0] if filas else None
 
 
+def subvenciones_empresa(
+    con: duckdb.DuckDBPyConnection, adjudicatario_id: str, limite: int = 20
+) -> list[dict]:
+    """Subvenciones concedidas a la empresa por convocatoria, con enlace a la BDNS. Vacío si la
+    base no tiene la tabla `concesion` (se cargó sin la BDNS)."""
+    hay_tabla = con.execute(
+        "SELECT count(*) FROM duckdb_tables() WHERE table_name = 'concesion'"
+    ).fetchone()[0]
+    if not hay_tabla:
+        return []
+    return _filas(
+        con,
+        f"""
+        SELECT s.convocatoria, o.nombre AS organo, count(*) AS n_concesiones,
+               sum(s.importe) AS importe, min(s.fecha_concesion) AS desde,
+               max(s.fecha_concesion) AS hasta, any_value(s.url_origen) AS url_origen
+        FROM concesion AS s
+        JOIN organo AS o USING (organo_id)
+        JOIN adjudicatario AS a ON a.adjudicatario_id = s.beneficiario_id
+        WHERE s.beneficiario_id = ? AND {_sin_personas("a")}
+        GROUP BY s.convocatoria, o.nombre
+        ORDER BY importe DESC
+        LIMIT ?
+        """,
+        [adjudicatario_id, limite],
+    )
+
+
 def tendencia_empresa(con: duckdb.DuckDBPyConnection, adjudicatario_id: str) -> list[dict]:
     return _filas(
         con,

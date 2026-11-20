@@ -42,6 +42,25 @@ if elegida:
         "Son fuentes distintas y no se suman. " + textos.FUENTES
     )
 
+    subvenciones = datos.subvenciones_empresa(conexion(), ficha["adjudicatario_id"])
+    if subvenciones:
+        total = sum(sv["importe"] or 0 for sv in subvenciones)
+        with st.expander(
+            f"Subvenciones concedidas: {total:,.0f} € en {len(subvenciones)} convocatorias"
+        ):
+            st.caption(
+                "Fuente: [Base de Datos Nacional de Subvenciones]"
+                "(https://www.infosubvenciones.es/bdnstrans/GE/es/concesiones). Importes "
+                "concedidos; no se suman con los de los contratos. Se muestran hasta 20 "
+                "convocatorias, las de mayor importe."
+            )
+            for sv in subvenciones:
+                st.markdown(
+                    f"- [{sv['convocatoria'][:100]}]({sv['url_origen']}) · {sv['organo']} · "
+                    f"{sv['n_concesiones']} concesiones · {sv['importe']:,.0f} € "
+                    f"({sv['desde']} a {sv['hasta']})"
+                )
+
     tendencia = datos.tendencia_empresa(conexion(), ficha["adjudicatario_id"])
     if tendencia:
         st.caption(

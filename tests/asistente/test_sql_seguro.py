@@ -58,6 +58,12 @@ def con(base):
         "WHERE adjudicatario_id = 'B12345678'"
     )
     base.con.execute("UPDATE organo SET consejeria = 'Consejería de Sanidad'")
+    base.con.execute(
+        "INSERT INTO concesion (concesion_id, fuente, organo_id, beneficiario_id, "
+        "fecha_concesion, importe, url_origen, fecha_descarga) VALUES "
+        "('bdns:SB1', 'bdns', 'ORG', 'B12345678', '2025-04-01', 2500, 'https://x.test', "
+        "'2026-11-20')"
+    )
     ejecutor.calcular_todos(base.con)
     return base.con
 
@@ -115,6 +121,8 @@ def test_recibido_por_empresa_separa_fuentes(con):
     r = sql_seguro.ejecutar(con, q.sql, {"empresa": "b12345678"})
     filas = [dict(zip(r["columnas"], f, strict=True)) for f in r["filas"]]
     por_fuente = {f["fuente"].split()[0]: f for f in filas}
+    assert por_fuente["Base"]["importe_concedido"] == 2500
+    assert por_fuente["Base"]["importe_con_iva"] is None
     assert por_fuente["Plataforma"]["importe_sin_iva"] == 1000
     assert por_fuente["Plataforma"]["importe_con_iva"] is None
     assert por_fuente["Portal"]["importe_con_iva"] == 900

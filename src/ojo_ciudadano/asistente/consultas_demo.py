@@ -142,34 +142,69 @@ RECIBIDO_POR_EMPRESA = ConsultaDemo(
     pregunta="¿Qué ha recibido esta empresa de la Comunidad entre contratos y subvenciones?",
     parametros=("empresa",),
     sql="""
-SELECT
-    d.nombre AS empresa,
-    d.nif,
-    CASE c.fuente WHEN 'placsp' THEN 'Plataforma de Contratación del Sector Público'
-         ELSE 'Portal de la Contratación Pública de la Comunidad de Madrid' END AS fuente,
-    year(coalesce(c.fecha_contrato, a.fecha_formalizacion, c.fecha_fin_plazo)) AS anio,
-    count(DISTINCT c.contrato_id) AS n_contratos,
-    count(DISTINCT c.contrato_id) FILTER (WHERE p.n_activados > 0)
-        AS n_con_indicadores_activados,
-    sum(a.importe_sin_iva) AS importe_sin_iva,
-    sum(a.importe_con_iva) AS importe_con_iva,
-    max(c.fecha_descarga) AS fecha_descarga
-FROM adjudicatario AS d
-JOIN adjudicacion AS a USING (adjudicatario_id)
-JOIN contrato_unico AS c USING (contrato_id)
-LEFT JOIN puntuacion_contrato AS p USING (contrato_id)
-WHERE d.tipo_persona IN ('juridica', 'ute')
-  AND (d.nif = upper($empresa) OR d.nombre ILIKE '%' || $empresa || '%')
-GROUP BY ALL
-ORDER BY empresa, fuente, anio
+WITH empresas AS (
+    SELECT adjudicatario_id, nombre, nif
+    FROM adjudicatario
+    WHERE tipo_persona IN ('juridica', 'ute')
+      AND (nif = upper($empresa) OR nombre ILIKE '%' || $empresa || '%')
+),
+contratos AS (
+    SELECT
+        e.nombre AS entidad,
+        e.nif,
+        CASE c.fuente WHEN 'placsp' THEN 'Plataforma de Contratación del Sector Público'
+             ELSE 'Portal de la Contratación Pública de la Comunidad de Madrid' END AS fuente,
+        'contratos' AS tipo,
+        year(coalesce(c.fecha_contrato, a.fecha_formalizacion, c.fecha_fin_plazo)) AS anio,
+        count(DISTINCT c.contrato_id) AS n_contratos_o_concesiones,
+        count(DISTINCT c.contrato_id) FILTER (WHERE p.n_activados > 0)
+            AS n_con_indicadores_activados,
+        sum(a.importe_sin_iva) AS importe_sin_iva,
+        sum(a.importe_con_iva) AS importe_con_iva,
+        max(c.fecha_descarga) AS fecha_descarga,
+        CASE c.fuente WHEN 'placsp' THEN 'https://contrataciondelestado.es'
+             ELSE 'https://contratos-publicos.comunidad.madrid/contratos' END AS url_origen
+    FROM empresas AS e
+    JOIN adjudicacion AS a USING (adjudicatario_id)
+    JOIN contrato_unico AS c USING (contrato_id)
+    LEFT JOIN puntuacion_contrato AS p USING (contrato_id)
+    GROUP BY ALL
+),
+subvenciones AS (
+    SELECT
+        e.nombre AS entidad,
+        e.nif,
+        'Base de Datos Nacional de Subvenciones' AS fuente,
+        'subvenciones' AS tipo,
+        year(s.fecha_concesion) AS anio,
+        count(*) AS n_contratos_o_concesiones,
+        sum(s.importe) AS importe_concedido,
+        max(s.fecha_descarga) AS fecha_descarga,
+        'https://www.infosubvenciones.es/bdnstrans/GE/es/concesiones' AS url_origen
+    FROM empresas AS e
+    JOIN concesion AS s ON s.beneficiario_id = e.adjudicatario_id
+    GROUP BY ALL
+)
+SELECT * FROM (
+    SELECT * FROM contratos
+    UNION ALL BY NAME
+    SELECT * FROM subvenciones
+)
+WHERE anio IS NULL OR anio BETWEEN 2023 AND 2026
+ORDER BY entidad, tipo, fuente, anio
 LIMIT 100
 """,
     nota=(
-        "Contratos adjudicados a la empresa por fuente y año: sin IVA en la Plataforma de "
-        "Contratación y con IVA en el portal regional (no se suman). **Las subvenciones aún "
-        "no están cargadas**, así que esta respuesta solo cubre contratos. Solo se buscan "
-        "empresas españolas y UTE: no hay fichas de personas físicas ni de adjudicatarios "
-        "cuyo NIF no se puede verificar."
+        "Importes adjudicados (contratos) y concedidos (subvenciones) a la entidad, por fuente "
+        "y año, de 2023 a 2026 (más los contratos sin "
+        "fecha en la fuente). Contratos adjudicados: sin IVA en la "
+        "Plataforma de Contratación y con IVA en el portal regional. Subvenciones: importe "
+        "concedido según la Base de Datos Nacional de Subvenciones. Son bases distintas y no "
+        "se suman entre sí. El detalle de cada contrato está en la ficha de la entidad y en el "
+        "portal de origen; el de cada concesión, en la ficha de su convocatoria en la BDNS. Solo "
+        "se buscan personas jurídicas españolas (empresas, entidades públicas y asociaciones) y "
+        "UTE: no hay fichas de personas físicas ni de adjudicatarios cuyo NIF no se puede "
+        "verificar."
     ),
 )
 

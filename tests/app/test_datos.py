@@ -148,3 +148,20 @@ def test_contratos_del_flujo_con_enlace(con):
     contratos = datos.contratos_flujo(con, "ORG", "A1", "placsp")
     assert [c["contrato_id"] for c in contratos] == ["c1"]
     assert contratos[0]["url_origen"] == "https://ejemplo.test/c1"
+
+
+def test_subvenciones_de_la_empresa_con_enlace(con):
+    con.execute(
+        "INSERT INTO concesion (concesion_id, fuente, organo_id, beneficiario_id, convocatoria, "
+        "fecha_concesion, importe, url_origen, fecha_descarga) VALUES "
+        "('bdns:1', 'bdns', 'ORG', 'A1', 'Ayudas de prueba', '2025-04-01', 300, "
+        "'https://bdns.test/1', '2026-11-20'), "
+        "('bdns:2', 'bdns', 'ORG', 'PF-x', 'Ayudas de prueba', '2025-04-01', 50, "
+        "'https://bdns.test/1', '2026-11-20')"
+    )
+    filas = datos.subvenciones_empresa(con, "A1")
+    assert [(f["n_concesiones"], f["importe"], f["url_origen"]) for f in filas] == [
+        (1, 300, "https://bdns.test/1")
+    ]
+    assert filas[0]["importe_total"] == 300
+    assert datos.subvenciones_empresa(con, "PF-x") == []

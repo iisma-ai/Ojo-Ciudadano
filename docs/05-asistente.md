@@ -16,6 +16,7 @@ El RAG documental es **el primer recorte** si vamos tarde (ver [08-plan.md](08-p
 - Cada cifra lleva el **enlace** al contrato, la concesión o el documento de origen.
 - El asistente **muestra la consulta SQL** usada, para que el usuario pueda comprobarla.
 - Habla de **«indicadores de riesgo»** y nunca afirma que haya corrupción.
+- Si usa `anomalia_resultado`, presenta los contratos como **«atípicos respecto a contratos similares»**: señal experimental que no suma a la puntuación; atípico no significa irregular.
 - Si los datos no permiten responder, **lo dice y explica qué falta**.
 - Solo responde con datos devueltos por las herramientas: **no inventa cifras**.
 
@@ -52,7 +53,7 @@ Hecho, sin depender del LLM (D-010):
 
 Limitaciones de los datos que el asistente debe explicar: las licitaciones del portal regional casi nunca traen fecha (344 de 18.777), así que no tienen año; y los menores de julio a septiembre de 2026 están incompletos (P-12).
 
-Falta: el modelo que traduce la pregunta libre a SQL (D-010), pasarle la batería y el RAG. `anomalia_resultado` (D-021) aún no está en `TABLAS_PERMITIDAS`.
+Falta: el modelo que traduce la pregunta libre a SQL (D-010), pasarle la batería y el RAG. Desde el 21-nov, `anomalia_resultado` (D-021) está en `TABLAS_PERMITIDAS`: el asistente puede responder sobre contratos atípicos, pero cada respuesta debe decir que es una **señal experimental**, que **atípico no significa irregular** y que no suma a la puntuación (añadirlo a las instrucciones del modelo al cerrar D-010).
 
 ## Pendiente
 

@@ -142,3 +142,7 @@ def test_recibido_por_empresa_no_muestra_nif_sin_verificar(con):
 def test_oculta_ute_con_persona_fisica():
     assert sql_seguro._ocultar_seudonimos("UTE:PF-abc+B1") == sql_seguro.SEUDONIMO_VISIBLE
     assert sql_seguro._ocultar_seudonimos("UTE:A1+B1") == "UTE:A1+B1"
+
+
+def test_anomalias_consultables(con):
+    sql_seguro.validar(con, "SELECT contrato_id, motivo FROM anomalia_resultado WHERE atipico")

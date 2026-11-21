@@ -1030,3 +1030,29 @@ def totales_organos(
         """,
         [*_parametros_flujo(fuente, incluir_menores, anio, tipo_contrato), limite],
     )
+
+
+def pares_anomalia(
+    con: duckdb.DuckDBPyConnection, contrato_id: str, muestra: int = 1500
+) -> dict | None:
+    """E-07: valores de un contrato atípico y de una muestra fija de sus contratos similares
+    (mismo grupo), para dibujarlo frente a ellos. None si la base no tiene la tabla."""
+    existe = con.execute(
+        "SELECT count(*) FROM duckdb_tables() WHERE table_name = 'anomalia_variables'"
+    ).fetchall()[0][0]
+    if not existe:
+        return None
+    este = _filas(con, "SELECT * FROM anomalia_variables WHERE contrato_id = ?", [contrato_id])
+    if not este:
+        return None
+    pares = _filas(
+        con,
+        f"""
+        SELECT * FROM (
+            SELECT * FROM anomalia_variables WHERE grupo = ? AND contrato_id <> ?
+        )
+        USING SAMPLE reservoir({int(muestra)} ROWS) REPEATABLE (42)
+        """,
+        [este[0]["grupo"], contrato_id],
+    )
+    return {"este": este[0], "pares": pares}

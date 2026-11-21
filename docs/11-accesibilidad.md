@@ -29,7 +29,7 @@ Cada tarea de pantalla empieza con un **estudio**: qué pregunta responde, qué 
 | A-01 | **Portada** (nueva) | Que en 10 segundos se entienda qué es Ojo Ciudadano: una frase, tres cifras grandes (dinero seguido, contratos, señales) y tres puertas de entrada («Ver contratos a revisar», «Buscar una empresa», «Ver a quién paga cada organismo») | Alta (demo) | Hecho (21-nov): `paginas/inicio.py`, página por defecto |
 | A-02 | **Qué mide cada señal** | Una tarjeta por indicador con nombre en lenguaje llano, la pregunta que responde, un esquema mínimo y cuántos contratos la tienen. Se puede abrir desde cualquier señal | Alta (demo) | Hecho (21-nov), primera versión: tarjetas en la portada con barra de proporción; filtro por señal con su frase en «Contratos a revisar» |
 | A-03 | **Panel de alertas** | Lista con **el nombre de cada señal** en vez de «2 de 3». Sin el control de «mínimo de indicadores aplicables». Al abrir un contrato, **un gráfico por cada señal** (ver estudios E-01 a E-06) | Alta (demo) | Hecho (21-nov): «Contratos a revisar», insignias con el nombre de cada señal y «de N señales comprobadas», interruptor de menores en vez del control de mínimo, un gráfico por señal al pulsar «Ver gráficos» |
-| A-04 | **Contratos atípicos** | Ver dónde cae el contrato frente a sus contratos similares: nube de puntos o distribución con el contrato resaltado (estudio E-07) | Media | Pendiente |
+| A-04 | **Contratos atípicos** | Ver dónde cae el contrato frente a sus contratos similares: nube de puntos o distribución con el contrato resaltado (estudio E-07) | Media | Hecho (21-nov): ver «Estudio A-04 / E-07» |
 | A-05 | **Ficha de empresa** | Resumen visual: de qué organismos recibe dinero (burbujas, el tamaño es el importe), evolución por año y señales con nombre | Alta (no recortable) | Hecho (21-nov): ver «Estudio A-05» |
 | A-06 | **Ficha de organismo** | A qué empresas paga (burbujas o mapa de áreas por importe), lo concentrado que está su gasto y cómo contrata (barra de procedimientos) | Media | Hecho (21-nov): ver «Estudio A-06» |
 | A-07 | **Mapa del dinero** | Rehacerlo para que se entienda: empezar por pocos organismos, red de burbujas (organismo → empresa, tamaño = dinero) en vez de un diagrama de flujos denso, y elegir un organismo para ver su red | Media | Hecho (21-nov): ver «Estudio A-07» |
@@ -107,6 +107,18 @@ Formato común: números y fechas en español (`1.234`, `05/2025`), fondo transp
 - El Sankey se conserva como «Vista avanzada» en un desplegable.
 - Filtros: fuente (una cada vez, sin mezclar IVA), año, tipo y menores. El organismo también se elige en un desplegable, para quien no use el ratón.
 - Sin dependencias nuevas: el empaquetado de burbujas está en `graficos.empaquetar` (búsqueda en espiral), con test de que no hay solapes.
+
+## Estudio A-04 / E-07 · Contratos atípicos (21-nov)
+
+- **Pregunta:** en qué se aleja este contrato de los parecidos.
+- **Datos:** la detección (D-021) guarda ahora también `anomalia_variables`, con los valores de cada contrato. La interfaz toma una muestra fija (semilla 42) de 1.500 contratos del mismo grupo.
+  - Ojo: en DuckDB, `USING SAMPLE` se aplica antes del `WHERE`. Hay que filtrar primero en una subconsulta.
+- **Elegido:**
+  - Con dos variables en el motivo: **nube de puntos** de los contratos similares en gris y este contrato en azul, con ejes en lenguaje llano.
+  - Con una variable: **histograma** con una línea azul en la posición del contrato.
+  - Importes y recuentos con mucha dispersión, en escala logarítmica.
+  - Los porcentajes se recortan a los percentiles 1-99, porque hay rebajas erróneas de miles por cien en la fuente, pero este contrato nunca queda fuera.
+- **Pantalla:** cada contrato atípico es un desplegable con el motivo; al abrirlo se calculan el gráfico y una frase con su posición relativa.
 
 ## Guía rápida de redacción
 

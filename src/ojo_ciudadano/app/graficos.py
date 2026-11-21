@@ -627,3 +627,90 @@ def flujos_sankey(filas: list[dict]) -> go.Figure:
         )
     )
     return _tema(figura, alto=600)
+
+
+# --- Contratos atípicos (A-04, E-07) ---
+
+NOMBRE_VARIABLE = {
+    "importe": "Importe adjudicado (€)",
+    "n_ofertas": "Número de ofertas",
+    "baja": "Rebaja sobre el precio de salida",
+    "modificaciones": "Modificaciones sobre el importe",
+    "cuota": "Cuota de la empresa en el organismo",
+    "menores_12m": "Contratos menores en 12 meses",
+}
+_PORCENTAJES = ("baja", "modificaciones", "cuota")
+
+
+def _eje(figura: go.Figure, eje: str, variable: str, valores: list, este=None) -> None:
+    ajustes = {"title": NOMBRE_VARIABLE.get(variable, variable)}
+    positivos = [v for v in valores if v is not None and v > 0]
+    if variable in _PORCENTAJES:
+        ajustes["tickformat"] = ".0%"
+        # Los valores erróneos de la fuente (rebajas de -5.000 %) aplastan el resto: el eje se
+        # recorta a los percentiles 1-99, sin dejar nunca fuera a este contrato.
+        ordenados = sorted(v for v in valores if v is not None)
+        if len(ordenados) > 20:
+            bajo = ordenados[len(ordenados) // 100]
+            alto = ordenados[-(len(ordenados) // 100) - 1]
+            if este is not None:
+                bajo, alto = min(bajo, este), max(alto, este)
+            margen = (alto - bajo) * 0.05 or 0.05
+            ajustes["range"] = [bajo - margen, alto + margen]
+    elif positivos and max(positivos) / max(min(positivos), 1e-9) > 1000:
+        ajustes["type"] = "log"
+    if variable == "importe":
+        ajustes["tickformat"] = ",.0f"
+    (figura.update_xaxes if eje == "x" else figura.update_yaxes)(**ajustes)
+
+
+def atipico(detalle: dict, variables: list[str]) -> go.Figure:
+    """E-07: el contrato atípico (azul) frente a una muestra de contratos similares (gris), en
+    las variables que más lo alejan. Con dos variables, nube de puntos; con una, histograma con
+    la posición del contrato."""
+    este, pares = detalle["este"], detalle["pares"]
+    variables = [v for v in variables if v in NOMBRE_VARIABLE][:2] or ["importe"]
+    figura = go.Figure()
+    if len(variables) == 2:
+        vx, vy = variables
+        puntos = [p for p in pares if p[vx] is not None and p[vy] is not None]
+        figura.add_scatter(
+            x=[p[vx] for p in puntos],
+            y=[p[vy] for p in puntos],
+            mode="markers",
+            name="Contratos similares",
+            marker={"color": transparente(GRIS_CLARO, 0.35), "size": 6},
+            hoverinfo="skip",
+        )
+        figura.add_scatter(
+            x=[este[vx]],
+            y=[este[vy]],
+            mode="markers",
+            name="Este contrato",
+            marker={"color": AZUL, "size": 16, "line": {"width": 2, "color": "#0B1120"}},
+            hovertemplate="Este contrato<extra></extra>",
+        )
+        _eje(figura, "x", vx, [p[vx] for p in puntos] + [este[vx]], este[vx])
+        _eje(figura, "y", vy, [p[vy] for p in puntos] + [este[vy]], este[vy])
+    else:
+        (v,) = variables
+        valores = [p[v] for p in pares if p[v] is not None]
+        figura.add_histogram(
+            x=valores,
+            name="Contratos similares",
+            marker={"color": GRIS},
+            nbinsx=40,
+            hovertemplate="%{y} contratos<extra></extra>",
+        )
+        if este[v] is not None:
+            figura.add_vline(
+                x=este[v],
+                line={"color": AZUL, "width": 3},
+                annotation_text="Este contrato",
+                annotation_font_color=AZUL,
+            )
+        _eje(figura, "x", v, valores + [este[v]], este[v])
+        figura.update_yaxes(title="Contratos similares")
+    figura = _tema(figura, alto=320)
+    figura.update_layout(showlegend=True, legend={"orientation": "h", "y": 1.1, "x": 0})
+    return figura

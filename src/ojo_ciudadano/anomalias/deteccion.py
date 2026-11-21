@@ -276,12 +276,16 @@ def _esquema() -> dict:
 
 
 def calcular(con: duckdb.DuckDBPyConnection) -> pl.DataFrame:
-    """Calcula y guarda la tabla derivada anomalia_resultado (no toca el esquema, D-017)."""
+    """Calcula y guarda las tablas derivadas anomalia_resultado y anomalia_variables (los
+    valores de cada contrato, para dibujarlo frente a sus pares en la interfaz). No tocan el
+    esquema congelado (D-017)."""
     datos = leer_variables(con)
     partes = [puntuar_grupo(g) for _, g in datos.group_by("grupo", maintain_order=True)]
     resultado = pl.concat(partes) if partes else pl.DataFrame(schema=_esquema())
     tabla = resultado.to_arrow()  # noqa: F841 (DuckDB lo lee por su nombre)
     con.execute("CREATE OR REPLACE TABLE anomalia_resultado AS SELECT * FROM tabla")
+    variables = datos.select(["contrato_id", "grupo", *VARIABLES]).to_arrow()  # noqa: F841
+    con.execute("CREATE OR REPLACE TABLE anomalia_variables AS SELECT * FROM variables")
     return resultado
 
 

@@ -18,15 +18,21 @@ AVISO = (
 
 FUENTES = (
     "Fuentes: [Portal de la Contratación Pública de la Comunidad de Madrid]"
-    "(https://contratos-publicos.comunidad.madrid/contratos) y "
-    "[Plataforma de Contratación del Sector Público](https://contrataciondelestado.es). "
-    "Indicadores y puntuaciones: cálculo propio de Ojo Ciudadano."
+    "(https://contratos-publicos.comunidad.madrid/contratos), "
+    "[Plataforma de Contratación del Sector Público](https://contrataciondelestado.es) y "
+    "[Base de Datos Nacional de Subvenciones]"
+    "(https://www.infosubvenciones.es/bdnstrans/GE/es/concesiones) "
+    "(origen de los datos de subvenciones: Intervención General de la Administración del "
+    "Estado). Indicadores y puntuaciones: cálculo propio de Ojo Ciudadano."
 )
 
 PIE = (
-    "Proyecto independiente, sin vinculación con la Comunidad de Madrid ni con la Plataforma "
-    "de Contratación del Sector Público, y no patrocinado por ellas. Los datos oficiales se "
-    "reutilizan citando su fuente y sin alterar su sentido. " + FUENTES
+    "Proyecto independiente, sin vinculación con la Comunidad de Madrid, la Plataforma de "
+    "Contratación del Sector Público ni la Intervención General de la Administración del "
+    "Estado, y no patrocinado ni apoyado por ellas. Los datos oficiales se reutilizan citando "
+    "su fuente y fecha de descarga y sin alterar su sentido. Los datos de personas físicas "
+    "están disociados por Ojo Ciudadano: no se guarda su nombre ni su NIF y solo se muestran "
+    "agregados. " + FUENTES
 )
 
 # Umbral de cada indicador, para que el valor se pueda interpretar.

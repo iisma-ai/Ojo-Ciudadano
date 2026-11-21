@@ -6,7 +6,7 @@
 | --- | --- | --- | --- | --- | --- |
 | K-01 | Legal | Señalar a empresas o cargos como corruptos sin pruebas (derecho al honor, difamación) | Media | Alto | Hablar siempre de «indicadores de riesgo»; aviso visible; metodología pública; cada alerta explica su motivo y enlaza al expediente |
 | K-02 | Legal | Datos personales: autónomos adjudicatarios, beneficiarios personas físicas, altos cargos (RGPD) | Alta | Alto | No crear fichas de personas físicas; agregar o seudonimizar sus NIF; altos cargos solo con lo que la ley ya obliga a publicar |
-| K-03 | Legal | Incumplir condiciones de reutilización (catálogo, aviso legal de la BDNS) | Baja | Medio | Citar fuente y fecha de descarga; no alterar el sentido de los datos; revisar licencias el día 1 |
+| K-03 | Legal | Incumplir condiciones de reutilización (catálogo, aviso legal de la BDNS) | Baja | Medio | Citar fuente y fecha de descarga; no alterar el sentido de los datos; fórmula de cita de la IGAE en subvenciones; decir quién disocia los datos personales; no sugerir patrocinio (condiciones revisadas el 21-nov, P-03 resuelta, ver 02) |
 | K-04 | Datos | El CSV regional no trae el número de ofertas y caen los indicadores de competencia | Media | Alto | Tomarlo de PLACSP; extraerlo con IA de las actas en una muestra; si no, priorizar indicadores que no lo necesitan |
 | K-05 | Datos | El Catálogo de Datos Abiertos no tiene los datasets clave y el proyecto no cumple las bases | Media | Alto | Confirmarlo el día 1; usar como base lo que sí haya y completar con fuentes estatales |
 | K-06 | Datos | NIF mal escritos, nombres con variantes, UTE como entidades separadas | Alta | Medio | Normalizar NIF; tabla de alias; modelar las UTE con sus empresas miembro |

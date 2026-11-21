@@ -19,3 +19,11 @@ def test_fechas_de_descarga_nombran_cada_fuente():
 
 def test_sin_fechas_no_se_muestra_nada():
     assert textos.fechas_descarga([]) == ""
+
+
+def test_pie_cumple_las_condiciones_de_reutilizacion():
+    """P-03: cita de la BDNS con la fórmula de su aviso legal, sin sugerir patrocinio y
+    diciendo quién disocia los datos personales."""
+    assert "Intervención General de la Administración del Estado" in textos.FUENTES
+    assert "no patrocinado ni apoyado" in textos.PIE
+    assert "disociados por Ojo Ciudadano" in textos.PIE

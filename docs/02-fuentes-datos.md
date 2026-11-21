@@ -75,7 +75,22 @@ Otras referencias útiles:
 - **Personas físicas:** la BDNS enmascara el NIF («\*\*\*1234\*\*») pero **publica el nombre completo**. La ingesta no guarda nunca el nombre: el beneficiario es `PF-` + seudónimo de `BDNS:<idPersona>` (D-007). Un NIF enmascarado no identifica a nadie (lo comparten muchas personas), por eso se usa `idPersona`. Estas personas no se pueden cruzar con las de los contratos.
 - **Enlace al origen:** `url_origen` es la ficha pública de la convocatoria, `https://www.infosubvenciones.es/bdnstrans/GE/es/convocatorias/<numeroConvocatoria>`. Las concesiones no tienen página propia.
 - **Importes:** importe concedido, sin distinción de IVA; no se suman con los de los contratos.
-- **Condiciones de uso:** cada respuesta de la API incluye una advertencia: la reutilización «está sujeta a una serie de restricciones y consideraciones legales» (aviso legal en `https://www.infosubvenciones.es/bdnstrans/GE/es/avisolegal`), los datos son dinámicos y pueden corregirse después de extraerlos, y la Administración puede restringir el acceso a la API «ante situaciones de manifiesto abuso del servicio». El texto del aviso legal se carga con JavaScript y no se ha podido leer por código: **falta revisarlo a mano (P-03)**.
+- **Condiciones de uso:** cada respuesta de la API incluye una advertencia: la reutilización «está sujeta a una serie de restricciones y consideraciones legales» (aviso legal en `https://www.infosubvenciones.es/bdnstrans/GE/es/avisolegal`), los datos son dinámicos y pueden corregirse después de extraerlos, y la Administración puede restringir el acceso a la API «ante situaciones de manifiesto abuso del servicio». El texto del aviso legal se carga con JavaScript; se ha leído en el manual oficial del portal (ver «Condiciones de reutilización»).
+
+## Condiciones de reutilización (P-03, revisado el 2026-11-21)
+
+| Fuente | Condiciones | Origen del texto |
+| --- | --- | --- |
+| F-01 · Portal de la Contratación Pública (Comunidad de Madrid) | Se permite reutilizar todos los contenidos y datos del sitio salvo indicación contraria, siempre que: no se altere el contenido, no se desnaturalice su sentido, **se cite la fuente y la fecha de extracción** y no se pueda deducir que la Comunidad de Madrid patrocina o apoya la reutilización. Excluidos los contenidos con propiedad intelectual o con datos personales. No nombra una licencia concreta | [Aviso legal de comunidad.madrid](https://www.comunidad.madrid/transparencia/aviso-legal) |
+| F-02 · PLACSP | «Se autoriza la reproducción total o parcial de los contenidos del Portal» citando expresamente su origen. Los datos abiertos remiten a la Ley 37/2007 y al RD 1495/2011 (reutilización de la información del sector público estatal) | [Aviso legal de PLACSP](https://contrataciondelestado.es/wps/portal/info/aviso_legal) y [datos abiertos](https://contrataciondelestado.es/wps/portal/plataforma/datos_abiertos/) |
+| F-03 · BDNS | Reutilización permitida con fines comerciales y no comerciales (incluye extraer, reordenar y combinar). Condiciones: no desnaturalizar el sentido; **citar «Origen de los datos: Intervención General de la Administración del Estado»**; mencionar la fecha de última actualización; si se disocian datos personales, **decir que se ha hecho y quién**; no sugerir que la IGAE participa, patrocina o apoya la reutilización; conservar los metadatos. Con datos personales, solo para el control de la actuación de los gestores públicos (art. 5.1 Ley 19/2013) o fines históricos, estadísticos o científicos previa disociación. Las concesiones a personas físicas solo se publican el año de concesión y el siguiente; las demás, los cuatro años naturales siguientes (art. 7.8 RD 130/2019) | Manual oficial del portal, apartado «Aviso a los reutilizadores» ([PDF](https://www.pap.hacienda.gob.es/bdnstrans/estaticos/ayuda/AYUDA%20-%20Sistema%20Nacional%20de%20Publicidad%20de%20Subvenciones%20y%20Ayudas%20P%C3%BAblicas%20v2023.pdf), versión 2023-11-30), que reproduce el [aviso legal](https://www.infosubvenciones.es/bdnstrans/GE/es/avisolegal) |
+| F-06 · Catálogo de Datos Abiertos (CKAN) | Creative Commons Attribution | Metadatos de los datasets (16-nov) |
+
+**Cómo se cumple en Ojo Ciudadano:**
+- El pie de la interfaz cita las tres fuentes con enlace, la fórmula de la IGAE para las subvenciones y la fecha de descarga de cada fuente; dice que el proyecto no está vinculado ni patrocinado por ninguna de las tres administraciones.
+- Indicadores, puntuaciones y anomalías se presentan como **cálculo propio**, separados de los datos oficiales, que se muestran sin alterar y con enlace al origen.
+- Datos personales: la ingesta no guarda nombre ni NIF de personas físicas (seudónimo `PF-…`, D-007) y la interfaz solo las muestra agregadas; el pie dice que la disociación la hace Ojo Ciudadano. El fin del proyecto (control del gasto de los gestores públicos) es el que admite la BDNS para datos personales.
+- **Plazo de publicación de la BDNS:** lo que la API ya no publica (personas físicas de años anteriores, concesiones de hace más de cuatro años) no debe reaparecer en la plataforma. Como solo se muestran agregadas y sin nombre, el riesgo es bajo, pero las descargas se rehacen con `forzar` antes de la entrega para quedarnos con lo publicado en ese momento.
 
 ## Ventana temporal
 
@@ -102,7 +117,7 @@ El MVP se acota a **2023–2026** (ver D-006 en [decisions.md](decisions.md)). L
 
 1. **Los datos nunca se suben al repositorio** (`data/` está en `.gitignore`). Se regeneran con el pipeline.
 2. Cada descarga registra **fuente, URL, fecha y hora** de descarga.
-3. Se respetan las condiciones de reutilización: citar fuente y fecha, no alterar el sentido de los datos. Revisar licencias el día 1 (P-03).
+3. Se respetan las condiciones de reutilización: citar fuente y fecha, no alterar el sentido de los datos, no sugerir patrocinio (ver «Condiciones de reutilización», P-03).
 4. Cuando se explore o incorpore una fuente, se documenta aquí: campos reales, cobertura, sorpresas. Usa la skill `/nueva-fuente`.
 
 ## Pregunta crítica

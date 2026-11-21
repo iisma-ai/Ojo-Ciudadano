@@ -127,3 +127,24 @@ def test_procedimientos_agrupa_por_nombre_llano():
 def test_reparto_de_organismo_agrega_personas(con):
     reparto = datos.reparto_organo(con, "ORG")
     assert {r["nombre"] for r in reparto} >= {"Empresa B1"}
+
+
+def test_empaquetar_sin_solapes():
+    import math
+
+    radios = [1.0, 0.8, 0.5, 0.5, 0.3, 0.2, 0.2, 0.1]
+    centros = graficos.empaquetar(radios)
+    assert centros[0] == (0.0, 0.0)
+    for i in range(len(radios)):
+        for j in range(i + 1, len(radios)):
+            (xi, yi), (xj, yj) = centros[i], centros[j]
+            assert math.hypot(xi - xj, yi - yj) >= radios[i] + radios[j] - 1e-9
+
+
+def test_mapa_del_dinero(con):
+    totales = datos.totales_organos(con, "portal_cm", incluir_menores=True)
+    assert totales[0]["organo_id"] == "ORG"
+    flujos = datos.flujos(con, "portal_cm", True, organo_id="ORG")
+    assert {f["empresa"] for f in flujos} == {"Empresa B2"}
+    assert graficos.burbujas_organismos(totales) is not None
+    assert graficos.red_organismo("Órgano", flujos, totales[0]["importe"]) is not None

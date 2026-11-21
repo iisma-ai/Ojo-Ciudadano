@@ -1,133 +1,158 @@
-"""Mapa del dinero: flujos de los órganos a las empresas adjudicatarias y a los beneficiarios
-de subvenciones."""
+"""Mapa del dinero: a quién adjudica cada organismo (D-023, A-07).
 
-import plotly.graph_objects as go
+1. Burbujas de los organismos que más adjudican (área = importe).
+2. Al elegir uno, su red: el organismo en el centro y sus empresas alrededor (área y grosor de
+   la línea = importe), con sus contratos o convocatorias.
+3. El diagrama de flujos queda como vista avanzada.
+Una fuente cada vez: sus importes no se suman (P-10). Sin personas físicas con nombre (D-007).
+"""
+
 import streamlit as st
 
 from ojo_ciudadano.app import datos, graficos, textos
 from ojo_ciudadano.app.conexion import conexion
 
 FUENTES = {
-    "Plataforma de Contratación del Sector Público (importes sin IVA)": "placsp",
-    "Portal de la Contratación de la Comunidad de Madrid (importes con IVA)": "portal_cm",
-    "Base de Datos Nacional de Subvenciones (importes concedidos)": "bdns",
+    "placsp": "Contratos (Plataforma de Contratación, sin IVA)",
+    "portal_cm": "Contratos (portal de la Comunidad, con IVA)",
+    "bdns": "Subvenciones",
 }
+TODOS = "__todos__"
 
+
+def elegir(organo_id: str) -> None:
+    """Se ejecuta antes de redibujar, así puede cambiar el desplegable de organismo."""
+    st.session_state["mapa_organo"] = organo_id
+
+
+con = conexion()
 st.header("Mapa del dinero")
-st.caption("A qué empresas adjudica contratos cada órgano y a qué entidades concede subvenciones.")
-with st.expander("Cómo leer el mapa", icon=":material/info:"):
-    st.markdown(
-        "Se muestran los mayores flujos según los filtros, una fuente cada vez: sus importes "
-        "no son comparables entre sí. No hay enlace entre una partida del presupuesto y un "
-        "contrato o una subvención, así que no se puede seguir el dinero desde el presupuesto."
-    )
+st.caption(
+    "A quién adjudica contratos o concede subvenciones cada organismo. El tamaño de cada "
+    "burbuja es el dinero."
+)
 
-c1, c2, c3, c4 = st.columns(4)
-fuente = FUENTES[c1.selectbox("Fuente", list(FUENTES))]
+c1, c2, c3, c4 = st.columns([3, 1, 2, 2])
+fuente = c1.selectbox("Fuente", list(FUENTES), format_func=FUENTES.get)
 anio = c2.selectbox(
-    "Año", [None, 2023, 2024, 2025, 2026], format_func=lambda a: "Todos" if a is None else str(a)
+    "Año", [None, 2026, 2025, 2024, 2023], format_func=lambda a: "Todos" if a is None else str(a)
 )
 es_subvencion = fuente == "bdns"
 tipo = c3.selectbox(
     "Tipo de contrato",
-    [None, *datos.tipos_contrato(conexion())],
+    [None, *datos.tipos_contrato(con)],
     format_func=lambda t: "Todos" if t is None else t,
     disabled=es_subvencion,
 )
-menores = c4.checkbox("Incluir contratos menores", value=False, disabled=es_subvencion)
-limite = st.slider("Flujos a mostrar", 5, 40, 20)
+menores = c4.toggle("Incluir contratos menores", disabled=es_subvencion)
 if menores and not es_subvencion and anio in (None, 2026):
     st.caption(textos.AVISO_MENORES_RECIENTES)
 
-if es_subvencion:
-    filas = datos.flujos_subvenciones(conexion(), anio, limite)
-    st.caption(
-        "Fuente: [Base de Datos Nacional de Subvenciones]"
-        "(https://www.infosubvenciones.es/bdnstrans/GE/es/concesiones), datos descargados el "
-        f"{datos.fecha_subvenciones(conexion())}. Importes concedidos. Las personas físicas y "
-        "los beneficiarios cuyo NIF no se puede verificar aparecen en un único flujo agregado "
-        "por órgano (RGPD). Un beneficiario puede ser una empresa, una entidad pública o una "
-        "entidad sin ánimo de lucro. El tamaño de un flujo refleja sobre todo el tipo de "
-        "convocatoria: algunas entidades gestionan programas enteros (p. ej. la asistencia "
-        "jurídica gratuita) y las becas se reparten entre muchas personas. Un flujo grande no es "
-        "una señal de riesgo por sí mismo."
-    )
-else:
-    filas = datos.flujos(conexion(), fuente, menores, anio, tipo, limite)
-    fecha = next(
-        (f["fecha"] for f in datos.fechas_datos(conexion()) if f["fuente"] == fuente), None
-    )
-    st.caption(
-        f"Datos descargados el {fecha}. Un flujo grande refleja el volumen de compras del órgano "
-        "y no es una señal de riesgo por sí mismo."
-    )
-if not filas:
-    st.info("No hay flujos con estos filtros.")
+organismos = datos.totales_organos(con, fuente, menores, anio, tipo, limite=30)
+if not organismos:
+    st.info("No hay datos con estos filtros.")
     st.stop()
 
-organos = list(dict.fromkeys(f["organo"] for f in filas))
-empresas = list(dict.fromkeys(f["empresa"] for f in filas))
-etiquetas = organos + empresas
-figura = go.Figure(
-    go.Sankey(
-        node={
-            "label": etiquetas,
-            "pad": 14,
-            "thickness": 14,
-            "line": {"width": 0},
-            # Cada organismo con su color (paleta validada, graficos.CATEGORICOS) y sus
-            # flujos del mismo color; las empresas en gris claro.
-            "color": [graficos.color_categorico(i) for i in range(len(organos))]
-            + ["#93A1B8"] * len(empresas),
-        },
-        link={
-            "source": [organos.index(f["organo"]) for f in filas],
-            "target": [len(organos) + empresas.index(f["empresa"]) for f in filas],
-            "value": [f["importe"] for f in filas],
-            "color": [
-                graficos.transparente(graficos.color_categorico(organos.index(f["organo"])), 0.35)
-                for f in filas
-            ],
-        },
-        textfont={"color": "#E7ECF3", "size": 12, "shadow": "none"},
+# El organismo elegido se guarda para que la lista de la vista general pueda elegirlo.
+opciones = [TODOS, *(o["organo_id"] for o in organismos)]
+if st.session_state.get("mapa_organo") not in opciones:
+    st.session_state["mapa_organo"] = TODOS
+nombres = {o["organo_id"]: o["organo"] for o in organismos}
+elegido = st.selectbox(
+    "Organismo",
+    opciones,
+    format_func=lambda o: "Todos: los que más adjudican" if o == TODOS else nombres[o],
+    key="mapa_organo",
+)
+
+if elegido == TODOS:
+    principales = organismos[:15]
+    grafico, lista = st.columns([3, 2])
+    with grafico:
+        st.plotly_chart(graficos.burbujas_organismos(principales), config=graficos.CONFIG)
+    with lista:
+        st.caption("Pulsa un organismo para ver a quién adjudica.")
+        for n, o in enumerate(principales, start=1):
+            st.button(
+                f"{n}. {o['organo']} · {textos.euros(o['importe'])}",
+                key=f"mapa-{o['organo_id']}",
+                type="tertiary",
+                on_click=elegir,
+                args=(o["organo_id"],),
+            )
+    st.stop()
+
+# --- Red de un organismo ---
+organismo = next(o for o in organismos if o["organo_id"] == elegido)
+if es_subvencion:
+    filas = datos.flujos_subvenciones(con, anio, 10, organo_id=elegido)
+else:
+    filas = datos.flujos(con, fuente, menores, anio, tipo, 10, organo_id=elegido)
+if not filas:
+    st.info("No hay empresas con estos filtros.")
+    st.stop()
+
+st.button(
+    "Volver a todos los organismos",
+    icon=":material/arrow_back:",
+    type="tertiary",
+    on_click=elegir,
+    args=(TODOS,),
+)
+st.plotly_chart(
+    graficos.red_organismo(organismo["organo"], filas, organismo["importe"]),
+    config=graficos.CONFIG,
+)
+quien = "entidades" if es_subvencion else "empresas"
+st.caption(
+    f"Las 10 {quien} con más importe de {organismo['organo']}. El tamaño de cada burbuja y el "
+    "grosor de cada línea son el dinero. Un flujo grande refleja el volumen de compras o "
+    "ayudas del organismo y no es una señal de riesgo por sí mismo."
+    + (
+        " Las personas físicas aparecen juntas y sin nombre."
+        if es_subvencion
+        else " Las personas físicas no aparecen."
     )
 )
-figura.update_layout(
-    height=600,
-    margin={"l": 0, "r": 0, "t": 10, "b": 10},
-    paper_bgcolor="rgba(0,0,0,0)",
-    plot_bgcolor="rgba(0,0,0,0)",
-    font={"family": "Inter, sans-serif"},
-)
-st.plotly_chart(figura, width="stretch")
 
-st.subheader("Detalle de los flujos")
+# --- Detalle ---
 unidad = "concesiones" if es_subvencion else "contratos"
-st.caption(
-    "Elige un flujo para ver sus convocatorias. Cada enlace lleva a la ficha de la convocatoria "
-    "en la BDNS (las concesiones no tienen página propia)."
-    if es_subvencion
-    else "Elige un flujo para ver sus contratos, cada uno con el enlace a su ficha oficial."
-)
 flujo = st.selectbox(
-    "Flujo",
+    "Ver los contratos de" if not es_subvencion else "Ver las convocatorias de",
     filas,
     format_func=lambda f: (
-        f"{f['organo']} → {f['empresa']}: {f['importe']:,.0f} € ({f['n_contratos']} {unidad})"
+        f"{f['empresa']} · {textos.euros(f['importe'])} "
+        f"({textos.numero(f['n_contratos'])} {unidad})"
     ),
 )
 if es_subvencion:
-    for c in datos.concesiones_flujo(
-        conexion(), flujo["organo_id"], flujo["adjudicatario_id"], anio
-    ):
+    st.caption(
+        "Fuente: [Base de Datos Nacional de Subvenciones]"
+        "(https://www.infosubvenciones.es/bdnstrans/GE/es/concesiones), datos descargados el "
+        f"{datos.fecha_subvenciones(con)}. Cada enlace lleva a la convocatoria."
+    )
+    for c in datos.concesiones_flujo(con, flujo["organo_id"], flujo["adjudicatario_id"], anio):
         titulo = (c["titulo"] or "Convocatoria sin título")[:100]
         enlace = f"[{titulo}]({c['url_origen']})" if c["url_origen"] else titulo
-        st.markdown(f"- {enlace} · {c['n_concesiones']:,} concesiones · {c['importe']:,.0f} €")
+        st.markdown(
+            f"- {enlace} · {textos.numero(c['n_concesiones'])} concesiones · "
+            f"{textos.euros(c['importe'])}"
+        )
 else:
+    iva = textos.iva_fuente(fuente)
     for c in datos.contratos_flujo(
-        conexion(), flujo["organo_id"], flujo["adjudicatario_id"], fuente, menores, anio, tipo
+        con, flujo["organo_id"], flujo["adjudicatario_id"], fuente, menores, anio, tipo
     ):
         titulo = (c["titulo"] or c["contrato_id"])[:100]
         st.markdown(
-            f"- [{titulo}]({c['url_origen']}) · {c['anio'] or 'sin fecha'} · {c['importe']:,.0f} €"
+            f"- [{titulo}]({c['url_origen']}) · {c['anio'] or 'sin fecha'} · "
+            f"{textos.euros(c['importe'], iva)}"
         )
+
+with st.expander("Vista avanzada: diagrama de flujos", icon=":material/account_tree:"):
+    if es_subvencion:
+        todos = datos.flujos_subvenciones(con, anio, 20)
+    else:
+        todos = datos.flujos(con, fuente, menores, anio, tipo, 20)
+    st.caption("Los 20 mayores flujos de todos los organismos con estos filtros.")
+    st.plotly_chart(graficos.flujos_sankey(todos), config=graficos.CONFIG)

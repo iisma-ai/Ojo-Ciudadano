@@ -7,6 +7,7 @@ Un gráfico por señal, pensado para lo que mide. Reglas comunes (docs/marca.md)
 Las funciones reciben los diccionarios de `app.datos` y devuelven una figura de Plotly.
 """
 
+import math
 from datetime import timedelta
 
 import plotly.graph_objects as go
@@ -437,3 +438,192 @@ def procedimientos(filas: list[dict], nombres: dict[str, str], maximo: int = 6) 
     )
     figura.update_xaxes(visible=False, range=[0, max(d[1] for d in datos_) * 1.2])
     return _tema(figura, alto=60 + 36 * len(datos_))
+
+
+# --- Mapa del dinero (A-07) ---
+
+
+def empaquetar(radios: list[float], separacion: float = 0.04) -> list[tuple[float, float]]:
+    """Coloca círculos de mayor a menor lo más cerca posible del centro sin que se solapen
+    (búsqueda en espiral). Devuelve el centro de cada uno, en el orden recibido."""
+    colocados: list[tuple[float, float, float]] = []
+    for r in radios:
+        if not colocados:
+            colocados.append((0.0, 0.0, r))
+            continue
+        distancia, paso = 0.0, max(r * 0.15, 0.02)
+        while True:
+            angulos = 90
+            libre = None
+            for k in range(angulos):
+                angulo = 2 * math.pi * k / angulos
+                x, y = distancia * math.cos(angulo), distancia * math.sin(angulo)
+                if all(
+                    math.hypot(x - cx, y - cy) >= cr + r + separacion for cx, cy, cr in colocados
+                ):
+                    libre = (x, y)
+                    break
+            if libre:
+                colocados.append((*libre, r))
+                break
+            distancia += paso
+    return [(x, y) for x, y, _ in colocados]
+
+
+def _circulo(figura: go.Figure, x: float, y: float, r: float, color: str) -> None:
+    figura.add_shape(
+        type="circle",
+        x0=x - r,
+        y0=y - r,
+        x1=x + r,
+        y1=y + r,
+        fillcolor=color,
+        line={"color": "#0B1120", "width": 2},
+        layer="below",
+    )
+
+
+def _lienzo(figura: go.Figure, limite: float, alto: int) -> go.Figure:
+    figura.update_xaxes(visible=False, range=[-limite, limite])
+    figura.update_yaxes(visible=False, range=[-limite, limite], scaleanchor="x")
+    return _tema(figura, alto=alto)
+
+
+def burbujas_organismos(filas: list[dict]) -> go.Figure:
+    """Burbujas empaquetadas de los organismos que más adjudican: área = importe, un color por
+    organismo. El nombre va dentro de las burbujas grandes; todas tienen el detalle al pasar
+    el ratón."""
+    maximo = max(f["importe"] for f in filas)
+    radios = [math.sqrt(f["importe"] / maximo) for f in filas]
+    centros = empaquetar(radios)
+    figura = go.Figure()
+    for i, (f, r, (x, y)) in enumerate(zip(filas, radios, centros, strict=True)):
+        _circulo(figura, x, y, r, color_categorico(i))
+        # Nombre dentro solo si cabe; el resto se ve al pasar el ratón y en la lista.
+        if r > 0.6:
+            figura.add_annotation(
+                x=x,
+                y=y,
+                text=f"<b>{partir(f['organo'], 14)}</b><br>{euros(f['importe'])}",
+                showarrow=False,
+                font={"color": "#FFFFFF", "size": 12},
+            )
+        else:
+            figura.add_annotation(
+                x=x,
+                y=y,
+                text=f"<b>{i + 1}</b>",
+                showarrow=False,
+                font={"color": "#FFFFFF", "size": 11 if r > 0.25 else 9},
+            )
+    figura.add_scatter(
+        x=[c[0] for c in centros],
+        y=[c[1] for c in centros],
+        mode="markers",
+        marker={
+            "size": [max(8, 90 * r) for r in radios],
+            "color": "rgba(0,0,0,0)",
+            "line": {"width": 0},
+        },
+        customdata=[[f["organo"], f["importe"], f["n_contratos"]] for f in filas],
+        hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]:,.0f} € en "
+        "%{customdata[2]:,} contratos o concesiones<extra></extra>",
+    )
+    extension = max(math.hypot(x, y) + r for (x, y), r in zip(centros, radios, strict=True))
+    return _lienzo(figura, extension * 1.03, 560)
+
+
+def red_organismo(organo: str, filas: list[dict], total: float | None = None) -> go.Figure:
+    """Red de un organismo: el organismo en el centro y sus empresas alrededor. El área de cada
+    burbuja y el grosor de cada línea son el importe; un color por empresa."""
+    filas = sorted(filas, key=lambda f: f["importe"], reverse=True)
+    maximo = max(f["importe"] for f in filas)
+    n = len(filas)
+    distancia = 3.2
+    figura = go.Figure()
+    puntos = []
+    for i, f in enumerate(filas):
+        angulo = math.pi / 2 - 2 * math.pi * i / n
+        x, y = distancia * math.cos(angulo), distancia * math.sin(angulo)
+        proporcion = f["importe"] / maximo
+        figura.add_shape(
+            type="line",
+            x0=0,
+            y0=0,
+            x1=x,
+            y1=y,
+            line={
+                "color": transparente(color_categorico(i), 0.55),
+                "width": 2 + 14 * proporcion,
+            },
+            layer="below",
+        )
+        puntos.append((x, y, 0.22 + 0.5 * math.sqrt(proporcion), angulo, f, i))
+    _circulo(figura, 0, 0, 1.0, AZUL)
+    figura.add_annotation(
+        x=0,
+        y=0,
+        text=f"<b>{partir(organo, 16)}</b>" + (f"<br>{euros(total)}" if total else ""),
+        showarrow=False,
+        font={"color": "#FFFFFF", "size": 12},
+    )
+    for x, y, r, angulo, f, i in puntos:
+        _circulo(figura, x, y, r, color_categorico(i))
+        # Etiqueta hacia fuera, en la dirección de la burbuja, para no pisar a las vecinas.
+        coseno, seno = math.cos(angulo), math.sin(angulo)
+        lado = "left" if coseno > 0.3 else "right" if coseno < -0.3 else "center"
+        figura.add_annotation(
+            x=x + (r + 0.15) * coseno,
+            y=y + (r + 0.15) * seno,
+            text=f"{partir(f['empresa'], 24)}<br><b>{euros(f['importe'])}</b>",
+            showarrow=False,
+            xanchor=lado,
+            yanchor="bottom" if seno > 0.7 else "top" if seno < -0.7 else "middle",
+            align=lado if lado != "center" else "center",
+            font={"color": TEXTO, "size": 11},
+        )
+    figura.add_scatter(
+        x=[p[0] for p in puntos],
+        y=[p[1] for p in puntos],
+        mode="markers",
+        marker={
+            "size": [max(10, 60 * p[2]) for p in puntos],
+            "color": "rgba(0,0,0,0)",
+            "line": {"width": 0},
+        },
+        customdata=[[p[4]["empresa"], p[4]["importe"], p[4]["n_contratos"]] for p in puntos],
+        hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]:,.0f} € en "
+        "%{customdata[2]:,} contratos o concesiones<extra></extra>",
+    )
+    figura.update_xaxes(visible=False, range=[-7.5, 7.5])
+    figura.update_yaxes(visible=False, range=[-5.0, 5.0], scaleanchor="x")
+    return _tema(figura, alto=640)
+
+
+def flujos_sankey(filas: list[dict]) -> go.Figure:
+    """Diagrama de flujos organismo → empresa (vista avanzada del mapa del dinero). Cada
+    organismo con su color y sus flujos del mismo color; las empresas en gris claro."""
+    organos = list(dict.fromkeys(f["organo"] for f in filas))
+    empresas = list(dict.fromkeys(f["empresa"] for f in filas))
+    figura = go.Figure(
+        go.Sankey(
+            node={
+                "label": organos + empresas,
+                "pad": 14,
+                "thickness": 14,
+                "line": {"width": 0},
+                "color": [color_categorico(i) for i in range(len(organos))]
+                + [GRIS_CLARO] * len(empresas),
+            },
+            link={
+                "source": [organos.index(f["organo"]) for f in filas],
+                "target": [len(organos) + empresas.index(f["empresa"]) for f in filas],
+                "value": [f["importe"] for f in filas],
+                "color": [
+                    transparente(color_categorico(organos.index(f["organo"])), 0.35) for f in filas
+                ],
+            },
+            textfont={"color": TEXTO, "size": 12, "shadow": "none"},
+        )
+    )
+    return _tema(figura, alto=600)

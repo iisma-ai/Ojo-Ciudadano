@@ -4,7 +4,7 @@ Plataforma de transparencia del gasto público de la Comunidad de Madrid para **
 
 **Entrega: 26 de noviembre de 2026.** Equipo de 4 personas. Cada día cuenta: prioriza lo que está en el plan.
 
-## ⚠️ Lo que debes hacer SIEMPRE
+## Lo que debes hacer SIEMPRE
 
 0. **Sincroniza antes de nada.** Somos 4 personas (y sus agentes) trabajando a la vez: lo que tienes en local puede estar viejo. Al empezar y antes de cada tarea nueva, trae los cambios del remoto y mira qué han hecho los demás (ver «Trabajo en equipo con git»).
 1. **Lee antes de actuar.** Después de sincronizar, lee `docs/08-plan.md`, `docs/decisions.md` y las entradas más recientes de `docs/bitacora/` (o ejecuta `/estado`). Lee además el documento temático de lo que vayas a tocar (ver índice en `docs/README.md`).
@@ -20,6 +20,7 @@ Plataforma de transparencia del gasto público de la Comunidad de Madrid para **
 4. **Nunca afirmes corrupción.** Se habla de **«indicadores de riesgo»**, «señales», «alertas». Aplica a código, interfaz, respuestas del asistente, README, commits y presentación. Tabla de lenguaje en `docs/07-riesgos.md`. En caso de duda, usa el agente `revisor-legal`.
 5. **Cada cifra enlaza a su fuente oficial.** Toda tabla de hechos lleva `fuente`, `url_origen` y `fecha_descarga`. Sin enlace al origen, la cifra no se muestra.
 6. **Sin fichas de personas físicas** (RGPD, D-007). Autónomos y beneficiarios particulares se agregan o seudonimizan.
+7. **Nunca emojis ni emoticonos** (D-022), en ningún sitio: interfaz, código, comentarios, documentación, commits, README ni presentación. En la interfaz solo se usan **iconos de verdad**: Material Symbols de Streamlit (`icon=":material/info:"`) o SVG propios en `src/ojo_ciudadano/app/static/`. Colores, logo y estilo en `docs/marca.md`. Un test falla si aparece un emoji.
 
 ## Alcance (resumen; detalle en `docs/`)
 

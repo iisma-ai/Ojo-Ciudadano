@@ -1,0 +1,60 @@
+/* Ajustes de estilo sobre el tema de .streamlit/config.toml (docs/marca.md). */
+
+:root {
+  --oc-fondo: #0B1120;
+  --oc-superficie: #131C2E;
+  --oc-borde: #24314A;
+  --oc-texto: #E7ECF3;
+  --oc-texto-suave: #93A1B8;
+  --oc-azul: #3D8BFD;
+  --oc-ambar: #F2B544;
+}
+
+/* Contenido más centrado y con aire. */
+.block-container {
+  padding-top: 2.2rem;
+  padding-bottom: 3rem;
+  max-width: 1200px;
+}
+
+/* Títulos: más peso y menos tamaño que los de serie. */
+h1, h2, h3 {
+  letter-spacing: -0.01em;
+}
+h2 {
+  font-size: 1.7rem !important;
+  font-weight: 700 !important;
+}
+h3 {
+  font-size: 1.15rem !important;
+  font-weight: 600 !important;
+}
+
+/* Textos secundarios en gris azulado. */
+[data-testid="stCaptionContainer"] {
+  color: var(--oc-texto-suave);
+}
+
+/* Desplegables como tarjetas. */
+[data-testid="stExpander"] details {
+  background: var(--oc-superficie);
+  border: 1px solid var(--oc-borde);
+  border-radius: 0.6rem;
+}
+[data-testid="stExpander"] summary:hover {
+  color: var(--oc-azul);
+}
+
+/* Métricas como tarjetas. */
+[data-testid="stMetric"] {
+  background: var(--oc-superficie);
+  border: 1px solid var(--oc-borde);
+  border-radius: 0.6rem;
+  padding: 0.8rem 1rem;
+}
+
+/* Barra lateral: textos pequeños y separación. */
+[data-testid="stSidebar"] [data-testid="stCaptionContainer"] {
+  font-size: 0.78rem;
+  line-height: 1.4;
+}

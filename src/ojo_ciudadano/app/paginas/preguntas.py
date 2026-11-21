@@ -13,7 +13,7 @@ from ojo_ciudadano.asistente import sql_seguro
 from ojo_ciudadano.asistente.consultas_demo import CONSULTAS_DEMO
 
 st.header("Preguntas guiadas")
-st.write(
+st.caption(
     "Preguntas frecuentes respondidas con consultas públicas sobre los datos oficiales. "
     "Cada respuesta indica qué cubre y qué no, y enseña la consulta SQL para comprobarla."
 )
@@ -43,4 +43,4 @@ with st.expander("Consulta SQL usada"):
     st.code(consulta.sql.strip(), language="sql")
     if parametros:
         st.caption(f"Parámetros: {parametros}")
-st.caption(textos.AVISO_CORTO + " " + textos.FUENTES)
+st.caption(textos.FUENTES)

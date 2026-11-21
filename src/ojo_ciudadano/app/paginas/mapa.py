@@ -14,12 +14,13 @@ FUENTES = {
 }
 
 st.header("Mapa del dinero")
-st.write(
-    "A qué empresas adjudica contratos cada órgano y a qué entidades concede subvenciones. "
-    "Se muestran los mayores flujos según los filtros, una fuente cada vez: sus importes no "
-    "son comparables entre sí. No hay enlace entre una partida del presupuesto y un contrato "
-    "o una subvención, así que no se puede seguir el dinero desde el presupuesto."
-)
+st.caption("A qué empresas adjudica contratos cada órgano y a qué entidades concede subvenciones.")
+with st.expander("Cómo leer el mapa", icon=":material/info:"):
+    st.markdown(
+        "Se muestran los mayores flujos según los filtros, una fuente cada vez: sus importes "
+        "no son comparables entre sí. No hay enlace entre una partida del presupuesto y un "
+        "contrato o una subvención, así que no se puede seguir el dinero desde el presupuesto."
+    )
 
 c1, c2, c3, c4 = st.columns(4)
 fuente = FUENTES[c1.selectbox("Fuente", list(FUENTES))]
@@ -28,7 +29,10 @@ anio = c2.selectbox(
 )
 es_subvencion = fuente == "bdns"
 tipo = c3.selectbox(
-    "Tipo de contrato", [None, *datos.tipos_contrato(conexion())], disabled=es_subvencion
+    "Tipo de contrato",
+    [None, *datos.tipos_contrato(conexion())],
+    format_func=lambda t: "Todos" if t is None else t,
+    disabled=es_subvencion,
 )
 menores = c4.checkbox("Incluir contratos menores", value=False, disabled=es_subvencion)
 limite = st.slider("Flujos a mostrar", 5, 40, 20)
@@ -66,15 +70,30 @@ empresas = list(dict.fromkeys(f["empresa"] for f in filas))
 etiquetas = organos + empresas
 figura = go.Figure(
     go.Sankey(
-        node={"label": etiquetas, "pad": 12},
+        node={
+            "label": etiquetas,
+            "pad": 14,
+            "thickness": 14,
+            "line": {"width": 0},
+            # Colores de docs/marca.md: órganos en azul, empresas en gris azulado.
+            "color": ["#3D8BFD"] * len(organos) + ["#93A1B8"] * len(empresas),
+        },
         link={
             "source": [organos.index(f["organo"]) for f in filas],
             "target": [len(organos) + empresas.index(f["empresa"]) for f in filas],
             "value": [f["importe"] for f in filas],
+            "color": "rgba(61, 139, 253, 0.22)",
         },
+        textfont={"color": "#E7ECF3", "size": 12, "shadow": "none"},
     )
 )
-figura.update_layout(height=600, margin={"l": 0, "r": 0, "t": 10, "b": 10})
+figura.update_layout(
+    height=600,
+    margin={"l": 0, "r": 0, "t": 10, "b": 10},
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)",
+    font={"family": "Inter, sans-serif"},
+)
 st.plotly_chart(figura, width="stretch")
 
 st.subheader("Detalle de los flujos")

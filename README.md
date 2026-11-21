@@ -1,10 +1,17 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="src/ojo_ciudadano/app/static/logo.svg">
+    <img src="src/ojo_ciudadano/app/static/logo-claro.svg" width="96" alt="Logo de Ojo Ciudadano">
+  </picture>
+</p>
+
 # Ojo Ciudadano
 
 **Seguir el dinero público de la Comunidad de Madrid, de cada órgano a cada empresa.**
 
 Ojo Ciudadano es una plataforma de transparencia del gasto público: une contratos y subvenciones de la Comunidad de Madrid, calcula **indicadores de riesgo** con metodología abierta y permite investigarlo todo **en lenguaje natural**, con cada cifra enlazada a su documento oficial.
 
-> Proyecto presentado a **[DataMad 2026](https://www.comunidad.madrid/node/120258)**. Estado (21-nov): 🚧 datos, indicadores, las cuatro pantallas, contratos atípicos y preguntas guiadas funcionando con datos reales; el asistente de texto libre está en desarrollo. Entrega el 26 de noviembre de 2026.
+> Proyecto presentado a **[DataMad 2026](https://www.comunidad.madrid/node/120258)**. Estado (21-nov): datos, indicadores, las cuatro pantallas, contratos atípicos y preguntas guiadas funcionando con datos reales; el asistente de texto libre está en desarrollo. Entrega el 26 de noviembre de 2026.
 
 ---
 
@@ -18,12 +25,12 @@ Saber qué empresas reciben más dinero de una consejería, o si esa consejería
 
 | | |
 | --- | --- |
-| 🗺️ **Mapa del dinero** | Flujos órgano → empresa y órgano → beneficiario, por año, tipo de contrato y procedimiento. |
-| 🏢 **Ficha de empresa** | Todo lo que ha recibido un NIF: contratos, menores, prórrogas, modificaciones y subvenciones. |
-| 🏛️ **Ficha de órgano** | Cómo contrata cada consejería u organismo, comparado con los demás. |
-| 🚩 **Panel de alertas** | Contratos ordenados por puntuación de riesgo, con el motivo de cada alerta. |
-| 🔍 **Contratos atípicos** | Contratos que se alejan de otros similares según un modelo de aprendizaje automático no supervisado, con las cifras que los alejan. Señal experimental, aparte de los indicadores. |
-| 💬 **Asistente de investigación** | Hoy, preguntas guiadas con consultas verificadas. En desarrollo: pregunta en lenguaje natural («¿qué empresas acumulan más contratos menores en Sanidad en 2025?») y recibe la respuesta con la consulta usada y el enlace a cada registro. |
+| **Mapa del dinero** | Flujos órgano → empresa y órgano → beneficiario, por año, tipo de contrato y procedimiento. |
+| **Ficha de empresa** | Todo lo que ha recibido un NIF: contratos, menores, prórrogas, modificaciones y subvenciones. |
+| **Ficha de órgano** | Cómo contrata cada consejería u organismo, comparado con los demás. |
+| **Panel de alertas** | Contratos ordenados por puntuación de riesgo, con el motivo de cada alerta. |
+| **Contratos atípicos** | Contratos que se alejan de otros similares según un modelo de aprendizaje automático no supervisado, con las cifras que los alejan. Señal experimental, aparte de los indicadores. |
+| **Asistente de investigación** | Hoy, preguntas guiadas con consultas verificadas. En desarrollo: pregunta en lenguaje natural («¿qué empresas acumulan más contratos menores en Sanidad en 2025?») y recibe la respuesta con la consulta usada y el enlace a cada registro. |
 
 ## Indicadores de riesgo, no acusaciones
 

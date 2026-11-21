@@ -222,3 +222,18 @@ Plantilla:
   - **Método elegido (21-nov, al implementarlo):** Isolation Forest por grupo de pares (fuente · licitación o menor · tipo de contrato, grupos de 50 o más), 200 árboles, semilla 42, el 1 % más alejado de cada grupo como atípico; explicación por desviación robusta frente a la mediana del grupo. Detalle y resultados en `docs/04-indicadores-riesgo.md`.
 - **Alternativas consideradas:** No incluirlo (la propuesta no podría mencionar aprendizaje automático); solo supervisado (no hay etiquetas fiables, D-002); meter la anomalía en la puntuación (mezcla una señal sin validar con indicadores auditables).
 - **Consecuencias:** Nueva dependencia (scikit-learn, con `uv add` cuando se implemente, registrada en la bitácora). Nueva carpeta `src/ojo_ciudadano/anomalias/` y tabla derivada `anomalia_resultado`; no toca el esquema congelado (D-017). Hay que asignar responsable. Los textos deben pasar por `revisor-legal`, porque «atípico» no puede leerse como «irregular». Actualizados 08, 04, 06 y `CLAUDE.md`.
+
+## D-022 · Identidad visual: logo, paleta oscura con azul y sin emojis
+- **Fecha:** 2026-11-21
+- **Estado:** Aceptada
+- **Autor:** Claude (agente)
+- **Contexto:** La interfaz usaba el tema por defecto de Streamlit, con mucho texto en pantalla y algún emoji. El README y varios documentos también tenían emojis. Para un jurado, el proyecto necesita un aspecto serio y reconocible.
+- **Decisión:**
+  - **Logo vectorial:** un ojo abierto de trazo uniforme con la pupila azul, en tres variantes (`src/ojo_ciudadano/app/static/`).
+  - **Tema oscuro:** fondo `#0B1120`, acento azul `#3D8BFD` y ámbar `#F2B544` solo para contraste. Tipografía Inter. Se configura en `.streamlit/config.toml`.
+  - **Navegación:** agrupada en «Señales», «Explorar» y «Preguntar», con iconos Material.
+  - **Menos texto:** una línea bajo cada título y las explicaciones en desplegables. Metodología, fuentes y aviso legal van a la barra lateral.
+  - **Prohibidos los emojis y emoticonos** en todo el repositorio y la presentación. Los iconos son Material Symbols o SVG propios. Lo comprueba `tests/test_sin_emojis.py`.
+- **Alternativas consideradas:** Mantener el tema de serie (aspecto genérico). Usar una librería de componentes externa (más dependencias y riesgo a cuatro días de la demo).
+- **Consecuencias:** Nuevo `docs/marca.md` con logo, paleta y reglas. Regla 7 en `CLAUDE.md`. Las pantallas nuevas deben seguir estas reglas.
+

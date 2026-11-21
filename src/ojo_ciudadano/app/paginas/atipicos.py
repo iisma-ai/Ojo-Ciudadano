@@ -6,11 +6,12 @@ from ojo_ciudadano.app import datos, textos
 from ojo_ciudadano.app.conexion import conexion
 
 st.header("Contratos atípicos")
-st.write(
+st.caption(
     "Contratos que se alejan de otros similares según un modelo de aprendizaje automático. "
-    "Es una señal experimental, distinta de los indicadores de riesgo."
+    "Señal experimental, aparte de los indicadores: atípico no significa irregular."
 )
-st.info(textos.AVISO_ATIPICOS)
+with st.expander("Cómo se calcula", icon=":material/info:"):
+    st.markdown(textos.AVISO_ATIPICOS)
 
 con = conexion()
 if not datos.hay_anomalias(con):

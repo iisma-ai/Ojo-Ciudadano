@@ -82,12 +82,49 @@ def test_se_rinde_tras_agotar_las_llamadas(con):
     assert r.consultas == []
 
 
-def test_avisa_de_cifras_sin_consulta_y_de_lenguaje(con):
-    r = agente.responder(con, Guion(TextoFinal("Se adjudicaron 1.250.000 € con fraude.")), "¿?")
+def test_retiene_cifras_sin_consulta(con):
+    r = agente.responder(con, Guion(TextoFinal("Se adjudicaron 1.250.000 €.")), "¿?")
     assert "Da cifras sin haber consultado la base" in r.avisos
-    assert any("fraude" in a for a in r.avisos)
+    assert r.retencion == agente.RETENCION_CIFRAS
     r = agente.responder(con, Guion(TextoFinal("Solo cubro la Comunidad de Madrid.")), "¿?")
-    assert r.avisos == []
+    assert r.avisos == [] and r.retencion is None
+
+
+@pytest.mark.parametrize(
+    "texto",
+    ["La empresa fue favorecida.", "Hay fraude en este órgano.", "Contratos dados a dedo."],
+)
+def test_retiene_lenguaje_acusatorio(con, texto):
+    r = agente.responder(con, Guion(TextoFinal(texto)), "¿?")
+    assert r.retencion == agente.RETENCION_LENGUAJE
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        "Atípico no significa irregular.",
+        "Una alerta no prueba ninguna irregularidad ni fraude.",
+        "Licitador único: merece revisión.",
+    ],
+)
+def test_no_retiene_negaciones_ni_lenguaje_correcto(con, texto):
+    r = agente.responder(con, Guion(TextoFinal(texto)), "¿?")
+    assert r.retencion is None
+
+
+def test_retiene_dni_en_el_texto_o_en_los_datos(con):
+    r = agente.responder(con, Guion(TextoFinal("Su titular es 12.345.678-Z.")), "¿?")
+    assert r.retencion == agente.RETENCION_DNI
+    modelo = Guion(LlamadaSQL("SELECT 'Obra de 12345678Z' AS titulo"), TextoFinal("Un contrato."))
+    r = agente.responder(con, modelo, "¿?")
+    assert r.retencion == agente.RETENCION_DNI
+
+
+def test_una_pregunta_con_dni_no_llega_al_modelo(con):
+    modelo = Guion()
+    r = agente.responder(con, modelo, "¿Qué contratos tiene X-1234567-L?")
+    assert modelo.llamadas == []
+    assert r.texto == agente.PREGUNTA_CON_DNI
 
 
 def test_el_historial_llega_al_modelo(con):

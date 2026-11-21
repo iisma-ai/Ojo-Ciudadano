@@ -26,7 +26,9 @@ def mostrar_resultado(resultado: dict) -> None:
         if c.startswith("importe"):
             configuracion[c] = st.column_config.NumberColumn(format="localized")
         if c.startswith("url"):
-            etiqueta = {"url_origen": "Enlace oficial", "url_bases": "Bases reguladoras"}.get(c, c)
+            etiqueta = {"url_origen": "Enlace oficial", "url_bases": "Bases reguladoras"}.get(
+                c, "Enlace oficial"
+            )
             configuracion[c] = st.column_config.LinkColumn(
                 etiqueta, display_text="Ver en la fuente oficial"
             )

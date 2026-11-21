@@ -71,6 +71,13 @@ def test_revisar_texto_marca_lenguaje_y_dni():
     assert any("corrup" in a for a in avisos)
     assert "Contiene un DNI o NIE" in avisos
     assert bateria.revisar_texto("NIE X1234567L") == ["Contiene un DNI o NIE"]
+    assert bateria.revisar_texto("DNI 12.345.678-Z") == ["Contiene un DNI o NIE"]
+    assert bateria.revisar_texto("Importe de 1.234.567 € en 2025") == []
+
+
+def test_las_negaciones_no_cuentan_como_lenguaje_acusatorio():
+    assert bateria.terminos_acusatorios("Atípico no significa irregular.") == []
+    assert bateria.terminos_acusatorios("Sin indicios de fraude, pero hubo un amaño") == ["amañ"]
 
 
 def test_evaluar_acierta_con_otro_sql_equivalente(con):

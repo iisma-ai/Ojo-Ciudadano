@@ -6,7 +6,7 @@ from ojo_ciudadano.app import datos, textos
 from ojo_ciudadano.app.conexion import conexion
 
 st.header("Panel de alertas")
-st.write(
+st.caption(
     "Contratos con más señales de riesgo activadas respecto a las que se pudieron calcular. "
     "Una señal no es una irregularidad."
 )

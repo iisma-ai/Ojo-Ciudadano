@@ -35,14 +35,12 @@ def texto_visible(respuesta: agente.Respuesta) -> str:
 
 
 st.header("Asistente")
-st.write(
+st.caption(
     "Pregunta en tus palabras sobre los contratos y las subvenciones de la Comunidad de Madrid. "
-    "El asistente consulta los datos oficiales y te enseña la consulta y los datos que usa, "
-    "con el enlace a la fuente, para que puedas comprobar la respuesta. Las respuestas las "
-    "redacta automáticamente un modelo de lenguaje y pueden contener errores: compruébalas "
-    "siempre en los datos y en el enlace oficial. No escribas datos personales en tus preguntas."
+    "Las respuestas las redacta un modelo de lenguaje y pueden contener errores: comprueba "
+    "siempre la consulta, los datos y el enlace oficial que se muestran con cada una. No "
+    "escribas datos personales en tus preguntas."
 )
-st.caption(textos.AVISO_CORTO)
 
 modelo = agente.modelo_configurado()
 if modelo is None:
@@ -50,7 +48,9 @@ if modelo is None:
         "El asistente todavía no está conectado a un modelo de lenguaje. Mientras tanto, las "
         "preguntas guiadas responden a las preguntas más frecuentes con consultas verificadas."
     )
-    st.page_link("paginas/preguntas.py", label="Ir a las preguntas guiadas", icon="➡️")
+    st.page_link(
+        "paginas/preguntas.py", label="Ir a las preguntas guiadas", icon=":material/arrow_forward:"
+    )
     with st.expander("Ejemplos de preguntas que podrá responder"):
         st.markdown("\n".join(f"- {p.pregunta}" for p in bateria.BATERIA if p.sql))
     st.stop()

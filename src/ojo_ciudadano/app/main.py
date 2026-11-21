@@ -1,36 +1,69 @@
 """Interfaz de Ojo Ciudadano.
 
 Uso: uv run streamlit run src/ojo_ciudadano/app/main.py
+
+Identidad visual (logo, paleta y reglas) en docs/marca.md; el tema está en .streamlit/config.toml.
+Sin emojis: los iconos son de Material Symbols (`:material/nombre:`).
 """
+
+from pathlib import Path
 
 import streamlit as st
 
 from ojo_ciudadano.app import datos, textos
 from ojo_ciudadano.app.conexion import conexion
 
-st.set_page_config(page_title="Ojo Ciudadano", page_icon="👁️", layout="wide")
+ESTATICOS = Path(__file__).parent / "static"
+
+st.set_page_config(
+    page_title="Ojo Ciudadano",
+    page_icon=str(ESTATICOS / "logo.svg"),
+    layout="wide",
+)
+st.logo(
+    str(ESTATICOS / "logo-horizontal.svg"), icon_image=str(ESTATICOS / "logo.svg"), size="large"
+)
+st.html(f"<style>{(ESTATICOS / 'estilo.css').read_text(encoding='utf-8')}</style>")
 
 
-def cabecera() -> None:
-    st.title("Ojo Ciudadano")
-    st.caption(f"{textos.fechas_descarga(datos.fechas_datos(conexion()))} {textos.PIE}")
-    st.info(textos.AVISO_CORTO)
-    with st.expander("Metodología y fuentes", expanded=False):
-        st.markdown(textos.AVISO)
-        st.markdown("**Qué mide cada indicador**")
-        st.markdown(textos.lista_indicadores())
+def barra_lateral() -> None:
+    """Metodología, fuentes y fechas en la barra lateral, fuera del contenido principal."""
+    with st.sidebar:
+        st.caption(textos.AVISO_CORTO)
+        with st.popover("Metodología y fuentes", icon=":material/info:", width="stretch"):
+            st.markdown(textos.AVISO)
+            st.markdown("**Qué mide cada indicador**")
+            st.markdown(textos.lista_indicadores())
+        st.caption(textos.fechas_descarga(datos.fechas_datos(conexion())))
+        with st.expander("Aviso legal y fuentes"):
+            st.caption(textos.PIE)
 
 
 paginas = st.navigation(
-    [
-        st.Page("paginas/alertas.py", title="Panel de alertas", default=True),
-        st.Page("paginas/empresa.py", title="Ficha de empresa"),
-        st.Page("paginas/organo.py", title="Ficha de órgano"),
-        st.Page("paginas/mapa.py", title="Mapa del dinero"),
-        st.Page("paginas/atipicos.py", title="Contratos atípicos"),
-        st.Page("paginas/preguntas.py", title="Preguntas guiadas"),
-        st.Page("paginas/asistente.py", title="Asistente"),
-    ]
+    {
+        "Señales": [
+            st.Page(
+                "paginas/alertas.py",
+                title="Panel de alertas",
+                icon=":material/notifications_active:",
+                default=True,
+            ),
+            st.Page(
+                "paginas/atipicos.py", title="Contratos atípicos", icon=":material/scatter_plot:"
+            ),
+        ],
+        "Explorar": [
+            st.Page("paginas/mapa.py", title="Mapa del dinero", icon=":material/account_tree:"),
+            st.Page("paginas/empresa.py", title="Ficha de empresa", icon=":material/domain:"),
+            st.Page(
+                "paginas/organo.py", title="Ficha de órgano", icon=":material/account_balance:"
+            ),
+        ],
+        "Preguntar": [
+            st.Page("paginas/preguntas.py", title="Preguntas guiadas", icon=":material/quiz:"),
+            st.Page("paginas/asistente.py", title="Asistente", icon=":material/forum:"),
+        ],
+    }
 )
-cabecera()
+barra_lateral()
 paginas.run()

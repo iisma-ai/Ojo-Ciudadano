@@ -26,7 +26,7 @@
 
 ## Lenguaje: qué decir y qué no
 
-| ✅ Decir | ❌ No decir |
+| Decir | No decir |
 | --- | --- |
 | «indicador de riesgo», «señal», «alerta» | «corrupción», «fraude», «irregular» (como afirmación) |
 | «contrato con licitador único» | «contrato amañado» |

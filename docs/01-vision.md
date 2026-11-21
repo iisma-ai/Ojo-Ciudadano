@@ -48,7 +48,7 @@ La contratación pública es el punto donde el dinero público se convierte en p
 
 [DataMad 2026](https://www.comunidad.madrid/node/120258) pide soluciones que generen valor económico, social o medioambiental con el **Catálogo de Datos Abiertos de la Comunidad**. Según las [bases difundidas](https://vivirediciones.es/?p=1130856), permite usar IA y combinar fuentes nacionales e internacionales. Nuestra propuesta: datos regionales como base, fuentes estatales para completarlos, IA para hacerlos consultables.
 
-> ⚠️ El uso del Catálogo es requisito de las bases y aún no hemos confirmado qué datasets ofrece. Ver [09-preguntas-abiertas.md](09-preguntas-abiertas.md) (P-01).
+> **Atención:** el uso del Catálogo es requisito de las bases y aún no hemos confirmado qué datasets ofrece. Ver [09-preguntas-abiertas.md](09-preguntas-abiertas.md) (P-01).
 
 ## Qué nos diferencia
 

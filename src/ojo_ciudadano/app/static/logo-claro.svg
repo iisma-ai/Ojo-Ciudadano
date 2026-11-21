@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Ojo Ciudadano">
+  <path d="M102 72 C98 38 80 15 46 15 L16 15 L16 62 C16 90 34 104 68 105"
+        fill="none" stroke="#0B1120" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="55" cy="67" r="13" fill="#2F6FE0"/>
+</svg>

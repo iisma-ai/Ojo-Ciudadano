@@ -1,6 +1,6 @@
 # 2026-11-21 · Aviso de menores recientes incompletos (P-12)
 
-- **Autor:** Claude (agente)
+- **Autor:** Claude (agente), a petición de Ismael
 - **Fase del plan:** 2. Calidad de datos.
 - **Rama:** `fix/aviso-menores-recientes`
 

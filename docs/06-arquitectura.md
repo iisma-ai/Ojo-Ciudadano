@@ -113,7 +113,7 @@ Tabla derivada `anomalia_resultado`, que se regenera entera (unos 45 segundos, d
 uv run python -m ojo_ciudadano.anomalias.deteccion
 ```
 
-Una fila por contrato puntuado con `contrato_id`, `grupo` (fuente · licitación o menor · tipo de contrato), `n_grupo`, `puntuacion` (percentil de rareza dentro del grupo, 0–1), `atipico`, `variables` y `motivo` (solo en los atípicos) y `url_origen`. No toca el esquema congelado (D-017) ni la puntuación de riesgo (D-020). La interfaz la lee en la pantalla «Contratos atípicos» y en el panel de alertas; sin la tabla, esas partes no aparecen (`datos.hay_anomalias`).
+Además, `anomalia_variables` guarda los valores de cada contrato (importe, ofertas, baja, modificaciones, cuota, menores en 12 meses) para dibujarlo frente a sus pares en la interfaz (A-04). Una fila por contrato puntuado con `contrato_id`, `grupo` (fuente · licitación o menor · tipo de contrato), `n_grupo`, `puntuacion` (percentil de rareza dentro del grupo, 0–1), `atipico`, `variables` y `motivo` (solo en los atípicos) y `url_origen`. No toca el esquema congelado (D-017) ni la puntuación de riesgo (D-020). La interfaz la lee en la pantalla «Contratos atípicos» y en el panel de alertas; sin la tabla, esas partes no aparecen (`datos.hay_anomalias`).
 
 Pendiente de añadir (requiere acuerdo del equipo): miembros de UTE como tabla propia, documentos para el corpus.
 

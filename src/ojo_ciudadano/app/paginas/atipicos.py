@@ -2,7 +2,7 @@
 
 import streamlit as st
 
-from ojo_ciudadano.app import datos, textos
+from ojo_ciudadano.app import datos, graficos, textos
 from ojo_ciudadano.app.conexion import conexion
 
 st.header("Contratos atípicos")
@@ -55,16 +55,37 @@ st.caption(
 
 for fila in filas:
     titulo = fila["titulo"] or fila["contrato_id"]
-    with st.expander(f"{titulo} · {fila['organo']}"):
-        st.write(
-            f"Comparado con {fila['n_grupo']} contratos de «{textos.nombre_grupo(fila['grupo'])}». "
-            f"Más alejado de sus pares que el {fila['puntuacion']:.1%} de ellos "
-            "(posición relativa, no una probabilidad)."
-        )
-        if fila["adjudicatarios"]:
-            st.write(f"Adjudicatario: {fila['adjudicatarios']}")
+    if len(titulo) > 110:
+        titulo = titulo[:107].rstrip() + "…"
+    desplegable = st.expander(
+        f"**{titulo}**  \n:gray[{fila['organo']}]",
+        key=f"atipico-{fila['contrato_id']}",
+        on_change="rerun",
+    )
+    with desplegable:
         st.markdown(f"**Por qué se aleja:** {fila['motivo']}")
+        if not desplegable.open:
+            continue
+        pares = datos.pares_anomalia(con, fila["contrato_id"])
+        if pares and pares["pares"]:
+            variables = (fila["variables"] or "").split(", ")
+            st.plotly_chart(
+                graficos.atipico(pares, variables),
+                config=graficos.CONFIG,
+                key=f"grafico-atipico-{fila['contrato_id']}",
+            )
+            st.caption(
+                f"El punto azul es este contrato; los grises, una muestra de los "
+                f"{textos.numero(fila['n_grupo'])} contratos de «"
+                f"{textos.nombre_grupo(fila['grupo'])}». Está más alejado de ellos que el "
+                f"{textos.porcentaje(fila['puntuacion'], 1)} (posición relativa, no una "
+                "probabilidad)."
+            )
+        if fila["adjudicatarios"]:
+            st.caption(f"Adjudicataria: {fila['adjudicatarios']}")
         if fila["url_origen"]:
-            st.link_button("Ver el expediente en la fuente oficial", fila["url_origen"])
+            st.link_button(
+                "Ver el expediente oficial", fila["url_origen"], icon=":material/open_in_new:"
+            )
         else:
             st.caption("Sin enlace oficial disponible para este contrato.")

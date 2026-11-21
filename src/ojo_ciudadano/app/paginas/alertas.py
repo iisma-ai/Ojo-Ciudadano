@@ -1,56 +1,81 @@
-"""Panel de alertas: contratos con más indicadores de riesgo activados."""
+"""Contratos a revisar: los que tienen alguna señal, con un gráfico por señal (D-023, A-03)."""
 
 import streamlit as st
 
-from ojo_ciudadano.app import datos, textos
+from ojo_ciudadano.app import datos, senales, textos
 from ojo_ciudadano.app.conexion import conexion
 
-st.header("Panel de alertas")
-st.caption(
-    "Contratos con más señales de riesgo activadas respecto a las que se pudieron calcular. "
-    "Una señal no es una irregularidad."
-)
+LIMITE = 30
 
-col1, col2 = st.columns(2)
-min_aplicables = col1.slider("Mínimo de indicadores aplicables", 1, 5, 3)
-indicador = col2.selectbox(
-    "Solo con este indicador activado",
-    [None, *textos.NOMBRES_INDICADOR],
-    format_func=lambda i: "Todos" if i is None else f"{i} · {textos.NOMBRES_INDICADOR[i]}",
-)
-if indicador:
-    st.caption(textos.AYUDA_INDICADOR[indicador])
+con = conexion()
+st.header("Contratos a revisar")
+st.caption("Contratos en los que hemos encontrado alguna señal. " + textos.NOTA_SENAL)
 
-filas = datos.alertas(conexion(), min_aplicables, indicador)
-st.caption(
-    f"{len(filas)} contratos mostrados. Con pocos indicadores aplicables la puntuación "
-    "es menos fiable: se muestra cuántos se pudieron calcular."
+conteo = datos.conteo_senales(con)
+elegida = st.pills(
+    "Qué señal buscar",
+    list(textos.SENAL_CORTA),
+    format_func=lambda i: (
+        f"{textos.SENAL_CORTA[i]} ({textos.numero(conteo[i]['encontrados'])})"
+        if i in conteo
+        else textos.SENAL_CORTA[i]
+    ),
+    selection_mode="single",
 )
+if elegida:
+    st.caption(textos.SENAL_FRASE[elegida])
+
+menores = st.toggle(
+    "Incluir contratos menores",
+    help="Los contratos menores son los de menos de 15.000 € (40.000 € en obras), sin IVA. "
+    "Son muchos y en ellos solo se pueden comprobar dos señales.",
+)
+# Sin menores, solo contratos en los que se han podido comprobar al menos 3 señales.
+filas = datos.alertas(con, 1 if menores else 3, elegida, LIMITE)
+
+if not filas:
+    st.info("No hay contratos con esta señal.")
+    st.stop()
+
+st.caption(f"Los {len(filas)} contratos con más señales, de más a menos.")
 
 for fila in filas:
     titulo = fila["titulo"] or fila["contrato_id"]
-    cabecera = textos.encabezado_contrato(
-        titulo, fila["n_activados"], fila["n_aplicables"], fila["organo"]
-    )
-    with st.expander(cabecera):
-        st.write(
-            f"Proporción de indicadores activados: {fila['puntuacion']:.0%} (no es una "
-            "probabilidad) "
-            f"· {fila['tipo_contrato'] or 'tipo no indicado'} · {fila['procedimiento'] or ''} "
-            f"· {fila['anio'] or 'sin fecha'}"
-        )
-        for m in datos.motivos(conexion(), fila["contrato_id"]):
-            nombre = textos.NOMBRES_INDICADOR.get(m["indicador"], m["indicador"])
-            valor = textos.formatear_valor(m["indicador"], m["valor"])
-            st.markdown(f"- **{m['indicador']} · {nombre}** (valor: {valor}): {m['motivo']}")
-        anomalia = datos.anomalia_contrato(conexion(), fila["contrato_id"])
-        if anomalia:
-            st.markdown(
-                f"- **Contrato atípico** respecto a {anomalia['n_grupo']} contratos similares "
-                "(señal experimental, aparte de los indicadores; no suma a la puntuación y "
-                f"atípico no significa irregular): {anomalia['motivo']}"
+    if len(titulo) > 160:
+        titulo = titulo[:157].rstrip() + "…"
+    encontradas = (fila["indicadores_activados"] or "").split(", ")
+    iva = textos.iva_fuente(fila["fuente"])
+    with st.container(border=True):
+        izquierda, derecha = st.columns([5, 1], vertical_alignment="center")
+        with izquierda:
+            st.markdown(f"**{titulo}**")
+            st.caption(
+                f"{fila['organo']} · {fila['anio'] or 'sin fecha'} · "
+                f"{textos.euros(fila['importe'], iva)}"
             )
-        if fila["url_origen"]:
-            st.link_button("Ver el expediente en la fuente oficial", fila["url_origen"])
-        else:
-            st.caption("Sin enlace oficial disponible para este contrato.")
+            insignias = " ".join(
+                f":orange-badge[{textos.SENAL_CORTA[i]}]" for i in encontradas if i
+            )
+            comprobadas = fila["n_aplicables"]
+            st.markdown(
+                f"{insignias} &nbsp; :gray[de {comprobadas} "
+                f"{'señal comprobada' if comprobadas == 1 else 'señales comprobadas'}]"
+            )
+        with derecha:
+            ver = st.toggle("Ver gráficos", key=f"ver-{fila['contrato_id']}")
+        if ver:
+            columnas = st.columns(2) if len(encontradas) > 1 else [st.container()]
+            for n, indicador in enumerate(i for i in encontradas if i):
+                with columnas[n % len(columnas)]:
+                    senales.mostrar(con, indicador, fila["contrato_id"])
+            anomalia = datos.anomalia_contrato(con, fila["contrato_id"])
+            if anomalia:
+                st.markdown(
+                    f"**Contrato atípico** respecto a {textos.numero(anomalia['n_grupo'])} "
+                    "contratos similares (señal experimental, no suma a las demás; atípico no "
+                    f"significa irregular): {anomalia['motivo']}"
+                )
+            if fila["url_origen"]:
+                st.link_button(
+                    "Ver el expediente oficial", fila["url_origen"], icon=":material/open_in_new:"
+                )

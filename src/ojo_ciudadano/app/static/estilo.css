@@ -58,3 +58,12 @@ h3 {
   font-size: 0.78rem;
   line-height: 1.4;
 }
+
+/* Portada: frase de entrada más grande. */
+.oc-entrada {
+  font-size: 1.25rem;
+  color: var(--oc-texto-suave);
+  max-width: 46rem;
+  margin-bottom: 1.5rem;
+}
+

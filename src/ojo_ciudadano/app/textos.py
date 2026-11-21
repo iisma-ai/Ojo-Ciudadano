@@ -139,3 +139,79 @@ AVISO_MENORES_RECIENTES = (
     "recientes de 2026 están incompletos, así que una caída en 2026 no indica que se "
     "contrate menos."
 )
+
+
+# --- Lenguaje claro (D-023, docs/11-accesibilidad.md) ---
+
+PRESENTACION = (
+    "Sigue el dinero que la Comunidad de Madrid paga en contratos y subvenciones, y descubre "
+    "qué contratos conviene revisar."
+)
+
+NOTA_SENAL = (
+    "Una señal no demuestra nada irregular: indica dónde merece la pena mirar con más "
+    "detalle, y puede tener una explicación legítima."
+)
+
+# Nombre corto de cada señal, para etiquetas y filtros.
+SENAL_CORTA = {
+    "R-01": "Una sola oferta",
+    "R-02": "Sin anuncio público",
+    "R-03": "Muchos contratos menores",
+    "R-04": "Una empresa domina",
+    "R-05": "Subida de precio",
+    "R-06": "Rebaja anómala",
+}
+
+# Qué se comprueba, en una frase que se entienda sin saber de contratación.
+SENAL_FRASE = {
+    "R-01": "Al concurso solo se presentó una empresa, así que no hubo con quién comparar "
+    "el precio.",
+    "R-02": "El contrato se adjudicó sin anunciarlo públicamente. La ley lo permite en casos "
+    "concretos, como las emergencias.",
+    "R-03": "El mismo organismo dio a la misma empresa varios contratos pequeños que, sumados "
+    "en un año, superan el límite a partir del cual habría que hacer un concurso.",
+    "R-04": "Una sola empresa se lleva más de la mitad del dinero que el organismo gasta en "
+    "este tipo de contrato.",
+    "R-05": "Después de firmarlo, el precio subió más de un 20 % por modificaciones.",
+    "R-06": "La empresa ganó sin rebajar el precio de salida, o lo rebajó a menos de la mitad, "
+    "algo poco habitual.",
+}
+
+ICONO_SENAL = {
+    "R-01": ":material/person:",
+    "R-02": ":material/visibility_off:",
+    "R-03": ":material/stacks:",
+    "R-04": ":material/donut_large:",
+    "R-05": ":material/trending_up:",
+    "R-06": ":material/percent:",
+}
+
+
+def euros(valor: float | None, iva: str = "") -> str:
+    """Importe legible: «1,2 millones €», «45.300 €». `iva`: «con IVA» o «sin IVA»."""
+    if valor is None:
+        return "sin dato"
+    if abs(valor) >= 1_000_000:
+        texto = f"{valor / 1_000_000:,.1f} millones €".replace(",", "X").replace(".", ",")
+        texto = texto.replace("X", ".")
+    else:
+        texto = f"{valor:,.0f} €".replace(",", ".")
+    return f"{texto} {iva}".strip()
+
+
+def numero(valor: int | float) -> str:
+    """Número con separador de miles español; millones abreviados."""
+    if valor >= 1_000_000:
+        cifra = f"{valor / 1_000_000:.2f}".replace(".", ",").rstrip("0").rstrip(",")
+        return cifra + (" millón" if cifra == "1" else " millones")
+    return f"{valor:,.0f}".replace(",", ".")
+
+
+def iva_fuente(fuente: str) -> str:
+    return "sin IVA" if fuente == "placsp" else "con IVA"
+
+
+def porcentaje(valor: float, decimales: int = 0) -> str:
+    """Proporción como porcentaje en español: 0,394 → «39 %» o «39,4 %»."""
+    return f"{100 * valor:.{decimales}f} %".replace(".", ",")

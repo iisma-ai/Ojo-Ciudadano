@@ -42,7 +42,7 @@ Cuatro fases en 11 días, con hitos internos que protegen la entrega: **esquema 
 | 2 | _por asignar_ | Indicadores de riesgo | Cinco indicadores de prioridad alta y media en SQL, con puntuación por contrato, órgano y empresa |
 | 3 | _por asignar_ | Interfaz | Mapa del dinero, ficha de empresa, ficha de órgano y panel de alertas en Streamlit |
 | 4 | _por asignar_ | Asistente | Agente con texto a SQL y RAG sobre un corpus pequeño, respondiendo bien a las 4 preguntas de demo |
-| _por asignar_ | Lucas (con Claude) | Detección de anomalías (D-021) | Para el 23-nov: tabla `anomalia_resultado` con contratos atípicos respecto a sus pares (no supervisado por defecto), con las variables que lo explican y su test |
+| _por asignar_ | iisma_ai | Detección de anomalías (D-021) | Para el 23-nov: tabla `anomalia_resultado` con contratos atípicos respecto a sus pares (no supervisado por defecto), con las variables que lo explican y su test |
 
 ## Qué recortamos si vamos tarde, en este orden
 

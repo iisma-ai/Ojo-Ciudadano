@@ -26,9 +26,9 @@
 - **Las licitaciones del portal regional casi nunca traen fecha**: solo 344 de 18.777 contratos no menores tienen `fecha_contrato`. Por eso B-11 (mayores obras de 2024) se hizo sobre PLACSP, con su fecha de formalización. Cualquier pregunta por año sobre licitaciones del portal se queda corta, y el asistente debe decirlo (está en los criterios de B-05 y B-11).
 - R-06 tiene bajas de casi el 100 % y bajas negativas de miles por cien, que son probables errores del importe publicado. Por eso B-14 agrega por órgano en vez de listar contratos.
 - La primera versión de B-05 combinaba `GROUP BY ALL` con `HAVING` sobre un alias y devolvía filas duplicadas (200 en vez de 8). Se corrigió con una CTE y `GROUP BY 1, 2`. Conviene evitar ese patrón en los ejemplos que se den al modelo.
-- `anomalia_resultado` (D-021) no está en `TABLAS_PERMITIDAS` de `sql_seguro.py`, así que el asistente no puede consultar los contratos atípicos. No se ha tocado porque es la línea de Lucas y hay que decidir si se quiere exponer.
+- `anomalia_resultado` (D-021) no está en `TABLAS_PERMITIDAS` de `sql_seguro.py`, así que el asistente no puede consultar los contratos atípicos. No se ha tocado porque es la línea de detección de anomalías (D-021) y hay que decidir si se quiere exponer.
 
 ## Siguiente paso
 - Cerrar D-010 (proveedor y modelo) y conectar el modelo. Después, pasar la batería con `evaluar` y anotar los aciertos en docs/05.
-- Decidir con Lucas si `anomalia_resultado` entra en `TABLAS_PERMITIDAS`.
+- Decidir con el responsable de D-021 si `anomalia_resultado` entra en `TABLAS_PERMITIDAS`.
 - PR a `main`.

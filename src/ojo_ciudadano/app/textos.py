@@ -144,13 +144,14 @@ AVISO_MENORES_RECIENTES = (
 # --- Lenguaje claro (D-023, docs/11-accesibilidad.md) ---
 
 PRESENTACION = (
-    "Sigue el dinero que la Comunidad de Madrid paga en contratos y subvenciones, y descubre "
-    "qué contratos conviene revisar."
+    "Consulta en qué gasta la Comunidad de Madrid en contratos y subvenciones, y qué contratos "
+    "conviene revisar."
 )
 
 NOTA_SENAL = (
-    "Una señal no demuestra nada irregular: indica dónde merece la pena mirar con más "
-    "detalle, y puede tener una explicación legítima."
+    "Una señal no demuestra nada irregular: indica dónde merece la pena mirar con más detalle "
+    "y puede tener una explicación legítima. Es un cálculo nuestro, puede tener errores, y un "
+    "contrato sin señales tampoco queda avalado."
 )
 
 # Nombre corto de cada señal, para etiquetas y filtros.
@@ -158,24 +159,27 @@ SENAL_CORTA = {
     "R-01": "Una sola oferta",
     "R-02": "Sin anuncio público",
     "R-03": "Muchos contratos menores",
-    "R-04": "Una empresa domina",
-    "R-05": "Subida de precio",
-    "R-06": "Rebaja anómala",
+    "R-04": "Una empresa concentra el gasto",
+    "R-05": "Modificaciones de más del 20 %",
+    "R-06": "Rebaja nula o muy alta",
 }
 
 # Qué se comprueba, en una frase que se entienda sin saber de contratación.
 SENAL_FRASE = {
-    "R-01": "Al concurso solo se presentó una empresa, así que no hubo con quién comparar "
-    "el precio.",
-    "R-02": "El contrato se adjudicó sin anunciarlo públicamente. La ley lo permite en casos "
-    "concretos, como las emergencias.",
-    "R-03": "El mismo organismo dio a la misma empresa varios contratos pequeños que, sumados "
-    "en un año, superan el límite a partir del cual habría que hacer un concurso.",
-    "R-04": "Una sola empresa se lleva más de la mitad del dinero que el organismo gasta en "
-    "este tipo de contrato.",
-    "R-05": "Después de firmarlo, el precio subió más de un 20 % por modificaciones.",
-    "R-06": "La empresa ganó sin rebajar el precio de salida, o lo rebajó a menos de la mitad, "
-    "algo poco habitual.",
+    "R-01": "Al concurso (o a alguno de sus lotes) solo se presentó una empresa, así que no "
+    "hubo ofertas con las que comparar. Puede pasar en mercados con pocas empresas.",
+    "R-02": "El contrato se adjudicó sin anuncio público previo, o con un procedimiento que el "
+    "portal no detalla. La ley lo permite en casos concretos, como las emergencias.",
+    "R-03": "El mismo organismo dio a la misma empresa varios contratos menores del mismo tipo "
+    "que, sumados en 12 meses, pasan del importe máximo de un contrato menor. Puede ser normal "
+    "si son compras distintas.",
+    "R-04": "Una sola empresa recibe más de la mitad del importe que el organismo adjudica en "
+    "este tipo de contrato. Puede deberse a un proveedor único o a un mercado pequeño.",
+    "R-05": "Después de adjudicarlo, se añadieron modificaciones por más del 20 % del importe "
+    "(sin contar prórrogas). La ley permite modificaciones justificadas.",
+    "R-06": "La empresa ganó rebajando casi nada el precio de salida (0,5 % o menos, o incluso "
+    "por encima), o rebajándolo a la mitad o más. Las dos cosas son poco habituales con varias "
+    "ofertas.",
 }
 
 ICONO_SENAL = {

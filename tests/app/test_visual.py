@@ -59,7 +59,7 @@ def test_r03_suma_doce_meses_y_limite(con):
     assert detalle["empresa"] == "Empresa B2"
     assert graficos.suma_doce_meses(detalle["contratos"]) == [7000, 14000, 21000]
     frase, _ = senales.frase_y_grafico(con, "R-03", "m1")
-    assert "3 contratos menores de Empresa B2" in frase
+    assert "3 contratos menores de Empresa B2 con este organismo" in frase
     assert "21.000 €" in frase
 
 

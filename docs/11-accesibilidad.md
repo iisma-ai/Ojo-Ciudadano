@@ -26,9 +26,9 @@ Cada tarea de pantalla empieza con un **estudio**: qué pregunta responde, qué 
 
 | ID | Pantalla | Qué hay que conseguir | Prioridad | Estado |
 | --- | --- | --- | --- | --- |
-| A-01 | **Portada** (nueva) | Que en 10 segundos se entienda qué es Ojo Ciudadano: una frase, tres cifras grandes (dinero seguido, contratos, señales) y tres puertas de entrada («Ver contratos a revisar», «Buscar una empresa», «Ver a quién paga cada organismo») | Alta (demo) | Pendiente |
-| A-02 | **Qué mide cada señal** | Una tarjeta por indicador con nombre en lenguaje llano, la pregunta que responde, un esquema mínimo y cuántos contratos la tienen. Se puede abrir desde cualquier señal | Alta (demo) | Pendiente |
-| A-03 | **Panel de alertas** | Lista con **el nombre de cada señal** en vez de «2 de 3». Sin el control de «mínimo de indicadores aplicables». Al abrir un contrato, **un gráfico por cada señal** (ver estudios E-01 a E-06) | Alta (demo) | Pendiente |
+| A-01 | **Portada** (nueva) | Que en 10 segundos se entienda qué es Ojo Ciudadano: una frase, tres cifras grandes (dinero seguido, contratos, señales) y tres puertas de entrada («Ver contratos a revisar», «Buscar una empresa», «Ver a quién paga cada organismo») | Alta (demo) | Hecho (21-nov): `paginas/inicio.py`, página por defecto |
+| A-02 | **Qué mide cada señal** | Una tarjeta por indicador con nombre en lenguaje llano, la pregunta que responde, un esquema mínimo y cuántos contratos la tienen. Se puede abrir desde cualquier señal | Alta (demo) | Hecho (21-nov), primera versión: tarjetas en la portada con barra de proporción; filtro por señal con su frase en «Contratos a revisar» |
+| A-03 | **Panel de alertas** | Lista con **el nombre de cada señal** en vez de «2 de 3». Sin el control de «mínimo de indicadores aplicables». Al abrir un contrato, **un gráfico por cada señal** (ver estudios E-01 a E-06) | Alta (demo) | Hecho (21-nov): «Contratos a revisar», insignias con el nombre de cada señal y «de N señales comprobadas», interruptor de menores en vez del control de mínimo, un gráfico por señal al pulsar «Ver gráficos» |
 | A-04 | **Contratos atípicos** | Ver dónde cae el contrato frente a sus contratos similares: nube de puntos o distribución con el contrato resaltado (estudio E-07) | Media | Pendiente |
 | A-05 | **Ficha de empresa** | Resumen visual: de qué organismos recibe dinero (burbujas, el tamaño es el importe), evolución por año y señales con nombre | Alta (no recortable) | Pendiente |
 | A-06 | **Ficha de organismo** | A qué empresas paga (burbujas o mapa de áreas por importe), lo concentrado que está su gasto y cómo contrata (barra de procedimientos) | Media | Pendiente |
@@ -47,10 +47,25 @@ Primera propuesta; cada estudio se completa al hacer A-03 (datos usados, alterna
 | E-01 | R-01 · Una sola empresa se presentó | Que este contrato tuvo 1 oferta cuando lo normal en contratos parecidos son varias | Puntos o barras: ofertas de este contrato frente a la mediana de su tipo |
 | E-02 | R-02 · Adjudicado sin anuncio público | Qué parte de lo que gasta el organismo va por esta vía | Barra apilada del organismo: con anuncio / sin anuncio, con este contrato marcado |
 | E-03 | R-03 · Muchos contratos pequeños a la misma empresa | Que la suma de contratos menores en 12 meses supera el límite legal | Línea temporal de los menores (puntos por fecha e importe) con la suma acumulada y la línea del límite |
-| E-04 | R-04 · Una empresa se lleva casi todo | Qué parte del gasto del organismo en ese tipo de contrato se lleva la empresa | Anillo o mapa de áreas con la cuota de la empresa frente al resto |
-| E-05 | R-05 · Subió mucho de precio después | Cuánto se añadió en modificaciones respecto a lo adjudicado | Barra de lo adjudicado más lo añadido, con la línea del 20 % |
-| E-06 | R-06 · Rebaja de precio anormal o nula | Diferencia entre el precio de salida y el adjudicado | Dos barras (precio de salida y adjudicado) con la zona «normal» sombreada |
+| E-04 | R-04 · Una empresa concentra el gasto | Qué parte del importe que adjudica el organismo en ese tipo de contrato recibe la empresa | Anillo o mapa de áreas con la cuota de la empresa frente al resto |
+| E-05 | R-05 · Modificaciones de más del 20 % | Cuánto se añadió en modificaciones respecto a lo adjudicado | Barra de lo adjudicado más lo añadido, con la línea del 20 % |
+| E-06 | R-06 · Rebaja nula o muy alta | Diferencia entre el precio de salida y el adjudicado | Dos barras (precio de salida y adjudicado) con la zona «normal» sombreada |
 | E-07 | Contrato atípico | En qué se aleja de sus pares | Distribución de los contratos similares en las dos variables del motivo, con este contrato resaltado |
+
+## Resultado de los estudios E-01 a E-06 (21-nov)
+
+Implementados en `app/graficos.py` (gráficos), `app/senales.py` (frase con cifras y gráfico de cada señal) y `app/datos.py` (`detalle_r01`… `detalle_importes`). Probados con contratos reales de cada señal.
+
+| Estudio | Alternativas valoradas | Elegido y por qué |
+| --- | --- | --- |
+| E-01 | Cifra sola («1 oferta»); comparación con la mediana; distribución | **Distribución de ofertas** de los contratos del mismo tipo con la barra de este contrato en azul, y la frase «de N contratos parecidos, el X % recibió dos o más». La mediana sola engaña: en suministros también es 1 |
+| E-02 | Anillo; barra apilada | **Barra apilada** del organismo (con / sin anuncio), con el porcentaje en la leyenda. Una barra se lee mejor que un anillo para dos partes |
+| E-03 | Puntos por contrato; suma acumulada desde el inicio; suma móvil de 12 meses | **Suma de los 12 meses anteriores** en escalera, con un punto por contrato (este, más grande y en azul) y la línea del límite en ámbar. Es la misma ventana que usa R-03; los puntos sueltos quedaban aplastados contra el eje |
+| E-04 | Mapa de áreas; anillo; barras | **Anillo** con la empresa en azul, las 4 siguientes y «Otras N empresas» en gris, y la cuota en el centro. Los porcentajes van en la leyenda: dentro del anillo eran ilegibles en los trozos pequeños |
+| E-05 | Dos barras; barra apilada | **Barra apilada**: precio adjudicado (gris) + lo añadido después (azul), con la marca del +20 % |
+| E-06 | Barras con zona sombreada; dos barras | **Dos barras** (precio de salida y adjudicado) con la cifra dentro, y la rebaja en la frase. La zona sombreada añadía ruido |
+
+Formato común: números y fechas en español (`1.234`, `05/2025`), fondo transparente, sin barra de herramientas y una frase con las mismas cifras encima de cada gráfico (texto alternativo).
 
 ## Guía rápida de redacción
 
@@ -62,3 +77,5 @@ Primera propuesta; cada estudio se completa al hacer A-03 (datos usados, alterna
 | Adjudicatario | Empresa que lo ganó |
 | Puntuación ponderada | Proporción de señales, teniendo en cuenta el dinero |
 | Procedimiento negociado sin publicidad | Adjudicado sin anuncio público |
+| Se lleva, domina, gasta | Recibe, concentra, adjudica (revisión legal del 21-nov: medimos importe adjudicado, no pagado) |
+| Habría que hacer un concurso | Pasa del importe máximo de un contrato menor; puede ser normal si son compras distintas |

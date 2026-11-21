@@ -35,8 +35,8 @@ def frase_y_grafico(con: duckdb.DuckDBPyConnection, indicador: str, contrato_id:
             return None, None
         total = d["sin_anuncio"] + d["con_anuncio"]
         frase = (
-            f"{d['organo']} adjudicó sin anuncio público el "
-            f"**{_porcentaje(d['sin_anuncio'], total)} de su dinero** en contratos de este "
+            f"{d['organo']} adjudicó sin anuncio público, o por «otro procedimiento», el "
+            f"**{_porcentaje(d['sin_anuncio'], total)} del importe** de sus contratos de este "
             f"tipo ({d['n_sin_anuncio']} de {d['n_contratos']} contratos)."
         )
         return frase, graficos.sin_anuncio(d)
@@ -47,10 +47,12 @@ def frase_y_grafico(con: duckdb.DuckDBPyConnection, indicador: str, contrato_id:
         maximo = max(graficos.suma_doce_meses(d["contratos"]))
         quien = d["empresa"] or "la misma adjudicataria"
         frase = (
-            f"{len(d['contratos'])} contratos menores de {quien} con este organismo. En 12 "
-            f"meses llegan a sumar **{textos.euros(maximo)}**, por encima del límite de "
-            f"{textos.euros(d['umbral'])} (con IVA) a partir del cual habría que hacer un "
-            "concurso."
+            f"{len(d['contratos'])} contratos menores de {quien} con este organismo, del mismo "
+            f"tipo y de más de {textos.euros(d['umbral'] / 3)} cada uno (en el año antes y el "
+            f"año después de este). En algún periodo de 12 meses suman "
+            f"**{textos.euros(maximo)}**, más que el máximo de un contrato menor "
+            f"({textos.euros(d['umbral'])}, con IVA). Pueden ser compras distintas: el "
+            "expediente lo aclara."
         )
         return frase, graficos.menores(d, contrato_id)
     if indicador == "R-04":
@@ -60,8 +62,8 @@ def frase_y_grafico(con: duckdb.DuckDBPyConnection, indicador: str, contrato_id:
         quien = d["partes"][0]["nombre"]
         cuota = textos.porcentaje(d["cuota"])
         frase = (
-            f"{quien} se lleva el **{cuota}** de lo que {d['organo']} gasta en "
-            f"contratos de {d['tipo']} ({d['n_empresas']} empresas en total)."
+            f"{quien} recibe el **{cuota}** del importe que {d['organo']} ha adjudicado "
+            f"en contratos de {d['tipo']} ({d['n_empresas']} empresas en total)."
         )
         return frase, graficos.reparto(d)
     if indicador in ("R-05", "R-06"):

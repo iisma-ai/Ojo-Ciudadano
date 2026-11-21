@@ -170,6 +170,7 @@ def alertas(
     limite: int = 100,
     texto: str | None = None,
     anio: int | None = None,
+    organo_id: str | None = None,
 ) -> list[dict]:
     """Contratos ordenados por puntuación. Por defecto solo los que tienen 3 o más
     indicadores aplicables, para que no dominen los menores (solo R-03 y R-04). `texto` busca
@@ -187,10 +188,23 @@ def alertas(
           AND (? IS NULL OR list_contains(string_split(p.indicadores_activados, ', '), ?))
           AND (? IS NULL OR c.titulo ILIKE '%' || ? || '%' OR o.nombre ILIKE '%' || ? || '%')
           AND (? IS NULL OR p.anio = ?)
+          AND (? IS NULL OR p.organo_id = ?)
         ORDER BY p.puntuacion DESC, p.n_activados DESC, p.importe DESC
         LIMIT ?
         """,
-        [min_aplicables, indicador, indicador, texto, texto, texto, anio, anio, limite],
+        [
+            min_aplicables,
+            indicador,
+            indicador,
+            texto,
+            texto,
+            texto,
+            anio,
+            anio,
+            organo_id,
+            organo_id,
+            limite,
+        ],
     )
 
 
@@ -922,4 +936,46 @@ def senales_empresa(con: duckdb.DuckDBPyConnection, adjudicatario_id: str) -> li
         GROUP BY r.indicador ORDER BY r.indicador
         """,
         [adjudicatario_id],
+    )
+
+
+def reparto_organo(con: duckdb.DuckDBPyConnection, organo_id: str) -> list[dict]:
+    """A-06: importe que el organismo ha adjudicado (o concedido) a cada empresa o entidad, por
+    fuente y sin mezclar bases de IVA. Personas físicas y adjudicatarios sin ficha, en una
+    sola fila agregada (D-007)."""
+    visible = _beneficiario_visible("d")
+    subvenciones = (
+        f"""
+        UNION ALL
+        SELECT 'bdns' AS fuente,
+               CASE WHEN {visible} THEN d.nombre ELSE '{AGREGADO_PERSONAS}' END AS nombre,
+               sum(s.importe) AS importe, count(*) AS n
+        FROM concesion AS s JOIN adjudicatario AS d ON d.adjudicatario_id = s.beneficiario_id
+        WHERE s.organo_id = ? AND s.importe > 0
+        GROUP BY 1, 2
+        """
+        if hay_subvenciones(con)
+        else ""
+    )
+    parametros = [organo_id] + ([organo_id] if subvenciones else [])
+    return _filas(
+        con,
+        f"""
+        SELECT * FROM (
+            SELECT c.fuente,
+                   CASE WHEN {visible} THEN d.nombre ELSE '{AGREGADO_PERSONAS}' END AS nombre,
+                   sum(CASE WHEN c.fuente = 'placsp' THEN a.importe_sin_iva
+                            ELSE a.importe_con_iva END) AS importe,
+                   count(DISTINCT c.contrato_id) AS n
+            FROM contrato_unico AS c
+            JOIN adjudicacion AS a USING (contrato_id)
+            JOIN adjudicatario AS d ON d.adjudicatario_id = a.adjudicatario_id
+            WHERE c.organo_id = ?
+            GROUP BY 1, 2
+            {subvenciones}
+        )
+        WHERE importe > 0
+        ORDER BY fuente, importe DESC
+        """,
+        parametros,
     )

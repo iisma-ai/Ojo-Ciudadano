@@ -94,6 +94,7 @@ def test_sin_datos_no_hay_grafico(con):
 def test_euros_y_numeros_legibles():
     assert textos.euros(1_234_567.8, "sin IVA") == "1,2 millones € sin IVA"
     assert textos.euros(45_300) == "45.300 €"
+    assert textos.euros(3_871_400_000) == "3,9 mil millones €"
     assert textos.numero(1_354_441) == "1,35 millones"
     assert textos.numero(1_000_000) == "1 millón"
     assert textos.numero(243_945) == "243.945"
@@ -107,3 +108,22 @@ def test_ficha_de_empresa(con):
     assert graficos.partir("Hospital Universitario Gregorio Marañón") == (
         "Hospital Universitario<br>Gregorio Marañón"
     )
+
+
+def test_procedimientos_agrupa_por_nombre_llano():
+    filas = [
+        {"procedimiento": "Contrato menor", "n_contratos": 10},
+        {"procedimiento": "Contratos Menores", "n_contratos": 2},
+        {"procedimiento": "Otros", "n_contratos": 3},
+        {"procedimiento": "Abierto", "n_contratos": 5},
+    ]
+    figura = graficos.procedimientos(filas, textos.PROCEDIMIENTO_LLANO)
+    barras = dict(zip(figura.data[0].y, figura.data[0].x, strict=True))
+    assert barras["Contrato menor (importe pequeño, sin concurso)"] == 12
+    assert barras["Otras vías"] == 3
+    assert len(barras) == 3
+
+
+def test_reparto_de_organismo_agrega_personas(con):
+    reparto = datos.reparto_organo(con, "ORG")
+    assert {r["nombre"] for r in reparto} >= {"Empresa B1"}

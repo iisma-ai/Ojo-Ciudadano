@@ -97,3 +97,13 @@ def test_euros_y_numeros_legibles():
     assert textos.numero(1_354_441) == "1,35 millones"
     assert textos.numero(1_000_000) == "1 millón"
     assert textos.numero(243_945) == "243.945"
+
+
+def test_ficha_de_empresa(con):
+    reparto = datos.reparto_empresa(con, "B1")
+    assert [(r["fuente"], r["n"]) for r in reparto] == [("placsp", 3)]
+    assert {s["indicador"]: s["n"] for s in datos.senales_empresa(con, "B1")}["R-01"] == 1
+    assert graficos.reparto_organismos(reparto) is not None
+    assert graficos.partir("Hospital Universitario Gregorio Marañón") == (
+        "Hospital Universitario<br>Gregorio Marañón"
+    )

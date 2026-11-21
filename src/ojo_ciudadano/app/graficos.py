@@ -239,3 +239,99 @@ def rebaja(detalle: dict) -> go.Figure:
     figura.update_xaxes(visible=False)
     figura.update_yaxes(autorange="reversed", visible=False)
     return _tema(figura, alto=120)
+
+
+# --- Ficha de empresa (A-05) ---
+
+
+def partir(texto: str, ancho: int = 22) -> str:
+    """Parte un nombre largo en líneas (<br>) para que quepa en una caja estrecha."""
+    lineas, actual = [], ""
+    for palabra in texto.split():
+        if actual and len(actual) + 1 + len(palabra) > ancho:
+            lineas.append(actual)
+            actual = palabra
+        else:
+            actual = f"{actual} {palabra}".strip()
+    lineas.append(actual)
+    return "<br>".join(lineas)
+
+
+def reparto_organismos(filas: list[dict], maximo: int = 12) -> go.Figure:
+    """Mapa de áreas: de qué organismos recibe dinero la empresa (área = importe). Un color por
+    organismo; a partir del `maximo`, agrupados en «Otros organismos»."""
+    filas = sorted(filas, key=lambda f: f["importe"], reverse=True)
+    principales, resto = filas[:maximo], filas[maximo:]
+    etiquetas = [f["organo"] for f in principales]
+    valores = [f["importe"] for f in principales]
+    numeros = [f["n"] for f in principales]
+    if resto:
+        etiquetas.append(f"Otros {len(resto)} organismos")
+        valores.append(sum(f["importe"] for f in resto))
+        numeros.append(sum(f["n"] for f in resto))
+    colores = [color_categorico(i) for i in range(len(principales))]
+    if resto:
+        colores.append(GRIS_OTROS)
+    figura = go.Figure(
+        go.Treemap(
+            labels=etiquetas,
+            text=[partir(e) for e in etiquetas],
+            parents=[""] * len(etiquetas),
+            values=valores,
+            customdata=numeros,
+            marker={"colors": colores, "line": {"color": "#0B1120", "width": 2}},
+            texttemplate="<b>%{text}</b><br>%{value:,.0f} €",
+            hovertemplate="%{label}<br>%{value:,.0f} € en %{customdata} contratos o "
+            "concesiones<extra></extra>",
+            textfont={"color": "#FFFFFF", "size": 13},
+            tiling={"pad": 2},
+        )
+    )
+    return _tema(figura, alto=380)
+
+
+def contratos_por_anio(tendencia: list[dict]) -> go.Figure:
+    """Contratos de cada año, separando los que tienen alguna señal (en ámbar)."""
+    anios = [str(t["anio"]) for t in tendencia]
+    con_senal = [t["n_con_alertas"] for t in tendencia]
+    sin_senal = [t["n_contratos"] - t["n_con_alertas"] for t in tendencia]
+    figura = go.Figure()
+    figura.add_bar(
+        x=anios,
+        y=sin_senal,
+        name="Sin señales",
+        marker={"color": GRIS},
+        hovertemplate="%{x}: %{y:,.0f} contratos sin señales<extra></extra>",
+    )
+    figura.add_bar(
+        x=anios,
+        y=con_senal,
+        name="Con alguna señal",
+        marker={"color": AMBAR},
+        hovertemplate="%{x}: %{y:,.0f} contratos con alguna señal<extra></extra>",
+    )
+    figura.update_layout(barmode="stack")
+    figura.update_yaxes(title="Contratos", tickformat=",.0f")
+    figura.update_xaxes(type="category")
+    figura = _tema(figura, alto=260)
+    figura.update_layout(showlegend=True, legend={"orientation": "h", "y": 1.12, "x": 0})
+    return figura
+
+
+def senales_de_empresa(filas: list[dict], nombres: dict[str, str]) -> go.Figure:
+    """Barras horizontales: en cuántos contratos se encontró cada señal."""
+    filas = sorted(filas, key=lambda f: f["n"])
+    figura = go.Figure(
+        go.Bar(
+            y=[nombres.get(f["indicador"], f["indicador"]) for f in filas],
+            x=[f["n"] for f in filas],
+            orientation="h",
+            marker={"color": AMBAR, "cornerradius": 4},
+            text=[f"{f['n']:,}".replace(",", ".") for f in filas],
+            textposition="outside",
+            cliponaxis=False,
+            hovertemplate="%{y}: %{x:,.0f} contratos<extra></extra>",
+        )
+    )
+    figura.update_xaxes(visible=False, range=[0, max(f["n"] for f in filas) * 1.18])
+    return _tema(figura, alto=60 + 36 * len(filas))

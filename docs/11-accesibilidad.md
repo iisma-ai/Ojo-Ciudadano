@@ -30,7 +30,7 @@ Cada tarea de pantalla empieza con un **estudio**: qué pregunta responde, qué 
 | A-02 | **Qué mide cada señal** | Una tarjeta por indicador con nombre en lenguaje llano, la pregunta que responde, un esquema mínimo y cuántos contratos la tienen. Se puede abrir desde cualquier señal | Alta (demo) | Hecho (21-nov), primera versión: tarjetas en la portada con barra de proporción; filtro por señal con su frase en «Contratos a revisar» |
 | A-03 | **Panel de alertas** | Lista con **el nombre de cada señal** en vez de «2 de 3». Sin el control de «mínimo de indicadores aplicables». Al abrir un contrato, **un gráfico por cada señal** (ver estudios E-01 a E-06) | Alta (demo) | Hecho (21-nov): «Contratos a revisar», insignias con el nombre de cada señal y «de N señales comprobadas», interruptor de menores en vez del control de mínimo, un gráfico por señal al pulsar «Ver gráficos» |
 | A-04 | **Contratos atípicos** | Ver dónde cae el contrato frente a sus contratos similares: nube de puntos o distribución con el contrato resaltado (estudio E-07) | Media | Pendiente |
-| A-05 | **Ficha de empresa** | Resumen visual: de qué organismos recibe dinero (burbujas, el tamaño es el importe), evolución por año y señales con nombre | Alta (no recortable) | Pendiente |
+| A-05 | **Ficha de empresa** | Resumen visual: de qué organismos recibe dinero (burbujas, el tamaño es el importe), evolución por año y señales con nombre | Alta (no recortable) | Hecho (21-nov): ver «Estudio A-05» |
 | A-06 | **Ficha de organismo** | A qué empresas paga (burbujas o mapa de áreas por importe), lo concentrado que está su gasto y cómo contrata (barra de procedimientos) | Media | Pendiente |
 | A-07 | **Mapa del dinero** | Rehacerlo para que se entienda: empezar por pocos organismos, red de burbujas (organismo → empresa, tamaño = dinero) en vez de un diagrama de flujos denso, y elegir un organismo para ver su red | Media | Pendiente |
 | A-08 | **Preguntas guiadas y asistente** | Cada respuesta con una frase resumen y un gráfico automático según el tipo de resultado (ranking → barras, evolución → línea) | Media | Pendiente |
@@ -66,6 +66,19 @@ Implementados en `app/graficos.py` (gráficos), `app/senales.py` (frase con cifr
 | E-06 | Barras con zona sombreada; dos barras | **Dos barras** (precio de salida y adjudicado) con la cifra dentro, y la rebaja en la frase. La zona sombreada añadía ruido |
 
 Formato común: números y fechas en español (`1.234`, `05/2025`), fondo transparente, sin barra de herramientas y una frase con las mismas cifras encima de cada gráfico (texto alternativo).
+
+## Estudio A-05 · Ficha de empresa (21-nov)
+
+- **Pregunta:** qué contratos y subvenciones tiene una empresa, de qué organismos y con qué señales.
+- **Problema de los datos:** PLACSP da importes sin IVA, el portal con IVA y la BDNS importes concedidos. No se pueden sumar (P-10).
+- **Alternativas para «de qué organismos»:**
+  - burbujas: no hay disposición nativa y las áreas se comparan mal;
+  - barras horizontales: precisas, pero planas;
+  - **mapa de áreas (elegido):** el tamaño es el importe, hay un color por organismo (paleta categórica) y los que pasan del 12.º se agrupan en «Otros N organismos». Un selector de fuente evita mezclar bases de IVA; por defecto se muestra la fuente con más importe.
+- **Evolución:** barras apiladas del **número** de contratos por año (sin señales en gris, con alguna señal en ámbar). Se usan recuentos, no importes, para no mezclar bases.
+- **Señales:** barras horizontales en ámbar con el número de contratos con cada señal.
+- **Contratos:** la misma tarjeta desplegable que «Contratos a revisar» (`senales.tarjeta_contrato`), los 30 con más señales e importe.
+- **Cifras:** contratos, contratos con alguna señal, importe adjudicado (con su base de IVA en la etiqueta y las dos fuentes en la ayuda) y subvenciones.
 
 ## Guía rápida de redacción
 

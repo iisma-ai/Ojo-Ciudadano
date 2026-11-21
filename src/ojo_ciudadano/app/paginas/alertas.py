@@ -52,37 +52,4 @@ if not filas:
 st.caption(f"{len(filas)} contratos, de más a menos señales. Pulsa uno para ver por qué.")
 
 for fila in filas:
-    titulo = fila["titulo"] or fila["contrato_id"]
-    if len(titulo) > 110:
-        titulo = titulo[:107].rstrip() + "…"
-    encontradas = [i for i in (fila["indicadores_activados"] or "").split(", ") if i]
-    nombres = " · ".join(textos.SENAL_CORTA[i] for i in encontradas)
-    iva = textos.iva_fuente(fila["fuente"])
-    desplegable = st.expander(
-        f"**{titulo}**  \n:gray[{fila['organo']}]  ·  :blue[{nombres}]",
-        key=f"contrato-{fila['contrato_id']}",
-        on_change="rerun",
-    )
-    with desplegable:
-        comprobadas = fila["n_aplicables"]
-        st.caption(
-            f"{fila['anio'] or 'Sin fecha'} · {textos.euros(fila['importe'], iva)} · "
-            f"{len(encontradas)} de {comprobadas} "
-            f"{'señal comprobada' if comprobadas == 1 else 'señales comprobadas'}"
-        )
-        if desplegable.open:
-            columnas = st.columns(2) if len(encontradas) > 1 else [st.container()]
-            for n, indicador in enumerate(encontradas):
-                with columnas[n % len(columnas)]:
-                    senales.mostrar(con, indicador, fila["contrato_id"])
-            anomalia = datos.anomalia_contrato(con, fila["contrato_id"])
-            if anomalia:
-                st.markdown(
-                    f"**Contrato atípico** respecto a {textos.numero(anomalia['n_grupo'])} "
-                    "contratos similares (señal experimental, no suma a las demás; atípico no "
-                    f"significa irregular): {anomalia['motivo']}"
-                )
-            if fila["url_origen"]:
-                st.link_button(
-                    "Ver el expediente oficial", fila["url_origen"], icon=":material/open_in_new:"
-                )
+    senales.tarjeta_contrato(con, fila, "revisar")

@@ -35,7 +35,7 @@ for columna, (pagina, titulo, icono, frase) in zip(
             "paginas/empresa.py",
             "Buscar una empresa",
             ":material/domain:",
-            "Cuánto ha recibido una empresa en contratos y subvenciones, y de quién.",
+            "Qué contratos y subvenciones tiene una empresa, y de qué organismos.",
         ),
         (
             "paginas/organo.py",

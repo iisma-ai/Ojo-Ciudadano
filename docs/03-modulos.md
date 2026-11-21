@@ -19,6 +19,7 @@ Cinco módulos; los cinco entran en la demo, dos de ellos en versión simplifica
 5. **No hay fichas de personas físicas** (autónomos, beneficiarios particulares). Sus NIF se agregan o seudonimizan.
 6. Presupuesto y contratos se muestran como **dos niveles separados**; se explica que no hay enlace partida → contrato.
 7. Fecha de actualización de los datos visible.
+8. **Primero se ve, luego se lee** (D-023): cada pantalla empieza por un gráfico o una cifra que responde a su pregunta, con lenguaje claro y sin texto repetido. Tareas y estudios en [11-accesibilidad.md](11-accesibilidad.md).
 
 ## Tecnología
 

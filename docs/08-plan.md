@@ -44,6 +44,10 @@ Cuatro fases en 11 días, con hitos internos que protegen la entrega: **esquema 
 | 4 | Ignacio | Asistente | Agente con texto a SQL y RAG sobre un corpus pequeño, respondiendo bien a las 4 preguntas de demo |
 | 5 | Ismael (con Claude) | Detección de anomalías (D-021) | Para el 23-nov: tabla `anomalia_resultado` con contratos atípicos respecto a sus pares (no supervisado por defecto), con las variables que lo explican y su test |
 
+## Accesibilidad y visualización (D-023)
+
+Tareas A-01 a A-11 en [11-accesibilidad.md](11-accesibilidad.md). Para la demo del 24-nov: A-01 (portada), A-02 (qué mide cada señal), A-03 (panel de alertas con un gráfico por señal), A-05 (ficha de empresa), A-10 y A-11 (revisión y prueba con personas no expertas). El resto, si da tiempo; el 25 no se añaden funciones.
+
 ## Qué recortamos si vamos tarde, en este orden
 
 1. **Detección de anomalías con aprendizaje automático** (D-021): quedan solo los indicadores en SQL.

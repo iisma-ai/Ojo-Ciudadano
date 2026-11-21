@@ -1,0 +1,278 @@
+"""Contratos atípicos respecto a contratos similares (D-021).
+
+Señal complementaria a los indicadores con reglas: un Isolation Forest (no supervisado, sin
+etiquetas) busca, dentro de cada grupo de contratos parecidos, los que se alejan de sus pares.
+No entra en la puntuación de riesgo (D-020) hasta validarla. «Atípico» no es «irregular»: puede
+haber explicaciones legítimas (un contrato grande, un mercado con un único proveedor posible…).
+
+Grupo de pares = fuente + licitación o menor + tipo de contrato. Se separa por fuente porque
+PLACSP da importes sin IVA y el portal regional con IVA (nunca se mezclan bases).
+
+Variables (todas ya están en la base):
+  * importe adjudicado (en escala logarítmica),
+  * número de ofertas (solo licitaciones),
+  * baja sobre el presupuesto base (solo licitaciones, misma base de IVA),
+  * modificaciones sobre el importe adjudicado (solo portal regional),
+  * cuota del adjudicatario en el importe del órgano para ese tipo de contrato,
+  * nº de menores del mismo adjudicatario y órgano en los 12 meses anteriores (solo menores).
+
+Cada contrato atípico se explica con las variables en las que más se aleja de la mediana de su
+grupo (desviación robusta). Reproducible: semilla fija y parámetros en este fichero.
+
+Uso: uv run python -m ojo_ciudadano.anomalias.deteccion
+"""
+
+from pathlib import Path
+
+import duckdb
+import numpy as np
+import polars as pl
+from sklearn.ensemble import IsolationForest
+
+RAIZ = Path(__file__).resolve().parents[3]
+RUTA_DB = RAIZ / "data" / "ojo_ciudadano.duckdb"
+
+SEMILLA = 42
+PROPORCION_ATIPICOS = 0.01  # el 1 % más alejado de cada grupo
+MIN_GRUPO = 50  # con menos contratos no hay pares suficientes para comparar
+N_ARBOLES = 200
+MAX_VARIABLES_MOTIVO = 2
+MIN_DESVIACION_MOTIVO = 2.0  # desviación robusta mínima para citar una variable en el motivo
+
+VARIABLES = ["importe", "n_ofertas", "baja", "modificaciones", "cuota", "menores_12m"]
+
+COLUMNAS = [
+    "contrato_id",
+    "grupo",
+    "n_grupo",
+    "puntuacion",
+    "atipico",
+    "variables",
+    "motivo",
+    "url_origen",
+]
+
+CONSULTA_VARIABLES = """
+WITH adjudicaciones AS (
+    SELECT
+        c.contrato_id, c.fuente, c.es_menor, c.tipo_contrato, c.organo_id, c.url_origen,
+        c.fecha_contrato,
+        CASE WHEN c.fuente = 'placsp' THEN c.presupuesto_sin_iva
+             ELSE c.presupuesto_con_iva END AS presupuesto,
+        a.adjudicatario_id,
+        CASE WHEN c.fuente = 'placsp' THEN a.importe_sin_iva ELSE a.importe_con_iva END AS importe,
+        a.n_ofertas,
+        a.importe_modificaciones_con_iva AS modificaciones
+    FROM contrato_unico AS c
+    JOIN adjudicacion AS a USING (contrato_id)
+    WHERE c.tipo_contrato IS NOT NULL
+      AND (a.resultado IS NULL OR a.resultado IN ('Adjudicado', 'Formalizado'))
+),
+
+por_empresa AS (
+    SELECT fuente, organo_id, tipo_contrato, adjudicatario_id, sum(importe) AS importe
+    FROM adjudicaciones
+    WHERE adjudicatario_id IS NOT NULL AND importe > 0
+    GROUP BY ALL
+),
+
+cuotas AS (
+    SELECT fuente, organo_id, tipo_contrato, adjudicatario_id,
+           importe / sum(importe) OVER (PARTITION BY fuente, organo_id, tipo_contrato) AS cuota
+    FROM por_empresa
+),
+
+menores AS (
+    SELECT
+        contrato_id,
+        count(*) OVER (
+            PARTITION BY organo_id, adjudicatario_id ORDER BY fecha_contrato
+            RANGE BETWEEN INTERVAL 365 DAYS PRECEDING AND CURRENT ROW
+        ) AS menores_12m
+    FROM adjudicaciones
+    WHERE es_menor AND adjudicatario_id IS NOT NULL AND fecha_contrato IS NOT NULL
+)
+
+SELECT
+    a.contrato_id,
+    a.fuente || ' · ' || CASE WHEN a.es_menor THEN 'menor' ELSE 'licitación' END
+        || ' · ' || lower(a.tipo_contrato) AS grupo,
+    any_value(a.es_menor) AS es_menor,
+    any_value(a.url_origen) AS url_origen,
+    sum(a.importe) AS importe,
+    min(a.n_ofertas) AS n_ofertas,
+    CASE WHEN any_value(a.presupuesto) > 0 AND sum(a.importe) > 0
+         THEN 1 - sum(a.importe) / any_value(a.presupuesto) END AS baja,
+    CASE WHEN sum(a.importe) > 0 THEN sum(a.modificaciones) / sum(a.importe) END
+        AS modificaciones,
+    max(q.cuota) AS cuota,
+    max(m.menores_12m) AS menores_12m
+FROM adjudicaciones AS a
+LEFT JOIN cuotas AS q USING (fuente, organo_id, tipo_contrato, adjudicatario_id)
+LEFT JOIN menores AS m USING (contrato_id)
+GROUP BY a.contrato_id, a.fuente, a.es_menor, a.tipo_contrato
+HAVING sum(a.importe) > 0
+"""
+
+
+def leer_variables(con: duckdb.DuckDBPyConnection) -> pl.DataFrame:
+    """Una fila por contrato con su grupo de pares y sus variables."""
+    return con.sql(CONSULTA_VARIABLES).pl().sort("contrato_id")  # orden fijo: reproducible
+
+
+def _matriz(grupo: pl.DataFrame, variables: list[str]) -> np.ndarray:
+    """Variables del grupo listas para el modelo: importe en logaritmo y huecos con la mediana."""
+    columnas = []
+    for v in variables:
+        x = grupo[v].cast(pl.Float64)
+        if v == "importe":
+            x = x.log1p()
+        columnas.append(x.fill_null(x.median()).to_numpy())
+    return np.column_stack(columnas)
+
+
+def _variables_utiles(grupo: pl.DataFrame) -> list[str]:
+    """Variables con datos y con variación en el grupo (las demás no distinguen a nadie)."""
+    utiles = []
+    for v in VARIABLES:
+        x = grupo[v].drop_nulls()
+        if x.len() >= MIN_GRUPO and x.n_unique() > 1:
+            utiles.append(v)
+    return utiles
+
+
+def desviaciones_robustas(matriz: np.ndarray) -> np.ndarray:
+    """(x - mediana) / (1,4826 · MAD) por columna: cuánto se aleja cada contrato de su grupo."""
+    mediana = np.median(matriz, axis=0)
+    mad = 1.4826 * np.median(np.abs(matriz - mediana), axis=0)
+    escala = np.where(mad > 0, mad, np.std(matriz, axis=0))
+    escala = np.where(escala > 0, escala, 1.0)
+    return (matriz - mediana) / escala
+
+
+def _formato(valor: float, variable: str) -> str:
+    if variable == "importe":
+        return f"{valor:,.0f} €".replace(",", ".")
+    if variable in ("baja", "modificaciones", "cuota"):
+        return f"{100 * valor:.1f} %".replace(".", ",")
+    return f"{valor:.0f}"
+
+
+NOMBRES = {
+    "importe": "importe adjudicado",
+    "n_ofertas": "número de ofertas",
+    "baja": "baja sobre el presupuesto",
+    "modificaciones": "modificaciones sobre el importe",
+    "cuota": "cuota del adjudicatario en el órgano",
+    "menores_12m": "menores del mismo adjudicatario y órgano en 12 meses",
+}
+
+
+def explicar(
+    fila: dict, desviaciones: dict[str, float], medianas: dict[str, float]
+) -> tuple[list[str], str]:
+    """Variables que más alejan al contrato de sus pares y una frase que lo cuenta."""
+    ordenadas = sorted(desviaciones, key=lambda v: abs(desviaciones[v]), reverse=True)
+    elegidas = [
+        v
+        for v in ordenadas
+        if abs(desviaciones[v]) >= MIN_DESVIACION_MOTIVO and fila[v] is not None
+    ][:MAX_VARIABLES_MOTIVO]
+    partes = [
+        f"{NOMBRES[v]} de {_formato(fila[v], v)} "
+        f"({'por encima' if desviaciones[v] > 0 else 'por debajo'} de la mediana de "
+        f"{_formato(medianas[v], v)})"
+        for v in elegidas
+    ]
+    if not partes:
+        return [], "Combinación de valores poco habitual entre contratos similares"
+    texto = "; ".join(partes)
+    return elegidas, texto[0].upper() + texto[1:]
+
+
+def puntuar_grupo(grupo: pl.DataFrame) -> pl.DataFrame:
+    """Isolation Forest sobre un grupo de pares. Devuelve las columnas de COLUMNAS."""
+    variables = _variables_utiles(grupo)
+    if grupo.height < MIN_GRUPO or not variables:
+        return pl.DataFrame(schema=_esquema())
+    matriz = _matriz(grupo, variables)
+    modelo = IsolationForest(
+        n_estimators=N_ARBOLES,
+        contamination=PROPORCION_ATIPICOS,
+        random_state=SEMILLA,
+    ).fit(matriz)
+    rareza = -modelo.score_samples(matriz)  # más alto = más atípico
+    atipico = modelo.predict(matriz) == -1
+    percentil = pl.Series(rareza).rank("average") / len(rareza)
+    desviaciones = desviaciones_robustas(matriz)
+    # Las medianas para el texto van en la escala original (no en logaritmo).
+    medianas = {v: float(grupo[v].cast(pl.Float64).median()) for v in variables}
+    filas = grupo.select(["contrato_id", *variables]).to_dicts()
+    variables_txt, motivos = [], []
+    for i, fila in enumerate(filas):
+        if not atipico[i]:
+            variables_txt.append(None)
+            motivos.append(None)
+            continue
+        elegidas, motivo = explicar(
+            fila, dict(zip(variables, desviaciones[i], strict=True)), medianas
+        )
+        variables_txt.append(", ".join(elegidas) or None)
+        motivos.append(motivo)
+    return pl.DataFrame(
+        {
+            "contrato_id": grupo["contrato_id"],
+            "grupo": grupo["grupo"],
+            "n_grupo": [grupo.height] * grupo.height,
+            "puntuacion": percentil.round(4),
+            "atipico": atipico,
+            "variables": variables_txt,
+            "motivo": motivos,
+            "url_origen": grupo["url_origen"],
+        },
+        schema=_esquema(),
+    )
+
+
+def _esquema() -> dict:
+    return {
+        "contrato_id": pl.String,
+        "grupo": pl.String,
+        "n_grupo": pl.Int64,
+        "puntuacion": pl.Float64,
+        "atipico": pl.Boolean,
+        "variables": pl.String,
+        "motivo": pl.String,
+        "url_origen": pl.String,
+    }
+
+
+def calcular(con: duckdb.DuckDBPyConnection) -> pl.DataFrame:
+    """Calcula y guarda la tabla derivada anomalia_resultado (no toca el esquema, D-017)."""
+    datos = leer_variables(con)
+    partes = [puntuar_grupo(g) for _, g in datos.group_by("grupo", maintain_order=True)]
+    resultado = pl.concat(partes) if partes else pl.DataFrame(schema=_esquema())
+    tabla = resultado.to_arrow()  # noqa: F841 (DuckDB lo lee por su nombre)
+    con.execute("CREATE OR REPLACE TABLE anomalia_resultado AS SELECT * FROM tabla")
+    return resultado
+
+
+def resumen(con: duckdb.DuckDBPyConnection) -> duckdb.DuckDBPyRelation:
+    return con.sql(
+        """
+        SELECT grupo, any_value(n_grupo) AS contratos, count_if(atipico) AS atipicos
+        FROM anomalia_resultado
+        GROUP BY grupo
+        ORDER BY contratos DESC
+        """
+    )
+
+
+def main() -> None:
+    with duckdb.connect(str(RUTA_DB)) as con:
+        calcular(con)
+        resumen(con).show(max_rows=100)
+
+
+if __name__ == "__main__":
+    main()

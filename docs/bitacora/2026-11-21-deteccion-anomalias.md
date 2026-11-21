@@ -1,6 +1,6 @@
 # 2026-11-21 · Detección de contratos atípicos (D-021)
 
-- **Autor:** Claude (agente), a petición de Lucas
+- **Autor:** Claude (agente)
 - **Fase del plan:** 2. Entregable de D-021, previsto para el 23-nov y adelantado.
 - **Rama:** `feat/anomalias`
 
@@ -43,7 +43,7 @@
 - Ninguna nueva: es la implementación de D-021, con sus parámetros en el código y en `docs/04`.
 
 ## Desviaciones del plan
-- Ninguna. Se adelanta el entregable del 23-nov y se asigna como responsable a Lucas, con Claude.
+- Ninguna. Se adelanta el entregable del 23-nov.
 
 ## Problemas y hallazgos
 - En los menores domina el número de pedidos del mismo proveedor al mismo hospital, con miles al año. Es el patrón que ya llevó a D-015 en R-03 y suele tener explicación legítima.

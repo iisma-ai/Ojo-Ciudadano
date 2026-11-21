@@ -1,6 +1,6 @@
 # 2026-11-21 · README al día
 
-- **Autor:** Claude (agente), a petición de Lucas
+- **Autor:** Claude (agente)
 - **Fase del plan:** 2. Documentación pública.
 - **Rama:** `docs/readme-estado`
 

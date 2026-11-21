@@ -714,3 +714,135 @@ def atipico(detalle: dict, variables: list[str]) -> go.Figure:
     figura = _tema(figura, alto=320)
     figura.update_layout(showlegend=True, legend={"orientation": "h", "y": 1.1, "x": 0})
     return figura
+
+
+# --- Gráfico automático para respuestas de consultas (A-08) ---
+
+_NO_ETIQUETA = {"nif", "fuente", "base_importe", "motivo", "url_origen", "tipo", "fecha_descarga"}
+_PRIORIDAD_VALOR = (
+    "proporcion",
+    "modificaciones_sobre_adjudicado",
+    "importe",
+    "n_",
+)
+_NOMBRE_COLUMNA = {
+    "proporcion_importe_alerta_r02": "Proporción del importe sin anuncio público",
+    "modificaciones_sobre_adjudicado": "Modificaciones sobre lo adjudicado",
+    "importe_con_iva": "Importe con IVA",
+    "importe_sin_iva": "Importe sin IVA",
+    "importe_total": "Importe total",
+    "importe_concedido": "Importe concedido",
+    "n_contratos": "Contratos",
+    "n_contratos_o_concesiones": "Contratos o concesiones",
+}
+
+
+def _es_porcentaje(columna: str) -> bool:
+    return columna.startswith("proporcion") or "_sobre_" in columna
+
+
+def _valor_legible(columna: str, valor: float) -> str:
+    if _es_porcentaje(columna):
+        return porcentaje(valor, 1)
+    if columna.startswith("importe"):
+        return euros(valor)
+    return f"{valor:,.0f}".replace(",", ".")
+
+
+def automatico(resultado: dict) -> tuple[go.Figure | None, str | None]:
+    """Elige un gráfico para el resultado de una consulta (columnas y filas de `sql_seguro`):
+    barras por año si hay columna `anio`, o barras horizontales ordenadas (ranking) con la
+    primera columna de texto y la primera numérica relevante. Devuelve también una frase que
+    resume el gráfico. (None, None) si no hay nada que dibujar."""
+    columnas, filas = resultado["columnas"], resultado["filas"]
+    if not filas:
+        return None, None
+    numericas = [
+        c
+        for i, c in enumerate(columnas)
+        if any(isinstance(f[i], int | float) and not isinstance(f[i], bool) for f in filas)
+        and c != "anio"
+    ]
+    # Por año se cuentan contratos o concesiones: los importes de cada fuente tienen distinta
+    # base y no saldrían todas en el mismo gráfico.
+    prioridad = ("n_", *_PRIORIDAD_VALOR) if "anio" in columnas else _PRIORIDAD_VALOR
+    valor = next((c for p in prioridad for c in numericas if c.startswith(p)), None)
+    if valor is None:
+        return None, None
+    iv = columnas.index(valor)
+    nombre_valor = _NOMBRE_COLUMNA.get(valor, valor.replace("_", " ").capitalize())
+
+    if "anio" in columnas:
+        ia = columnas.index("anio")
+        serie = [columnas.index(c) for c in ("fuente", "tipo") if c in columnas]
+        grupos: dict[str, dict] = {}
+        for f in filas:
+            if f[ia] is None or f[iv] is None:
+                continue
+            clave = " · ".join(str(f[i]) for i in serie) or nombre_valor
+            grupos.setdefault(clave, {})[str(f[ia])] = (
+                grupos.get(clave, {}).get(str(f[ia]), 0) + f[iv]
+            )
+        if not grupos:
+            return None, None
+        figura = go.Figure()
+        for n, (clave, por_anio) in enumerate(grupos.items()):
+            anios = sorted(por_anio)
+            figura.add_bar(
+                x=anios,
+                y=[por_anio[a] for a in anios],
+                name=clave,
+                marker={"color": color_categorico(n)},
+            )
+        figura.update_layout(barmode="group")
+        figura.update_xaxes(type="category", title="Año")
+        figura.update_yaxes(title=nombre_valor, tickformat=",.0f")
+        figura = _tema(figura, alto=320)
+        figura.update_layout(showlegend=True, legend={"orientation": "h", "y": -0.25, "x": 0})
+        return figura, f"{nombre_valor} por año."
+
+    etiqueta = next(
+        (
+            c
+            for i, c in enumerate(columnas)
+            if c not in _NO_ETIQUETA and all(isinstance(f[i], str) or f[i] is None for f in filas)
+        ),
+        None,
+    )
+    if etiqueta is None:
+        return None, None
+    ie = columnas.index(etiqueta)
+    filas = sorted((f for f in filas if f[iv] is not None), key=lambda f: f[iv], reverse=True)
+    filas = filas[:12]
+    if not filas:
+        return None, None
+    textos_ = [str(f[ie] or "Sin nombre") for f in filas]
+    # Un mismo nombre puede salir una vez por fuente: se añade la fuente para distinguirlos.
+    if len(set(textos_)) < len(textos_) and "fuente" in columnas:
+        ifu = columnas.index("fuente")
+        textos_ = [
+            f"{t} ({'Plataforma' if 'Plataforma' in str(f[ifu]) else 'portal'})"
+            for t, f in zip(textos_, filas, strict=True)
+        ]
+    nombres = [partir(t[:60] + ("…" if len(t) > 60 else ""), 40) for t in textos_]
+    valores = [f[iv] for f in filas]
+    figura = go.Figure(
+        go.Bar(
+            y=list(reversed(nombres)),
+            x=list(reversed(valores)),
+            orientation="h",
+            marker={"color": [GRIS] * (len(valores) - 1) + [AZUL], "cornerradius": 4},
+            text=[_valor_legible(valor, v) for v in reversed(valores)],
+            textposition="outside",
+            cliponaxis=False,
+            hovertemplate="%{y}<extra></extra>",
+        )
+    )
+    figura.update_xaxes(visible=False, range=[0, max(valores) * 1.45])
+    figura = _tema(figura, alto=80 + 34 * len(filas))
+    primero = textos_[0] if len(textos_[0]) <= 90 else textos_[0][:87].rstrip() + "…"
+    frase = (
+        f"En primer lugar: **{primero}**, con {_valor_legible(valor, valores[0])} "
+        f"({nombre_valor[0].lower() + nombre_valor[1:]})."
+    )
+    return figura, frase

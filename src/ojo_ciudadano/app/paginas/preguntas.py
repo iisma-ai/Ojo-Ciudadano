@@ -6,7 +6,7 @@ la respuesta de respaldo de la demo mientras no esté conectado el modelo de len
 
 import streamlit as st
 
-from ojo_ciudadano.app import textos
+from ojo_ciudadano.app import graficos, textos
 from ojo_ciudadano.app.conexion import conexion
 from ojo_ciudadano.app.tablas import mostrar_resultado
 from ojo_ciudadano.asistente import sql_seguro
@@ -35,8 +35,15 @@ if "empresa" in consulta.parametros:
         st.stop()
 
 resultado = sql_seguro.ejecutar(conexion(), consulta.sql, parametros)
-st.info(consulta.nota)
 
+figura, frase = graficos.automatico(resultado)
+if frase:
+    st.markdown(frase)
+if figura is not None:
+    st.plotly_chart(figura, config=graficos.CONFIG)
+st.caption(consulta.nota)
+
+st.markdown("**Los datos, con su enlace a la fuente**")
 mostrar_resultado(resultado)
 
 with st.expander("Consulta SQL usada"):

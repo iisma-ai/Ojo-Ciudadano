@@ -139,3 +139,83 @@ AVISO_MENORES_RECIENTES = (
     "recientes de 2026 están incompletos, así que una caída en 2026 no indica que se "
     "contrate menos."
 )
+
+
+# --- Lenguaje claro (D-023, docs/11-accesibilidad.md) ---
+
+PRESENTACION = (
+    "Consulta en qué gasta la Comunidad de Madrid en contratos y subvenciones, y qué contratos "
+    "conviene revisar."
+)
+
+NOTA_SENAL = (
+    "Una señal no demuestra nada irregular: indica dónde merece la pena mirar con más detalle "
+    "y puede tener una explicación legítima. Es un cálculo nuestro, puede tener errores, y un "
+    "contrato sin señales tampoco queda avalado."
+)
+
+# Nombre corto de cada señal, para etiquetas y filtros.
+SENAL_CORTA = {
+    "R-01": "Una sola oferta",
+    "R-02": "Sin anuncio público",
+    "R-03": "Muchos contratos menores",
+    "R-04": "Una empresa concentra el gasto",
+    "R-05": "Modificaciones de más del 20 %",
+    "R-06": "Rebaja nula o muy alta",
+}
+
+# Qué se comprueba, en una frase que se entienda sin saber de contratación.
+SENAL_FRASE = {
+    "R-01": "Al concurso (o a alguno de sus lotes) solo se presentó una empresa, así que no "
+    "hubo ofertas con las que comparar. Puede pasar en mercados con pocas empresas.",
+    "R-02": "El contrato se adjudicó sin anuncio público previo, o con un procedimiento que el "
+    "portal no detalla. La ley lo permite en casos concretos, como las emergencias.",
+    "R-03": "El mismo organismo dio a la misma empresa varios contratos menores del mismo tipo "
+    "que, sumados en 12 meses, pasan del importe máximo de un contrato menor. Puede ser normal "
+    "si son compras distintas.",
+    "R-04": "Una sola empresa recibe más de la mitad del importe que el organismo adjudica en "
+    "este tipo de contrato. Puede deberse a un proveedor único o a un mercado pequeño.",
+    "R-05": "Después de adjudicarlo, se añadieron modificaciones por más del 20 % del importe "
+    "(sin contar prórrogas). La ley permite modificaciones justificadas.",
+    "R-06": "La empresa ganó rebajando casi nada el precio de salida (0,5 % o menos, o incluso "
+    "por encima), o rebajándolo a la mitad o más. Las dos cosas son poco habituales con varias "
+    "ofertas.",
+}
+
+ICONO_SENAL = {
+    "R-01": ":material/person:",
+    "R-02": ":material/visibility_off:",
+    "R-03": ":material/stacks:",
+    "R-04": ":material/donut_large:",
+    "R-05": ":material/trending_up:",
+    "R-06": ":material/percent:",
+}
+
+
+def euros(valor: float | None, iva: str = "") -> str:
+    """Importe legible: «1,2 millones €», «45.300 €». `iva`: «con IVA» o «sin IVA»."""
+    if valor is None:
+        return "sin dato"
+    if abs(valor) >= 1_000_000:
+        texto = f"{valor / 1_000_000:,.1f} millones €".replace(",", "X").replace(".", ",")
+        texto = texto.replace("X", ".")
+    else:
+        texto = f"{valor:,.0f} €".replace(",", ".")
+    return f"{texto} {iva}".strip()
+
+
+def numero(valor: int | float) -> str:
+    """Número con separador de miles español; millones abreviados."""
+    if valor >= 1_000_000:
+        cifra = f"{valor / 1_000_000:.2f}".replace(".", ",").rstrip("0").rstrip(",")
+        return cifra + (" millón" if cifra == "1" else " millones")
+    return f"{valor:,.0f}".replace(",", ".")
+
+
+def iva_fuente(fuente: str) -> str:
+    return "sin IVA" if fuente == "placsp" else "con IVA"
+
+
+def porcentaje(valor: float, decimales: int = 0) -> str:
+    """Proporción como porcentaje en español: 0,394 → «39 %» o «39,4 %»."""
+    return f"{100 * valor:.{decimales}f} %".replace(".", ",")

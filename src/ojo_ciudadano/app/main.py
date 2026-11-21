@@ -41,12 +41,14 @@ def barra_lateral() -> None:
 
 paginas = st.navigation(
     {
+        "": [
+            st.Page("paginas/inicio.py", title="Inicio", icon=":material/home:", default=True),
+        ],
         "Señales": [
             st.Page(
                 "paginas/alertas.py",
-                title="Panel de alertas",
-                icon=":material/notifications_active:",
-                default=True,
+                title="Contratos a revisar",
+                icon=":material/flag:",
             ),
             st.Page(
                 "paginas/atipicos.py", title="Contratos atípicos", icon=":material/scatter_plot:"

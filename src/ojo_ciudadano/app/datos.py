@@ -630,3 +630,238 @@ def anomalia_contrato(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict 
         [contrato_id],
     )
     return filas[0] if filas else None
+
+
+# --- Portada y visualizaciones por señal (D-023, docs/11-accesibilidad.md) ---
+
+
+def resumen_portada(con: duckdb.DuckDBPyConnection) -> dict:
+    """Cifras grandes de la portada. Recuentos, no sumas: los importes de las fuentes no
+    se pueden sumar entre sí (P-10)."""
+    fila = _filas(
+        con,
+        """
+        SELECT (SELECT count(*) FROM contrato_unico) AS n_contratos,
+               (SELECT count(*) FROM puntuacion_contrato WHERE n_activados > 0) AS n_con_senales,
+               (SELECT count(*) FROM organo) AS n_organos
+        """,
+    )[0]
+    fila["n_concesiones"] = (
+        con.execute("SELECT count(*) FROM concesion").fetchall()[0][0]
+        if hay_subvenciones(con)
+        else 0
+    )
+    return fila
+
+
+def conteo_senales(con: duckdb.DuckDBPyConnection) -> dict[str, dict]:
+    """Por indicador: contratos en los que se pudo comprobar y en los que salió la señal."""
+    filas = _filas(
+        con,
+        """
+        SELECT indicador, count(*) AS comprobados, count_if(activado) AS encontrados
+        FROM indicador_resultado GROUP BY indicador ORDER BY indicador
+        """,
+    )
+    return {f["indicador"]: f for f in filas}
+
+
+def detalle_r01(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | None:
+    """E-01: ofertas de este contrato frente a cuántas reciben los contratos parecidos (mismo
+    tipo de contrato, procedimientos con concurrencia)."""
+    filas = _filas(
+        con,
+        """
+        WITH ofertas AS (
+            SELECT r.contrato_id, c.tipo_contrato, min(a.n_ofertas) AS n_ofertas
+            FROM indicador_resultado AS r
+            JOIN contrato_unico AS c USING (contrato_id)
+            JOIN adjudicacion AS a USING (contrato_id)
+            WHERE r.indicador = 'R-01' AND a.n_ofertas IS NOT NULL
+            GROUP BY r.contrato_id, c.tipo_contrato
+        ),
+        este AS (SELECT * FROM ofertas WHERE contrato_id = ?),
+        pares AS (
+            SELECT o.n_ofertas FROM ofertas AS o
+            JOIN este AS e ON o.tipo_contrato IS NOT DISTINCT FROM e.tipo_contrato
+        )
+        SELECT least(p.n_ofertas, 10) AS n_ofertas, count(*) AS n_contratos,
+               (SELECT n_ofertas FROM este) AS ofertas_este,
+               (SELECT tipo_contrato FROM este) AS tipo,
+               (SELECT median(n_ofertas) FROM pares) AS mediana
+        FROM pares AS p
+        GROUP BY 1 ORDER BY 1
+        """,
+        [contrato_id],
+    )
+    if not filas:
+        return None
+    return {
+        "ofertas": filas[0]["ofertas_este"],
+        "tipo": filas[0]["tipo"],
+        "mediana": filas[0]["mediana"],
+        "distribucion": [(f["n_ofertas"], f["n_contratos"]) for f in filas],
+    }
+
+
+def detalle_r02(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | None:
+    """E-02: qué parte del importe del organismo (en contratos comprobados por R-02, misma
+    fuente) se adjudicó sin anuncio público."""
+    filas = _filas(
+        con,
+        """
+        WITH base AS (
+            SELECT c.contrato_id, c.organo_id, c.fuente, r.activado,
+                   coalesce(sum(coalesce(a.importe_sin_iva, a.importe_con_iva)), 0) AS importe
+            FROM indicador_resultado AS r
+            JOIN contrato_unico AS c USING (contrato_id)
+            LEFT JOIN adjudicacion AS a USING (contrato_id)
+            WHERE r.indicador = 'R-02'
+            GROUP BY ALL
+        ),
+        este AS (SELECT * FROM base WHERE contrato_id = ?)
+        SELECT o.nombre AS organo, b.fuente,
+               coalesce(sum(b.importe) FILTER (WHERE b.activado), 0) AS sin_anuncio,
+               coalesce(sum(b.importe) FILTER (WHERE NOT b.activado), 0) AS con_anuncio,
+               count_if(b.activado) AS n_sin_anuncio, count(*) AS n_contratos,
+               any_value(e.importe) AS importe_este
+        FROM base AS b
+        JOIN este AS e ON b.organo_id = e.organo_id AND b.fuente = e.fuente
+        JOIN organo AS o ON o.organo_id = b.organo_id
+        GROUP BY o.nombre, b.fuente
+        """,
+        [contrato_id],
+    )
+    return filas[0] if filas else None
+
+
+def detalle_r03(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | None:
+    """E-03: contratos menores de la misma empresa, organismo y tipo en los 12 meses que
+    rodean a este, con el límite legal (con IVA). Personas físicas: sin nombre (D-007)."""
+    filas = _filas(
+        con,
+        f"""
+        WITH este AS (
+            SELECT c.organo_id, c.tipo_contrato, c.fecha_contrato, a.adjudicatario_id,
+                   CASE WHEN c.tipo_contrato = 'obras' THEN 48400 ELSE 18150 END AS umbral
+            FROM contrato_unico AS c JOIN adjudicacion AS a USING (contrato_id)
+            WHERE c.contrato_id = ? AND c.es_menor AND a.adjudicatario_id IS NOT NULL
+            LIMIT 1
+        )
+        SELECT c.contrato_id, c.fecha_contrato AS fecha, a.importe_con_iva AS importe,
+               c.titulo, c.url_origen, e.umbral,
+               CASE WHEN {_beneficiario_visible("d")} THEN d.nombre END AS empresa
+        FROM este AS e
+        JOIN contrato_unico AS c
+          ON c.organo_id = e.organo_id AND c.tipo_contrato = e.tipo_contrato AND c.es_menor
+         AND c.fecha_contrato BETWEEN e.fecha_contrato - INTERVAL 364 DAYS
+                                  AND e.fecha_contrato + INTERVAL 364 DAYS
+        JOIN adjudicacion AS a
+          ON a.contrato_id = c.contrato_id AND a.adjudicatario_id = e.adjudicatario_id
+        JOIN adjudicatario AS d ON d.adjudicatario_id = a.adjudicatario_id
+        WHERE a.importe_con_iva >= e.umbral / 3
+        ORDER BY c.fecha_contrato
+        """,
+        [contrato_id],
+    )
+    if not filas:
+        return None
+    return {"umbral": filas[0]["umbral"], "empresa": filas[0]["empresa"], "contratos": filas}
+
+
+def detalle_r04(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | None:
+    """E-04: reparto del importe del organismo en este tipo de contrato (misma fuente): la
+    empresa de este contrato frente a las 4 siguientes y el resto. Personas físicas y
+    adjudicatarios sin ficha, sin nombre (D-007)."""
+    filas = _filas(
+        con,
+        f"""
+        WITH este AS (
+            SELECT c.fuente, c.organo_id, c.tipo_contrato, a.adjudicatario_id
+            FROM contrato_unico AS c JOIN adjudicacion AS a USING (contrato_id)
+            WHERE c.contrato_id = ? AND a.adjudicatario_id IS NOT NULL
+            ORDER BY coalesce(a.importe_sin_iva, a.importe_con_iva) DESC NULLS LAST
+            LIMIT 1
+        ),
+        mercado AS (
+            SELECT a.adjudicatario_id,
+                   sum(coalesce(a.importe_sin_iva, a.importe_con_iva)) AS importe
+            FROM este AS e
+            JOIN contrato_unico AS c
+              ON c.fuente = e.fuente AND c.organo_id = e.organo_id
+             AND c.tipo_contrato = e.tipo_contrato
+            JOIN adjudicacion AS a USING (contrato_id)
+            WHERE a.adjudicatario_id IS NOT NULL
+              AND (a.resultado IS NULL OR a.resultado IN ('Adjudicado', 'Formalizado'))
+            GROUP BY a.adjudicatario_id
+            HAVING sum(coalesce(a.importe_sin_iva, a.importe_con_iva)) > 0
+        )
+        SELECT m.importe, m.adjudicatario_id = e.adjudicatario_id AS es_este,
+               CASE WHEN {_beneficiario_visible("d")} THEN d.nombre END AS empresa,
+               e.fuente, e.tipo_contrato, o.nombre AS organo
+        FROM mercado AS m
+        CROSS JOIN este AS e
+        JOIN adjudicatario AS d ON d.adjudicatario_id = m.adjudicatario_id
+        JOIN organo AS o ON o.organo_id = e.organo_id
+        ORDER BY m.importe DESC
+        """,
+        [contrato_id],
+    )
+    if not filas:
+        return None
+    total = sum(f["importe"] for f in filas)
+    este = next((f for f in filas if f["es_este"]), None)
+    otros = [f for f in filas if not f["es_este"]]
+    partes = []
+    if este:
+        partes.append(
+            {
+                "nombre": este["empresa"] or "Adjudicataria de este contrato",
+                "importe": este["importe"],
+                "es_este": True,
+            }
+        )
+    for f in otros[:4]:
+        partes.append(
+            {
+                "nombre": f["empresa"] or "Otra adjudicataria",
+                "importe": f["importe"],
+                "es_este": False,
+            }
+        )
+    resto = sum(f["importe"] for f in otros[4:])
+    if resto > 0:
+        partes.append(
+            {"nombre": f"Otras {len(otros) - 4} empresas", "importe": resto, "es_este": False}
+        )
+    return {
+        "organo": filas[0]["organo"],
+        "tipo": filas[0]["tipo_contrato"],
+        "fuente": filas[0]["fuente"],
+        "total": total,
+        "cuota": este["importe"] / total if este and total else None,
+        "n_empresas": len(filas),
+        "partes": partes,
+    }
+
+
+def detalle_importes(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | None:
+    """E-05 y E-06: presupuesto de salida, importe adjudicado, modificaciones y prórrogas del
+    contrato, en la base de IVA de su fuente."""
+    filas = _filas(
+        con,
+        """
+        SELECT c.fuente,
+               any_value(CASE WHEN c.fuente = 'placsp' THEN c.presupuesto_sin_iva
+                              ELSE c.presupuesto_con_iva END) AS presupuesto,
+               sum(CASE WHEN c.fuente = 'placsp' THEN a.importe_sin_iva
+                        ELSE a.importe_con_iva END) AS adjudicado,
+               sum(a.importe_modificaciones_con_iva) AS modificaciones,
+               sum(a.importe_prorrogas_con_iva) AS prorrogas
+        FROM contrato_unico AS c JOIN adjudicacion AS a USING (contrato_id)
+        WHERE c.contrato_id = ?
+        GROUP BY c.fuente
+        """,
+        [contrato_id],
+    )
+    return filas[0] if filas else None

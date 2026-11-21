@@ -67,3 +67,7 @@ Falta: el adaptador del proveedor (D-010), pasarle la batería y el RAG.
 
 - Proveedor y modelo de LLM: decisión **D-010 (pendiente)** en [decisions.md](decisions.md).
 - Tecnología del índice híbrido (LanceDB, Chroma u otra): incluida en D-010.
+
+## Gráfico en las respuestas (D-023, A-08)
+
+Desde el 21-nov, cada respuesta del asistente muestra, debajo del texto, el gráfico de la primera consulta que se pueda dibujar (`graficos.automatico`: barras por año o ranking). Los datos y el SQL siguen en los desplegables de cada consulta.

@@ -23,7 +23,8 @@ def _sin_personas(alias: str) -> str:
     de DNI o NIE."""
     return (
         f"{alias}.tipo_persona <> 'fisica' "
-        f"AND NOT regexp_matches(coalesce({alias}.nif, ''), '{_PATRON_DNI_NIE}')"
+        f"AND NOT regexp_matches(coalesce({alias}.nif, ''), '{_PATRON_DNI_NIE}') "
+        f"AND NOT contains({alias}.adjudicatario_id, 'PF-')"  # UTE con personas físicas
     )
 
 

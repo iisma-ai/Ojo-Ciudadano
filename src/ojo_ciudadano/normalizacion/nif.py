@@ -95,11 +95,14 @@ def identificar(texto_nif: str | None, nombre: str | None, sal: bytes | None = N
         }
     if len(nifs) > 1:
         miembros = [seudonimo(n, sal) if tipo_persona(n) == "fisica" else n for n in nifs]
+        # Una UTE con alguna persona física se trata como persona física (D-007): su nombre
+        # suele llevar el de esa persona («UTE NOMBRE APELLIDO - …»), así que no se guarda.
+        con_personas = any(m.startswith("PF-") for m in miembros)
         return {
             "adjudicatario_id": "UTE:" + "+".join(sorted(miembros)),
             "nif": None,
-            "nombre": nombre,
-            "tipo_persona": "ute",
+            "nombre": None if con_personas else nombre,
+            "tipo_persona": "fisica" if con_personas else "ute",
         }
     nif = nifs[0]
     tipo = tipo_persona(nif)

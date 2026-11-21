@@ -137,3 +137,8 @@ def test_recibido_por_empresa_no_muestra_nif_sin_verificar(con):
         "INSERT INTO adjudicatario VALUES ('1234567L', '1234567L', 'Nombre Apellido', 'otro')"
     )
     assert sql_seguro.ejecutar(con, q.sql, {"empresa": "Apellido"})["filas"] == []
+
+
+def test_oculta_ute_con_persona_fisica():
+    assert sql_seguro._ocultar_seudonimos("UTE:PF-abc+B1") == sql_seguro.SEUDONIMO_VISIBLE
+    assert sql_seguro._ocultar_seudonimos("UTE:A1+B1") == "UTE:A1+B1"

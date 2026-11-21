@@ -61,6 +61,11 @@ Además de los indicadores con reglas, un modelo de aprendizaje automático marc
 
 Comprobar con casos ya fiscalizados por la Cámara de Cuentas o recogidos en prensa: deberían puntuar más alto que la media.
 
+**21-nov: no se puede hacer con la Cámara de Cuentas a tiempo.**
+- Sus informes de contratación llegan con varios años de retraso: los indexados son de ejercicios anteriores a 2023, y nuestros datos empiezan en 2023 (D-006). No hay expedientes en común con los que comparar.
+- Lo que sí está medido es la coincidencia entre señales: el 24 % de los contratos atípicos (D-021) tiene además algún indicador activado.
+- Queda abierta la validación con casos de prensa de 2023–2026. Si no se hace, la presentación debe decir que los indicadores y las anomalías **no están validados con casos reales**.
+
 ## Reglas de implementación
 
 - Cada indicador es una **consulta SQL versionada** en el repositorio (D-004), transparente y reproducible por el jurado.

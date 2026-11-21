@@ -17,14 +17,27 @@ def _filas(con: duckdb.DuckDBPyConnection, sql: str, parametros: list | None = N
 _PATRON_DNI_NIE = r"^([0-9]{7,8}[A-Z]|[XYZ][0-9]{7,8}[A-Z]|[KLM][0-9]{7}[0-9A-Z])$"
 
 
+# Forma jurídica o tipo de entidad en el nombre (española o extranjera). Sirve para los NIF
+# «otro» (extranjeros o erróneos), entre los que hay empresarios individuales y particulares.
+PATRON_EMPRESA = (
+    r"(?i)(\bS\.?\s?A\b|\bS\.?\s?A\.?\s?U\b|\bS\.?\s?L\.?\s?[UP]?\b|\bS\.?\s?COOP|\bGMBH\b|"
+    r"\bLTD\b|\bLIMITED\b|\bLLC\b|\bINC\b|\bCORP|\bSAS\b|\bSARL\b|\bS\.?R\.?L\b|"
+    r"\bS\.?P\.?A\b|\bAG\b|\bB\.?V\b|\bN\.?V\b|\bPLC\b|\bCOMPANY\b|\bCO\.|\bFUNDACI|"
+    r"\bFOUNDATION|\bASOCIACI|\bASSOCIATION|\bUNIVERS|\bINSTITUT|\bGROUP\b|\bSOCIEDAD|"
+    r"\bLDA\b|\bAPS\b|\bA/S\b|\bAB\b|\bOY\b|\bKFT\b|\bUTE\b)"
+)
+
+
 def _sin_personas(alias: str) -> str:
     """Condición SQL que deja fuera a las personas físicas (D-007): las marcadas como tales y,
     por si la base es anterior a la corrección de la normalización, cualquier NIF con forma
-    de DNI o NIE."""
+    de DNI o NIE. Un NIF «otro» solo pasa si el nombre lleva una forma jurídica."""
     return (
         f"{alias}.tipo_persona <> 'fisica' "
         f"AND NOT regexp_matches(coalesce({alias}.nif, ''), '{_PATRON_DNI_NIE}') "
-        f"AND NOT contains({alias}.adjudicatario_id, 'PF-')"  # UTE con personas físicas
+        f"AND NOT contains({alias}.adjudicatario_id, 'PF-') "  # UTE con personas físicas
+        f"AND ({alias}.tipo_persona <> 'otro' "
+        f"OR regexp_matches(coalesce({alias}.nombre, ''), '{PATRON_EMPRESA}'))"
     )
 
 

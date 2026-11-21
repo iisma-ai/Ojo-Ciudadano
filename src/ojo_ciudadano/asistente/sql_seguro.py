@@ -32,6 +32,9 @@ TABLAS_PERMITIDAS = {
     "puntuacion_organo_anio",
     "puntuacion_empresa",
     "puntuacion_empresa_anio",
+    # Contratos atípicos (D-021): señal experimental, aparte de la puntuación. Las respuestas
+    # deben decir que «atípico» no es «irregular» (docs/05-asistente.md).
+    "anomalia_resultado",
 }
 
 # Tipos de referencia a tabla admitidos en FROM. Fuera quedan las funciones de tabla

@@ -31,7 +31,7 @@ Cada tarea de pantalla empieza con un **estudio**: qué pregunta responde, qué 
 | A-03 | **Panel de alertas** | Lista con **el nombre de cada señal** en vez de «2 de 3». Sin el control de «mínimo de indicadores aplicables». Al abrir un contrato, **un gráfico por cada señal** (ver estudios E-01 a E-06) | Alta (demo) | Hecho (21-nov): «Contratos a revisar», insignias con el nombre de cada señal y «de N señales comprobadas», interruptor de menores en vez del control de mínimo, un gráfico por señal al pulsar «Ver gráficos» |
 | A-04 | **Contratos atípicos** | Ver dónde cae el contrato frente a sus contratos similares: nube de puntos o distribución con el contrato resaltado (estudio E-07) | Media | Pendiente |
 | A-05 | **Ficha de empresa** | Resumen visual: de qué organismos recibe dinero (burbujas, el tamaño es el importe), evolución por año y señales con nombre | Alta (no recortable) | Hecho (21-nov): ver «Estudio A-05» |
-| A-06 | **Ficha de organismo** | A qué empresas paga (burbujas o mapa de áreas por importe), lo concentrado que está su gasto y cómo contrata (barra de procedimientos) | Media | Pendiente |
+| A-06 | **Ficha de organismo** | A qué empresas paga (burbujas o mapa de áreas por importe), lo concentrado que está su gasto y cómo contrata (barra de procedimientos) | Media | Hecho (21-nov): ver «Estudio A-06» |
 | A-07 | **Mapa del dinero** | Rehacerlo para que se entienda: empezar por pocos organismos, red de burbujas (organismo → empresa, tamaño = dinero) en vez de un diagrama de flujos denso, y elegir un organismo para ver su red | Media | Pendiente |
 | A-08 | **Preguntas guiadas y asistente** | Cada respuesta con una frase resumen y un gráfico automático según el tipo de resultado (ranking → barras, evolución → línea) | Media | Pendiente |
 | A-09 | **Glosario en contexto** | Definición al pasar el ratón por los términos inevitables (organismo, adjudicataria, contrato menor, licitación) | Baja | Pendiente |
@@ -79,6 +79,21 @@ Formato común: números y fechas en español (`1.234`, `05/2025`), fondo transp
 - **Señales:** barras horizontales en ámbar con el número de contratos con cada señal.
 - **Contratos:** la misma tarjeta desplegable que «Contratos a revisar» (`senales.tarjeta_contrato`), los 30 con más señales e importe.
 - **Cifras:** contratos, contratos con alguna señal, importe adjudicado (con su base de IVA en la etiqueta y las dos fuentes en la ayuda) y subvenciones.
+
+## Estudio A-06 · Ficha de organismo (21-nov)
+
+- **Pregunta:** a quién adjudica, cómo contrata y cómo se compara con los demás organismos.
+- **A quién adjudica:** mapa de áreas como en A-05, con selector de fuente.
+  - Con cientos de proveedores, la caja «Otros» ocupaba casi todo. Por eso se muestran las 20 empresas con más importe y el texto dice qué parte del total suman.
+  - Las personas físicas van juntas en una caja gris sin nombre (D-007).
+- **Comparado con los demás:**
+  - Alternativas: tabla de porcentajes (era lo que había) o barras agrupadas.
+  - **Elegido:** un punto por señal, el del organismo en azul frente a la marca de todos los organismos en gris, unidos por una línea. Se ve a la vez la diferencia y su sentido.
+- **Cómo contrata:** barras horizontales por vía de adjudicación con nombres llanos (`textos.PROCEDIMIENTO_LLANO`). Se suman las vías con el mismo nombre y el resto va a «Otras vías».
+- **Por año:** el mismo gráfico de contratos con y sin señales que en A-05.
+- **Contratos:** los 20 del organismo con más señales, como tarjetas desplegables.
+- **Subvenciones:** un desplegable con las convocatorias.
+- **Cifras:** importes legibles («3,9 mil millones €»).
 
 ## Guía rápida de redacción
 

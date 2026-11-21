@@ -196,9 +196,10 @@ def euros(valor: float | None, iva: str = "") -> str:
     """Importe legible: «1,2 millones €», «45.300 €». `iva`: «con IVA» o «sin IVA»."""
     if valor is None:
         return "sin dato"
-    if abs(valor) >= 1_000_000:
-        texto = f"{valor / 1_000_000:,.1f} millones €".replace(",", "X").replace(".", ",")
-        texto = texto.replace("X", ".")
+    if abs(valor) >= 1_000_000_000:
+        texto = f"{valor / 1_000_000_000:.1f} mil millones €".replace(".", ",")
+    elif abs(valor) >= 1_000_000:
+        texto = f"{valor / 1_000_000:.1f} millones €".replace(".", ",")
     else:
         texto = f"{valor:,.0f} €".replace(",", ".")
     return f"{texto} {iva}".strip()
@@ -219,3 +220,22 @@ def iva_fuente(fuente: str) -> str:
 def porcentaje(valor: float, decimales: int = 0) -> str:
     """Proporción como porcentaje en español: 0,394 → «39 %» o «39,4 %»."""
     return f"{100 * valor:.{decimales}f} %".replace(".", ",")
+
+
+# Nombre llano de cada procedimiento de adjudicación (ficha de organismo).
+PROCEDIMIENTO_LLANO = {
+    "Contrato menor": "Contrato menor (importe pequeño, sin concurso)",
+    "Contratos Menores": "Contrato menor (importe pequeño, sin concurso)",
+    "Abierto": "Concurso abierto",
+    "Abierto simplificado": "Concurso abierto simplificado",
+    "Negociado sin publicidad": "Negociado sin anuncio público",
+    "Negociado con publicidad": "Negociado con anuncio público",
+    "Otro procedimiento": "Otra vía (sin detallar en el portal)",
+    "Restringido": "Concurso restringido (por invitación)",
+    "Derivado de acuerdo marco": "Dentro de un acuerdo marco",
+    "Basado en un sistema dinámico de adquisición": "Sistema dinámico de compra",
+    "Licitación con negociación": "Concurso con negociación",
+    "No indicado": "Sin indicar",
+    "Otros": "Otras vías",
+    "Normas internas": "Normas internas de la entidad",
+}

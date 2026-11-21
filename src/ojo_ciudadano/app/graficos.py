@@ -257,19 +257,36 @@ def partir(texto: str, ancho: int = 22) -> str:
     return "<br>".join(lineas)
 
 
-def reparto_organismos(filas: list[dict], maximo: int = 12) -> go.Figure:
-    """Mapa de áreas: de qué organismos recibe dinero la empresa (área = importe). Un color por
-    organismo; a partir del `maximo`, agrupados en «Otros organismos»."""
+def reparto_organismos(
+    filas: list[dict],
+    maximo: int = 12,
+    campo: str = "organo",
+    otros: str = "organismos",
+    gris: tuple[str, ...] = (),
+    agrupar_resto: bool = True,
+) -> go.Figure:
+    """Mapa de áreas (área = importe): de qué organismos tiene contratos una empresa, o a qué
+    empresas adjudica un organismo (`campo="nombre"`). Un color por entidad; a partir del
+    `maximo`, agrupadas en «Otros N …». Las de `gris` (p. ej. el agregado de personas
+    físicas) van siempre en gris."""
     filas = sorted(filas, key=lambda f: f["importe"], reverse=True)
     principales, resto = filas[:maximo], filas[maximo:]
-    etiquetas = [f["organo"] for f in principales]
+    if not agrupar_resto:
+        resto = []
+    etiquetas = [f[campo] for f in principales]
     valores = [f["importe"] for f in principales]
     numeros = [f["n"] for f in principales]
     if resto:
-        etiquetas.append(f"Otros {len(resto)} organismos")
+        etiquetas.append(f"Otros {len(resto)} {otros}")
         valores.append(sum(f["importe"] for f in resto))
         numeros.append(sum(f["n"] for f in resto))
-    colores = [color_categorico(i) for i in range(len(principales))]
+    colores, n = [], 0
+    for e in etiquetas[: len(principales)]:
+        if e in gris:
+            colores.append(GRIS_OTROS)
+        else:
+            colores.append(color_categorico(n))
+            n += 1
     if resto:
         colores.append(GRIS_OTROS)
     figura = go.Figure(
@@ -335,3 +352,88 @@ def senales_de_empresa(filas: list[dict], nombres: dict[str, str]) -> go.Figure:
     )
     figura.update_xaxes(visible=False, range=[0, max(f["n"] for f in filas) * 1.18])
     return _tema(figura, alto=60 + 36 * len(filas))
+
+
+# --- Ficha de organismo (A-06) ---
+
+
+def comparacion_senales(filas: list[dict], nombres: dict[str, str]) -> go.Figure:
+    """Un punto por señal: en qué proporción de sus contratos la tiene el organismo (azul)
+    frente al conjunto de organismos (gris), unidos por una línea."""
+    filas = sorted(filas, key=lambda f: f["indicador"], reverse=True)
+    etiquetas = [nombres.get(f["indicador"], f["indicador"]) for f in filas]
+    figura = go.Figure()
+    for etiqueta, f in zip(etiquetas, filas, strict=True):
+        figura.add_scatter(
+            x=[f["pct_global"], f["pct_organo"]],
+            y=[etiqueta, etiqueta],
+            mode="lines",
+            line={"color": REJILLA, "width": 4},
+            hoverinfo="skip",
+            showlegend=False,
+        )
+    figura.add_scatter(
+        x=[f["pct_global"] for f in filas],
+        y=etiquetas,
+        mode="markers",
+        name="Todos los organismos",
+        marker={
+            "color": GRIS_CLARO,
+            "size": 11,
+            "symbol": "line-ns",
+            "line": {"width": 3, "color": GRIS_CLARO},
+        },
+        hovertemplate="Todos los organismos: %{x:.1%}<extra></extra>",
+    )
+    figura.add_scatter(
+        x=[f["pct_organo"] for f in filas],
+        y=etiquetas,
+        mode="markers",
+        name="Este organismo",
+        marker={"color": AZUL, "size": 13, "line": {"width": 2, "color": "#0B1120"}},
+        customdata=[[f["activados"], f["aplicables"]] for f in filas],
+        hovertemplate="Este organismo: %{x:.1%} (%{customdata[0]:,} de %{customdata[1]:,} "
+        "contratos)<extra></extra>",
+    )
+    figura.update_xaxes(tickformat=".0%", rangemode="tozero", title="Contratos con la señal")
+    figura = _tema(figura, alto=110 + 42 * len(filas))
+    figura.update_layout(
+        showlegend=True,
+        legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "x": 0},
+        margin={"t": 40},
+    )
+    return figura
+
+
+def procedimientos(filas: list[dict], nombres: dict[str, str], maximo: int = 6) -> go.Figure:
+    """Barras horizontales: cuántos contratos ha hecho el organismo por cada vía."""
+    # Se suman los procedimientos con el mismo nombre llano (p. ej. las dos formas de escribir
+    # «contrato menor» en las fuentes) y lo que no entra en los `maximo` va a «Otras vías».
+    por_nombre: dict[str, int] = {}
+    for f in filas:
+        nombre = nombres.get(f["procedimiento"], f["procedimiento"])
+        por_nombre[nombre] = por_nombre.get(nombre, 0) + f["n_contratos"]
+    ordenados = sorted(
+        ((n, c) for n, c in por_nombre.items() if n != "Otras vías"),
+        key=lambda p: p[1],
+        reverse=True,
+    )
+    datos_ = ordenados[:maximo]
+    resto = por_nombre.get("Otras vías", 0) + sum(c for _, c in ordenados[maximo:])
+    if resto:
+        datos_.append(("Otras vías", resto))
+    datos_.reverse()
+    figura = go.Figure(
+        go.Bar(
+            y=[d[0] for d in datos_],
+            x=[d[1] for d in datos_],
+            orientation="h",
+            marker={"color": AZUL, "cornerradius": 4},
+            text=[f"{d[1]:,}".replace(",", ".") for d in datos_],
+            textposition="outside",
+            cliponaxis=False,
+            hovertemplate="%{y}: %{x:,.0f} contratos<extra></extra>",
+        )
+    )
+    figura.update_xaxes(visible=False, range=[0, max(d[1] for d in datos_) * 1.2])
+    return _tema(figura, alto=60 + 36 * len(datos_))

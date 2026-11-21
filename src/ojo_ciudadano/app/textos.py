@@ -102,3 +102,15 @@ def fechas_descarga(fechas: list[dict]) -> str:
         return ""
     partes = [f"{NOMBRES_FUENTE.get(f['fuente'], f['fuente'])} el {f['fecha']}" for f in fechas]
     return "Datos descargados: " + "; ".join(partes) + "."
+
+
+AVISO_ATIPICOS = (
+    "**Qué es un contrato atípico.** Un modelo de aprendizaje automático no supervisado "
+    "(Isolation Forest) compara cada contrato con otros similares (misma fuente, tipo de "
+    "contrato y si es menor o licitación) y marca el 1 % que más se aleja de ellos en importe, "
+    "número de ofertas, baja, modificaciones, cuota del adjudicatario en el órgano o número de "
+    "contratos menores. **Atípico no significa irregular**: un contrato puede ser poco habitual "
+    "por razones legítimas (tamaño, urgencia, un único proveedor posible). Es una señal "
+    "experimental, aparte de los indicadores de riesgo, que **no suma a la puntuación** y "
+    "puede contener errores. Método completo en `docs/04-indicadores-riesgo.md` (D-021)."
+)

@@ -40,7 +40,7 @@ Objetivo: responder bien a las 4 para el 21 de noviembre. Además, una **baterí
 - **Vídeo de respaldo**.
 - **Modelo alternativo** configurado.
 
-## Estado (20-nov)
+## Estado (21-nov)
 
 Hecho, sin depender del LLM (D-010):
 
@@ -48,7 +48,11 @@ Hecho, sin depender del LLM (D-010):
 - `src/ojo_ciudadano/asistente/consultas_demo.py`: **consultas verificadas de las 4 preguntas de demo**, cada una con una nota de qué cubre y qué no. Serán los ejemplos del modelo y las respuestas de respaldo. Pregunta 4: desde el 20-nov suma contratos y subvenciones (BDNS) por fuente y año, de 2023 a 2026, sin mezclar bases.
 - Pantalla **«Preguntas guiadas»** (`app/paginas/preguntas.py`): las 4 preguntas con su tabla, nota, consulta SQL y enlace al expediente cuando la respuesta es por contrato.
 
-Falta: el modelo que traduce la pregunta libre a SQL (D-010), la batería de 20 preguntas y el RAG.
+- `src/ojo_ciudadano/asistente/bateria.py` (21-nov): **batería de 20 preguntas de prueba** (B-01 a B-20). Son las 4 de demo, 12 de datos con SQL de referencia y 4 de límites sin SQL (lenguaje acusatorio, DNI de personas físicas, Ayuntamiento fuera de alcance e inyección). Cada una lleva criterios de lo que debe decir la respuesta. La respuesta esperada es el resultado de la referencia sobre la base del día. `evaluar` compara el SQL del modelo por valores de las columnas clave, sin importar nombres ni orden, y `revisar_texto` marca términos de la tabla de lenguaje y DNI/NIE. `uv run python -m ojo_ciudadano.asistente.bateria` ejecuta las referencias (todas < 1 s).
+
+Limitaciones de los datos que el asistente debe explicar: las licitaciones del portal regional casi nunca traen fecha (344 de 18.777), así que no tienen año; y los menores de julio a septiembre de 2026 están incompletos (P-12).
+
+Falta: el modelo que traduce la pregunta libre a SQL (D-010), pasarle la batería y el RAG. `anomalia_resultado` (D-021) aún no está en `TABLAS_PERMITIDAS`.
 
 ## Pendiente
 

@@ -1,3 +1,4 @@
+import duckdb
 import pytest
 
 from ojo_ciudadano.app import datos
@@ -260,3 +261,26 @@ def test_ute_con_persona_fisica_de_una_base_antigua_no_tiene_ficha(base, con):
     )
     assert datos.buscar_empresas(base.con, "apellido") == []
     assert datos.ficha_empresa(base.con, "UTE:PF-abc+B1") is None
+
+
+@pytest.mark.parametrize(
+    ("nombre", "visible"),
+    [
+        ("BAYOOSOFT GmbH", True),
+        ("WINDFREAK TECHNOLOGIES, LLC", True),
+        ("BIO-RAD LABORATORIES, S.A.", True),
+        ("MDPI AG", True),
+        ("ANTOINE SCHMITT EI", False),  # empresario individual
+        ("Fleur Barron", False),
+        ("ALBA MANUEL VÁZQUEZ", False),
+    ],
+)
+def test_nif_otro_solo_con_ficha_si_el_nombre_es_de_empresa(nombre, visible):
+    con = duckdb.connect()
+    con.execute(
+        "CREATE TABLE adjudicatario AS SELECT 'FR123' AS adjudicatario_id, 'FR123' AS nif, "
+        "? AS nombre, 'otro' AS tipo_persona",
+        [nombre],
+    )
+    n = con.execute(f"SELECT count(*) FROM adjudicatario AS a WHERE {datos._sin_personas('a')}")
+    assert (n.fetchall()[0][0] == 1) == visible

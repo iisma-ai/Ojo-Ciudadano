@@ -1,6 +1,6 @@
 # 2026-11-21 · UTE con personas físicas (D-007)
 
-- **Autor:** Claude (agente), a petición de Ismael
+- **Autor:** Claude (agente)
 - **Fase del plan:** 2. Corrección de RGPD.
 - **Rama:** `fix/ute-personas-fisicas`
 

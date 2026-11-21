@@ -241,3 +241,11 @@ def test_atipicos_sin_personas_fisicas(con_anomalias):
     assert datos.grupos_anomalias(con_anomalias)[0]["n_atipicos"] == 2
     assert datos.anomalia_contrato(con_anomalias, "c1")["motivo"] == "Importe adjudicado alto"
     assert datos.anomalia_contrato(con_anomalias, "c3") is None
+
+
+def test_fecha_de_descarga_incluye_la_bdns(con):
+    con.execute(
+        "INSERT INTO concesion (concesion_id, fuente, organo_id, url_origen, fecha_descarga) "
+        "VALUES ('s1', 'bdns', 'ORG', 'https://x.test', '2026-11-20')"
+    )
+    assert [f["fuente"] for f in datos.fechas_datos(con)] == ["bdns", "placsp"]

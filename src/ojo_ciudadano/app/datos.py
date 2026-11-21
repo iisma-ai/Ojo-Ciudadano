@@ -29,10 +29,13 @@ def _sin_personas(alias: str) -> str:
 
 def fechas_datos(con: duckdb.DuckDBPyConnection) -> list[dict]:
     """Fecha de la última descarga de cada fuente (se muestra en todas las pantallas)."""
-    return _filas(
-        con,
-        "SELECT fuente, max(fecha_descarga) AS fecha FROM contrato GROUP BY fuente ORDER BY 1",
-    )
+    sql = "SELECT fuente, max(fecha_descarga) AS fecha FROM contrato GROUP BY fuente"
+    if hay_subvenciones(con):
+        sql += (
+            " UNION ALL SELECT 'bdns', max(fecha_descarga) FROM concesion"
+            " HAVING max(fecha_descarga) IS NOT NULL"
+        )
+    return _filas(con, f"SELECT * FROM ({sql}) ORDER BY 1")
 
 
 def buscar_empresas(con: duckdb.DuckDBPyConnection, texto: str, limite: int = 20) -> list[dict]:

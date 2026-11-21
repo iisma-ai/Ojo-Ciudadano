@@ -32,17 +32,17 @@ Cuatro fases en 11 días, con hitos internos que protegen la entrega: **esquema 
 - [x] Descargar una muestra del Atom de PLACSP filtrada a órganos de la Comunidad de Madrid (octubre de 2026).
 - [x] Probar la API de la BDNS con concesiones de la Comunidad. Resuelto el 20-nov: filtro por los 27 órganos hijos de la Comunidad (id 16); 849.878 concesiones 2023–2026 cargadas.
 - [ ] Decidir proveedor de LLM (D-010). Aplazado el 16-nov: no bloquea datos ni indicadores.
-- [ ] Asignar nombres a las personas 1–4 de la tabla de responsables.
+- [x] Asignar nombres a las personas 1–4 de la tabla de responsables. Hecho el 21-nov según el trabajo ya hecho: Ignacio e Ismael.
 
 ## Responsables
 
 | Persona | Nombre | Responsabilidad | Entregable para el 21 de noviembre |
 | --- | --- | --- | --- |
-| 1 | _por asignar_ | Ingesta y normalización | Contratos 2023–2026 y subvenciones de la Comunidad en DuckDB, deduplicados y con NIF normalizado |
-| 2 | _por asignar_ | Indicadores de riesgo | Cinco indicadores de prioridad alta y media en SQL, con puntuación por contrato, órgano y empresa |
-| 3 | _por asignar_ | Interfaz | Mapa del dinero, ficha de empresa, ficha de órgano y panel de alertas en Streamlit |
-| 4 | _por asignar_ | Asistente | Agente con texto a SQL y RAG sobre un corpus pequeño, respondiendo bien a las 4 preguntas de demo |
-| _por asignar_ | Lucas (con Claude) | Detección de anomalías (D-021) | Para el 23-nov: tabla `anomalia_resultado` con contratos atípicos respecto a sus pares (no supervisado por defecto), con las variables que lo explican y su test |
+| 1 | Ismael (contratos); Ignacio (subvenciones, BDNS) | Ingesta y normalización | Contratos 2023–2026 y subvenciones de la Comunidad en DuckDB, deduplicados y con NIF normalizado |
+| 2 | Ismael (motor, R-01, R-02, R-03, R-05); Ignacio (R-04, R-06, puntuación D-020) | Indicadores de riesgo | Cinco indicadores de prioridad alta y media en SQL, con puntuación por contrato, órgano y empresa |
+| 3 | Ignacio | Interfaz | Mapa del dinero, ficha de empresa, ficha de órgano y panel de alertas en Streamlit |
+| 4 | Ignacio | Asistente | Agente con texto a SQL y RAG sobre un corpus pequeño, respondiendo bien a las 4 preguntas de demo |
+| 5 | Ismael (con Claude) | Detección de anomalías (D-021) | Para el 23-nov: tabla `anomalia_resultado` con contratos atípicos respecto a sus pares (no supervisado por defecto), con las variables que lo explican y su test |
 
 ## Qué recortamos si vamos tarde, en este orden
 

@@ -33,7 +33,7 @@ Cada tarea de pantalla empieza con un **estudio**: qué pregunta responde, qué 
 | A-05 | **Ficha de empresa** | Resumen visual: de qué organismos recibe dinero (burbujas, el tamaño es el importe), evolución por año y señales con nombre | Alta (no recortable) | Hecho (21-nov): ver «Estudio A-05» |
 | A-06 | **Ficha de organismo** | A qué empresas paga (burbujas o mapa de áreas por importe), lo concentrado que está su gasto y cómo contrata (barra de procedimientos) | Media | Hecho (21-nov): ver «Estudio A-06» |
 | A-07 | **Mapa del dinero** | Rehacerlo para que se entienda: empezar por pocos organismos, red de burbujas (organismo → empresa, tamaño = dinero) en vez de un diagrama de flujos denso, y elegir un organismo para ver su red | Media | Hecho (21-nov): ver «Estudio A-07» |
-| A-08 | **Preguntas guiadas y asistente** | Cada respuesta con una frase resumen y un gráfico automático según el tipo de resultado (ranking → barras, evolución → línea) | Media | Pendiente |
+| A-08 | **Preguntas guiadas y asistente** | Cada respuesta con una frase resumen y un gráfico automático según el tipo de resultado (ranking → barras, evolución → línea) | Media | Hecho en «Preguntas guiadas» (21-nov): `graficos.automatico`. Falta conectarlo en la pantalla del asistente (la lleva Ignacio) |
 | A-09 | **Glosario en contexto** | Definición al pasar el ratón por los términos inevitables (organismo, adjudicataria, contrato menor, licitación) | Baja | Pendiente |
 | A-10 | **Revisión de accesibilidad** | Pasada final por todas las pantallas: contraste, color, textos alternativos, móvil, longitud de los textos | Alta (antes del 25) | Pendiente |
 | A-11 | **Prueba con personas no expertas** | Enseñar la web a 2 o 3 personas ajenas al proyecto: ¿entienden qué es en 30 s y qué significa una alerta? Anotar lo que no entienden | Alta (antes del 25) | Pendiente |
@@ -119,6 +119,15 @@ Formato común: números y fechas en español (`1.234`, `05/2025`), fondo transp
   - Importes y recuentos con mucha dispersión, en escala logarítmica.
   - Los porcentajes se recortan a los percentiles 1-99, porque hay rebajas erróneas de miles por cien en la fuente, pero este contrato nunca queda fuera.
 - **Pantalla:** cada contrato atípico es un desplegable con el motivo; al abrirlo se calculan el gráfico y una frase con su posición relativa.
+
+## Estudio A-08 · Respuestas con gráfico (21-nov)
+
+- `graficos.automatico(resultado)` recibe el resultado de cualquier consulta de `sql_seguro` y elige el gráfico:
+  - **Con columna `anio`:** barras agrupadas por año, una serie por fuente y tipo, con **recuentos** de contratos o concesiones. Los importes de cada fuente tienen distinta base y no saldrían todas.
+  - **Sin `anio`:** ranking en barras horizontales, de las 12 primeras filas. Se usa la primera columna de texto que sirva de etiqueta y la primera columna numérica relevante (proporción, modificaciones, importe o recuento). La primera barra va en azul. Si un nombre sale una vez por fuente, se añade la fuente.
+- Devuelve además una frase resumen («En primer lugar: X, con Y»).
+- «Preguntas guiadas»: frase y gráfico arriba; la tabla con los enlaces debajo, siempre visible; la nota de qué cubre la respuesta, en pequeño.
+- Pensado para reutilizarlo en el asistente cuando responda con una consulta libre.
 
 ## Guía rápida de redacción
 

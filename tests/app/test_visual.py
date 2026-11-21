@@ -158,3 +158,24 @@ def test_atipico_dibuja_dos_variables_o_una():
     figura = graficos.atipico({"este": este, "pares": pares}, ["baja"])
     # El eje se recorta, pero este contrato (rebaja de -5.000 %) sigue dentro.
     assert figura.layout.xaxis.range[0] <= -50.0
+
+
+def test_grafico_automatico_ranking_y_por_anio():
+    ranking = {
+        "columnas": ["organo", "fuente", "proporcion_importe_alerta_r02"],
+        "filas": [
+            ["Sanidad", "Portal de la Contratación", 0.5],
+            ["Sanidad", "Plataforma de Contratación", 0.7],
+            ["Metro", "Portal de la Contratación", 0.2],
+        ],
+    }
+    figura, frase = graficos.automatico(ranking)
+    assert "Sanidad (Plataforma)" in frase and "70,0 %" in frase
+    assert len(set(figura.data[0].y)) == 3
+    anual = {
+        "columnas": ["entidad", "fuente", "tipo", "anio", "n_contratos_o_concesiones"],
+        "filas": [["X", "BDNS", "subvenciones", 2024, 3], ["X", "BDNS", "subvenciones", 2025, 1]],
+    }
+    figura, frase = graficos.automatico(anual)
+    assert frase == "Contratos o concesiones por año."
+    assert graficos.automatico({"columnas": ["a"], "filas": []}) == (None, None)

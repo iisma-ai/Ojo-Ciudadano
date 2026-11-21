@@ -237,3 +237,21 @@ Plantilla:
 - **Alternativas consideradas:** Mantener el tema de serie (aspecto genérico). Usar una librería de componentes externa (más dependencias y riesgo a cuatro días de la demo).
 - **Consecuencias:** Nuevo `docs/marca.md` con logo, paleta y reglas. Regla 7 en `CLAUDE.md`. Las pantallas nuevas deben seguir estas reglas.
 
+## D-023 · Accesibilidad y visualización como prioridad de la interfaz
+- **Fecha:** 2026-11-21
+- **Estado:** Aceptada
+- **Autor:** Claude (agente)
+- **Contexto:** Al revisar la web, quien no conoce el proyecto no entiende de primeras qué es Ojo Ciudadano ni qué significa una alerta. Hay demasiado texto y términos técnicos («indicadores aplicables», «2 de 3 señales»), y el mapa del dinero es difícil de leer. El público principal es la ciudadanía (`01-vision.md`).
+- **Decisión:**
+  - La interfaz se rediseña con el criterio «primero se ve, luego se lee».
+  - Hay una portada que explica qué es Ojo Ciudadano.
+  - Cada indicador tiene su propia visualización.
+  - Se usa lenguaje claro y no se repite texto.
+  - El trabajo se organiza en las tareas A-01 a A-11 de [11-accesibilidad.md](11-accesibilidad.md). Cada pantalla empieza con un estudio de visualización.
+  - Lo legal no cambia: D-002, D-007 y el enlace al origen en cada cifra.
+- **Alternativas consideradas:** Dejar la interfaz como está y explicar más en la metodología (más texto, el problema de fondo). Rehacerla con otra tecnología (no da tiempo, D-005).
+- **Consecuencias:**
+  - Portada nueva y cambios en todas las pantallas, coordinados con el responsable de la interfaz.
+  - Para la demo, las tareas de prioridad alta. El resto entra en la lista de recortes, detrás de la detección de anomalías.
+  - Se actualizan 03 (reglas de interfaz), 08 (plan) y 11.
+

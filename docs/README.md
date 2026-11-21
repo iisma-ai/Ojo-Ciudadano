@@ -19,6 +19,7 @@ Estado a 15 de noviembre de 2026: **plan inicial establecido, desarrollo sin emp
 | [08-plan.md](08-plan.md) | **El plan**: fases, hitos, responsables y lista de recortes | **Siempre**, al empezar cada sesión |
 | [09-preguntas-abiertas.md](09-preguntas-abiertas.md) | Lo que aún no sabemos y hay que confirmar | Al empezar cada sesión |
 | [10-glosario.md](10-glosario.md) | Jerga de contratación pública y siglas | Cuando dudes de un término |
+| [11-accesibilidad.md](11-accesibilidad.md) | **Accesibilidad y visualización**: principios, tareas A-xx por pantalla y estudios de visualización por indicador | Antes de tocar cualquier pantalla |
 | [marca.md](marca.md) | Logo, paleta, tipografía y reglas de estilo (sin emojis) | Antes de tocar la interfaz o la presentación |
 | [bitacora/](bitacora/) | Registro de lo hecho en cada sesión de trabajo | **Siempre**: al empezar (leer) y al terminar (escribir) |
 

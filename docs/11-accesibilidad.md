@@ -32,7 +32,7 @@ Cada tarea de pantalla empieza con un **estudio**: qué pregunta responde, qué 
 | A-04 | **Contratos atípicos** | Ver dónde cae el contrato frente a sus contratos similares: nube de puntos o distribución con el contrato resaltado (estudio E-07) | Media | Pendiente |
 | A-05 | **Ficha de empresa** | Resumen visual: de qué organismos recibe dinero (burbujas, el tamaño es el importe), evolución por año y señales con nombre | Alta (no recortable) | Hecho (21-nov): ver «Estudio A-05» |
 | A-06 | **Ficha de organismo** | A qué empresas paga (burbujas o mapa de áreas por importe), lo concentrado que está su gasto y cómo contrata (barra de procedimientos) | Media | Hecho (21-nov): ver «Estudio A-06» |
-| A-07 | **Mapa del dinero** | Rehacerlo para que se entienda: empezar por pocos organismos, red de burbujas (organismo → empresa, tamaño = dinero) en vez de un diagrama de flujos denso, y elegir un organismo para ver su red | Media | Pendiente |
+| A-07 | **Mapa del dinero** | Rehacerlo para que se entienda: empezar por pocos organismos, red de burbujas (organismo → empresa, tamaño = dinero) en vez de un diagrama de flujos denso, y elegir un organismo para ver su red | Media | Hecho (21-nov): ver «Estudio A-07» |
 | A-08 | **Preguntas guiadas y asistente** | Cada respuesta con una frase resumen y un gráfico automático según el tipo de resultado (ranking → barras, evolución → línea) | Media | Pendiente |
 | A-09 | **Glosario en contexto** | Definición al pasar el ratón por los términos inevitables (organismo, adjudicataria, contrato menor, licitación) | Baja | Pendiente |
 | A-10 | **Revisión de accesibilidad** | Pasada final por todas las pantallas: contraste, color, textos alternativos, móvil, longitud de los textos | Alta (antes del 25) | Pendiente |
@@ -94,6 +94,19 @@ Formato común: números y fechas en español (`1.234`, `05/2025`), fondo transp
 - **Contratos:** los 20 del organismo con más señales, como tarjetas desplegables.
 - **Subvenciones:** un desplegable con las convocatorias.
 - **Cifras:** importes legibles («3,9 mil millones €»).
+
+## Estudio A-07 · Mapa del dinero (21-nov)
+
+- **Problema:** el diagrama de flujos (Sankey) con 20 flujos de muchos organismos a la vez no se entendía. Había demasiadas líneas cruzadas y demasiados nombres.
+- **Alternativas valoradas:**
+  - mantener el Sankey con menos flujos: sigue cruzándose;
+  - red de fuerzas con todos los organismos y empresas: ilegible con más de 30 nodos y necesita otra dependencia;
+  - **elegido, en dos pasos:**
+    1. **Vista general:** burbujas empaquetadas de los 15 organismos que más adjudican (área = importe, un color por organismo, el nombre dentro de las grandes y un número en las pequeñas). Al lado, una lista numerada en la que cada organismo se puede pulsar.
+    2. **Red de un organismo:** el organismo en el centro y sus 10 empresas alrededor. El área de cada burbuja y el grosor de cada línea son el importe, con un color por empresa y la etiqueta hacia fuera. Debajo, los contratos o convocatorias de la empresa elegida, con su enlace.
+- El Sankey se conserva como «Vista avanzada» en un desplegable.
+- Filtros: fuente (una cada vez, sin mezclar IVA), año, tipo y menores. El organismo también se elige en un desplegable, para quien no use el ratón.
+- Sin dependencias nuevas: el empaquetado de burbujas está en `graficos.empaquetar` (búsqueda en espiral), con test de que no hay solapes.
 
 ## Guía rápida de redacción
 

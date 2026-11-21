@@ -358,10 +358,11 @@ def flujos(
     anio: int | None = None,
     tipo_contrato: str | None = None,
     limite: int = 25,
+    organo_id: str | None = None,
 ) -> list[dict]:
     """Mayores flujos órgano → empresa. El importe es sin IVA en PLACSP y con IVA en el portal
     (se elige una fuente cada vez: no se suman importes de bases distintas). Sin personas
-    físicas (D-007)."""
+    físicas (D-007). Con `organo_id`, solo los de ese organismo."""
     campo = "a.importe_sin_iva" if fuente == "placsp" else "a.importe_con_iva"
     return _filas(
         con,
@@ -372,10 +373,15 @@ def flujos(
         JOIN contrato_unico AS c USING (contrato_id)
         JOIN organo AS o USING (organo_id)
         JOIN adjudicatario AS d USING (adjudicatario_id)
-        WHERE {_FILTRO_FLUJO} AND {campo} > 0
+        WHERE {_FILTRO_FLUJO} AND {campo} > 0 AND (? IS NULL OR c.organo_id = ?)
         GROUP BY ALL ORDER BY importe DESC LIMIT ?
         """,
-        [*_parametros_flujo(fuente, incluir_menores, anio, tipo_contrato), limite],
+        [
+            *_parametros_flujo(fuente, incluir_menores, anio, tipo_contrato),
+            organo_id,
+            organo_id,
+            limite,
+        ],
     )
 
 
@@ -487,7 +493,10 @@ def _beneficiario_flujo() -> str:
 
 
 def flujos_subvenciones(
-    con: duckdb.DuckDBPyConnection, anio: int | None = None, limite: int = 25
+    con: duckdb.DuckDBPyConnection,
+    anio: int | None = None,
+    limite: int = 25,
+    organo_id: str | None = None,
 ) -> list[dict]:
     """Mayores flujos órgano → beneficiario de subvenciones. Las personas físicas y los NIF no
     verificables de cada órgano forman un solo flujo agregado (D-007)."""
@@ -505,9 +514,10 @@ def flujos_subvenciones(
         JOIN organo AS o USING (organo_id)
         JOIN adjudicatario AS a ON a.adjudicatario_id = s.beneficiario_id
         WHERE (? IS NULL OR year(s.fecha_concesion) = ?) AND s.importe > 0
+          AND (? IS NULL OR s.organo_id = ?)
         GROUP BY ALL ORDER BY importe DESC LIMIT ?
         """,
-        [anio, anio, limite],
+        [anio, anio, organo_id, organo_id, limite],
     )
 
 
@@ -978,4 +988,45 @@ def reparto_organo(con: duckdb.DuckDBPyConnection, organo_id: str) -> list[dict]
         ORDER BY fuente, importe DESC
         """,
         parametros,
+    )
+
+
+def totales_organos(
+    con: duckdb.DuckDBPyConnection,
+    fuente: str,
+    incluir_menores: bool = False,
+    anio: int | None = None,
+    tipo_contrato: str | None = None,
+    limite: int = 15,
+) -> list[dict]:
+    """A-07: organismos que más han adjudicado (o concedido, si `fuente` es «bdns»), con los
+    mismos filtros que los flujos. Una fuente cada vez (bases de IVA distintas)."""
+    if fuente == "bdns":
+        if not hay_subvenciones(con):
+            return []
+        return _filas(
+            con,
+            """
+            SELECT s.organo_id, o.nombre AS organo, sum(s.importe) AS importe,
+                   count(*) AS n_contratos
+            FROM concesion AS s JOIN organo AS o USING (organo_id)
+            WHERE (? IS NULL OR year(s.fecha_concesion) = ?) AND s.importe > 0
+            GROUP BY ALL ORDER BY importe DESC LIMIT ?
+            """,
+            [anio, anio, limite],
+        )
+    campo = "a.importe_sin_iva" if fuente == "placsp" else "a.importe_con_iva"
+    return _filas(
+        con,
+        f"""
+        SELECT c.organo_id, o.nombre AS organo, sum({campo}) AS importe,
+               count(DISTINCT c.contrato_id) AS n_contratos
+        FROM adjudicacion AS a
+        JOIN contrato_unico AS c USING (contrato_id)
+        JOIN organo AS o USING (organo_id)
+        JOIN adjudicatario AS d USING (adjudicatario_id)
+        WHERE {_FILTRO_FLUJO} AND {campo} > 0
+        GROUP BY ALL ORDER BY importe DESC LIMIT ?
+        """,
+        [*_parametros_flujo(fuente, incluir_menores, anio, tipo_contrato), limite],
     )

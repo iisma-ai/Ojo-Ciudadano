@@ -12,5 +12,14 @@ from ojo_ciudadano.indicadores.ejecutor import RUTA_DB
 
 
 @st.cache_resource
-def conexion() -> duckdb.DuckDBPyConnection:
+def _base() -> duckdb.DuckDBPyConnection:
     return conexion_lectura(RUTA_DB)
+
+
+def conexion() -> duckdb.DuckDBPyConnection:
+    """Una conexión por sesión del navegador. DuckDB no deja usar la misma conexión desde dos
+    sesiones a la vez («connection is busy»); un cursor comparte la base y su configuración de
+    solo lectura y sin acceso a ficheros."""
+    if "_conexion" not in st.session_state:
+        st.session_state["_conexion"] = _base().cursor()
+    return st.session_state["_conexion"]

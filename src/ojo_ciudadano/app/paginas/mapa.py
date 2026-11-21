@@ -4,7 +4,7 @@ de subvenciones."""
 import plotly.graph_objects as go
 import streamlit as st
 
-from ojo_ciudadano.app import datos, textos
+from ojo_ciudadano.app import datos, graficos, textos
 from ojo_ciudadano.app.conexion import conexion
 
 FUENTES = {
@@ -75,14 +75,19 @@ figura = go.Figure(
             "pad": 14,
             "thickness": 14,
             "line": {"width": 0},
-            # Colores de docs/marca.md: órganos en azul, empresas en gris azulado.
-            "color": ["#3D8BFD"] * len(organos) + ["#93A1B8"] * len(empresas),
+            # Cada organismo con su color (paleta validada, graficos.CATEGORICOS) y sus
+            # flujos del mismo color; las empresas en gris claro.
+            "color": [graficos.color_categorico(i) for i in range(len(organos))]
+            + ["#93A1B8"] * len(empresas),
         },
         link={
             "source": [organos.index(f["organo"]) for f in filas],
             "target": [len(organos) + empresas.index(f["empresa"]) for f in filas],
             "value": [f["importe"] for f in filas],
-            "color": "rgba(61, 139, 253, 0.22)",
+            "color": [
+                graficos.transparente(graficos.color_categorico(organos.index(f["organo"])), 0.35)
+                for f in filas
+            ],
         },
         textfont={"color": "#E7ECF3", "size": 12, "shadow": "none"},
     )

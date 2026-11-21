@@ -168,9 +168,12 @@ def alertas(
     min_aplicables: int = 3,
     indicador: str | None = None,
     limite: int = 100,
+    texto: str | None = None,
+    anio: int | None = None,
 ) -> list[dict]:
     """Contratos ordenados por puntuación. Por defecto solo los que tienen 3 o más
-    indicadores aplicables, para que no dominen los menores (solo R-03 y R-04)."""
+    indicadores aplicables, para que no dominen los menores (solo R-03 y R-04). `texto` busca
+    en el título y en el nombre del organismo."""
     return _filas(
         con,
         """
@@ -182,10 +185,12 @@ def alertas(
         JOIN organo AS o ON o.organo_id = p.organo_id
         WHERE p.n_aplicables >= ? AND p.n_activados > 0
           AND (? IS NULL OR list_contains(string_split(p.indicadores_activados, ', '), ?))
+          AND (? IS NULL OR c.titulo ILIKE '%' || ? || '%' OR o.nombre ILIKE '%' || ? || '%')
+          AND (? IS NULL OR p.anio = ?)
         ORDER BY p.puntuacion DESC, p.n_activados DESC, p.importe DESC
         LIMIT ?
         """,
-        [min_aplicables, indicador, indicador, limite],
+        [min_aplicables, indicador, indicador, texto, texto, texto, anio, anio, limite],
     )
 
 

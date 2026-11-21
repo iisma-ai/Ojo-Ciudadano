@@ -28,6 +28,8 @@ No se deforma, no se rota y no se cambian sus colores fuera de esta paleta.
 | Azul claro | `#7DB3FF` | Enlaces |
 | Ámbar (contraste) | `#F2B544` | Solo para destacar señales; nunca rojo «de peligro» (lenguaje no acusatorio, D-002) |
 
+Para distinguir entidades en un gráfico (p. ej. organismos en el mapa del dinero) se usa la paleta categórica de  (), en orden fijo y validada sobre el fondo oscuro: , , , , , , ; del 8.º en adelante, gris.
+
 Tipografía: **Inter** (Google Fonts) para todo el texto y una monoespaciada para el SQL.
 
 ## Reglas

@@ -6,6 +6,8 @@ tests puedan usar una base sintética en memoria. Las personas físicas no tiene
 
 import duckdb
 
+from ojo_ciudadano.normalizacion.nif import PATRON_EMPRESA
+
 
 def _filas(con: duckdb.DuckDBPyConnection, sql: str, parametros: list | None = None) -> list[dict]:
     cursor = con.execute(sql, parametros or [])
@@ -15,17 +17,6 @@ def _filas(con: duckdb.DuckDBPyConnection, sql: str, parametros: list | None = N
 
 # NIF con forma de DNI o NIE, también con erratas (sin el cero inicial, una cifra de más).
 _PATRON_DNI_NIE = r"^([0-9]{7,8}[A-Z]|[XYZ][0-9]{7,8}[A-Z]|[KLM][0-9]{7}[0-9A-Z])$"
-
-
-# Forma jurídica o tipo de entidad en el nombre (española o extranjera). Sirve para los NIF
-# «otro» (extranjeros o erróneos), entre los que hay empresarios individuales y particulares.
-PATRON_EMPRESA = (
-    r"(?i)(\bS\.?\s?A\b|\bS\.?\s?A\.?\s?U\b|\bS\.?\s?L\.?\s?[UP]?\b|\bS\.?\s?COOP|\bGMBH\b|"
-    r"\bLTD\b|\bLIMITED\b|\bLLC\b|\bINC\b|\bCORP|\bSAS\b|\bSARL\b|\bS\.?R\.?L\b|"
-    r"\bS\.?P\.?A\b|\bAG\b|\bB\.?V\b|\bN\.?V\b|\bPLC\b|\bCOMPANY\b|\bCO\.|\bFUNDACI|"
-    r"\bFOUNDATION|\bASOCIACI|\bASSOCIATION|\bUNIVERS|\bINSTITUT|\bGROUP\b|\bSOCIEDAD|"
-    r"\bLDA\b|\bAPS\b|\bA/S\b|\bAB\b|\bOY\b|\bKFT\b|\bUTE\b)"
-)
 
 
 def _sin_personas(alias: str) -> str:

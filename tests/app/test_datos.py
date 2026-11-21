@@ -207,3 +207,37 @@ def test_flujos_de_subvenciones_con_personas_agregadas(con):
     assert (detalle[0]["importe"], detalle[0]["url_origen"]) == (70, None)
     assert datos.concesiones_flujo(con, "ORG", "A1")[0]["titulo"] == "Ayudas A"
     assert datos.fecha_subvenciones(con) is not None
+
+
+@pytest.fixture
+def con_anomalias(con):
+    con.execute(
+        "CREATE TABLE anomalia_resultado (contrato_id VARCHAR, grupo VARCHAR, n_grupo BIGINT, "
+        "puntuacion DOUBLE, atipico BOOLEAN, variables VARCHAR, motivo VARCHAR, "
+        "url_origen VARCHAR)"
+    )
+    for cid, atipico in (("c1", True), ("c2", True), ("c3", False)):
+        con.execute(
+            "INSERT INTO anomalia_resultado VALUES (?, 'placsp · licitación · servicios', 3, "
+            "0.99, ?, 'importe', 'Importe adjudicado alto', 'https://x.test')",
+            [cid, atipico],
+        )
+    return con
+
+
+def test_sin_tabla_de_anomalias_no_falla(con):
+    assert not datos.hay_anomalias(con)
+    assert datos.atipicos(con) == []
+    assert datos.atipicos_agregados(con) == 0
+    assert datos.anomalia_contrato(con, "c1") is None
+
+
+def test_atipicos_sin_personas_fisicas(con_anomalias):
+    filas = datos.atipicos(con_anomalias)
+    assert [f["contrato_id"] for f in filas] == ["c1"]
+    assert filas[0]["adjudicatarios"] == "Limpiezas Ejemplo SA"
+    # c2 es de una persona física: solo se cuenta.
+    assert datos.atipicos_agregados(con_anomalias) == 1
+    assert datos.grupos_anomalias(con_anomalias)[0]["n_atipicos"] == 2
+    assert datos.anomalia_contrato(con_anomalias, "c1")["motivo"] == "Importe adjudicado alto"
+    assert datos.anomalia_contrato(con_anomalias, "c3") is None

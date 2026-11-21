@@ -538,3 +538,87 @@ def concesiones_flujo(
             }
         )
     return visibles
+
+
+def hay_anomalias(con: duckdb.DuckDBPyConnection) -> bool:
+    """La base tiene la tabla derivada `anomalia_resultado` (D-021)."""
+    return bool(
+        con.execute(
+            "SELECT count(*) FROM duckdb_tables() WHERE table_name = 'anomalia_resultado'"
+        ).fetchall()[0][0]
+    )
+
+
+# Contrato con algún adjudicatario que no se puede mostrar con nombre (D-007).
+_CON_PERSONAS = f"""
+    EXISTS (
+        SELECT 1 FROM adjudicacion AS ad
+        JOIN adjudicatario AS a ON a.adjudicatario_id = ad.adjudicatario_id
+        WHERE ad.contrato_id = r.contrato_id AND NOT {_beneficiario_visible("a")}
+    )
+"""
+
+
+def grupos_anomalias(con: duckdb.DuckDBPyConnection) -> list[dict]:
+    """Grupos de pares con su número de contratos y de atípicos."""
+    if not hay_anomalias(con):
+        return []
+    return _filas(
+        con,
+        """
+        SELECT grupo, any_value(n_grupo) AS n_grupo, count_if(atipico) AS n_atipicos
+        FROM anomalia_resultado GROUP BY grupo ORDER BY n_grupo DESC
+        """,
+    )
+
+
+def atipicos(
+    con: duckdb.DuckDBPyConnection, grupo: str | None = None, limite: int = 100
+) -> list[dict]:
+    """Contratos atípicos respecto a sus pares, los más alejados primero. Los contratos de
+    personas físicas no se listan uno a uno (D-007): se cuentan en `atipicos_agregados`."""
+    if not hay_anomalias(con):
+        return []
+    return _filas(
+        con,
+        f"""
+        SELECT r.contrato_id, c.titulo, o.nombre AS organo, r.grupo, r.n_grupo,
+               r.puntuacion, r.variables, r.motivo, r.url_origen,
+               string_agg(DISTINCT a.nombre, ', ') AS adjudicatarios
+        FROM anomalia_resultado AS r
+        JOIN contrato_unico AS c USING (contrato_id)
+        JOIN organo AS o ON o.organo_id = c.organo_id
+        LEFT JOIN adjudicacion AS ad ON ad.contrato_id = r.contrato_id
+        LEFT JOIN adjudicatario AS a ON a.adjudicatario_id = ad.adjudicatario_id
+        WHERE r.atipico AND (? IS NULL OR r.grupo = ?) AND NOT {_CON_PERSONAS}
+        GROUP BY ALL
+        ORDER BY r.puntuacion DESC, r.contrato_id
+        LIMIT ?
+        """,
+        [grupo, grupo, limite],
+    )
+
+
+def atipicos_agregados(con: duckdb.DuckDBPyConnection, grupo: str | None = None) -> int:
+    """Contratos atípicos de personas físicas u otros adjudicatarios sin ficha (D-007)."""
+    if not hay_anomalias(con):
+        return 0
+    return con.execute(
+        f"""
+        SELECT count(*) FROM anomalia_resultado AS r
+        WHERE r.atipico AND (? IS NULL OR r.grupo = ?) AND {_CON_PERSONAS}
+        """,
+        [grupo, grupo],
+    ).fetchall()[0][0]
+
+
+def anomalia_contrato(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | None:
+    """Resultado de la detección de anomalías para un contrato, si es atípico."""
+    if not hay_anomalias(con):
+        return None
+    filas = _filas(
+        con,
+        "SELECT * FROM anomalia_resultado WHERE contrato_id = ? AND atipico",
+        [contrato_id],
+    )
+    return filas[0] if filas else None

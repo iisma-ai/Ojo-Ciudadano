@@ -33,6 +33,30 @@
 
 Además de los indicadores con reglas, un modelo de aprendizaje automático marca los contratos **atípicos respecto a contratos similares**. Por defecto se usa un método no supervisado: clustering por tipo de contrato y distancia a su grupo, o Isolation Forest. Solo se usaría uno supervisado si hubiera etiquetas legítimas (p. ej. casos de la Cámara de Cuentas), nunca etiquetas de «corrupción» (D-002). Cada contrato atípico se muestra con las variables que más lo alejan de sus pares y el enlace al expediente. **No entra en la puntuación** hasta validarlo. Es el primer recorte si vamos tarde.
 
+**Implementación (21-nov, `src/ojo_ciudadano/anomalias/deteccion.py`):**
+- **Grupo de pares:** fuente + licitación o menor + tipo de contrato (14 grupos con 50 contratos o más; los más pequeños no se analizan). Se separa por fuente porque los importes de PLACSP van sin IVA y los del portal con IVA.
+- **Variables** (las que tienen datos y variación en cada grupo):
+  - importe adjudicado, en logaritmo;
+  - número de ofertas;
+  - baja sobre el presupuesto (misma base de IVA);
+  - modificaciones sobre el importe (solo portal);
+  - cuota del adjudicatario en lo que adjudica el órgano en ese tipo de contrato;
+  - nº de menores con el mismo adjudicatario y órgano en los 12 meses anteriores (solo menores).
+  Los huecos se rellenan con la mediana del grupo, así que no alejan a nadie.
+- **Modelo:** Isolation Forest por grupo (200 árboles, semilla 42). Se marca como atípico el 1 % más alejado de cada grupo. `puntuacion` es el percentil de rareza dentro del grupo, una posición relativa y no una probabilidad.
+- **Explicación:**
+  - Se citan las dos variables con mayor desviación robusta ((x − mediana) / (1,4826 · MAD)) de al menos 2, con su valor y la mediana del grupo (importes «sin IVA» o «con IVA» según la fuente).
+  - Si ninguna llega a 2, se citan igualmente las dos que más se alejan, como combinación poco habitual.
+- **Resultado con los datos del 21-nov:** 1.349.510 contratos puntuados, **13.496 atípicos (1,0 %)**.
+  - 3.262 de los atípicos (24 %) tienen además algún indicador de riesgo activado, así que la señal aporta sobre todo contratos que las reglas no ven.
+  - 27 son de personas físicas: solo se cuentan, no se listan (D-007).
+  - Solo 4 motivos son de «combinación».
+- **Hallazgos y limitaciones:**
+  - En los menores (1,3 M), lo que más separa es el número de menores del mismo adjudicatario y órgano: proveedores recurrentes de hospitales con miles de pedidos al año. Es el mismo patrón que obligó a ajustar R-03 (D-015) y suele tener explicación legítima (suministro continuo sin acuerdo marco).
+  - En las licitaciones aparecen acuerdos marco muy grandes y obras con una cuota del 100 % o modificaciones del 100 % del importe. Estas últimas pueden ser errores de la fuente; hay que revisarlas en el expediente.
+  - Sin CPV, los grupos mezclan objetos distintos dentro de un mismo tipo de contrato.
+  - No está validado con casos reales: por eso no entra en la puntuación.
+
 ## Validación (si hay tiempo)
 
 Comprobar con casos ya fiscalizados por la Cámara de Cuentas o recogidos en prensa: deberían puntuar más alto que la media.
@@ -54,5 +78,6 @@ Comprobar con casos ya fiscalizados por la Cámara de Cuentas o recogidos en pre
 | R-04 | Implementado | [`r04_concentracion_proveedor.sql`](../sql/indicadores/r04_concentracion_proveedor.sql) | D-018. Mercado = fuente + órgano + tipo de contrato (sin CPV, sin mezclar importes con y sin IVA). 1.348.715 aplicables, **84 activados (0,006 %)**. Muy selectivo: su valor está en la cuota y el HHI de las fichas de órgano y empresa. No distingue exclusividades legítimas |
 | R-05 | Implementado | [`r05_sobrecoste_modificaciones.sql`](../sql/indicadores/r05_sobrecoste_modificaciones.sql) | D-016. Solo portal regional (con IVA). 31.406 aplicables, **573 activados (1,8 %)**, superando el 20 % en más de 1 € para que no decida el redondeo. Hallazgo: 362 contratos tienen las modificaciones justo en el 20 %, el máximo legal. Las prórrogas se muestran en el motivo |
 | R-06 | Implementado | [`r06_baja_anormal_o_nula.sql`](../sql/indicadores/r06_baja_anormal_o_nula.sql) | D-019. Presupuesto e importe de la misma base (sin IVA en PLACSP, con IVA en el portal). 11.909 aplicables, **2.226 activados (18,7 %)**. Hallazgo: tasa alta; revisar por separado baja nula y baja extrema al construir la puntuación. No usa las demás ofertas (art. 149 LCSP) porque no las tenemos |
+| Anomalías | Implementado (señal aparte) | [`anomalias/deteccion.py`](../src/ojo_ciudadano/anomalias/deteccion.py) | D-021. 13.496 atípicos de 1.349.510 (1,0 %). Fuera de la puntuación hasta validarla |
 | R-07 | Pendiente | — | Recortable |
 | R-08 | Pendiente | — | Recortable |

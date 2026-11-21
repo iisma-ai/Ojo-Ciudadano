@@ -43,6 +43,13 @@ for fila in filas:
             nombre = textos.NOMBRES_INDICADOR.get(m["indicador"], m["indicador"])
             valor = textos.formatear_valor(m["indicador"], m["valor"])
             st.markdown(f"- **{m['indicador']} · {nombre}** (valor: {valor}): {m['motivo']}")
+        anomalia = datos.anomalia_contrato(conexion(), fila["contrato_id"])
+        if anomalia:
+            st.markdown(
+                f"- **Contrato atípico** respecto a {anomalia['n_grupo']} contratos similares "
+                "(señal experimental, aparte de los indicadores; no suma a la puntuación y "
+                f"atípico no significa irregular): {anomalia['motivo']}"
+            )
         if fila["url_origen"]:
             st.link_button("Ver el expediente en la fuente oficial", fila["url_origen"])
         else:

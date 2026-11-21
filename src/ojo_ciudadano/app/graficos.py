@@ -15,7 +15,7 @@ import plotly.graph_objects as go
 from ojo_ciudadano.app.textos import euros, porcentaje
 
 AZUL = "#3D8BFD"
-GRIS = "#4A5A75"
+GRIS = "#5B6B86"  # contraste 3,5:1 con el fondo (WCAG 1.4.11, gráficos)
 GRIS_CLARO = "#93A1B8"
 TEXTO = "#E7ECF3"
 REJILLA = "#24314A"
@@ -72,6 +72,22 @@ def ofertas(detalle: dict) -> go.Figure:
             hovertemplate="%{x} ofertas: %{y} contratos<extra></extra>",
         )
     )
+    # «Este contrato» también con texto: el color no puede ser la única pista (A-10).
+    este = (
+        etiquetas[x.index(min(detalle["ofertas"], 10))]
+        if min(detalle["ofertas"], 10) in x
+        else None
+    )
+    if este is not None:
+        figura.add_annotation(
+            x=este,
+            y=y[etiquetas.index(este)],
+            text="Este contrato",
+            showarrow=True,
+            arrowcolor=AZUL,
+            font={"color": AZUL},
+            yshift=4,
+        )
     figura.update_xaxes(title="Ofertas recibidas", type="category")
     figura.update_yaxes(title="Contratos parecidos")
     return _tema(figura)

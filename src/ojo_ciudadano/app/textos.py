@@ -239,3 +239,22 @@ PROCEDIMIENTO_LLANO = {
     "Otros": "Otras vías",
     "Normas internas": "Normas internas de la entidad",
 }
+
+
+# Definiciones cortas de los términos que no se pueden evitar (A-09). Se muestran en la ayuda
+# («?») junto al término.
+GLOSARIO = {
+    "organismo": "Consejería, hospital, empresa pública u otra entidad de la Comunidad de "
+    "Madrid que firma contratos (en la ley, «órgano de contratación»).",
+    "adjudicataria": "Empresa o entidad que gana un contrato.",
+    "contrato_menor": "Contrato de menos de 15.000 € (40.000 € en obras), sin IVA, que se puede "
+    "dar directamente a una empresa sin concurso.",
+    "licitacion": "Concurso público en el que varias empresas pueden presentar ofertas.",
+    "fuentes": "Los contratos vienen de dos fuentes oficiales: la Plataforma de Contratación "
+    "del Sector Público da los importes sin IVA y el portal de la Comunidad de Madrid, con IVA. "
+    "Por eso no se suman. Las subvenciones vienen de la Base de Datos Nacional de Subvenciones.",
+    "tipo_contrato": "Qué se contrata: obras, servicios o suministros (compra de productos), "
+    "entre otros.",
+    "senal": "Indicador calculado con una regla pública que señala un contrato que merece "
+    "revisión. No demuestra nada irregular.",
+}

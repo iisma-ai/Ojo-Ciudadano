@@ -23,6 +23,7 @@ conteo = datos.conteo_senales(con)
 elegida = senal.selectbox(
     "Señal",
     [None, *textos.SENAL_CORTA],
+    help=textos.GLOSARIO["senal"],
     format_func=lambda i: (
         "Todas"
         if i is None

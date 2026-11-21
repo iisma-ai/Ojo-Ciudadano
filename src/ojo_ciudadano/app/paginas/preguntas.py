@@ -8,6 +8,7 @@ import streamlit as st
 
 from ojo_ciudadano.app import textos
 from ojo_ciudadano.app.conexion import conexion
+from ojo_ciudadano.app.tablas import mostrar_resultado
 from ojo_ciudadano.asistente import sql_seguro
 from ojo_ciudadano.asistente.consultas_demo import CONSULTAS_DEMO
 
@@ -36,29 +37,7 @@ if "empresa" in consulta.parametros:
 resultado = sql_seguro.ejecutar(conexion(), consulta.sql, parametros)
 st.info(consulta.nota)
 
-# Proporciones en porcentaje y enlaces clicables.
-columnas_pct = [c for c in resultado["columnas"] if c.startswith(("proporcion", "modificaciones_"))]
-filas = []
-for fila in resultado["filas"]:
-    registro = dict(zip(resultado["columnas"], fila, strict=True))
-    for c in columnas_pct:
-        if registro[c] is not None:
-            registro[c] = 100 * registro[c]
-    filas.append(registro)
-
-if not filas:
-    st.write("Sin resultados para esta pregunta.")
-else:
-    configuracion = {c: st.column_config.NumberColumn(format="%.1f %%") for c in columnas_pct}
-    configuracion["url_origen"] = st.column_config.LinkColumn(
-        "Expediente oficial", display_text="Ver en el portal oficial"
-    )
-    for c in resultado["columnas"]:
-        if c.startswith("importe"):
-            configuracion[c] = st.column_config.NumberColumn(format="localized")
-    st.dataframe(filas, column_config=configuracion, hide_index=True)
-    if resultado["recortado"]:
-        st.caption(f"Se muestran las primeras {sql_seguro.LIMITE_FILAS} filas.")
+mostrar_resultado(resultado)
 
 with st.expander("Consulta SQL usada"):
     st.code(consulta.sql.strip(), language="sql")

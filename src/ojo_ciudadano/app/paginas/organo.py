@@ -94,7 +94,7 @@ if elegido:
         st.subheader("Evolución anual de la puntuación")
         st.caption(
             "Proporción anual de señales activadas; depende del número y tipo de contratos de "
-            "cada año y no mide la gestión del órgano."
+            "cada año y no mide la gestión del órgano. " + textos.AVISO_MENORES_RECIENTES
         )
         st.bar_chart({str(t["anio"]): t["puntuacion_ponderada"] or 0 for t in tendencia})
 

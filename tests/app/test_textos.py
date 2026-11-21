@@ -36,3 +36,8 @@ def test_pie_cumple_las_condiciones_de_reutilizacion():
     assert "Intervención General de la Administración del Estado" in textos.FUENTES
     assert "no patrocinado ni apoyado" in textos.PIE
     assert "Ojo Ciudadano seudonimiza" in textos.PIE
+
+
+def test_aviso_menores_recientes_cita_la_ley():
+    assert "art. 63.4" in textos.AVISO_MENORES_RECIENTES
+    assert "no indica que se contrate menos" in textos.AVISO_MENORES_RECIENTES

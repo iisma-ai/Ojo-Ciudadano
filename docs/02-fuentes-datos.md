@@ -111,6 +111,7 @@ El MVP se acota a **2023–2026** (ver D-006 en [decisions.md](decisions.md)). L
 | Duplicados entre portal regional y PLACSP | Deduplicar por **expediente + órgano** |
 | Varias versiones de una licitación en el Atom de PLACSP | Quedarse con la **última versión** |
 | Cambios de estructura entre años | Mapeo de columnas por año, documentado |
+| Menores recientes incompletos (P-12): se publican al menos trimestralmente (art. 63.4 LCSP); jul–sep 2026 tienen ~3.000 al mes frente a ~20.000 | Aviso en la interfaz; no interpretar la caída como real; reexportar los meses recientes antes de la entrega |
 | Límites de descarga (BDNS, portales que bloquean automatización) | Descargas por meses, caché local, descarga manual si hace falta |
 
 ## Reglas para trabajar con datos

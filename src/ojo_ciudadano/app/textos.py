@@ -131,3 +131,11 @@ def nombre_grupo(grupo: str) -> str:
     fuente, _, resto = grupo.partition(" · ")
     resto = resto.replace("menor", "contrato menor", 1)
     return f"{NOMBRES_FUENTE.get(fuente, fuente)} · {resto}"
+
+
+AVISO_MENORES_RECIENTES = (
+    "Los contratos menores se publican con retraso: la ley pide publicarlos al menos cada "
+    "trimestre (art. 63.4 de la Ley 9/2017 de Contratos del Sector Público). Los meses más "
+    "recientes de 2026 están incompletos, así que una caída en 2026 no indica que se "
+    "contrate menos."
+)

@@ -102,3 +102,14 @@ def test_ute_con_persona_fisica_no_guarda_el_nombre():
     assert identidad["nombre"] is None
     assert identidad["adjudicatario_id"].startswith("UTE:")
     assert "12345678Z" not in identidad["adjudicatario_id"]
+
+
+def test_nif_extranjero_sin_forma_juridica_se_trata_como_persona_fisica():
+    """D-007: entre los NIF extranjeros o erróneos hay particulares y empresarios individuales."""
+    persona = nif.identificar("FR67382209765", "ANTOINE SCHMITT EI", SAL)
+    assert persona["tipo_persona"] == "fisica"
+    assert persona["nombre"] is None and persona["nif"] is None
+    assert persona["adjudicatario_id"].startswith("PF-")
+    empresa = nif.identificar("DE129360582", "BAYOOSOFT GmbH", SAL)
+    assert empresa["tipo_persona"] == "otro"
+    assert empresa["nombre"] == "BAYOOSOFT GmbH"

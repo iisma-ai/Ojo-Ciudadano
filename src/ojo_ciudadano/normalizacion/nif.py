@@ -21,6 +21,17 @@ _FISICA_ERRATA = re.compile(r"^(\d{7}[A-Z]|[XYZ]\d{8}[A-Z])$")
 _SEPARADOR_UTE = re.compile(r"\s*[-/;,+]\s*")
 _PREFIJO = re.compile(r"^(NIF|CIF|DNI|NIE)[:.\s]*")
 
+# Forma jurídica o tipo de entidad en el nombre (española o extranjera). Sirve para los NIF
+# «otro» (extranjeros o erróneos), entre los que hay empresarios individuales y particulares.
+PATRON_EMPRESA = (
+    r"(?i)(\bS\.?\s?A\b|\bS\.?\s?A\.?\s?U\b|\bS\.?\s?L\.?\s?[UP]?\b|\bS\.?\s?COOP|\bGMBH\b|"
+    r"\bLTD\b|\bLIMITED\b|\bLLC\b|\bINC\b|\bCORP|\bSAS\b|\bSARL\b|\bS\.?R\.?L\b|"
+    r"\bS\.?P\.?A\b|\bAG\b|\bB\.?V\b|\bN\.?V\b|\bPLC\b|\bCOMPANY\b|\bCO\.|\bFUNDACI|"
+    r"\bFOUNDATION|\bASOCIACI|\bASSOCIATION|\bUNIVERS|\bINSTITUT|\bGROUP\b|\bSOCIEDAD|"
+    r"\bLDA\b|\bAPS\b|\bA/S\b|\bAB\b|\bOY\b|\bKFT\b|\bUTE\b)"
+)
+_EMPRESA = re.compile(PATRON_EMPRESA)
+
 
 def normalizar_nif(texto: str | None) -> str | None:
     """Mayúsculas, sin espacios, puntos ni guiones, y sin prefijos como «NIF:» o «ES»."""
@@ -106,6 +117,10 @@ def identificar(texto_nif: str | None, nombre: str | None, sal: bytes | None = N
         }
     nif = nifs[0]
     tipo = tipo_persona(nif)
+    if tipo == "otro" and not _EMPRESA.search(nombre or ""):
+        # NIF extranjero o erróneo sin forma jurídica en el nombre: puede ser un particular o
+        # un empresario individual. Prima la privacidad (D-007).
+        tipo = "fisica"
     if tipo == "fisica":
         return {
             "adjudicatario_id": seudonimo(nif, sal),

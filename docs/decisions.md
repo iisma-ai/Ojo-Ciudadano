@@ -219,5 +219,6 @@ Plantilla:
   - **Reproducible:** semilla fija, el código y los parámetros en el repositorio, y el resultado en una tabla derivada.
   - **Calendario:** del 21 al 23 de noviembre, antes de la demo (H3).
   - **Recortes:** pasa a ser el **primer recorte** de la lista, porque es alcance nuevo.
+  - **Método elegido (21-nov, al implementarlo):** Isolation Forest por grupo de pares (fuente · licitación o menor · tipo de contrato, grupos de 50 o más), 200 árboles, semilla 42, el 1 % más alejado de cada grupo como atípico; explicación por desviación robusta frente a la mediana del grupo. Detalle y resultados en `docs/04-indicadores-riesgo.md`.
 - **Alternativas consideradas:** No incluirlo (la propuesta no podría mencionar aprendizaje automático); solo supervisado (no hay etiquetas fiables, D-002); meter la anomalía en la puntuación (mezcla una señal sin validar con indicadores auditables).
 - **Consecuencias:** Nueva dependencia (scikit-learn, con `uv add` cuando se implemente, registrada en la bitácora). Nueva carpeta `src/ojo_ciudadano/anomalias/` y tabla derivada `anomalia_resultado`; no toca el esquema congelado (D-017). Hay que asignar responsable. Los textos deben pasar por `revisor-legal`, porque «atípico» no puede leerse como «irregular». Actualizados 08, 04, 06 y `CLAUDE.md`.

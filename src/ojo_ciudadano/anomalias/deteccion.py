@@ -150,9 +150,9 @@ def desviaciones_robustas(matriz: np.ndarray) -> np.ndarray:
     return (matriz - mediana) / escala
 
 
-def _formato(valor: float, variable: str) -> str:
+def _formato(valor: float, variable: str, iva: str = "") -> str:
     if variable == "importe":
-        return f"{valor:,.0f} €".replace(",", ".")
+        return f"{valor:,.0f} €".replace(",", ".") + (f" {iva}" if iva else "")
     if variable in ("baja", "modificaciones", "cuota"):
         return f"{100 * valor:.1f} %".replace(".", ",")
     return f"{valor:.0f}"
@@ -162,32 +162,56 @@ NOMBRES = {
     "importe": "importe adjudicado",
     "n_ofertas": "número de ofertas",
     "baja": "baja sobre el presupuesto",
-    "modificaciones": "modificaciones sobre el importe",
-    "cuota": "cuota del adjudicatario en el órgano",
-    "menores_12m": "menores del mismo adjudicatario y órgano en 12 meses",
+    "modificaciones": "modificaciones sobre el importe adjudicado",
+    "cuota": "cuota del adjudicatario en lo que adjudica este órgano en este tipo de contrato "
+    "(2023–2026)",
+    "menores_12m": "contratos menores con el mismo adjudicatario y órgano en los 12 meses "
+    "anteriores (incluido este)",
 }
+
+RECUENTOS = ("n_ofertas", "menores_12m")
+
+
+def _parte(variable: str, valor: float, desviacion: float, mediana: float, iva: str) -> str:
+    """«<variable> de <valor> (por encima de la mediana de <m> de contratos similares)»."""
+    if variable == "baja" and valor < 0:
+        texto = f"adjudicado un {_formato(-valor, variable)} por encima del presupuesto"
+    elif variable in RECUENTOS:
+        texto = f"{NOMBRES[variable]}: {_formato(valor, variable)}"
+    else:
+        texto = f"{NOMBRES[variable]} de {_formato(valor, variable, iva)}"
+    lado = "por encima" if desviacion > 0 else "por debajo"
+    referencia = _formato(mediana, variable, iva)
+    return f"{texto} ({lado} de la mediana de {referencia} de contratos similares)"
 
 
 def explicar(
-    fila: dict, desviaciones: dict[str, float], medianas: dict[str, float]
+    fila: dict, desviaciones: dict[str, float], medianas: dict[str, float], iva: str = ""
 ) -> tuple[list[str], str]:
-    """Variables que más alejan al contrato de sus pares y una frase que lo cuenta."""
-    ordenadas = sorted(desviaciones, key=lambda v: abs(desviaciones[v]), reverse=True)
-    elegidas = [
+    """Variables que más alejan al contrato de sus pares y una frase que lo cuenta.
+    `iva` es «sin IVA» (PLACSP) o «con IVA» (portal regional) para los importes."""
+    ordenadas = [
         v
-        for v in ordenadas
-        if abs(desviaciones[v]) >= MIN_DESVIACION_MOTIVO and fila[v] is not None
-    ][:MAX_VARIABLES_MOTIVO]
-    partes = [
-        f"{NOMBRES[v]} de {_formato(fila[v], v)} "
-        f"({'por encima' if desviaciones[v] > 0 else 'por debajo'} de la mediana de "
-        f"{_formato(medianas[v], v)})"
-        for v in elegidas
+        for v in sorted(desviaciones, key=lambda v: abs(desviaciones[v]), reverse=True)
+        if fila[v] is not None
     ]
-    if not partes:
-        return [], "Combinación de valores poco habitual entre contratos similares"
-    texto = "; ".join(partes)
-    return elegidas, texto[0].upper() + texto[1:]
+    elegidas = [v for v in ordenadas if abs(desviaciones[v]) >= MIN_DESVIACION_MOTIVO][
+        :MAX_VARIABLES_MOTIVO
+    ]
+    if elegidas:
+        partes = [_parte(v, fila[v], desviaciones[v], medianas[v], iva) for v in elegidas]
+        texto = "; ".join(partes)
+        return elegidas, texto[0].upper() + texto[1:]
+    # Ninguna variable se aleja mucho por sí sola: se citan igualmente las dos que más.
+    elegidas = ordenadas[:MAX_VARIABLES_MOTIVO]
+    partes = [_parte(v, fila[v], desviaciones[v], medianas[v], iva) for v in elegidas]
+    return elegidas, (
+        "Ningún valor por sí solo se aleja mucho de contratos similares; lo poco habitual es "
+        "la combinación de " + " y ".join(partes)
+    )
+
+
+IVA_FUENTE = {"placsp": "sin IVA", "portal_cm": "con IVA"}
 
 
 def puntuar_grupo(grupo: pl.DataFrame) -> pl.DataFrame:
@@ -208,6 +232,7 @@ def puntuar_grupo(grupo: pl.DataFrame) -> pl.DataFrame:
     # Las medianas para el texto van en la escala original (no en logaritmo).
     medianas = {v: float(grupo[v].cast(pl.Float64).median()) for v in variables}
     filas = grupo.select(["contrato_id", *variables]).to_dicts()
+    iva = IVA_FUENTE.get(grupo["grupo"][0].split(" · ")[0], "")
     variables_txt, motivos = [], []
     for i, fila in enumerate(filas):
         if not atipico[i]:
@@ -215,7 +240,7 @@ def puntuar_grupo(grupo: pl.DataFrame) -> pl.DataFrame:
             motivos.append(None)
             continue
         elegidas, motivo = explicar(
-            fila, dict(zip(variables, desviaciones[i], strict=True)), medianas
+            fila, dict(zip(variables, desviaciones[i], strict=True)), medianas, iva
         )
         variables_txt.append(", ".join(elegidas) or None)
         motivos.append(motivo)

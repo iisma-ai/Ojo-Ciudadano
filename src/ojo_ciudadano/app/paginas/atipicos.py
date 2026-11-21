@@ -28,17 +28,22 @@ grupo = st.selectbox(
         "Todos"
         if g is None
         else next(
-            f"{g} ({x['n_atipicos']} atípicos de {x['n_grupo']} contratos)"
+            f"{textos.nombre_grupo(g)} ({x['n_atipicos']} atípicos de {x['n_grupo']} contratos)"
             for x in grupos
             if x["grupo"] == g
         )
     ),
 )
 
-filas = datos.atipicos(con, grupo)
+LIMITE = 100
+filas = datos.atipicos(con, grupo, LIMITE)
 agregados = datos.atipicos_agregados(con, grupo)
 st.caption(
-    f"{len(filas)} contratos mostrados, los más alejados de sus pares primero."
+    (
+        f"Se muestran los {LIMITE} más alejados de sus pares; elige un grupo para ver el resto."
+        if len(filas) == LIMITE
+        else f"{len(filas)} contratos mostrados, los más alejados de sus pares primero."
+    )
     + (
         f" Otros {agregados} contratos atípicos de personas físicas u otros adjudicatarios "
         "sin ficha no se muestran uno a uno."
@@ -51,7 +56,7 @@ for fila in filas:
     titulo = fila["titulo"] or fila["contrato_id"]
     with st.expander(f"{titulo} · {fila['organo']}"):
         st.write(
-            f"Comparado con {fila['n_grupo']} contratos de «{fila['grupo']}». "
+            f"Comparado con {fila['n_grupo']} contratos de «{textos.nombre_grupo(fila['grupo'])}». "
             f"Más alejado de sus pares que el {fila['puntuacion']:.1%} de ellos "
             "(posición relativa, no una probabilidad)."
         )

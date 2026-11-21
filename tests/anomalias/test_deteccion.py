@@ -94,7 +94,18 @@ def test_explicar_cita_las_variables_mas_alejadas():
     fila = {"importe": 2_000_000.0, "n_ofertas": 1, "cuota": 0.1}
     desviaciones = {"importe": 8.0, "n_ofertas": -3.0, "cuota": 0.5}
     medianas = {"importe": 100_000.0, "n_ofertas": 5.0, "cuota": 0.05}
-    variables, motivo = deteccion.explicar(fila, desviaciones, medianas)
+    variables, motivo = deteccion.explicar(fila, desviaciones, medianas, "sin IVA")
     assert variables == ["importe", "n_ofertas"]
-    assert motivo.startswith("Importe adjudicado de 2.000.000 €")
-    assert "número de ofertas de 1 (por debajo de la mediana de 5)" in motivo
+    assert motivo.startswith("Importe adjudicado de 2.000.000 € sin IVA (por encima de la")
+    assert "100.000 € sin IVA de contratos similares" in motivo
+    assert "número de ofertas: 1 (por debajo de la mediana de 5" in motivo
+
+
+def test_explicar_sin_variables_extremas_cita_la_combinacion():
+    fila = {"importe": 150_000.0, "baja": -0.12}
+    desviaciones = {"importe": 1.5, "baja": -1.8}
+    medianas = {"importe": 100_000.0, "baja": 0.15}
+    variables, motivo = deteccion.explicar(fila, desviaciones, medianas, "con IVA")
+    assert variables == ["baja", "importe"]
+    assert motivo.startswith("Ningún valor por sí solo se aleja mucho")
+    assert "adjudicado un 12,0 % por encima del presupuesto" in motivo

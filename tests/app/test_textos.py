@@ -19,3 +19,12 @@ def test_fechas_de_descarga_nombran_cada_fuente():
 
 def test_sin_fechas_no_se_muestra_nada():
     assert textos.fechas_descarga([]) == ""
+
+
+def test_nombre_grupo_de_anomalias():
+    assert textos.nombre_grupo("placsp · menor · obras") == (
+        "Plataforma de Contratación del Sector Público · contrato menor · obras"
+    )
+    assert textos.nombre_grupo("portal_cm · licitación · servicios").endswith(
+        "· licitación · servicios"
+    )

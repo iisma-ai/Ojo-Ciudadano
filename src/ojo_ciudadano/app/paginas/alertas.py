@@ -47,7 +47,8 @@ for fila in filas:
         if anomalia:
             st.markdown(
                 f"- **Contrato atípico** respecto a {anomalia['n_grupo']} contratos similares "
-                f"(señal experimental, no suma a la puntuación): {anomalia['motivo']}"
+                "(señal experimental, aparte de los indicadores; no suma a la puntuación y "
+                f"atípico no significa irregular): {anomalia['motivo']}"
             )
         if fila["url_origen"]:
             st.link_button("Ver el expediente en la fuente oficial", fila["url_origen"])

@@ -22,6 +22,22 @@ AMBAR = "#F2B544"
 
 CONFIG = {"displayModeBar": False, "responsive": True}
 
+# Paleta categórica para distinguir entidades (organismos en el mapa del dinero), en orden fijo.
+# Validada sobre el fondo #0B1120 con el validador de la guía de visualización (luminosidad,
+# croma, separación para daltonismo y contraste). Del 8.º en adelante, gris.
+CATEGORICOS = ["#3987E5", "#D95926", "#199E70", "#C98500", "#D55181", "#0CA30C", "#9085E9"]
+GRIS_OTROS = "#5B6B86"
+
+
+def color_categorico(posicion: int) -> str:
+    return CATEGORICOS[posicion] if posicion < len(CATEGORICOS) else GRIS_OTROS
+
+
+def transparente(color: str, alfa: float) -> str:
+    """«#RRGGBB» → «rgba(r, g, b, alfa)»."""
+    r, g, b = (int(color[i : i + 2], 16) for i in (1, 3, 5))
+    return f"rgba({r}, {g}, {b}, {alfa})"
+
 
 def _tema(figura: go.Figure, alto: int = 240) -> go.Figure:
     figura.update_layout(

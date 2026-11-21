@@ -48,7 +48,14 @@ Hecho, sin depender del LLM (D-010):
 - `src/ojo_ciudadano/asistente/consultas_demo.py`: **consultas verificadas de las 4 preguntas de demo**, cada una con una nota de qué cubre y qué no. Serán los ejemplos del modelo y las respuestas de respaldo. Pregunta 4: desde el 20-nov suma contratos y subvenciones (BDNS) por fuente y año, de 2023 a 2026, sin mezclar bases.
 - Pantalla **«Preguntas guiadas»** (`app/paginas/preguntas.py`): las 4 preguntas con su tabla, nota, consulta SQL y enlace al expediente cuando la respuesta es por contrato.
 
-Falta: el modelo que traduce la pregunta libre a SQL (D-010), la batería de 20 preguntas y el RAG.
+- `src/ojo_ciudadano/asistente/bateria.py` (21-nov): **batería de 20 preguntas de prueba**, cada una con una consulta de referencia verificada, sus columnas clave y una nota de lo que debe matizar la respuesta. Hay de recuentos, rankings, indicadores, subvenciones, un órgano concreto con parámetro, y **dos que no se pueden responder** (firmantes, partida → contrato), en las que lo correcto es decir que no hay datos. `evaluar(con, prueba, sql_candidato)` ejecuta la referencia y el SQL del modelo con el mismo validador y compara las columnas clave:
+  - no exige el mismo SQL ni los mismos nombres de columna;
+  - acepta una proporción o un porcentaje, con una tolerancia del 0,5 %;
+  - en los rankings basta con acertar el 80 %, por los empates en el corte.
+
+  `uv run python -m ojo_ciudadano.asistente.bateria` ejecuta las referencias sobre la base real.
+
+Falta: el modelo que traduce la pregunta libre a SQL (D-010), pasarle la batería y el RAG.
 
 ## Pendiente
 

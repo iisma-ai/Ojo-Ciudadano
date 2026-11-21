@@ -105,13 +105,23 @@ El ejecutor (`src/ojo_ciudadano/indicadores/ejecutor.py`) crea las funciones de 
 
 **Subvenciones (20-nov, ampliación aditiva de D-017):** [`sql/esquema/002_subvenciones.sql`](../sql/esquema/002_subvenciones.sql) crea `concesion` (una fila por concesión de la BDNS, clave `bdns:<codConcesion>`, con `organo_id`, `beneficiario_id`, convocatoria, fecha, importe y `url_origen` a la ficha de la convocatoria). Los beneficiarios van a `adjudicatario` con la misma identidad que en los contratos: una empresa con contratos y subvenciones es una sola fila. Los órganos nuevos de la BDNS se añaden a `organo`; si ya existían, se conservan el nombre y la consejería de los contratos. `modelo.carga` lee `data/raw/bdns/*.json` si existen; sin ellos la base se crea igual, sin concesiones. La interfaz las muestra en la ficha de empresa, la ficha de órgano y el mapa del dinero (fuente «Base de Datos Nacional de Subvenciones»); si la base no tiene `concesion`, esas secciones no aparecen (`datos.hay_subvenciones`).
 
+### Contratos atípicos (D-021)
+
+Tabla derivada `anomalia_resultado`, que se regenera entera (unos 45 segundos, después del ejecutor de indicadores) con:
+
+```bash
+uv run python -m ojo_ciudadano.anomalias.deteccion
+```
+
+Una fila por contrato puntuado con `contrato_id`, `grupo` (fuente · licitación o menor · tipo de contrato), `n_grupo`, `puntuacion` (percentil de rareza dentro del grupo, 0–1), `atipico`, `variables` y `motivo` (solo en los atípicos) y `url_origen`. No toca el esquema congelado (D-017) ni la puntuación de riesgo (D-020). La interfaz la lee en la pantalla «Contratos atípicos» y en el panel de alertas; sin la tabla, esas partes no aparecen (`datos.hay_anomalias`).
+
 Pendiente de añadir (requiere acuerdo del equipo): miembros de UTE como tabla propia, documentos para el corpus.
 
 Cuando el equipo lo congele, cambiarlo requiere decisión registrada, porque bloquea al resto.
 
 ## Interfaz (Streamlit)
 
-`uv run streamlit run src/ojo_ciudadano/app/main.py`. `app/main.py` define la navegación y la cabecera (fecha de descarga de cada fuente, aviso de metodología y qué mide cada indicador); `app/paginas/` tiene una pantalla por fichero (`alertas.py`, `empresa.py`, `organo.py`, `mapa.py`, `preguntas.py`); `app/datos.py` reúne todas las consultas (solo lectura, con tests en `tests/app/`); `app/textos.py` guarda los textos fijos revisados para el lenguaje no acusatorio. Las pantallas leen `puntuacion_*` e `indicador_resultado` de `data/ojo_ciudadano.duckdb`, que hay que regenerar con el ejecutor de indicadores.
+`uv run streamlit run src/ojo_ciudadano/app/main.py`. `app/main.py` define la navegación y la cabecera (fecha de descarga de cada fuente, aviso de metodología y qué mide cada indicador); `app/paginas/` tiene una pantalla por fichero (`alertas.py`, `empresa.py`, `organo.py`, `mapa.py`, `atipicos.py`, `preguntas.py`); `app/datos.py` reúne todas las consultas (solo lectura, con tests en `tests/app/`); `app/textos.py` guarda los textos fijos revisados para el lenguaje no acusatorio. Las pantallas leen `puntuacion_*` e `indicador_resultado` de `data/ojo_ciudadano.duckdb`, que hay que regenerar con el ejecutor de indicadores.
 
 ## Asistente
 

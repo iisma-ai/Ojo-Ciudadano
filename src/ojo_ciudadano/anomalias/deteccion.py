@@ -176,7 +176,10 @@ def _parte(variable: str, valor: float, desviacion: float, mediana: float, iva: 
     """«<variable> de <valor> (por encima de la mediana de <m> de contratos similares)»."""
     if variable == "baja" and valor < 0:
         texto = f"adjudicado un {_formato(-valor, variable)} por encima del presupuesto"
-    elif variable in RECUENTOS:
+        if valor < -1:  # más del doble del presupuesto: suele ser un error de la fuente
+            texto += ", posible error en los datos de la fuente"
+        return f"{texto} (en contratos similares la baja mediana es {_formato(mediana, variable)})"
+    if variable in RECUENTOS:
         texto = f"{NOMBRES[variable]}: {_formato(valor, variable)}"
     else:
         texto = f"{NOMBRES[variable]} de {_formato(valor, variable, iva)}"

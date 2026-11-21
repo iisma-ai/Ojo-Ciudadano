@@ -108,4 +108,14 @@ def test_explicar_sin_variables_extremas_cita_la_combinacion():
     variables, motivo = deteccion.explicar(fila, desviaciones, medianas, "con IVA")
     assert variables == ["baja", "importe"]
     assert motivo.startswith("Ningún valor por sí solo se aleja mucho")
-    assert "adjudicado un 12,0 % por encima del presupuesto" in motivo
+    assert (
+        "adjudicado un 12,0 % por encima del presupuesto (en contratos similares la baja " in motivo
+    )
+    assert "posible error" not in motivo
+
+
+def test_explicar_avisa_de_posible_error_si_se_adjudica_por_mas_del_doble():
+    fila = {"baja": -99.0}
+    _, motivo = deteccion.explicar(fila, {"baja": -50.0}, {"baja": 0.135}, "sin IVA")
+    assert motivo.startswith("Adjudicado un 9900,0 % por encima del presupuesto, posible error")
+    assert "baja mediana es 13,5 %" in motivo

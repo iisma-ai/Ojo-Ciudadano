@@ -29,6 +29,7 @@ if not encontrados:
 elegido = st.selectbox(
     "Organismo",
     encontrados,
+    help=textos.GLOSARIO["organismo"],
     format_func=lambda o: f"{o['nombre']} · {textos.numero(o['n_contratos'])} contratos",
 )
 ficha = datos.ficha_organo(con, elegido["organo_id"])

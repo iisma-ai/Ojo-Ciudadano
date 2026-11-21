@@ -33,7 +33,9 @@ st.caption(
 )
 
 c1, c2, c3, c4 = st.columns([3, 1, 2, 2])
-fuente = c1.selectbox("Fuente", list(FUENTES), format_func=FUENTES.get)
+fuente = c1.selectbox(
+    "Fuente", list(FUENTES), format_func=FUENTES.get, help=textos.GLOSARIO["fuentes"]
+)
 anio = c2.selectbox(
     "Año", [None, 2026, 2025, 2024, 2023], format_func=lambda a: "Todos" if a is None else str(a)
 )
@@ -41,10 +43,13 @@ es_subvencion = fuente == "bdns"
 tipo = c3.selectbox(
     "Tipo de contrato",
     [None, *datos.tipos_contrato(con)],
+    help=textos.GLOSARIO["tipo_contrato"],
     format_func=lambda t: "Todos" if t is None else t,
     disabled=es_subvencion,
 )
-menores = c4.toggle("Incluir contratos menores", disabled=es_subvencion)
+menores = c4.toggle(
+    "Incluir contratos menores", disabled=es_subvencion, help=textos.GLOSARIO["contrato_menor"]
+)
 if menores and not es_subvencion and anio in (None, 2026):
     st.caption(textos.AVISO_MENORES_RECIENTES)
 
@@ -61,6 +66,7 @@ nombres = {o["organo_id"]: o["organo"] for o in organismos}
 elegido = st.selectbox(
     "Organismo",
     opciones,
+    help=textos.GLOSARIO["organismo"],
     format_func=lambda o: "Todos: los que más adjudican" if o == TODOS else nombres[o],
     key="mapa_organo",
 )

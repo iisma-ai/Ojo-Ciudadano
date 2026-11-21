@@ -34,9 +34,9 @@ Cada tarea de pantalla empieza con un **estudio**: qué pregunta responde, qué 
 | A-06 | **Ficha de organismo** | A qué empresas paga (burbujas o mapa de áreas por importe), lo concentrado que está su gasto y cómo contrata (barra de procedimientos) | Media | Hecho (21-nov): ver «Estudio A-06» |
 | A-07 | **Mapa del dinero** | Rehacerlo para que se entienda: empezar por pocos organismos, red de burbujas (organismo → empresa, tamaño = dinero) en vez de un diagrama de flujos denso, y elegir un organismo para ver su red | Media | Hecho (21-nov): ver «Estudio A-07» |
 | A-08 | **Preguntas guiadas y asistente** | Cada respuesta con una frase resumen y un gráfico automático según el tipo de resultado (ranking → barras, evolución → línea) | Media | Hecho en «Preguntas guiadas» (21-nov): `graficos.automatico`. Falta conectarlo en la pantalla del asistente (la lleva Ignacio) |
-| A-09 | **Glosario en contexto** | Definición al pasar el ratón por los términos inevitables (organismo, adjudicataria, contrato menor, licitación) | Baja | Pendiente |
-| A-10 | **Revisión de accesibilidad** | Pasada final por todas las pantallas: contraste, color, textos alternativos, móvil, longitud de los textos | Alta (antes del 25) | Pendiente |
-| A-11 | **Prueba con personas no expertas** | Enseñar la web a 2 o 3 personas ajenas al proyecto: ¿entienden qué es en 30 s y qué significa una alerta? Anotar lo que no entienden | Alta (antes del 25) | Pendiente |
+| A-09 | **Glosario en contexto** | Definición al pasar el ratón por los términos inevitables (organismo, adjudicataria, contrato menor, licitación) | Baja | Hecho (21-nov): `textos.GLOSARIO` en la ayuda («?») de organismo, señal, fuentes, tipo de contrato y contrato menor |
+| A-10 | **Revisión de accesibilidad** | Pasada final por todas las pantallas: contraste, color, textos alternativos, móvil, longitud de los textos | Alta (antes del 25) | Primera pasada (21-nov): ver «Revisión A-10». Repetir el 24-25 con la versión final |
+| A-11 | **Prueba con personas no expertas** | Enseñar la web a 2 o 3 personas ajenas al proyecto: ¿entienden qué es en 30 s y qué significa una alerta? Anotar lo que no entienden | Alta (antes del 25) | Guion preparado (ver «Guion de la prueba A-11»); falta hacerla con 2 o 3 personas |
 
 ## Estudios de visualización por indicador
 
@@ -128,6 +128,45 @@ Formato común: números y fechas en español (`1.234`, `05/2025`), fondo transp
 - Devuelve además una frase resumen («En primer lugar: X, con Y»).
 - «Preguntas guiadas»: frase y gráfico arriba; la tabla con los enlaces debajo, siempre visible; la nota de qué cubre la respuesta, en pequeño.
 - Pensado para reutilizarlo en el asistente cuando responda con una consulta libre.
+
+## Revisión A-10 (21-nov)
+
+- **Contraste (WCAG 2.1) sobre el fondo `#0B1120`, la tarjeta `#131C2E` y la barra lateral `#0E1626`:**
+
+  | Color | Fondo | Tarjeta | Barra lateral | Resultado |
+  | --- | --- | --- | --- | --- |
+  | Texto `#E7ECF3` | 15,9:1 | 14,3:1 | 15,2:1 | AA |
+  | Secundario `#93A1B8` | 7,2:1 | 6,5:1 | 6,9:1 | AA |
+  | Azul `#3D8BFD` | 5,7:1 | 5,1:1 | 5,4:1 | AA |
+  | Enlaces `#7DB3FF` | 8,8:1 | 7,9:1 | 8,4:1 | AA |
+  | Ámbar `#F2B544` | 10,3:1 | 9,3:1 | 9,9:1 | AA |
+  | Gris de las barras de contexto | 2,7:1 | — | — | **Fallaba** el 3:1 para gráficos (1.4.11) |
+
+  El gris de las barras se ha cambiado a `#5B6B86`, que da 3,5:1 sobre el fondo y 3,2:1 sobre la tarjeta.
+- **El color no es la única pista:**
+  - en E-01, «Este contrato» lleva además una etiqueta;
+  - en E-03 y E-07, este contrato se distingue por color y tamaño;
+  - las señales aparecen siempre con su nombre;
+  - las leyendas tienen texto.
+- **Texto alternativo:** cada gráfico de señal va con una frase con las mismas cifras. Los de las fichas llevan un texto que explica cómo leerlos.
+- **Teclado:** el organismo del mapa también se elige con un desplegable, no solo con la lista o el ratón.
+- **Pendiente para la pasada final:**
+  - probar en el móvil (las columnas de Streamlit se apilan);
+  - revisar la longitud de los textos de las fichas;
+  - comprobar el contraste del gris de `:gray[…]` en la versión desplegada.
+
+## Guion de la prueba A-11
+
+Con 2 o 3 personas que no conozcan el proyecto, sin explicarles nada antes. Unos 10 minutos con cada una. Anotar lo que dicen, no lo que pensamos que quieren decir.
+
+1. Abrir la portada: «¿Qué crees que es esta web y para qué sirve?» (debería entenderse en 30 s).
+2. «¿Qué crees que significa que un contrato tenga una señal?» Comprobar que no lo entienden como «es corrupto».
+3. «Busca qué contratos tiene la empresa X» (por ejemplo, una que conozcan). ¿Llegan solos a la ficha de empresa?
+4. En «Contratos a revisar», abrir un contrato: «¿Por qué crees que aparece aquí?» ¿Entienden el gráfico de cada señal?
+5. En el mapa del dinero: «¿A qué empresa adjudica más dinero el Metro de Madrid?»
+6. «¿Qué palabra o parte no has entendido?»
+
+Resultado: una entrada de bitácora con lo que no se entendió y los cambios que se hacen por ello.
 
 ## Guía rápida de redacción
 

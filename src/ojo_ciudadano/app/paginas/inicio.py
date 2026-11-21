@@ -14,8 +14,14 @@ resumen = datos.resumen_portada(con)
 cifras = st.columns(4)
 cifras[0].metric("Contratos analizados", f"{resumen['n_contratos']:,}".replace(",", "."))
 cifras[1].metric("Subvenciones", textos.numero(resumen["n_concesiones"]))
-cifras[2].metric("Organismos", textos.numero(resumen["n_organos"]))
-cifras[3].metric("Contratos con alguna señal", textos.numero(resumen["n_con_senales"]))
+cifras[2].metric(
+    "Organismos", textos.numero(resumen["n_organos"]), help=textos.GLOSARIO["organismo"]
+)
+cifras[3].metric(
+    "Contratos con alguna señal",
+    textos.numero(resumen["n_con_senales"]),
+    help=textos.GLOSARIO["senal"],
+)
 st.caption(
     "Contratos y subvenciones de la Comunidad de Madrid de 2023 a 2026, de fuentes oficiales."
 )

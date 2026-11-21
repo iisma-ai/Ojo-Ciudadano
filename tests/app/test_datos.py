@@ -207,3 +207,11 @@ def test_flujos_de_subvenciones_con_personas_agregadas(con):
     assert (detalle[0]["importe"], detalle[0]["url_origen"]) == (70, None)
     assert datos.concesiones_flujo(con, "ORG", "A1")[0]["titulo"] == "Ayudas A"
     assert datos.fecha_subvenciones(con) is not None
+
+
+def test_fecha_de_descarga_incluye_la_bdns(con):
+    con.execute(
+        "INSERT INTO concesion (concesion_id, fuente, organo_id, url_origen, fecha_descarga) "
+        "VALUES ('s1', 'bdns', 'ORG', 'https://x.test', '2026-11-20')"
+    )
+    assert [f["fuente"] for f in datos.fechas_datos(con)] == ["bdns", "placsp"]

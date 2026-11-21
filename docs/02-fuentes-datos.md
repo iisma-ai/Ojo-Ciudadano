@@ -89,7 +89,7 @@ Otras referencias útiles:
 **Cómo se cumple en Ojo Ciudadano:**
 - El pie de la interfaz cita las tres fuentes con enlace, la fórmula de la IGAE para las subvenciones y la fecha de descarga de cada fuente; dice que el proyecto no está vinculado ni patrocinado por ninguna de las tres administraciones.
 - Indicadores, puntuaciones y anomalías se presentan como **cálculo propio**, separados de los datos oficiales, que se muestran sin alterar y con enlace al origen.
-- Datos personales: la ingesta no guarda nombre ni NIF de personas físicas (seudónimo `PF-…`, D-007) y la interfaz solo las muestra agregadas; el pie dice que la disociación la hace Ojo Ciudadano. El fin del proyecto (control del gasto de los gestores públicos) es el que admite la BDNS para datos personales.
+- Datos personales: la ingesta no guarda nombre ni NIF de personas físicas (seudónimo `PF-…`, D-007) y la interfaz solo las muestra agregadas; el pie dice que la seudonimización la hace Ojo Ciudadano (un seudónimo sigue siendo dato personal según el RGPD, por eso no se dice «disociados»). El fin del proyecto (control del gasto de los gestores públicos) es el que admite la BDNS para datos personales.
 - **Plazo de publicación de la BDNS:** lo que la API ya no publica (personas físicas de años anteriores, concesiones de hace más de cuatro años) no debe reaparecer en la plataforma. Como solo se muestran agregadas y sin nombre, el riesgo es bajo, pero las descargas se rehacen con `forzar` antes de la entrega para quedarnos con lo publicado en ese momento.
 
 ## Ventana temporal

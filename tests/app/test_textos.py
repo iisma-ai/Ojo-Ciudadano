@@ -26,4 +26,4 @@ def test_pie_cumple_las_condiciones_de_reutilizacion():
     diciendo quién disocia los datos personales."""
     assert "Intervención General de la Administración del Estado" in textos.FUENTES
     assert "no patrocinado ni apoyado" in textos.PIE
-    assert "disociados por Ojo Ciudadano" in textos.PIE
+    assert "Ojo Ciudadano seudonimiza" in textos.PIE

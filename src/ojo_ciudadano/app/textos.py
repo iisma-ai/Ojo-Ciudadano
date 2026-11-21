@@ -30,9 +30,9 @@ PIE = (
     "Proyecto independiente, sin vinculación con la Comunidad de Madrid, la Plataforma de "
     "Contratación del Sector Público ni la Intervención General de la Administración del "
     "Estado, y no patrocinado ni apoyado por ellas. Los datos oficiales se reutilizan citando "
-    "su fuente y fecha de descarga y sin alterar su sentido. Los datos de personas físicas "
-    "están disociados por Ojo Ciudadano: no se guarda su nombre ni su NIF y solo se muestran "
-    "agregados. " + FUENTES
+    "su fuente y fecha de descarga y sin alterar su sentido. Ojo Ciudadano seudonimiza los "
+    "datos de personas físicas: no guarda su nombre ni su NIF, los sustituye por un código "
+    "interno y solo los muestra agregados. " + FUENTES
 )
 
 # Umbral de cada indicador, para que el valor se pueda interpretar.
@@ -92,6 +92,7 @@ AYUDA_INDICADOR = {
 NOMBRES_FUENTE = {
     "placsp": "Plataforma de Contratación del Sector Público",
     "portal_cm": "Portal de la Contratación Pública de la Comunidad de Madrid",
+    "bdns": "Base de Datos Nacional de Subvenciones",
 }
 
 

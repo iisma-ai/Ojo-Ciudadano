@@ -2,7 +2,7 @@
 
 Esta carpeta es la **memoria del proyecto**. Todo lo que sabemos, decidimos y hacemos queda aquí. Si no está en `docs/`, para el equipo (y para los agentes) no existe.
 
-Estado a 15 de noviembre de 2026: **plan inicial establecido, desarrollo sin empezar.**
+Estado a 21 de noviembre de 2026: **fase 2 (construcción) casi cerrada.** Datos de contratos y subvenciones cargados, seis indicadores con puntuación, detección de anomalías, interfaz rediseñada para la ciudadanía (D-022, D-023) y asistente sin proveedor de LLM todavía (D-010). Resumen y siguientes pasos en [`bitacora/2026-11-21-cierre-del-dia.md`](bitacora/2026-11-21-cierre-del-dia.md).
 
 ## Índice
 

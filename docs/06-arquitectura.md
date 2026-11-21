@@ -125,4 +125,4 @@ Cuando el equipo lo congele, cambiarlo requiere decisión registrada, porque blo
 
 ## Asistente
 
-`src/ojo_ciudadano/asistente/`: `sql_seguro.py` valida y ejecuta el SQL de solo lectura (conexión sin acceso a ficheros) `consultas_demo.py` guarda las consultas verificadas de las preguntas de demo y `bateria.py` las 20 preguntas de prueba con su SQL de referencia y la función que evalúa al modelo. Detalle y reglas en [05-asistente.md](05-asistente.md).
+`src/ojo_ciudadano/asistente/`: `sql_seguro.py` valida y ejecuta el SQL de solo lectura (conexión sin acceso a ficheros) `consultas_demo.py` guarda las consultas verificadas de las preguntas de demo `bateria.py` las 20 preguntas de prueba con su SQL de referencia y la función que evalúa al modelo, y `agente.py` el bucle del asistente (instrucciones, herramienta SQL, corrección de errores), independiente del proveedor de LLM. La pantalla está en `app/paginas/asistente.py`. Detalle y reglas en [05-asistente.md](05-asistente.md).

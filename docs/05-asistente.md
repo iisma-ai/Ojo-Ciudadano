@@ -53,7 +53,15 @@ Hecho, sin depender del LLM (D-010):
 
 Limitaciones de los datos que el asistente debe explicar: las licitaciones del portal regional casi nunca traen fecha (344 de 18.777), así que no tienen año; y los menores de julio a septiembre de 2026 están incompletos (P-12).
 
-Falta: el modelo que traduce la pregunta libre a SQL (D-010), pasarle la batería y el RAG. Desde el 21-nov, `anomalia_resultado` (D-021) está en `TABLAS_PERMITIDAS`: el asistente puede responder sobre contratos atípicos, pero cada respuesta debe decir que es una **señal experimental**, que **atípico no significa irregular** y que no suma a la puntuación (añadirlo a las instrucciones del modelo al cerrar D-010).
+- `src/ojo_ciudadano/asistente/agente.py` (21-nov): **agente independiente del proveedor**. El modelo es cualquier función `Modelo(instrucciones, mensajes) → LlamadaSQL | TextoFinal`, con la conversación en un formato neutro (`usuario`, `llamada`, `resultado`, `modelo`) y la herramienta descrita en JSON Schema (`HERRAMIENTA_SQL`).
+  - `instrucciones(con)` arma el prompt de sistema (~4.300 tokens con la base real). Incluye las reglas de respuesta (también la de `anomalia_resultado`), las limitaciones de los datos (IVA por fuente, año, P-12, consejerías, personas físicas), los indicadores (de `app/textos.py`), las reglas de SQL, el esquema y los 4 ejemplos de demo. El esquema se lee de la base, con los comentarios de columna del DDL.
+  - `responder` hace el bucle: hasta 5 consultas, y los errores del validador vuelven al modelo para que corrija. Al modelo le llegan como mucho 50 filas, en JSON y marcadas como datos, con los seudónimos ya ocultos. Admite historial para preguntas de seguimiento. Una pregunta con DNI o NIE no llega al modelo, porque el proveedor es externo.
+  - **Retención** (`Respuesta.retencion`, revisión de `revisor-legal` del 21-nov): la interfaz no muestra la respuesta, y explica por qué, en tres casos. Si hay un DNI o NIE en el texto o en los datos de alguna consulta. Si hay un término acusatorio de la tabla de docs/07 fuera de una negación («atípico no significa irregular» sí se puede decir). Si da cifras sin ninguna consulta detrás.
+  - `pasar_bateria` pasa las 20 preguntas y las evalúa con `bateria.evaluar`.
+  - `modelo_configurado()` devuelve `None` hasta cerrar D-010. **Conectar el proveedor = escribir un adaptador con la forma de `Modelo` y devolverlo ahí.**
+- Pantalla **«Asistente»** (`app/paginas/asistente.py`): chat con historial y, por cada consulta, sus datos (tabla compartida con preguntas guiadas en `app/tablas.py`, con enlace oficial) y su SQL. Avisa de que las respuestas las redacta un modelo de lenguaje y pueden contener errores, y pide no escribir datos personales. Avisa también si una consulta no trae `fuente` o el enlace de cada contrato. Sin modelo, lo dice y remite a las preguntas guiadas.
+
+Falta: el adaptador del proveedor (D-010), pasarle la batería y el RAG.
 
 ## Pendiente
 

@@ -249,3 +249,14 @@ def test_fecha_de_descarga_incluye_la_bdns(con):
         "VALUES ('s1', 'bdns', 'ORG', 'https://x.test', '2026-11-20')"
     )
     assert [f["fuente"] for f in datos.fechas_datos(con)] == ["bdns", "placsp"]
+
+
+def test_ute_con_persona_fisica_de_una_base_antigua_no_tiene_ficha(base, con):
+    """Bases cargadas antes de la corrección: la UTE con un PF- conserva nombre y tipo «ute»."""
+    base.contrato("u1", [{"adjudicatario_id": "UTE:PF-abc+B1", "importe_sin_iva": 10}])
+    base.con.execute(
+        "UPDATE adjudicatario SET tipo_persona = 'ute', nif = NULL, "
+        "nombre = 'UTE NOMBRE APELLIDO - EMPRESA' WHERE adjudicatario_id = 'UTE:PF-abc+B1'"
+    )
+    assert datos.buscar_empresas(base.con, "apellido") == []
+    assert datos.ficha_empresa(base.con, "UTE:PF-abc+B1") is None

@@ -107,7 +107,7 @@ El MVP se acota a **2023–2026** (ver D-006 en [decisions.md](decisions.md)). L
 | Problema | Tratamiento previsto |
 | --- | --- |
 | NIF mal escritos, nombres con variantes | Normalizar NIF (mayúsculas, sin espacios ni guiones, validar dígito de control); tabla de alias de nombres |
-| UTE como entidades separadas | Modelar la UTE y sus empresas miembro |
+| UTE como entidades separadas | Modelar la UTE y sus empresas miembro. Una UTE con algún miembro persona física se guarda como persona física, sin nombre (D-007): de 59 UTE, 2 eran solo de personas y su nombre las identificaba (21-nov) |
 | Duplicados entre portal regional y PLACSP | Deduplicar por **expediente + órgano** |
 | Varias versiones de una licitación en el Atom de PLACSP | Quedarse con la **última versión** |
 | Cambios de estructura entre años | Mapeo de columnas por año, documentado |

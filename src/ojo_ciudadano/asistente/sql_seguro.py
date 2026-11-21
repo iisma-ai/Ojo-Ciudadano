@@ -114,7 +114,7 @@ def validar(con: duckdb.DuckDBPyConnection, sql: str) -> None:
 
 
 def _ocultar_seudonimos(valor):
-    if isinstance(valor, str) and valor.startswith("PF-"):
+    if isinstance(valor, str) and "PF-" in valor:  # también «UTE:PF-…+B…»
         return SEUDONIMO_VISIBLE
     return valor
 

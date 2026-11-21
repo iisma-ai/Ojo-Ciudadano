@@ -93,3 +93,12 @@ def test_tipo_contrato_unifica_variantes():
 def test_entero():
     assert texto.entero("005") == 5
     assert texto.entero("") is None
+
+
+def test_ute_con_persona_fisica_no_guarda_el_nombre():
+    """D-007: el nombre de la UTE suele incluir el de la persona física."""
+    identidad = nif.identificar("12345678Z - B83603191", "UTE NOMBRE APELLIDO - EMPRESA SL", SAL)
+    assert identidad["tipo_persona"] == "fisica"
+    assert identidad["nombre"] is None
+    assert identidad["adjudicatario_id"].startswith("UTE:")
+    assert "12345678Z" not in identidad["adjudicatario_id"]

@@ -105,3 +105,49 @@ def mostrar(con: duckdb.DuckDBPyConnection, indicador: str, contrato_id: str) ->
         st.markdown(frase)
     if figura is not None:
         st.plotly_chart(figura, config=graficos.CONFIG, key=f"{indicador}-{contrato_id}")
+
+
+def tarjeta_contrato(con: duckdb.DuckDBPyConnection, fila: dict, prefijo: str) -> None:
+    """Contrato como desplegable: título, organismo y señales en la cabecera; al pulsar en
+    cualquier parte se abre con un gráfico por señal (que solo se calcula entonces), el aviso
+    de contrato atípico y el enlace al expediente. `fila` lleva los campos de
+    `datos.alertas` o `datos.contratos_empresa`."""
+    titulo = fila["titulo"] or fila["contrato_id"]
+    if len(titulo) > 110:
+        titulo = titulo[:107].rstrip() + "…"
+    encontradas = [i for i in (fila["indicadores_activados"] or "").split(", ") if i]
+    nombres = " · ".join(textos.SENAL_CORTA[i] for i in encontradas)
+    cabecera = f"**{titulo}**  \n:gray[{fila['organo']}]"
+    if nombres:
+        cabecera += f"  ·  :blue[{nombres}]"
+    desplegable = st.expander(cabecera, key=f"{prefijo}-{fila['contrato_id']}", on_change="rerun")
+    with desplegable:
+        comprobadas = fila["n_aplicables"] or 0
+        st.caption(
+            f"{fila['anio'] or 'Sin fecha'} · "
+            f"{textos.euros(fila['importe'], textos.iva_fuente(fila['fuente']))} · "
+            f"{len(encontradas)} de {comprobadas} "
+            f"{'señal comprobada' if comprobadas == 1 else 'señales comprobadas'}"
+        )
+        if not desplegable.open:
+            return
+        if encontradas:
+            columnas = st.columns(2) if len(encontradas) > 1 else [st.container()]
+            for n, indicador in enumerate(encontradas):
+                with columnas[n % len(columnas)]:
+                    mostrar(con, indicador, fila["contrato_id"])
+        else:
+            st.markdown("En este contrato no hemos encontrado ninguna señal.")
+        anomalia = datos.anomalia_contrato(con, fila["contrato_id"])
+        if anomalia:
+            st.markdown(
+                f"**Contrato atípico** respecto a {textos.numero(anomalia['n_grupo'])} "
+                "contratos similares (señal experimental, no suma a las demás; atípico no "
+                f"significa irregular): {anomalia['motivo']}"
+            )
+        if fila["url_origen"]:
+            st.link_button(
+                "Ver el expediente oficial", fila["url_origen"], icon=":material/open_in_new:"
+            )
+        else:
+            st.caption("Sin enlace oficial disponible para este contrato.")

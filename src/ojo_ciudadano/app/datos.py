@@ -870,3 +870,56 @@ def detalle_importes(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict |
         [contrato_id],
     )
     return filas[0] if filas else None
+
+
+def reparto_empresa(con: duckdb.DuckDBPyConnection, adjudicatario_id: str) -> list[dict]:
+    """A-05: importe recibido por la empresa de cada organismo, por fuente (cada fuente tiene
+    su base de IVA y no se suman entre sí): contratos de PLACSP (sin IVA), del portal
+    regional (con IVA) y subvenciones de la BDNS."""
+    subvenciones = (
+        """
+        UNION ALL
+        SELECT 'bdns' AS fuente, o.nombre AS organo, sum(s.importe) AS importe, count(*) AS n
+        FROM concesion AS s JOIN organo AS o USING (organo_id)
+        WHERE s.beneficiario_id = ? AND s.importe > 0
+        GROUP BY o.nombre
+        """
+        if hay_subvenciones(con)
+        else ""
+    )
+    parametros = [adjudicatario_id] + ([adjudicatario_id] if subvenciones else [])
+    return _filas(
+        con,
+        f"""
+        SELECT * FROM (
+            SELECT c.fuente, o.nombre AS organo,
+                   sum(CASE WHEN c.fuente = 'placsp' THEN a.importe_sin_iva
+                            ELSE a.importe_con_iva END) AS importe,
+                   count(DISTINCT c.contrato_id) AS n
+            FROM adjudicacion AS a
+            JOIN contrato_unico AS c USING (contrato_id)
+            JOIN organo AS o USING (organo_id)
+            WHERE a.adjudicatario_id = ?
+            GROUP BY c.fuente, o.nombre
+            {subvenciones}
+        )
+        WHERE importe > 0
+        ORDER BY fuente, importe DESC
+        """,
+        parametros,
+    )
+
+
+def senales_empresa(con: duckdb.DuckDBPyConnection, adjudicatario_id: str) -> list[dict]:
+    """A-05: en cuántos contratos de la empresa se encontró cada señal."""
+    return _filas(
+        con,
+        """
+        SELECT r.indicador, count(DISTINCT r.contrato_id) AS n
+        FROM indicador_resultado AS r
+        JOIN adjudicacion AS a USING (contrato_id)
+        WHERE a.adjudicatario_id = ? AND r.activado
+        GROUP BY r.indicador ORDER BY r.indicador
+        """,
+        [adjudicatario_id],
+    )

@@ -102,3 +102,11 @@ def fechas_descarga(fechas: list[dict]) -> str:
         return ""
     partes = [f"{NOMBRES_FUENTE.get(f['fuente'], f['fuente'])} el {f['fecha']}" for f in fechas]
     return "Datos descargados: " + "; ".join(partes) + "."
+
+
+AVISO_MENORES_RECIENTES = (
+    "Los contratos menores se publican con retraso: la ley pide publicarlos al menos cada "
+    "trimestre (art. 63.4 de la Ley 9/2017 de Contratos del Sector Público). Los meses más "
+    "recientes de 2026 están incompletos, así que una caída en 2026 no indica que se "
+    "contrate menos."
+)

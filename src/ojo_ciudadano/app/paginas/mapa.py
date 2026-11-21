@@ -4,7 +4,7 @@ de subvenciones."""
 import plotly.graph_objects as go
 import streamlit as st
 
-from ojo_ciudadano.app import datos
+from ojo_ciudadano.app import datos, textos
 from ojo_ciudadano.app.conexion import conexion
 
 FUENTES = {
@@ -32,6 +32,8 @@ tipo = c3.selectbox(
 )
 menores = c4.checkbox("Incluir contratos menores", value=False, disabled=es_subvencion)
 limite = st.slider("Flujos a mostrar", 5, 40, 20)
+if menores and not es_subvencion and anio in (None, 2026):
+    st.caption(textos.AVISO_MENORES_RECIENTES)
 
 if es_subvencion:
     filas = datos.flujos_subvenciones(conexion(), anio, limite)

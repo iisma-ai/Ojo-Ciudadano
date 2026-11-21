@@ -4,7 +4,7 @@
 
 Ojo Ciudadano es una plataforma de transparencia del gasto público: une contratos y subvenciones de la Comunidad de Madrid, calcula **indicadores de riesgo** con metodología abierta y permite investigarlo todo **en lenguaje natural**, con cada cifra enlazada a su documento oficial.
 
-> Proyecto presentado a **[DataMad 2026](https://www.comunidad.madrid/node/120258)**. Estado: 🚧 planificación terminada, desarrollo en curso hasta el 26 de noviembre de 2026.
+> Proyecto presentado a **[DataMad 2026](https://www.comunidad.madrid/node/120258)**. Estado (21-nov): 🚧 datos, indicadores, las cuatro pantallas, contratos atípicos y preguntas guiadas funcionando con datos reales; el asistente de texto libre está en desarrollo. Entrega el 26 de noviembre de 2026.
 
 ---
 
@@ -22,7 +22,8 @@ Saber qué empresas reciben más dinero de una consejería, o si esa consejería
 | 🏢 **Ficha de empresa** | Todo lo que ha recibido un NIF: contratos, menores, prórrogas, modificaciones y subvenciones. |
 | 🏛️ **Ficha de órgano** | Cómo contrata cada consejería u organismo, comparado con los demás. |
 | 🚩 **Panel de alertas** | Contratos ordenados por puntuación de riesgo, con el motivo de cada alerta. |
-| 💬 **Asistente de investigación** | Pregunta en lenguaje natural («¿qué empresas acumulan más contratos menores en Sanidad en 2025?») y recibe la respuesta con la consulta usada y el enlace a cada registro. |
+| 🔍 **Contratos atípicos** | Contratos que se alejan de otros similares según un modelo de aprendizaje automático no supervisado, con las cifras que los alejan. Señal experimental, aparte de los indicadores. |
+| 💬 **Asistente de investigación** | Hoy, preguntas guiadas con consultas verificadas. En desarrollo: pregunta en lenguaje natural («¿qué empresas acumulan más contratos menores en Sanidad en 2025?») y recibe la respuesta con la consulta usada y el enlace a cada registro. |
 
 ## Indicadores de riesgo, no acusaciones
 
@@ -37,6 +38,8 @@ Ojo Ciudadano **no detecta corrupción**: señala **dónde hay más riesgo y men
 
 Cada indicador se compara con contratos del mismo tipo, se calcula con SQL abierto en este repositorio y cada alerta enlaza al expediente oficial.
 
+Además, un modelo **no supervisado** (Isolation Forest) marca el 1 % de contratos más **atípicos respecto a sus pares**. Atípico no significa irregular: es una señal experimental que no suma a la puntuación. Detalle en [`docs/04-indicadores-riesgo.md`](docs/04-indicadores-riesgo.md).
+
 ## Datos
 
 Solo fuentes públicas y reutilizables:
@@ -47,7 +50,9 @@ Solo fuentes públicas y reutilizables:
 - [Portal de Transparencia de la Comunidad de Madrid](https://www.comunidad.madrid/transparencia)
 - Catálogo de Datos Abiertos de la Comunidad de Madrid
 
-**Privacidad:** no se crean fichas de personas físicas; sus identificadores se agregan o seudonimizan.
+**Privacidad:** no se crean fichas de personas físicas. Ojo Ciudadano seudonimiza sus identificadores y solo las muestra agregadas.
+
+**Reutilización:** los datos se reutilizan según las condiciones de cada fuente: se cita la fuente y la fecha y no se altera el sentido de los datos. Origen de los datos de subvenciones: Intervención General de la Administración del Estado. Ninguna administración patrocina ni apoya el proyecto. Detalle en [`docs/02-fuentes-datos.md`](docs/02-fuentes-datos.md#condiciones-de-reutilización-p-03-revisado-el-2026-11-21).
 
 ## Para quién
 
@@ -65,6 +70,20 @@ git clone https://github.com/iisma-ai/Ojo-Ciudadano.git
 cd Ojo-Ciudadano
 uv sync            # crea el entorno e instala dependencias
 uv run pytest      # comprueba que todo funciona
+```
+
+Los datos no están en el repositorio: se regeneran en `data/` (ver [`docs/02-fuentes-datos.md`](docs/02-fuentes-datos.md)).
+
+```bash
+# 1. Datos brutos en data/raw/. Los CSV del portal regional se exportan a mano (captcha) y
+#    el Atom de PLACSP se descarga por meses; las subvenciones, por la API de la BDNS:
+uv run python -m ojo_ciudadano.ingesta.bdns
+# 2. Base analítica, indicadores y puntuación, y contratos atípicos:
+uv run python -m ojo_ciudadano.modelo.carga
+uv run python -m ojo_ciudadano.indicadores.ejecutor
+uv run python -m ojo_ciudadano.anomalias.deteccion
+# 3. Interfaz:
+uv run streamlit run src/ojo_ciudadano/app/main.py
 ```
 
 ## Cómo colaborar

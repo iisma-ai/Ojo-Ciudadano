@@ -33,7 +33,7 @@ Cada tarea de pantalla empieza con un **estudio**: qué pregunta responde, qué 
 | A-05 | **Ficha de empresa** | Resumen visual: de qué organismos recibe dinero (burbujas, el tamaño es el importe), evolución por año y señales con nombre | Alta (no recortable) | Hecho (21-nov): ver «Estudio A-05» |
 | A-06 | **Ficha de organismo** | A qué empresas paga (burbujas o mapa de áreas por importe), lo concentrado que está su gasto y cómo contrata (barra de procedimientos) | Media | Hecho (21-nov): ver «Estudio A-06» |
 | A-07 | **Mapa del dinero** | Rehacerlo para que se entienda: empezar por pocos organismos, red de burbujas (organismo → empresa, tamaño = dinero) en vez de un diagrama de flujos denso, y elegir un organismo para ver su red | Media | Hecho (21-nov): ver «Estudio A-07» |
-| A-08 | **Preguntas guiadas y asistente** | Cada respuesta con una frase resumen y un gráfico automático según el tipo de resultado (ranking → barras, evolución → línea) | Media | Hecho en «Preguntas guiadas» (21-nov): `graficos.automatico`. Falta conectarlo en la pantalla del asistente (la lleva Ignacio) |
+| A-08 | **Preguntas guiadas y asistente** | Cada respuesta con una frase resumen y un gráfico automático según el tipo de resultado (ranking → barras, evolución → línea) | Media | Hecho (21-nov): `graficos.automatico` en «Preguntas guiadas» y en las respuestas del asistente (gráfico de la primera consulta que se pueda dibujar) |
 | A-09 | **Glosario en contexto** | Definición al pasar el ratón por los términos inevitables (organismo, adjudicataria, contrato menor, licitación) | Baja | Hecho (21-nov): `textos.GLOSARIO` en la ayuda («?») de organismo, señal, fuentes, tipo de contrato y contrato menor |
 | A-10 | **Revisión de accesibilidad** | Pasada final por todas las pantallas: contraste, color, textos alternativos, móvil, longitud de los textos | Alta (antes del 25) | Primera pasada (21-nov): ver «Revisión A-10». Repetir el 24-25 con la versión final |
 | A-11 | **Prueba con personas no expertas** | Enseñar la web a 2 o 3 personas ajenas al proyecto: ¿entienden qué es en 30 s y qué significa una alerta? Anotar lo que no entienden | Alta (antes del 25) | Guion preparado (ver «Guion de la prueba A-11»); falta hacerla con 2 o 3 personas |
@@ -151,7 +151,7 @@ Formato común: números y fechas en español (`1.234`, `05/2025`), fondo transp
 - **Texto alternativo:** cada gráfico de señal va con una frase con las mismas cifras. Los de las fichas llevan un texto que explica cómo leerlos.
 - **Teclado:** el organismo del mapa también se elige con un desplegable, no solo con la lista o el ratón.
 - **Pendiente para la pasada final:**
-  - probar en el móvil (las columnas de Streamlit se apilan);
+  - ~~probar en el móvil~~ hecho el 21-nov a 500 px de ancho (Chrome sin interfaz no baja de ahí): las cifras, tarjetas y columnas se apilan y no se corta nada; las burbujas del mapa quedan pequeñas pero legibles. Falta probarlo en un móvil real;
   - revisar la longitud de los textos de las fichas;
   - comprobar el contraste del gris de `:gray[…]` en la versión desplegada.
 

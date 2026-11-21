@@ -6,7 +6,7 @@ haya modelo de lenguaje conectado (D-010), la pantalla lo dice y remite a las pr
 
 import streamlit as st
 
-from ojo_ciudadano.app import textos
+from ojo_ciudadano.app import graficos, textos
 from ojo_ciudadano.app.conexion import conexion
 from ojo_ciudadano.app.tablas import mostrar_resultado
 from ojo_ciudadano.asistente import agente, bateria
@@ -61,6 +61,14 @@ def mostrar_respuesta(respuesta: agente.Respuesta) -> None:
         st.warning(texto_visible(respuesta))
         return
     st.markdown(respuesta.texto)
+    # Primero se ve (D-023, A-08): el gráfico de la primera consulta que se pueda dibujar.
+    for numero, consulta in enumerate(respuesta.consultas, start=1):
+        figura, _ = graficos.automatico(consulta)
+        if figura is not None:
+            st.plotly_chart(
+                figura, config=graficos.CONFIG, key=f"asistente-{id(respuesta)}-{numero}"
+            )
+            break
     for numero, consulta in enumerate(respuesta.consultas, start=1):
         with st.expander(f"Datos de la consulta {numero}"):
             mostrar_resultado(consulta)

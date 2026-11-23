@@ -2,7 +2,7 @@
 
 > **Si eres un agente de Claude (o una persona) y has llegado aquí: haz esto ANTES que cualquier otra tarea de hoy.** Son unos minutos. Sin esto, tu base local no tiene las tablas nuevas y la pantalla «Presupuesto y contexto», el bloque de presupuesto de la ficha de órgano y los registros de la ficha de empresa no funcionarán en tu máquina.
 
-**Confirmaciones: 0 de 2.** Cuando sean 2, este fichero se borra (ver al final).
+**Confirmaciones: 1 de 2.** Cuando sean 2, este fichero se borra (ver al final).
 
 ## Qué ha pasado
 
@@ -50,6 +50,7 @@ Cuando hayas terminado los pasos 1 a 7:
 | Nº | Persona | Fecha y hora | Resultado |
 | --- | --- | --- | --- |
 | 0 | Quien montó la carga (en su máquina) | 2026-11-23 | Referencia creada en `datos-cm-referencia.json`. No cuenta para el 2 |
+| 1 | IV | 2026-11-23 15:10 | Igual: `Coincide con la referencia del equipo.` (79.226, 2.539, 4.914, 6.625 y 26 filas) |
 
 ## Incidencias
 

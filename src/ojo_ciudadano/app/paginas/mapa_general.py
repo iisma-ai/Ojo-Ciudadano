@@ -293,7 +293,8 @@ else:
                 id=f"con:{c['contrato_id']}",
                 etiqueta=etiqueta_contrato(c),
                 importe=c["importe"],
-                detalle=f"{(c['titulo'] or '')[:90]} · {c['organo']} · {iva}",
+                titulo=c["adjudicatarios"] or "Sin adjudicataria",
+                detalle=f"{c['organo']} · {iva}",
             )
         )
     if menores:
@@ -352,8 +353,8 @@ else:
             importe = detalle["importe_sin_iva"] or detalle["importe_con_iva"]
             presupuesto = detalle["presupuesto_sin_iva"] or detalle["presupuesto_con_iva"]
             m = st.columns(4)
-            m[0].metric("Importe adjudicado", textos.euros(importe, iva))
-            m[1].metric("Presupuesto de licitación", textos.euros(presupuesto, iva))
+            m[0].metric(f"Importe adjudicado ({iva})", textos.millones(importe))
+            m[1].metric(f"Presupuesto de licitación ({iva})", textos.millones(presupuesto))
             m[2].metric(
                 "Ofertas recibidas",
                 textos.numero(detalle["n_ofertas"]) if detalle["n_ofertas"] else "Sin dato",

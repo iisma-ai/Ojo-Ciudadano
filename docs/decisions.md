@@ -283,3 +283,16 @@ Plantilla:
   - «Contratos a revisar»: varias señales a la vez (cualquiera o todas), año, tipo de contrato, orden, mínimo de señales, cuántos mostrar y organismo o empresa concretos.
 - **Alternativas consideradas:** `st.selectbox` con todas las empresas (decenas de miles de opciones enviadas al navegador). Un cuadro de texto con botón de buscar (no sugiere mientras se escribe). Quitar los posibles errores del cálculo del modelo (cambiaría D-021; aquí solo se ocultan en la pantalla).
 - **Consecuencias:** `uv sync` para instalar la dependencia. Los umbrales de «posible error» están en `app/datos.py` (`_POSIBLE_ERROR`). Se actualiza [03-modulos.md](03-modulos.md).
+
+## D-026 · Mapa general del dinero y mapa de nodos arrastrable
+- **Fecha:** 2026-11-23
+- **Estado:** Aceptada
+- **Autor:** Claude (agente), a petición de la persona que coordina
+- **Contexto:** El «Mapa del dinero» dibujaba la red como un gráfico más (burbujas y líneas de grosor variable) y no daba la visión de conjunto: cuánto dinero tiene la Comunidad, cómo se reparte entre consejerías y cuánto han gastado. Se pidió un mapa principal, visual, con nodos que se mueven al estilo de Neo4j.
+- **Decisión:**
+  - Nuevo componente `app/red.py`: mapa de nodos arrastrable (los conectados se mueven al tirar de uno, sin zoom). El **tamaño y el color** de cada círculo son el dinero (más grande y más claro, más dinero) y el **relleno** muestra qué parte se ha gastado (el resto, en gris). Todas las líneas son iguales. Usa la nueva dependencia **`streamlit-agraph`** (vis-network), que devuelve el nodo pulsado.
+  - Nueva pantalla **«Mapa general»**, la primera de la navegación y la que se abre por defecto: la Comunidad en el centro y sus consejerías y órganos alrededor, con selector de periodo (2015 a 2026) y de qué ver (presupuesto y gasto; contratos de la Plataforma; contratos del portal; subvenciones). Arriba, dinero disponible, gastado, sin gastar y pagado. Al pulsar una consejería, sus 15 contratos más grandes del año más los menores y las subvenciones agrupados; al pulsar un contrato, su ficha (importe, presupuesto de licitación, ofertas, cómo se contrató, adjudicataria, señales y enlace) y qué parte del dinero de la consejería es.
+  - El «Mapa del dinero» (organismo y sus empresas) usa el mismo componente.
+  - Lo que no hay se dice en la pantalla («Qué datos no tenemos»): gasto del año en curso, gasto que no es contratación, contratos sin fecha, criterios de adjudicación y órganos sin contratos en nuestras fuentes.
+- **Alternativas consideradas:** Componente propio con D3 (más trabajo y sin devolver el clic a Streamlit). Mantener Plotly (no se puede arrastrar un nodo y que tiren los demás). Cruzar partida a partida presupuesto y contratos (los datos no lo permiten, ver 02).
+- **Consecuencias:** `uv sync` para instalar `streamlit-agraph`. Presupuesto y contratos son fuentes distintas y se comparan por consejería y año, no partida a partida (`textos.AVISO_CONTEXTO`). Los nodos deben ser deterministas entre ejecuciones (si cambia el orden de un nombre, Streamlit ve un componente nuevo y pierde el clic): las consultas ordenan las adjudicatarias. Se actualizan [03-modulos.md](03-modulos.md) y el plan.

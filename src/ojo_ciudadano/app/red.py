@@ -34,6 +34,7 @@ class NodoRed:
     importe: float
     llenado: float | None = None
     detalle: str = ""
+    titulo: str | None = None  # nombre completo, para el cuadro que sale al pasar el ratón
     centro: bool = False
     color: str | None = None  # fuerza un color (p. ej. el nodo central)
     extra: dict = field(default_factory=dict)
@@ -84,7 +85,7 @@ def svg_nodo(color: str, llenado: float | None, centro: bool = False) -> str:
 
 
 def _titulo(n: NodoRed) -> str:
-    lineas = [n.etiqueta, euros(n.importe)]
+    lineas = [n.titulo or n.etiqueta.replace("\n", " "), euros(n.importe)]
     if n.llenado is not None:
         lineas.append(f"Gastado: {round(100 * n.llenado)} %")
     if n.detalle:

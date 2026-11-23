@@ -21,7 +21,11 @@
   - el código de la fuente equivale a su nombre, y el año como texto equivale al año como número;
   - no falla con columnas de tipo lista.
 - **Pantalla del asistente:** aviso, sin traza técnica, si el proveedor falla.
-- Tests: de 238 a 248, todos pasan; ruff limpio.
+- **Revisión de `revisor-legal`, aplicada:**
+  - **Alto:** la primera versión admitía sin consulta cualquier cifra de las instrucciones, de modo que «la empresa X concentra más del 50 %» no se retenía. Ahora solo se admiten los umbrales de las definiciones, si la respuesta nombra el indicador, y con aviso; hay un test de regresión.
+  - **Medio:** el mínimo del ranking por puntuación no baja de 20 contratos aunque se pida, y se avisa de que la puntuación es poco fiable.
+  - **Bajos:** «la plataforma no determina eso» explica ahora qué es un indicador; «quien más contrata acumula más alertas en números absolutos»; la reescritura conserva el indicador, las cifras y la línea de fuente; si la reescritura falla, se retiene la original.
+- Tests: de 238 a 250, todos pasan; ruff limpio.
 
 ## Decisiones tomadas
 - **D-010 aceptada** para el proveedor y los modelos: OpenRouter, `openai/gpt-6.1-terra` de principal y `anthropic/claude-haiku-5.5` de respaldo. La tabla de resultados está en `docs/decisions.md`.

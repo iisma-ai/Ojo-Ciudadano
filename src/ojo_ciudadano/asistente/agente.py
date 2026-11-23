@@ -1,10 +1,9 @@
 """Agente del asistente: pregunta en lenguaje natural → SQL validado → respuesta con fuentes.
 
-No depende de ningún proveedor de LLM (D-010 sigue abierta). El modelo es cualquier función
-con la forma de `Modelo`: recibe las instrucciones y la conversación en un formato neutro y
-devuelve una llamada a la herramienta SQL (`LlamadaSQL`) o la respuesta final (`TextoFinal`).
-Al cerrar D-010 basta con escribir un adaptador del proveedor con esa forma y devolverlo en
-`modelo_configurado`.
+No depende de ningún proveedor de LLM. El modelo es cualquier función con la forma de
+`Modelo`: recibe las instrucciones y la conversación en un formato neutro y devuelve una
+llamada a la herramienta SQL (`LlamadaSQL`) o la respuesta final (`TextoFinal`). El adaptador
+de OpenRouter (D-010) está en `openrouter.py` y se elige en `modelo_configurado`.
 
 Bucle (docs/05-asistente.md):
   1. El modelo propone SQL de solo lectura.
@@ -134,9 +133,10 @@ explicaciones legítimas.
 pregunta: corrupción, fraude, irregular, amaño, favorecer, favoritismo, enchufe, culpable, \
 sospechoso, ilegal, delito, malversación, cohecho, prevaricación, trama, chanchullo, mordida, \
 amiguismo, «a dedo». Un filtro retiene las respuestas que las contienen. Si te preguntan por \
-eso, di que «la plataforma no determina eso» y ofrece los indicadores de riesgo. Para un \
-ranking, en vez de «favorece a quien más contrata», di «pesa más quien más contrata». Única \
-excepción: la frase «atípico no significa irregular».
+eso, di que «la plataforma no determina eso: calcula indicadores de riesgo, que señalan \
+contratos que merecen revisión y no prueban nada» y ofrece consultarlos. Para un ranking, en \
+vez de «favorece a quien más contrata», di «quien más contrata acumula más alertas en números \
+absolutos». Única excepción: la frase «atípico no significa irregular».
 - Cuando menciones una alerta o una puntuación, di qué indicador la activó (código y nombre), \
 con qué valor (columnas valor y motivo de indicador_resultado) y recuerda que puede tener \
 explicaciones legítimas, como las de la lista de indicadores. La puntuación es un cálculo propio \
@@ -144,11 +144,12 @@ de esta plataforma, no un dato de la Administración.
 - Si ordenas empresas u órganos por número de alertas, da también su total de contratos o la \
 proporción: quien más contrata acumula más alertas.
 - En los rankings por puntuación de órganos o empresas, usa solo los que tienen al menos 100 \
-contratos (con menos, la puntuación depende de muy pocos casos) y dilo en la respuesta, salvo \
-que la persona pida otro mínimo.
+contratos (con menos, la puntuación depende de muy pocos casos) y dilo en la respuesta. Si la \
+persona pide otro mínimo, no bajes de 20 contratos y avisa de que con pocos contratos la \
+puntuación es poco fiable.
 - Si te piden juzgar a una empresa, un órgano o una persona («¿es corrupta?», «¿quién es \
-culpable?»), explica que la plataforma no determina eso y ofrece consultar sus indicadores de \
-riesgo.
+culpable?»), explica que la plataforma no determina eso: calcula indicadores de riesgo, que \
+señalan contratos que merecen revisión y no prueban nada. Ofrece consultar sus indicadores.
 - Si usas anomalia_resultado, habla de contratos «atípicos respecto a contratos similares» y di \
 siempre en la respuesta estas tres cosas: que es una señal experimental de aprendizaje \
 automático, que no suma a la puntuación de riesgo y que atípico no significa irregular. Explica \
@@ -292,17 +293,23 @@ def _cifras(texto: str) -> set[str]:
     return {re.sub(r"\s+", "", m.group(0)) for m in _PATRON_CIFRA.finditer(texto)}
 
 
-def _cerrar(
-    texto: str, consultas: list[dict], errores: list[str], completa: bool, sistema: str = ""
-) -> Respuesta:
+_CODIGO_INDICADOR = re.compile(r"\bR-0[1-9]\b")
+
+
+def _cerrar(texto: str, consultas: list[dict], errores: list[str], completa: bool) -> Respuesta:
     """Construye la respuesta con sus avisos y decide si se retiene. Sin consultas, solo se
-    admiten las cifras que ya están en las instrucciones (umbrales de los indicadores, como
-    «más del 50 %» de R-04): cualquier otra sería inventada."""
+    admiten las cifras de las definiciones de los indicadores (umbrales como «más del 50 %» de
+    R-04) cuando la respuesta nombra el indicador; cualquier otra sería inventada. Aun así,
+    queda un aviso."""
     avisos = bateria.revisar_texto(texto)
     datos = json.dumps([c["filas"] for c in consultas], ensure_ascii=False, default=str)
-    sin_cifras_respaldadas = not consultas and bool(_cifras(texto) - _cifras(sistema))
+    cifras = _cifras(texto) if not consultas else set()
+    admitidas = _cifras(_indicadores()) if _CODIGO_INDICADOR.search(texto) else set()
+    sin_cifras_respaldadas = bool(cifras - admitidas)
     if sin_cifras_respaldadas:
         avisos.append("Da cifras sin haber consultado la base")
+    elif cifras:
+        avisos.append("Cifras tomadas de las definiciones de los indicadores, no de la base")
     if bateria.PATRON_DNI.search(texto) or bateria.PATRON_DNI.search(datos):
         retencion = RETENCION_DNI
     elif bateria.terminos_acusatorios(texto):
@@ -314,10 +321,16 @@ def _cerrar(
     return Respuesta(texto, consultas, errores, avisos, completa, retencion)
 
 
+NO_DETERMINA = (
+    "la plataforma no determina eso: calcula indicadores de riesgo, que señalan contratos que "
+    "merecen revisión y no prueban nada"
+)
 PETICION_REESCRITURA = (
-    "Reescribe tu respuesta anterior con los mismos datos, sin usar estas palabras ni sus "
-    "derivados, tampoco en una negación: {terminos}. Si hace falta, di «la plataforma no "
-    "determina eso» o «pesa más quien más contrata». Devuelve solo la respuesta reescrita."
+    "Reescribe tu respuesta anterior con los mismos datos y las mismas cifras, conservando el "
+    "indicador, su valor y la línea «Fuente: …», sin usar estas palabras ni sus derivados, "
+    "tampoco en una negación: {terminos}. Si hace falta, di «" + NO_DETERMINA + "» o «quien "
+    "más contrata acumula más alertas en números absolutos». Devuelve solo la respuesta "
+    "reescrita."
 )
 
 
@@ -331,14 +344,17 @@ def _sin_terminos_acusatorios(
     if not terminos:
         return texto
     peticion = PETICION_REESCRITURA.format(terminos=", ".join(f"«{t}…»" for t in terminos))
-    otra = modelo(
-        sistema,
-        [
-            *mensajes,
-            {"rol": "modelo", "contenido": texto},
-            {"rol": "usuario", "contenido": peticion},
-        ],
-    )
+    try:
+        otra = modelo(
+            sistema,
+            [
+                *mensajes,
+                {"rol": "modelo", "contenido": texto},
+                {"rol": "usuario", "contenido": peticion},
+            ],
+        )
+    except Exception:  # si falla la reescritura, queda la original y el filtro la retiene
+        return texto
     return otra.texto if isinstance(otra, TextoFinal) and otra.texto else texto
 
 
@@ -360,7 +376,7 @@ def responder(
         salida = modelo(sistema, mensajes)
         if isinstance(salida, TextoFinal):
             texto = _sin_terminos_acusatorios(modelo, sistema, mensajes, salida.texto)
-            return _cerrar(texto, consultas, errores, completa=True, sistema=sistema)
+            return _cerrar(texto, consultas, errores, completa=True)
         mensajes.append({"rol": "llamada", "sql": salida.sql})
         try:
             resultado = sql_seguro.ejecutar(con, salida.sql)

@@ -90,13 +90,35 @@ def test_retiene_cifras_sin_consulta(con):
     assert r.avisos == [] and r.retencion is None
 
 
-def test_admite_sin_consulta_los_umbrales_de_las_instrucciones(con):
-    assert "50 %" in agente.instrucciones(con)  # umbral de R-04
+def test_admite_sin_consulta_los_umbrales_de_un_indicador_nombrado(con):
     texto = "R-04 se activa si un adjudicatario recibe más del 50 % del importe."
     r = agente.responder(con, Guion(TextoFinal(texto)), "¿Qué es R-04?")
     assert r.retencion is None
-    r = agente.responder(con, Guion(TextoFinal("Más del 50 % y un 37 % más.")), "¿?")
+    assert "Cifras tomadas de las definiciones de los indicadores, no de la base" in r.avisos
+    r = agente.responder(con, Guion(TextoFinal("R-04: más del 50 % y un 37 % más.")), "¿?")
     assert r.retencion == agente.RETENCION_CIFRAS
+
+
+def test_retiene_un_umbral_atribuido_a_una_entidad_sin_consulta(con):
+    # Revisión legal del 23-nov: una cifra de las definiciones no respalda un dato de una empresa.
+    texto = "La empresa Acme recibe más del 50 % del importe del órgano."
+    r = agente.responder(con, Guion(TextoFinal(texto)), "¿?")
+    assert r.retencion == agente.RETENCION_CIFRAS
+    texto = "Hay unos 4.000 contratos con fechas anteriores a 2023."  # cifra del contexto
+    r = agente.responder(con, Guion(TextoFinal(texto)), "¿?")
+    assert r.retencion == agente.RETENCION_CIFRAS
+
+
+def test_si_falla_la_reescritura_se_retiene_la_original(con):
+    class FallaAlReescribir(Guion):
+        def __call__(self, sistema, mensajes):
+            if self.llamadas:
+                raise RuntimeError("proveedor caído")
+            return super().__call__(sistema, mensajes)
+
+    modelo = FallaAlReescribir(TextoFinal("Hay fraude en este órgano."))
+    r = agente.responder(con, modelo, "¿?")
+    assert r.retencion == agente.RETENCION_LENGUAJE
 
 
 @pytest.mark.parametrize(

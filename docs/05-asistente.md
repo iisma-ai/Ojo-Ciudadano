@@ -79,7 +79,8 @@ Limitaciones de los datos que el asistente debe explicar: las licitaciones del p
   - guarda cada respuesta en `data/evaluaciones/`, que no se sube.
 - **Cambios en el agente:**
   - **Reescritura:** si el texto tiene términos que el filtro retendría (casi siempre en negaciones largas: «no puedo decir si una empresa es corrupta»), se pide al modelo una sola reescritura. El filtro no cambia: si insiste, se retiene igual.
-  - **Cifras sin consulta:** se admiten solo las que ya están en las instrucciones, como los umbrales de los indicadores («más del 50 %»).
+  - **Cifras sin consulta:** se admiten solo los umbrales de las definiciones de los indicadores («más del 50 %» de R-04) y solo si la respuesta nombra el indicador (R-0x). Aun así queda un aviso. Una cifra atribuida a una empresa o un órgano sin consulta se sigue reteniendo (revisión de `revisor-legal` del 23-nov, con test).
+  - **Si falla la reescritura,** queda el texto original y el filtro lo retiene.
   - **Instrucciones nuevas:**
     - no escribir los términos de la tabla de lenguaje, ni siquiera negados;
     - en los rankings por puntuación, solo órganos o empresas con al menos 100 contratos;

@@ -345,7 +345,8 @@ def millones(valor: float | None) -> str:
 AVISO_ENCARGOS = (
     "Un **encargo a medio propio** es un trabajo que un organismo asigna a una entidad pública "
     "que actúa como su medio propio (como Tragsa o Canal de Isabel II). La ley lo permite sin "
-    "licitación (art. 32 de la Ley 9/2017 de Contratos del Sector Público). No es un contrato "
+    "licitación cuando se cumplen los requisitos del art. 32 de la Ley 9/2017 de Contratos del "
+    "Sector Público; no comprobamos esos requisitos. No es un contrato "
     "y no se le aplican las señales. Importes con IVA; el año es el de publicación en el portal."
 )
 

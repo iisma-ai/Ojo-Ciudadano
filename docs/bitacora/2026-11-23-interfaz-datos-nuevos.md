@@ -28,4 +28,4 @@ Los datos añadidos hoy (D-027 a D-029) solo los veía el asistente. Ahora se ve
 
 ## Siguiente paso
 
-Revisión legal de los textos nuevos (en curso), PR a `main` y prueba de la demo del H3 con estas pantallas.
+Revisión legal hecha con `revisor-legal` (aplicados la fuente y la fecha en la línea del recurso y la redacción del art. 32). Falta el PR a `main` y probar la demo del H3 con estas pantallas.

@@ -161,7 +161,9 @@ def tarjeta_contrato(con: duckdb.DuckDBPyConnection, fila: dict, prefijo: str) -
             st.markdown(
                 f"**Recurrido ante el Tribunal de Contratación de la Comunidad:** "
                 f"[resolución {r['numero']}]({r['url_origen']}) del {r['fecha']}, "
-                f"{r['tipo_resolucion'].lower()} (acto recurrido: {r['acto_recurrido'].lower()})."
+                f"{r['tipo_resolucion'].lower()} (acto recurrido: {r['acto_recurrido'].lower()}). "
+                "Fuente: Tribunal Administrativo de Contratación Pública de la Comunidad de "
+                f"Madrid, datos descargados el {r['fecha_descarga']}."
             )
             st.caption(textos.AVISO_RECURSOS)
         if fila["url_origen"]:

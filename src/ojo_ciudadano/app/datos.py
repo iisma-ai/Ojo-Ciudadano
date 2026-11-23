@@ -64,6 +64,44 @@ def buscar_empresas(con: duckdb.DuckDBPyConnection, texto: str, limite: int = 20
     )
 
 
+def sugerir_empresas(con: duckdb.DuckDBPyConnection, texto: str, limite: int = 15) -> list[dict]:
+    """Empresas para el autocompletado: primero las que empiezan por lo escrito, luego (con tres
+    letras o más) las que lo contienen. Sin texto, las de más contratos. Sin personas físicas."""
+    texto = texto.strip()
+    return _filas(
+        con,
+        f"""
+        SELECT a.adjudicatario_id, a.nombre, a.nif, p.n_contratos
+        FROM adjudicatario AS a
+        JOIN puntuacion_empresa AS p USING (adjudicatario_id)
+        WHERE {_sin_personas("a")} AND a.nombre IS NOT NULL
+          AND (? = '' OR a.nombre ILIKE ? || '%' OR a.nif = upper(?)
+               OR (length(?) >= 3 AND a.nombre ILIKE '%' || ? || '%'))
+        ORDER BY (a.nombre ILIKE ? || '%') DESC, p.n_contratos DESC
+        LIMIT ?
+        """,
+        [texto, texto, texto, texto, texto, texto, limite],
+    )
+
+
+def sugerir_organos(con: duckdb.DuckDBPyConnection, texto: str, limite: int = 15) -> list[dict]:
+    """Órganos para el autocompletado: primero los que empiezan por lo escrito, luego los que
+    lo contienen. Sin texto, los de más contratos."""
+    texto = texto.strip()
+    return _filas(
+        con,
+        """
+        SELECT o.organo_id, o.nombre, p.n_contratos
+        FROM organo AS o
+        JOIN puntuacion_organo AS p USING (organo_id)
+        WHERE ? = '' OR o.nombre ILIKE ? || '%' OR o.nombre ILIKE '%' || ? || '%'
+        ORDER BY (o.nombre ILIKE ? || '%') DESC, p.n_contratos DESC
+        LIMIT ?
+        """,
+        [texto, texto, texto, texto, limite],
+    )
+
+
 def ficha_empresa(con: duckdb.DuckDBPyConnection, adjudicatario_id: str) -> dict | None:
     """Resumen de una empresa. Los importes se dan por separado según el IVA de la fuente."""
     filas = _filas(
@@ -163,6 +201,15 @@ def contratos_empresa(
     )
 
 
+ORDEN_ALERTAS = {
+    "puntuacion": "p.puntuacion DESC, p.n_activados DESC, p.importe DESC",
+    "senales": "p.n_activados DESC, p.puntuacion DESC, p.importe DESC",
+    "importe_desc": "p.importe DESC NULLS LAST, p.puntuacion DESC",
+    "importe_asc": "p.importe ASC NULLS LAST, p.puntuacion DESC",
+    "reciente": "p.anio DESC NULLS LAST, p.puntuacion DESC, p.importe DESC",
+}
+
+
 def alertas(
     con: duckdb.DuckDBPyConnection,
     min_aplicables: int = 3,
@@ -171,40 +218,59 @@ def alertas(
     texto: str | None = None,
     anio: int | None = None,
     organo_id: str | None = None,
+    *,
+    indicadores: list[str] | None = None,
+    todas: bool = False,
+    orden: str = "puntuacion",
+    min_puntuacion: float = 0.0,
+    min_activados: int = 1,
+    tipo_contrato: str | None = None,
+    adjudicatario_id: str | None = None,
 ) -> list[dict]:
-    """Contratos ordenados por puntuación. Por defecto solo los que tienen 3 o más
-    indicadores aplicables, para que no dominen los menores (solo R-03 y R-04). `texto` busca
-    en el título y en el nombre del organismo."""
+    """Contratos con alguna señal. Por defecto solo los que tienen 3 o más indicadores
+    aplicables, para que no dominen los menores (solo R-03 y R-04). `texto` busca en el título
+    y en el nombre del organismo. `indicadores` filtra por las señales elegidas (cualquiera de
+    ellas o, con `todas`, todas a la vez); `indicador` es la forma de una sola señal."""
+    elegidas = list(indicadores or ([indicador] if indicador else []))
+    condiciones = ["p.n_aplicables >= ?", "p.n_activados >= ?", "p.puntuacion >= ?"]
+    parametros: list = [min_aplicables, max(min_activados, 1), min_puntuacion]
+    if elegidas:
+        funcion = "list_has_all" if todas else "list_has_any"
+        condiciones.append(f"{funcion}(string_split(p.indicadores_activados, ', '), ?)")
+        parametros.append(elegidas)
+    if texto:
+        condiciones.append("(c.titulo ILIKE '%' || ? || '%' OR o.nombre ILIKE '%' || ? || '%')")
+        parametros += [texto, texto]
+    if anio is not None:
+        condiciones.append("p.anio = ?")
+        parametros.append(anio)
+    if organo_id:
+        condiciones.append("p.organo_id = ?")
+        parametros.append(organo_id)
+    if tipo_contrato:
+        condiciones.append("c.tipo_contrato = ?")
+        parametros.append(tipo_contrato)
+    if adjudicatario_id:
+        condiciones.append(
+            "EXISTS (SELECT 1 FROM adjudicacion AS ad WHERE ad.contrato_id = p.contrato_id "
+            "AND ad.adjudicatario_id = ?)"
+        )
+        parametros.append(adjudicatario_id)
+    parametros.append(limite)
     return _filas(
         con,
-        """
+        f"""
         SELECT p.contrato_id, c.titulo, c.tipo_contrato, c.procedimiento, o.nombre AS organo,
                p.anio, p.importe, c.fuente, p.puntuacion, p.n_aplicables, p.n_activados,
                p.indicadores_activados, c.url_origen
         FROM puntuacion_contrato AS p
         JOIN contrato_unico AS c USING (contrato_id)
         JOIN organo AS o ON o.organo_id = p.organo_id
-        WHERE p.n_aplicables >= ? AND p.n_activados > 0
-          AND (? IS NULL OR list_contains(string_split(p.indicadores_activados, ', '), ?))
-          AND (? IS NULL OR c.titulo ILIKE '%' || ? || '%' OR o.nombre ILIKE '%' || ? || '%')
-          AND (? IS NULL OR p.anio = ?)
-          AND (? IS NULL OR p.organo_id = ?)
-        ORDER BY p.puntuacion DESC, p.n_activados DESC, p.importe DESC
+        WHERE {" AND ".join(condiciones)}
+        ORDER BY {ORDEN_ALERTAS.get(orden, ORDEN_ALERTAS["puntuacion"])}
         LIMIT ?
         """,
-        [
-            min_aplicables,
-            indicador,
-            indicador,
-            texto,
-            texto,
-            texto,
-            anio,
-            anio,
-            organo_id,
-            organo_id,
-            limite,
-        ],
+        parametros,
     )
 
 
@@ -609,43 +675,122 @@ def grupos_anomalias(con: duckdb.DuckDBPyConnection) -> list[dict]:
     )
 
 
+ORDEN_ATIPICOS = {
+    "mas_atipico": "r.puntuacion DESC, r.contrato_id",
+    "menos_atipico": "r.puntuacion ASC, r.contrato_id",
+    "importe_desc": "v.importe DESC NULLS LAST, r.puntuacion DESC",
+    "importe_asc": "v.importe ASC NULLS LAST, r.puntuacion DESC",
+}
+
+# Posible error al introducir los datos en la fuente: valores que no tienen sentido (baja
+# negativa de más del 100 %, o sea, adjudicado por más del doble del presupuesto; modificaciones
+# de más de cinco veces el importe adjudicado; importe adjudicado de menos de 1 euro).
+_POSIBLE_ERROR = "(v.baja < -1 OR v.modificaciones > 5 OR v.importe < 1)"
+
+_VARIABLES_ATIPICOS = """
+    SELECT contrato_id, grupo, max(importe) AS importe, min(baja) AS baja,
+           max(modificaciones) AS modificaciones
+    FROM anomalia_variables GROUP BY contrato_id, grupo
+"""
+
+
+def _filtro_atipicos(
+    grupo: str | None,
+    min_puntuacion: float,
+    con_errores: bool,
+    variable: str | None,
+    texto: str | None,
+) -> tuple[str, list]:
+    condiciones = ["r.atipico", "(? IS NULL OR r.grupo = ?)", "r.puntuacion >= ?"]
+    parametros: list = [grupo, grupo, min_puntuacion]
+    if not con_errores:
+        condiciones.append(f"NOT coalesce({_POSIBLE_ERROR}, false)")
+    if variable:
+        condiciones.append("list_contains(string_split(r.variables, ', '), ?)")
+        parametros.append(variable)
+    if texto:
+        condiciones.append(
+            "(c.titulo ILIKE '%' || ? || '%' OR o.nombre ILIKE '%' || ? || '%' OR EXISTS ("
+            "SELECT 1 FROM adjudicacion AS ad2 JOIN adjudicatario AS a2 "
+            "ON a2.adjudicatario_id = ad2.adjudicatario_id "
+            "WHERE ad2.contrato_id = r.contrato_id AND a2.nombre ILIKE '%' || ? || '%'))"
+        )
+        parametros += [texto, texto, texto]
+    return " AND ".join(condiciones), parametros
+
+
 def atipicos(
-    con: duckdb.DuckDBPyConnection, grupo: str | None = None, limite: int = 100
+    con: duckdb.DuckDBPyConnection,
+    grupo: str | None = None,
+    limite: int = 100,
+    *,
+    orden: str = "mas_atipico",
+    min_puntuacion: float = 0.0,
+    con_errores: bool = True,
+    variable: str | None = None,
+    texto: str | None = None,
 ) -> list[dict]:
-    """Contratos atípicos respecto a sus pares, los más alejados primero. Los contratos de
-    personas físicas no se listan uno a uno (D-007): se cuentan en `atipicos_agregados`."""
+    """Contratos atípicos respecto a sus pares. `orden`: de más a menos atípico (por defecto),
+    al revés, o por importe. `min_puntuacion` deja solo los más alejados que ese nivel,
+    `con_errores=False` oculta los que parecen un error de introducción de los datos y
+    `variable` deja los que se alejan en una variable concreta. Los contratos de personas
+    físicas no se listan uno a uno (D-007): se cuentan en `atipicos_agregados`."""
     if not hay_anomalias(con):
         return []
+    donde, parametros = _filtro_atipicos(grupo, min_puntuacion, con_errores, variable, texto)
     return _filas(
         con,
         f"""
         SELECT r.contrato_id, c.titulo, o.nombre AS organo, r.grupo, r.n_grupo,
-               r.puntuacion, r.variables, r.motivo, r.url_origen,
+               r.puntuacion, r.variables, r.motivo, r.url_origen, v.importe,
+               coalesce({_POSIBLE_ERROR}, false) AS posible_error,
                string_agg(DISTINCT a.nombre, ', ') AS adjudicatarios
         FROM anomalia_resultado AS r
         JOIN contrato_unico AS c USING (contrato_id)
         JOIN organo AS o ON o.organo_id = c.organo_id
+        LEFT JOIN ({_VARIABLES_ATIPICOS}) AS v
+          ON v.contrato_id = r.contrato_id AND v.grupo = r.grupo
         LEFT JOIN adjudicacion AS ad ON ad.contrato_id = r.contrato_id
         LEFT JOIN adjudicatario AS a ON a.adjudicatario_id = ad.adjudicatario_id
-        WHERE r.atipico AND (? IS NULL OR r.grupo = ?) AND NOT {_CON_PERSONAS}
+        WHERE {donde} AND NOT {_CON_PERSONAS}
         GROUP BY ALL
-        ORDER BY r.puntuacion DESC, r.contrato_id
+        ORDER BY {ORDEN_ATIPICOS.get(orden, ORDEN_ATIPICOS["mas_atipico"])}
         LIMIT ?
         """,
-        [grupo, grupo, limite],
+        [*parametros, limite],
     )
 
 
-def atipicos_agregados(con: duckdb.DuckDBPyConnection, grupo: str | None = None) -> int:
+def atipicos_errores_ocultos(
+    con: duckdb.DuckDBPyConnection, grupo: str | None = None, min_puntuacion: float = 0.0
+) -> int:
+    """Cuántos atípicos que parecen un error de introducción de datos hay con estos filtros."""
+    if not hay_anomalias(con):
+        return 0
+    return con.execute(
+        f"""
+        SELECT count(*) FROM anomalia_resultado AS r
+        JOIN ({_VARIABLES_ATIPICOS}) AS v ON v.contrato_id = r.contrato_id AND v.grupo = r.grupo
+        WHERE r.atipico AND (? IS NULL OR r.grupo = ?) AND r.puntuacion >= ?
+          AND coalesce({_POSIBLE_ERROR}, false) AND NOT {_CON_PERSONAS}
+        """,
+        [grupo, grupo, min_puntuacion],
+    ).fetchall()[0][0]
+
+
+def atipicos_agregados(
+    con: duckdb.DuckDBPyConnection, grupo: str | None = None, min_puntuacion: float = 0.0
+) -> int:
     """Contratos atípicos de personas físicas u otros adjudicatarios sin ficha (D-007)."""
     if not hay_anomalias(con):
         return 0
     return con.execute(
         f"""
         SELECT count(*) FROM anomalia_resultado AS r
-        WHERE r.atipico AND (? IS NULL OR r.grupo = ?) AND {_CON_PERSONAS}
+        WHERE r.atipico AND (? IS NULL OR r.grupo = ?) AND r.puntuacion >= ?
+          AND {_CON_PERSONAS}
         """,
-        [grupo, grupo],
+        [grupo, grupo, min_puntuacion],
     ).fetchall()[0][0]
 
 

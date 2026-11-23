@@ -282,3 +282,32 @@ AVISO_CONVENIOS = (
     "se muestran los que son entidades. El texto de financiación es el de la fuente: no se "
     "suma porque mezcla importes anuales, máximos y de varios años."
 )
+
+# Filtros de contratos atípicos y de contratos a revisar.
+ORDEN_ATIPICOS = {
+    "mas_atipico": "Más alejados de sus pares primero",
+    "menos_atipico": "Menos alejados primero",
+    "importe_desc": "Mayor importe primero",
+    "importe_asc": "Menor importe primero",
+}
+ORDEN_ALERTAS = {
+    "puntuacion": "Mayor puntuación primero",
+    "senales": "Más señales primero",
+    "importe_desc": "Mayor importe primero",
+    "importe_asc": "Menor importe primero",
+    "reciente": "Más recientes primero",
+}
+AYUDA_POSIBLES_ERRORES = (
+    "Son contratos atípicos cuyos valores no tienen sentido, por ejemplo adjudicados por más "
+    "del doble del presupuesto, con modificaciones de más de cinco veces el importe o con un "
+    "importe de menos de 1 €. Lo más probable es que haya un error al introducir los datos en "
+    "la fuente, no un contrato realmente atípico. No se puede asegurar sin ver el expediente."
+)
+
+
+def aviso_errores_ocultos(n: int) -> str:
+    return (
+        f"Se ocultan {numero(n)} contratos cuyos valores parecen un error al introducir los "
+        "datos en la fuente (por ejemplo, adjudicados por más del doble del presupuesto). "
+        "Activa «Mostrar posibles errores de datos» para verlos."
+    )

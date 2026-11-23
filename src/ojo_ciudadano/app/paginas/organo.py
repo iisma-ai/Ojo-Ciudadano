@@ -7,7 +7,15 @@ aparecen agregadas (D-007).
 
 import streamlit as st
 
-from ojo_ciudadano.app import datos, datos_contexto, graficos, graficos_contexto, senales, textos
+from ojo_ciudadano.app import (
+    buscador,
+    datos,
+    datos_contexto,
+    graficos,
+    graficos_contexto,
+    senales,
+    textos,
+)
 from ojo_ciudadano.app.conexion import conexion
 
 FUENTES_REPARTO = {
@@ -21,18 +29,13 @@ con = conexion()
 st.header("Ficha de organismo")
 st.caption("Cómo contrata una consejería, un hospital o una empresa pública, y a quién adjudica.")
 
-texto = st.text_input("Buscar", placeholder="Nombre (vacío: los de más contratos)")
-encontrados = datos.buscar_organos(con, texto)
-if not encontrados:
-    st.info("No hay resultados.")
-    st.stop()
-elegido = st.selectbox(
-    "Organismo",
-    encontrados,
-    help=textos.GLOSARIO["organismo"],
-    format_func=lambda o: f"{o['nombre']} · {textos.numero(o['n_contratos'])} contratos",
+elegido = buscador.organo("buscar_organo", "Buscar organismo")
+buscador.esperar(
+    elegido,
+    "Escribe las primeras letras del nombre y elige un organismo de la lista "
+    "(consejería, hospital, empresa pública…).",
 )
-ficha = datos.ficha_organo(con, elegido["organo_id"])
+ficha = datos.ficha_organo(con, elegido)
 if ficha is None:
     st.stop()
 id_ = ficha["organo_id"]

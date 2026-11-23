@@ -270,3 +270,16 @@ Plantilla:
   - Fuera de la ampliación (decisión explícita): datos de otras administraciones (ayuntamientos), cualquier dato con identidad de personas y lo listado en [12-datos-cm.md](12-datos-cm.md).
 - **Alternativas consideradas:** Más fuentes estatales o europeas (TED repite PLACSP y no son de la Comunidad). Parsear los 103 Excel de planes de medios (mucho esfuerzo, poco valor). Guardar las series en una tabla por conjunto de datos (más tablas que mantener; la tabla larga `serie_cm` basta).
 - **Consecuencias:** Nuevo [12-datos-cm.md](12-datos-cm.md). Pantalla «Presupuesto y contexto», bloque de presupuesto en la ficha de órgano, registros en la ficha de empresa y tablas nuevas en el asistente. Pie de la interfaz con las dos fuentes nuevas. [02-fuentes-datos.md](02-fuentes-datos.md) y el plan actualizados. **Todo el equipo debe bajar los datos antes de seguir** ([LO-PRIMERO.md](LO-PRIMERO.md)).
+
+## D-025 · Buscadores con autocompletado y más filtros en las pantallas de señales
+- **Fecha:** 2026-11-23
+- **Estado:** Aceptada
+- **Autor:** Claude (agente), a petición de la persona que coordina
+- **Contexto:** Quien no conoce los nombres de las empresas no podía buscarlas: la búsqueda pedía tres letras y no sugería nada. En «Contratos atípicos» había contratos con valores sin sentido (por ejemplo, una baja de -300.000 %) que se confundían con atípicos reales, y las dos pantallas de señales casi no tenían filtros ni formas de ordenar (D-023: «primero se ve, luego se lee»).
+- **Decisión:**
+  - Los buscadores de empresa y de organismo sugieren mientras se escribe, primero lo que **empieza** por lo escrito y luego lo que lo contiene (`app/buscador.py`, consultas `datos.sugerir_empresas` y `datos.sugerir_organos`). Se usan en la ficha de empresa, la de organismo, las preguntas guiadas y los filtros de «Contratos a revisar». Solo salen empresas y entidades con contratos o subvenciones, sin personas físicas (D-007).
+  - Nueva dependencia de interfaz **`streamlit-searchbox`** (componente de Streamlit, sin llamadas externas): Streamlit no trae autocompletado que consulte la base mientras se escribe.
+  - «Contratos atípicos»: orden (más o menos alejado, mayor o menor importe), nivel mínimo de lejanía, variable en la que se aleja, búsqueda y un interruptor **«Mostrar posibles errores de datos»** (apagado por defecto). Es un posible error cuando la baja es inferior a -100 % (adjudicado por más del doble del presupuesto, criterio que ya usaba la detección), las modificaciones superan cinco veces el importe adjudicado o el importe es inferior a 1 euro. No es una afirmación: se llama «posible error al introducir los datos en la fuente».
+  - «Contratos a revisar»: varias señales a la vez (cualquiera o todas), año, tipo de contrato, orden, mínimo de señales, cuántos mostrar y organismo o empresa concretos.
+- **Alternativas consideradas:** `st.selectbox` con todas las empresas (decenas de miles de opciones enviadas al navegador). Un cuadro de texto con botón de buscar (no sugiere mientras se escribe). Quitar los posibles errores del cálculo del modelo (cambiaría D-021; aquí solo se ocultan en la pantalla).
+- **Consecuencias:** `uv sync` para instalar la dependencia. Los umbrales de «posible error» están en `app/datos.py` (`_POSIBLE_ERROR`). Se actualiza [03-modulos.md](03-modulos.md).

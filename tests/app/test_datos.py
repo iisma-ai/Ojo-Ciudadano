@@ -223,6 +223,16 @@ def con_anomalias(con):
             "0.99, ?, 'importe', 'Importe adjudicado alto', 'https://x.test')",
             [cid, atipico],
         )
+    con.execute(
+        "CREATE TABLE anomalia_variables (contrato_id VARCHAR, grupo VARCHAR, importe DOUBLE, "
+        "n_ofertas BIGINT, baja DOUBLE, modificaciones DOUBLE, cuota DOUBLE, menores_12m BIGINT)"
+    )
+    for cid in ("c1", "c2", "c3"):
+        con.execute(
+            "INSERT INTO anomalia_variables VALUES (?, 'placsp · licitación · servicios', "
+            "1000, 1, 0.1, NULL, NULL, NULL)",
+            [cid],
+        )
     return con
 
 
@@ -284,3 +294,43 @@ def test_nif_otro_solo_con_ficha_si_el_nombre_es_de_empresa(nombre, visible):
     )
     n = con.execute(f"SELECT count(*) FROM adjudicatario AS a WHERE {datos._sin_personas('a')}")
     assert (n.fetchall()[0][0] == 1) == visible
+
+
+def test_atipicos_filtros_y_orden(con_anomalias):
+    con = con_anomalias
+    assert [x["contrato_id"] for x in datos.atipicos(con)] == ["c1"]
+    assert not datos.atipicos(con)[0]["posible_error"]
+    assert datos.atipicos_errores_ocultos(con) == 0
+    # Un valor sin sentido (baja de -300.000 %) marca el contrato como posible error de datos.
+    con.execute("UPDATE anomalia_variables SET baja = -3000 WHERE contrato_id = 'c1'")
+    assert datos.atipicos(con)[0]["posible_error"]
+    assert datos.atipicos(con, con_errores=False) == []
+    assert datos.atipicos_errores_ocultos(con) == 1
+    for orden in datos.ORDEN_ATIPICOS:
+        assert len(datos.atipicos(con, orden=orden)) == 1
+    assert datos.atipicos(con, min_puntuacion=0.999) == []
+    assert len(datos.atipicos(con, min_puntuacion=0.9)) == 1
+    assert len(datos.atipicos(con, variable="importe")) == 1
+    assert datos.atipicos(con, variable="baja") == []
+    assert datos.atipicos(con, texto="no-existe-este-texto") == []
+    assert len(datos.atipicos(con, texto="ejemplo")) == 1  # nombre de la empresa
+
+
+def test_alertas_con_varias_senales_y_orden(con):
+    todas = datos.alertas(con, min_aplicables=3)
+    assert todas
+    cualquiera = datos.alertas(con, min_aplicables=3, indicadores=["R-01", "R-02"])
+    assert {a["contrato_id"] for a in cualquiera} <= {a["contrato_id"] for a in todas}
+    assert datos.alertas(con, min_aplicables=3, indicadores=["R-01", "R-02"], todas=True) == []
+    ordenadas = datos.alertas(con, min_aplicables=3, orden="importe_asc")
+    assert [a["importe"] for a in ordenadas] == sorted(a["importe"] for a in ordenadas)
+    assert datos.alertas(con, min_aplicables=3, min_puntuacion=1.1) == []
+    assert datos.alertas(con, min_aplicables=3, tipo_contrato="obras") == []
+
+
+def test_sugerencias_empiezan_por_lo_escrito(con):
+    nombres = [e["nombre"] for e in datos.sugerir_empresas(con, "limp")]
+    assert nombres and nombres[0].lower().startswith("limp")
+    assert datos.sugerir_empresas(con, "zzzz") == []
+    assert datos.sugerir_empresas(con, "")  # sin texto, las de más contratos
+    assert datos.sugerir_organos(con, "")

@@ -6,7 +6,7 @@ Primero se ve (cifras, mapa de áreas por organismo, contratos por año, señale
 
 import streamlit as st
 
-from ojo_ciudadano.app import datos, datos_contexto, graficos, senales, textos
+from ojo_ciudadano.app import buscador, datos, datos_contexto, graficos, senales, textos
 from ojo_ciudadano.app.conexion import conexion
 
 FUENTES_REPARTO = {
@@ -23,19 +23,13 @@ st.caption(
     "organismos."
 )
 
-texto = st.text_input("Buscar", placeholder="Nombre o NIF (mínimo 3 letras)")
-encontradas = datos.buscar_empresas(con, texto)
-if texto and not encontradas:
-    st.info("No hay resultados. Solo se muestran empresas y entidades, no particulares.")
-if not encontradas:
-    st.stop()
-
-elegida = st.selectbox(
-    "Empresa",
-    encontradas,
-    format_func=lambda e: f"{e['nombre']} · {e['nif'] or e['adjudicatario_id']}",
+elegida = buscador.empresa("buscar_empresa", "Buscar empresa o entidad")
+buscador.esperar(
+    elegida,
+    "Escribe las primeras letras del nombre (o el NIF) y elige una empresa de la lista. "
+    "Solo aparecen empresas y entidades con contratos o subvenciones, no particulares.",
 )
-ficha = datos.ficha_empresa(con, elegida["adjudicatario_id"])
+ficha = datos.ficha_empresa(con, elegida)
 if ficha is None:
     st.stop()
 id_ = ficha["adjudicatario_id"]

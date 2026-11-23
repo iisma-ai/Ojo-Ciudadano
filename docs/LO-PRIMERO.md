@@ -11,7 +11,7 @@ El 23-nov se incorporaron cinco tablas nuevas con datos de la Comunidad de Madri
 ## Pasos
 
 1. Trae los cambios: `git fetch origin`, mira `git log --oneline HEAD..origin/main`, y actualiza tu rama (`git pull --rebase origin main` en `main`; `git merge origin/main` en una rama de tarea).
-2. `uv sync` (hay una dependencia nueva, `fastexcel`, para leer el Excel de convenios).
+2. `uv sync` (hay dos dependencias nuevas: `fastexcel`, para leer el Excel de convenios, y `streamlit-searchbox`, para el autocompletado de la interfaz).
 3. **Cierra la interfaz** si la tienes abierta (DuckDB no deja escribir con la base abierta).
 4. Ejecuta, desde la raíz del repositorio:
    ```bash

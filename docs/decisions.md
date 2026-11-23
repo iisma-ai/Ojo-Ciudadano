@@ -318,7 +318,7 @@ Plantilla:
 
 ## D-030 · RAG centrado en el catálogo de datos abiertos y, después, en los pliegos
 - **Fecha:** 2026-11-23
-- **Estado:** Propuesta. El Harrak pidió no aplicar el recorte 2 sin investigarlo y centrar el RAG en el catálogo de datos abiertos de la Comunidad; falta su decisión con este plan.
+- **Estado:** **Bloque A aceptado** el 2026-11-23 (El Harrak: «empieza el bloque A del catálogo») e implementado ese día; pasó el control (4 de 4 preguntas de catálogo). Bloque B: Propuesta, pendiente de decidir.
 - **Autor:** Claude (agente), a petición de El Harrak
 - **Contexto:** El plan preveía un RAG con BM25 y embeddings sobre informes, memorias y pliegos (D-010, [05](05-asistente.md)), y es el recorte 2. La investigación del 23-nov está en [14-rag-documental.md](14-rag-documental.md).
   - **El catálogo son tablas:** 2.231 de 2.276 conjuntos en CSV o JSON, y solo 12 con PDF.
@@ -343,8 +343,9 @@ Plantilla:
   - Solo pliegos, que era la primera versión de esta propuesta: menos alineado con el núcleo.
   - Consulta remota con `datastore_search_sql`: falla con las tildes.
   - RAG completo con embeddings: torch y varios días.
+- **Implementación del bloque A (23-nov):** sin cambio de esquema. Los metadatos del catálogo se guardan como caché JSON en `data/raw/catalogo/`, que no se sube, y el índice BM25 se crea en memoria la primera vez que se usa: 2.228 conjuntos con CSV en 2,2 s. Así no se toca `modelo/carga.py`, que otras ramas están cambiando.
 - **Consecuencias:**
-  - Esquema aditivo (D-017).
-  - Con B, cambio en `ingesta/placsp.py`: hay que avisar a quien lleva la ingesta.
+  - Sin cambio de esquema en A. Con B, esquema aditivo (D-017) y cambio en `ingesta/placsp.py`: hay que avisar a quien lleva la ingesta.
+  - Cada instalación baja el catálogo con `uv run python -m ojo_ciudadano.asistente.catalogo` (3 peticiones).
   - De 4 a 7 preguntas nuevas en la batería.
   - Si se acepta, se actualizan 05, 06 y 08.

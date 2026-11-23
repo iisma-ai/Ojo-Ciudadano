@@ -100,3 +100,20 @@ Limitaciones de los datos que el asistente debe explicar: las licitaciones del p
 ## Gráfico en las respuestas (D-023, A-08)
 
 Desde el 21-nov, cada respuesta del asistente muestra, debajo del texto, el gráfico de la primera consulta que se pueda dibujar (`graficos.automatico`: barras por año o ranking). Los datos y el SQL siguen en los desplegables de cada consulta.
+
+## Catálogo de datos abiertos (23-nov, D-030, bloque A)
+
+El asistente responde también con cualquiera de los 2.276 conjuntos del catálogo de datos abiertos de la Comunidad, no solo con nuestra base. Dos herramientas nuevas:
+
+1. `buscar_conjunto(consulta)`: BM25 sobre los metadatos del catálogo (`catalogo.py`). Devuelve los 5 conjuntos más relevantes con su nombre, título, ámbito y fecha de actualización.
+2. `consultar_conjunto(conjunto, sql)`: baja el CSV, que se guarda en caché, y ejecuta una `SELECT` sobre la tabla `conjunto` en una base en memoria sin acceso a ficheros, con el mismo validador.
+
+**Reglas (`REGLAS_CATALOGO`):**
+- usar el catálogo solo para lo que no está en la base, y decir cuándo ningún conjunto encaja;
+- citar el conjunto con su fecha de actualización;
+- no sumar ni comparar al céntimo con contratos o subvenciones, ni deducir causas;
+- avisar cuando los datos son municipales o provisionales.
+
+**Preparación:** cada instalación baja el catálogo una vez con `uv run python -m ojo_ciudadano.asistente.catalogo`. Sin ese paso, las herramientas responden al modelo que el catálogo no está descargado.
+
+Detalle, pruebas y resultados en [14-rag-documental.md](14-rag-documental.md).

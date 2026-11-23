@@ -1,5 +1,7 @@
 # 14 · RAG: datos nuevos, catálogo de la Comunidad y documentos (investigación del 23-nov)
 
+> **Estado (23-nov, noche):** el **bloque A (RAG de catálogo) está implementado** en la rama `feat/rag-catalogo` y pasó el control: 4 de 4 preguntas de catálogo bien con `gpt-6.1-terra`. Ver «Bloque A: implementado» al final. El bloque B (pliegos) sigue como propuesta.
+
 El asistente de texto a SQL ya está conectado (D-010, rama `feat/asistente-openrouter`). Este documento recoge la investigación del 23-nov para decidir qué recupera la segunda parte del asistente, el **RAG**, y cómo. Es el recorte n.º 2 del plan. Decisión propuesta: [D-030](decisions.md).
 
 **Resumen:**
@@ -180,3 +182,42 @@ Son unas 2 h. Solo merece la pena si sobra tiempo: `ILIKE` ya resuelve los casos
 1. **Hacer el bloque A (RAG de catálogo).** Es el más alineado con el núcleo del proyecto y con el criterio del jurado: uso de los datos públicos de la Comunidad. Está probado de punta a punta, no añade dependencias y son 6 horas.
 2. **El bloque B (pliegos) solo si A pasa el control del 24-nov a las 12:00.** Aporta lo que más necesitan las señales, la explicación del expediente, pero son 10 horas más el mismo día de la prueba A-11.
 3. **El bloque C (TACPCM), después de la entrega,** con revisión legal.
+
+## Bloque A: implementado (23-nov)
+
+**Diferencias con lo previsto:**
+- **Sin tabla `catalogo_conjunto` ni cambio de esquema.**
+  - Los metadatos se guardan en `data/raw/catalogo/paquetes.json` (`uv run python -m ojo_ciudadano.asistente.catalogo`, 3 peticiones).
+  - El índice BM25 se crea en memoria al usarlo por primera vez: 2.228 conjuntos con CSV en 2,2 s.
+  - Si la extensión `fts` no se puede cargar, se buscan palabras en común.
+- **Conjuntos excluidos:** los que D-024 descartó por tener personas concretas (altos cargos, personal eventual, solicitudes de transparencia, asociaciones).
+- **Límite de llamadas del agente:** 8 por pregunta. Buscar, ver las columnas, consultar y corregir agotaban las 6.
+
+**Piezas:**
+- `asistente/catalogo.py`:
+  - `buscar` y `para_modelo`;
+  - `consultar`: CSV en caché, solo del dominio del catálogo y de 25 MB como máximo, cargado en memoria;
+  - después, `SET enable_external_access = false` y el validador de `sql_seguro` con la tabla `conjunto` como única permitida.
+- `sql_seguro.validar` y `sql_seguro.ejecutar` admiten una lista de tablas propia.
+- **Agente:**
+  - herramientas `buscar_conjunto` y `consultar_conjunto`;
+  - formato neutro de la llamada con `herramienta` y `argumentos`;
+  - reglas del catálogo (cita, sin mezclar con contratos ni deducir causas, aviso de datos municipales y provisionales);
+  - la regla de cifras admite las dos herramientas.
+- `openrouter.py` ofrece las tres herramientas y traduce sus llamadas.
+- **Pantalla «Asistente»:** cada consulta al catálogo muestra el conjunto con su enlace, la fecha de actualización, el aviso municipal si toca, los datos y el SQL.
+- **Batería:** B-21 a B-24. Aciertan si consultan el conjunto esperado o uno equivalente.
+
+**Resultados con `gpt-6.1-terra`:**
+
+| Pregunta | Resultado |
+| --- | --- |
+| B-21 · lista de espera por hospital | Bien: 2025, 12 de Octubre 8.556, Ramón y Cajal 8.256… con la fuente |
+| B-22 · personal de la Administración autonómica | Bien: 203.723 personas a 1-1-2026, con otro conjunto oficial equivalente |
+| B-23 · contratos por procedimiento (estadística oficial) | Bien |
+| B-24 · ayudas del presupuesto de la UE | Bien |
+| B-05 y B-17 (comprobación de que no usa el catálogo donde no toca) | Bien |
+
+- La primera pasada tenía un fallo: B-21 tenía las cifras y no las daba, porque la regla antigua solo admitía las de `consultar_sql`. Está corregido.
+- **Coste:** de 0,007 a 0,012 USD por pregunta de catálogo (de 4 a 6 llamadas). Las dos pasadas costaron 0,077 USD.
+- **Tests:** 11 en `tests/asistente/test_catalogo.py`, sin red: búsqueda, consulta, tablas no permitidas, ficheros bloqueados, dominio ajeno, agente de punta a punta y adaptador.

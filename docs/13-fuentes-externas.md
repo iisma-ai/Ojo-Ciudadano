@@ -26,7 +26,7 @@ Investigación del 23-nov-2026, **en curso**. Complementa [12-datos-cm.md](12-da
 | X-01 | Prohibiciones de contratar (Junta Consultiva de Contratación Pública del Estado, ROLECE) | Señal: adjudicataria con prohibición vigente | **Descartada**: no hay listado público |
 | X-02 | Resoluciones del Tribunal Administrativo de Contratación Pública de la Comunidad de Madrid | Señal y contexto: contratos recurridos y estimados | **Viable** (ver detalle) |
 | X-03 | Expedientes sancionadores de la CNMC por colusión en licitaciones | Contexto: empresas sancionadas por cárteles en contratación | En estudio |
-| X-04 | Indicadores europeos de contratación (Single Market Scoreboard) y OIReScon | Referencia para comparar R-01 y R-02 con España y la UE | En estudio |
+| X-04 | Indicadores europeos de contratación (Single Market Scoreboard) y OIReScon | Referencia para comparar R-01 y R-02 con España y la UE | **Viable y barata** (ver detalle) |
 | X-05 | DIR3 (directorio común de unidades orgánicas) | Normalizar órganos entre portal y PLACSP | En estudio |
 | X-06 | Sistema de exclusión de la UE (EDES) y listas de inhabilitación | Señal: entidad excluida | **Descartada**: 5 entidades en toda la UE |
 | X-07 | Fondos europeos (PRTR y FEDER/FSE+ de la Comunidad) | Contexto: contratos y beneficiarios con fondos europeos | En estudio |
@@ -57,6 +57,40 @@ Explorado el 23-nov-2026. Resuelve los **recursos especiales en materia de contr
   - Posible señal por órgano: **proporción de recursos estimados** (total o parcialmente) sobre los contratos licitados, sobre todo contra pliegos (pliegos que restringían la competencia). Habría que definirla y validarla antes de que entre en la puntuación (D-002, D-004).
 - **Cautelas:** un recurso lo presenta una empresa interesada; que se presente **no es una señal**, que se estime solo dice que ese acto no se ajustaba a derecho. El texto de los PDF es dato, no instrucción. Las resoluciones nombran a empresas (personas jurídicas); si alguna recurrente fuera persona física, no se guarda su nombre (D-007).
 - **Coste estimado:** recorrer unas 111 páginas de listado (1.109 resoluciones de la Comunidad) con pausa de 2 s son unos 4 minutos; los metadatos y el resumen salen del listado, sin bajar los PDF. Extraer el expediente del resumen es una expresión regular, con revisión de los que no casan.
+
+### X-04 · Referencias europeas para comparar los indicadores
+
+Explorado el 23-nov-2026. Responde al hallazgo de R-01 en [04-indicadores-riesgo.md](04-indicadores-riesgo.md) («tasa alta»): **39,4 %** de licitador único en los contratos de la Comunidad. Sin una referencia externa, el jurado no sabe si eso es mucho.
+
+**Fuente A · [Single Market Scoreboard](https://single-market-scoreboard.ec.europa.eu/countries/spain_en), apartado «Access to public procurement» (Comisión Europea, datos de 2024, consulta del 23-nov):**
+
+| Indicador | España | Media UE |
+| --- | --- | --- |
+| Licitador único (*single bidder*) | 33 % | 28 % |
+| Sin convocatoria (*no calls for bids*) | 8 % | 6 % |
+| Adjudicado solo por precio | 19 % | 54 % |
+| Días hasta la adjudicación | 110 | 74 |
+| Procedimientos divididos en lotes | 32 % | 32 % |
+
+**Fuente B · [Tribunal de Cuentas Europeo, informe especial 28/2023](https://www.eca.europa.eu/en/publications?ref=SR-2023-28), anexo de datos abiertos** ([zip de 886 KB](https://www.eca.europa.eu/OpenData/SR-2023-28/en/datavisualisation_data.zip), CC BY 4.0; los datos de origen de Opentender son CC BY-NC-SA 4.0). Trae el porcentaje de licitador único **por región NUTS2 y año**, 2011–2021, calculado sobre TED. Para **ES30 (Comunidad de Madrid)**, fichero `avg_singleb_nuts_yearly.csv`:
+
+| Año | 2015 | 2017 | 2019 | 2020 | 2021 |
+| --- | --- | --- | --- | --- | --- |
+| Licitador único ES30 | 25,6 % | 30,6 % | 34,6 % | 38,9 % | 37,5 % |
+| Contratos | 4.096 | 5.205 | 7.655 | 7.263 | 7.993 |
+
+España en conjunto (`avg_singleb_yearly_ted.csv`): 19,5 % (2016), 25,6 % (2019), 28,1 % (2020).
+
+**Cómo leerlo (para no comparar mal):**
+- El 39,4 % de R-01 está en la línea de la región en TED (37,5 % en 2021) y por encima de España (33 %) y de la UE (28 %). Es una **comparación de orden de magnitud, no de igual a igual**:
+  - TED solo recoge contratos **por encima de los umbrales europeos**; R-01 incluye también los abiertos simplificados, que son más pequeños.
+  - ES30 agrupa a **todos los compradores con sede en la región**, también los ministerios y el Ayuntamiento de Madrid, no solo la Comunidad.
+  - Periodos distintos: 2021 frente a 2023–2026.
+- Aun así, sirve para decir en la interfaz que «uno de cada tres contratos con una sola oferta es habitual en España; la media europea es menor», y deja de parecer un error de cálculo.
+
+**Uso propuesto:** una tabla pequeña `referencia_externa` (indicador, ámbito, año, valor, fuente, `url_origen`, `fecha_descarga`) o simplemente un texto en la ayuda de R-01 y R-02 con su enlace. Coste: menos de una hora. No cambia ningún indicador ni la puntuación.
+
+**Pendiente de mirar (sin coste de ingesta):** el [Informe Anual de Supervisión de la OIReScon](https://www.hacienda.gob.es/es-ES/Oirescon/Paginas/ias.aspx) (Hacienda) tiene un apartado de lotes con un único licitador por sector público, 2021–2025; si da el dato de las comunidades autónomas, es una referencia española con ventana parecida a la nuestra.
 
 ### Descartadas (23-nov)
 

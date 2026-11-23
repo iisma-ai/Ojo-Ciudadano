@@ -87,7 +87,9 @@ def mostrar_busqueda(numero: int, consulta: dict) -> None:
         )
         st.caption(
             "Cuenta los títulos que contienen esas palabras: puede haber otros del mismo tema "
-            "con otro título. Debajo, los más relevantes con su enlace oficial."
+            "con otro título. Debajo, los más parecidos a la búsqueda con su enlace oficial. La "
+            "relevancia solo mide el parecido del título con la búsqueda: no es un indicador de "
+            "riesgo. Los títulos de contratos o convenios con personas físicas no se muestran."
         )
         mostrar_resultado(consulta)
         st.code(consulta["sql"].strip(), language="sql")

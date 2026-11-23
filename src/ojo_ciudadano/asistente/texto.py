@@ -29,20 +29,40 @@ ORIGENES = {
 }
 EJEMPLOS = 20  # filas de ejemplo que se devuelven, ordenadas por relevancia
 
+# `persona_fisica` (D-007, revisión legal del 23-nov): el título puede nombrar a una persona
+# (contrato con un autónomo, convenio con un particular). Esas filas cuentan en el resumen, pero
+# su título no se enseña. En convenios, hay persona física si algún firmante no se guardó por
+# no tener forma de entidad (D-024).
 _SQL_TABLA = f"""
 CREATE OR REPLACE TABLE {TABLA} AS
-SELECT contrato_id AS id, 'contrato' AS origen, titulo, organo_id, fuente, url_origen,
-       fecha_descarga
-FROM contrato_unico WHERE titulo IS NOT NULL
+SELECT c.contrato_id AS id, 'contrato' AS origen, c.titulo, c.organo_id, c.fuente, c.url_origen,
+       c.fecha_descarga,
+       EXISTS (
+           SELECT 1 FROM adjudicacion AS a
+           LEFT JOIN adjudicatario AS d USING (adjudicatario_id)
+           WHERE a.contrato_id = c.contrato_id
+             AND (d.tipo_persona = 'fisica' OR a.adjudicatario_id LIKE 'PF-%'
+                  OR a.adjudicatario_id LIKE 'UTE:PF-%')
+       ) AS persona_fisica
+FROM contrato_unico AS c WHERE c.titulo IS NOT NULL
 UNION ALL
-SELECT convenio_id, 'convenio', titulo, organo_id, fuente, url_origen, fecha_descarga
+SELECT convenio_id, 'convenio', titulo, organo_id, fuente, url_origen, fecha_descarga,
+       coalesce(n_firmantes, 0) > coalesce(len(string_split(entidades, ';')), 0)
 FROM convenio WHERE titulo IS NOT NULL
 UNION ALL
 SELECT 'bdns:convocatoria:' || id_convocatoria, 'convocatoria', any_value(convocatoria),
-       any_value(organo_id), 'bdns', any_value(url_origen), max(fecha_descarga)
+       any_value(organo_id), 'bdns', any_value(url_origen), max(fecha_descarga), false
 FROM concesion WHERE convocatoria IS NOT NULL AND id_convocatoria IS NOT NULL
 GROUP BY id_convocatoria
 """
+TITULO_OCULTO = "Con una persona física: título no mostrado"
+NOMBRE_FUENTE = (
+    "CASE {col} WHEN 'placsp' THEN 'Plataforma de Contratación del Sector Público' "
+    "WHEN 'portal_cm' THEN 'Portal de la Contratación Pública de la Comunidad de Madrid' "
+    "WHEN 'bdns' THEN 'Base de Datos Nacional de Subvenciones' "
+    "WHEN 'transparencia_cm' THEN 'Portal de Transparencia de la Comunidad de Madrid' "
+    "ELSE {col} END"
+)
 
 
 def construir_en(con: duckdb.DuckDBPyConnection) -> int:
@@ -122,8 +142,9 @@ def buscar(con: duckdb.DuckDBPyConnection, consulta: str, origen: str) -> dict:
     parametros = {"consulta": consulta, "origen": origen}
     sql = f"""
     WITH c AS ({_COINCIDENCIAS})
-    SELECT c.titulo, o.nombre AS organo, c.fuente, c.url_origen, c.fecha_descarga,
-           round(c.relevancia, 2) AS relevancia
+    SELECT CASE WHEN c.persona_fisica THEN '{TITULO_OCULTO}' ELSE c.titulo END AS titulo,
+           o.nombre AS organo, {NOMBRE_FUENTE.format(col="c.fuente")} AS fuente, c.url_origen,
+           c.fecha_descarga, round(c.relevancia, 2) AS relevancia_busqueda
     FROM c LEFT JOIN organo AS o USING (organo_id)
     ORDER BY c.relevancia DESC LIMIT {EJEMPLOS}
     """
@@ -131,6 +152,13 @@ def buscar(con: duckdb.DuckDBPyConnection, consulta: str, origen: str) -> dict:
     columnas = [d[0] for d in cursor.description]
     filas = [list(f) for f in cursor.fetchall()]
     columnas_resumen, resumen = _resumen(con, origen, parametros)
+    nombres = {
+        "placsp": "Plataforma de Contratación del Sector Público",
+        "portal_cm": "Portal de la Contratación Pública de la Comunidad de Madrid",
+        "bdns": "Base de Datos Nacional de Subvenciones",
+        "transparencia_cm": "Portal de Transparencia de la Comunidad de Madrid",
+    }
+    resumen = [[nombres.get(f[0], f[0]), *f[1:]] for f in resumen]
     return {
         "sql": f"-- Búsqueda por palabras en {ORIGENES[origen]}: «{consulta}»\n{sql.strip()}",
         "columnas": columnas,

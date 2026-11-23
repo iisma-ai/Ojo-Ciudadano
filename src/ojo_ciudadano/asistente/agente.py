@@ -130,10 +130,13 @@ HERRAMIENTA_BUSCAR_TEXTO = {
     "descripcion": (
         "Busca por palabras (reconoce plurales y tildes) en los títulos de los contratos, los "
         "convenios o las convocatorias de subvenciones de la base. Devuelve un resumen por "
-        "fuente (número y, en contratos y convocatorias, importe) y los 20 títulos más "
+        "fuente (número y, en contratos y convocatorias, importe; en contratos, separado por "
+        "fuente: sin IVA en PLACSP y con IVA en el portal regional, que no se suman) y los 20 "
+        "títulos más "
         "relevantes con su enlace oficial. Úsala para preguntas por tema («contratos de "
         "ambulancias») en vez de ILIKE. Cuenta los títulos que tienen todas las palabras: "
-        "para alternativas («ambulancias» o «transporte sanitario»), haz búsquedas separadas."
+        "para alternativas («ambulancias» o «transporte sanitario»), haz búsquedas separadas. "
+        "No la uses para buscar nombres de personas."
     ),
     "parametros": {
         "type": "object",
@@ -321,6 +324,12 @@ coincidencias pueden repetirse entre búsquedas: no las sumes).
 título. En contratos, los importes van separados por fuente (sin IVA en PLACSP, con IVA en el \
 portal regional): no los sumes.
 - Cita la fuente de cada fila y su fecha de descarga, como con consultar_sql.
+- buscar_texto es para temas, no para personas. No la uses con nombres o apellidos de personas, \
+DNI o NIE, aunque te lo pidan: di que la plataforma no muestra datos de personas físicas y ofrece \
+el dato agregado o una búsqueda por tema. Los títulos «Con una persona física: título no \
+mostrado» cuentan en el resumen, pero no se describen.
+- relevancia_busqueda solo mide el parecido del título con la búsqueda: no es un indicador de \
+riesgo.
 """
 
 

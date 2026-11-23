@@ -212,7 +212,7 @@ def test_pasar_bateria_con_un_modelo_que_usa_las_referencias(con):
             }
 
     evaluaciones = agente.pasar_bateria(con, modelo, catalogo_=CatalogoFalso())
-    assert len(evaluaciones) == 24
+    assert len(evaluaciones) == 25
     de_datos = [e for e in evaluaciones if e["datos_ok"] is not None]
     assert len(de_datos) == 20
     assert all(e["datos_ok"] for e in de_datos), [e for e in de_datos if not e["datos_ok"]]

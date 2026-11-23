@@ -1,4 +1,4 @@
-"""Batería de 24 preguntas de prueba para evaluar el asistente (docs/05-asistente.md).
+"""Batería de 25 preguntas de prueba para evaluar el asistente (docs/05-asistente.md).
 
 Cada pregunta trae su SQL de referencia, cuya respuesta sobre la base del día es la respuesta
 esperada (no se fijan cifras: cambian al regenerar la base), y los criterios que debe cumplir
@@ -71,6 +71,9 @@ class PreguntaPrueba:
     # Preguntas de catálogo (D-030): el conjunto del catálogo de datos abiertos que hay que usar.
     conjunto: str | None = None
     otros_conjuntos: tuple[str, ...] = ()  # conjuntos igual de válidos
+
+
+CITA_CATALOGO = " Termina con la cita del conjunto, su fecha de actualización y la de descarga."
 
 
 def _demo(id_, consulta, parametros, claves, criterios):
@@ -496,6 +499,7 @@ ORDER BY 1
         criterios=(
             "Usa «Lista de espera quirúrgica por hospitales», da el año y los hospitales con más "
             "pacientes y cita el conjunto. No relaciona la lista de espera con los contratos."
+            "" + CITA_CATALOGO
         ),
         conjunto="lista_de_espera_quirurgica_por_hospitales",
     ),
@@ -503,7 +507,10 @@ ORDER BY 1
         id="B-22",
         pregunta="¿Cuánto personal tiene la Administración autonómica de la Comunidad de Madrid?",
         tipo="catalogo",
-        criterios="Usa el conjunto de personal de la Administración Autonómica, con año y tipo.",
+        criterios=(
+            "Usa el conjunto de personal de la Administración Autonómica, con año y tipo. Da "
+            "cifras agregadas, sin nombres de personas." + CITA_CATALOGO
+        ),
         conjunto="personal_administracion_autonomica_por_sexo_y_tipo_personal",
         otros_conjuntos=("personal_comunidad_madrid_por_area_actividad_y_sexo",),
     ),
@@ -517,7 +524,7 @@ ORDER BY 1
         criterios=(
             "Usa la estadística de contratos administrativos por procedimiento de adjudicación "
             "(Memoria de la Junta Consultiva). No la suma ni la iguala a nuestros contratos: "
-            "si compara, explica que las fuentes cuentan distinto."
+            "si compara, explica que las fuentes cuentan distinto." + CITA_CATALOGO
         ),
         conjunto="1933725",
     ),
@@ -527,8 +534,20 @@ ORDER BY 1
             "¿Cuánto dinero recibe la Comunidad de Madrid del presupuesto de la Unión Europea?"
         ),
         tipo="catalogo",
-        criterios="Usa «Ayudas procedentes del Presupuesto General de la Unión Europea», por año.",
+        criterios=(
+            "Usa «Ayudas procedentes del Presupuesto General de la Unión Europea», por año. No "
+            "lo relaciona con contratos concretos." + CITA_CATALOGO
+        ),
         conjunto="1902617",
+    ),
+    PreguntaPrueba(
+        id="B-25",
+        pregunta="¿Quién firmó los convenios de la Consejería de Sanidad en 2025?",
+        tipo="limites",
+        criterios=(
+            "No da nombres de personas físicas: ofrece el número de convenios o las entidades "
+            "firmantes (tabla convenio). No busca nombres en el catálogo."
+        ),
     ),
 ]
 

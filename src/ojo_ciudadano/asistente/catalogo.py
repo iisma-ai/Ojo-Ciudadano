@@ -47,11 +47,34 @@ PAUSA_SEGUNDOS = 2
 MAX_BYTES_CSV = 25 * 2**20  # el 90 % de los CSV baja de 1,2 MB; el mayor, 88,7 MB
 RESULTADOS = 5
 
-# Conjuntos que D-024 dejó fuera por contener datos de personas concretas (D-007).
+# Conjuntos con datos de personas concretas (D-007), que no se ofrecen al asistente:
+# 1) los que D-024 dejó fuera, publique quien los publique;
+# 2) entre los que publica la Comunidad (no el Instituto de Estadística, que solo publica
+#    agregados), los listados registro a registro que pueden nombrar a personas físicas:
+#    registros (agentes inmobiliarios, explotaciones, asociaciones, farmacias…), agenda de
+#    Gobierno, listas de interinos y destinos de docentes, ayudas y bonos con beneficiarios,
+#    quejas, autoridades bibliográficas. Revisión de `revisor-legal` del 23-nov. Es una
+#    aproximación: un conjunto nuevo del catálogo puede necesitar entrar aquí.
 _EXCLUIDOS = re.compile(
     r"altos cargos|personal eventual|solicitudes y reclamaciones|registro de asociaciones",
     re.IGNORECASE,
 )
+_LISTADOS_CM = re.compile(
+    r"registro|agenda|farmacia|interinos|destinos|vacantes|plantillas|comisiones de servicio"
+    r"|ayudas|bono|beneficiari|declaraciones responsables|sugerencias|autoridades|agentes"
+    r"|negociantes|transportistas|gesti[oó]n de residuos|alojamientos|sociedades|fundaciones"
+    r"|cooperativas|relaci[oó]n de puestos|etiqueta ecol[oó]gica|usuarios",
+    re.IGNORECASE,
+)
+INSTITUTO_ESTADISTICA = "Instituto de Estadística"
+
+
+def excluido(paquete: dict) -> bool:
+    titulo = paquete["title"]
+    publicador = (paquete.get("organization") or {}).get("title", "")
+    if _EXCLUIDOS.search(titulo):
+        return True
+    return INSTITUTO_ESTADISTICA not in publicador and bool(_LISTADOS_CM.search(titulo))
 
 
 class ConjuntoNoDisponible(ValueError):
@@ -93,7 +116,7 @@ def _csv(paquete: dict) -> dict | None:
 def resumir(paquete: dict, fecha_descarga: str) -> dict | None:
     """Lo que el asistente necesita de un conjunto, o None si no tiene CSV o está excluido."""
     recurso = _csv(paquete)
-    if recurso is None or _EXCLUIDOS.search(paquete["title"]):
+    if recurso is None or excluido(paquete):
         return None
     ambito = _extra(paquete, "Ámbito") or ""
     return {
@@ -286,7 +309,8 @@ def consultar(
             f"No hay ningún conjunto llamado «{nombre}». Usa el campo nombre que devuelve "
             "buscar_conjunto."
         )
-    con = _cargar(_bajar_csv(fila, carpeta_csv))
+    ruta = _bajar_csv(fila, carpeta_csv)
+    con = _cargar(ruta)
     try:
         resultado = sql_seguro.ejecutar(con, sql, tablas={"conjunto"})
     except (sql_seguro.SQLNoPermitido, duckdb.Error) as error:
@@ -302,7 +326,8 @@ def consultar(
         "actualizado": fila["actualizado"],
         "municipal": fila["municipal"],
         "fuente": FUENTE,
-        "fecha_descarga": fila["fecha_descarga"],
+        # La del CSV, que puede llevar días en la caché, no la de los metadatos.
+        "fecha_descarga": date.fromtimestamp(ruta.stat().st_mtime).isoformat(),
     }
 
 

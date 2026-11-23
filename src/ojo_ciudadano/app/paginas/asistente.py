@@ -62,7 +62,8 @@ def mostrar_conjunto(numero: int, consulta: dict) -> None:
     with st.expander(f"Datos de la consulta {numero} · catálogo de datos abiertos"):
         st.markdown(
             f"**[{consulta['titulo_conjunto']}]({consulta['url_origen']})** · "
-            f"{catalogo.NOMBRE_FUENTE}, actualizado el {consulta['actualizado']}"
+            f"{catalogo.NOMBRE_FUENTE} (licencia CC BY) · actualizado el "
+            f"{consulta['actualizado']} · datos descargados el {consulta['fecha_descarga']}"
         )
         if consulta.get("municipal"):
             st.caption(

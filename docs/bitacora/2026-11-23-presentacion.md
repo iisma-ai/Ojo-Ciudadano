@@ -6,7 +6,7 @@
   (llenado = gastado), Comunidad de Madrid y consejerías, datos públicos pero no accesibles, el ojo ilumina,
   módulos, señales y asistente, cierre.
 - Todo el contenido está en `presentacion/diapositivas.js`; las cifras salen de la base (23-nov-2026) y están
-  en el objeto `DATOS`. Cómo editarla: `presentacion/LEEME.md`.
+  en el objeto `DATOS`. Cómo editarla: `presentacion/README.md`.
 
 ## Segunda versión: 3D realista
 - La primera versión (SVG y CSS) parecía de dibujos animados. Se rehace en WebGL con Three.js 0.169 (CDN,
@@ -16,7 +16,7 @@
 - Detalles técnicos: el cristal suma solo sus reflejos (mezcla aditiva) para que el líquido conserve el color;
   tono `Neutral` porque ACES volvía morados los azules; se fija `pow` con `clamp` (un NaN dejaba la imagen en
   negro a través del resplandor).
-- Hay que servirla por HTTP (módulos ES): ver `presentacion/LEEME.md`.
+- Hay que servirla por HTTP (módulos ES): ver `presentacion/README.md`.
 
 ## Pendiente
 - Capturas o vídeos de la aplicación en las burbujas de tipo `captura` (carpeta `presentacion/media/`).

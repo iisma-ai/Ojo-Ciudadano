@@ -14,6 +14,15 @@ from ojo_ciudadano.app.datos import AGREGADO_PERSONAS, _beneficiario_visible, _f
 PRIMER_ANIO = 2015
 LIMITE_CONTRATOS = 15
 
+# Nombres de los adjudicatarios, en orden fijo (si cambiara entre ejecuciones, Streamlit vería un
+# mapa nuevo y perdería el clic) y sin personas físicas: esas salen agregadas (D-007).
+_NOMBRES_VISIBLES = f"""
+    array_to_string(
+        list_sort(list_distinct(list(
+            CASE WHEN {_beneficiario_visible("d")} THEN d.nombre ELSE '{AGREGADO_PERSONAS}' END
+        ))), ' ; ')
+"""
+
 
 def periodos(con: duckdb.DuckDBPyConnection) -> list[dict]:
     """Años que se pueden ver, del más reciente al más antiguo. `liquidado` es que ya hay gasto
@@ -160,8 +169,7 @@ def contratos_consejeria(
                o.nombre AS organo, c.url_origen,
                sum(coalesce(a.importe_sin_iva, a.importe_con_iva)) AS importe,
                min(a.n_ofertas) AS n_ofertas,
-               string_agg(DISTINCT CASE WHEN {_beneficiario_visible("d")} THEN d.nombre
-                                        ELSE '{AGREGADO_PERSONAS}' END, ' ; ') AS adjudicatarios
+               {_NOMBRES_VISIBLES} AS adjudicatarios
         FROM contrato_unico AS c
         JOIN adjudicacion AS a USING (contrato_id)
         JOIN organo AS o ON o.organo_id = c.organo_id
@@ -171,7 +179,7 @@ def contratos_consejeria(
         GROUP BY c.contrato_id, c.titulo, c.fuente, c.procedimiento, c.tipo_contrato,
                  o.nombre, c.url_origen
         HAVING sum(coalesce(a.importe_sin_iva, a.importe_con_iva)) > 0
-        ORDER BY importe DESC LIMIT ?
+        ORDER BY importe DESC, c.contrato_id LIMIT ?
         """,
         [organos, anio, limite],
     )
@@ -214,8 +222,7 @@ def detalle_contrato(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict |
                c.url_origen, o.nombre AS organo, o.organo_id,
                sum(a.importe_sin_iva) AS importe_sin_iva, sum(a.importe_con_iva) AS importe_con_iva,
                min(a.n_ofertas) AS n_ofertas, max(a.fecha_formalizacion) AS fecha_formalizacion,
-               string_agg(DISTINCT CASE WHEN {_beneficiario_visible("d")} THEN d.nombre
-                                        ELSE '{AGREGADO_PERSONAS}' END, ' ; ') AS adjudicatarios
+               {_NOMBRES_VISIBLES} AS adjudicatarios
         FROM contrato_unico AS c
         JOIN organo AS o ON o.organo_id = c.organo_id
         LEFT JOIN adjudicacion AS a ON a.contrato_id = c.contrato_id

@@ -37,8 +37,9 @@ def nombre_corto(nombre: str) -> str:
 def etiqueta_contrato(contrato: dict) -> str:
     """Quién recibe el contrato y cuánto, para que se lea de un vistazo (el título completo
     sale al pasar el ratón y al pulsar)."""
-    quien = (contrato["adjudicatarios"] or "Sin adjudicataria").split(" ; ")[0]
-    return red.envolver(quien[:30], 18) + chr(10) + textos.millones(contrato["importe"])
+    nombres = (contrato["adjudicatarios"] or "Sin adjudicataria").split(" ; ")
+    quien = nombres[0][:28] + (f" (+{len(nombres) - 1})" if len(nombres) > 1 else "")
+    return red.envolver(quien, 18) + chr(10) + textos.millones(contrato["importe"])
 
 
 def importe_vista(entidad: dict, vista: str) -> float:

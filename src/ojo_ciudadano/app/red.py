@@ -109,6 +109,7 @@ def configuracion(alto: int = 560) -> Config:
         },
         "stabilization": {"enabled": True, "iterations": 250, "fit": True},
     }
+    cfg.layout = {"randomSeed": 7, "improvedLayout": True}  # mismo dibujo en cada recarga
     cfg.interaction = {
         "zoomView": False,  # sin zoom: solo se mueven los nodos
         "dragView": False,

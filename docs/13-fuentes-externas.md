@@ -29,7 +29,7 @@ Investigación del 23-nov-2026, **en curso**. Complementa [12-datos-cm.md](12-da
 | X-04 | Indicadores europeos de contratación (Single Market Scoreboard) y OIReScon | Referencia para comparar R-01 y R-02 con España y la UE | **Viable y barata** (ver detalle) |
 | X-05 | DIR3 (directorio común de unidades orgánicas) | Normalizar órganos entre portal y PLACSP | **Viable, valor medio** (ver detalle) |
 | X-06 | Sistema de exclusión de la UE (EDES) y listas de inhabilitación | Señal: entidad excluida | **Descartada**: 5 entidades en toda la UE |
-| X-07 | Fondos europeos (PRTR y FEDER/FSE+ de la Comunidad) | Contexto: contratos y beneficiarios con fondos europeos | En estudio |
+| X-07 | Fondos europeos (PRTR y FEDER/FSE+ de la Comunidad) | Contexto: contratos y beneficiarios con fondos europeos | **Ya está en PLACSP**: campo sin usar (ver detalle) |
 | X-08 | Listado de deudores con la Hacienda Pública (AEAT) | Señal posible | **Descartada**: la ley impide su reutilización |
 
 ## Detalle por fuente
@@ -119,6 +119,29 @@ Explorado el 23-nov-2026. Directorio oficial de unidades de todas las administra
   - Entes públicos y fundaciones del sector público que contratan con la Comunidad: fundaciones de investigación de hospitales, Fundación Orquesta y Coro de Madrid, Parque Científico de Madrid, y de otras comunidades (Banc de Sang i Teixits, Hospital Clínic de Barcelona).
   - Alguna coincidencia por error en DIR3 (una sociedad anónima privada con el NIF de una unidad): **revisar a mano** antes de etiquetar.
 - **Coste:** bajo para descargar y leer (necesita `fastexcel`, que entra con D-024); medio para el cruce por nombre. Prioridad: después de X-02 y X-04.
+
+### X-07 · Fondos europeos: ya vienen en PLACSP
+
+Explorado el 23-nov-2026. Antes de buscar los listados del Plan de Recuperación (PRTR) o de los programas FEDER y FSE+ de la Comunidad, se miró si los contratos ya lo dicen. **Sí**: cada licitación del Atom de PLACSP trae `cac:TenderingTerms/cbc:FundingProgramCode` (lista [`FundingProgramCode-2.08`](http://contrataciondelestado.es/codice/cl/2.08/FundingProgramCode-2.08.gc)), con `EU` / `NO-EU` y el programa: `PRTR`, `FEDER`, `FSE+`, `FEADER`, `OFE` (otros fondos europeos). **La ingesta actual no lo lee** (`ingesta/placsp.py`).
+
+Recuento sobre los 47 zip ya descargados (ene-2023 a nov-2026), última versión de cada expediente y órgano de la Comunidad:
+
+| Financiación | Expedientes |
+| --- | --- |
+| Con fondos de la UE | **991** |
+| · Plan de Recuperación (PRTR) | 548 |
+| · FEDER | 204 |
+| · Otros fondos europeos (OFE) | 160 |
+| · FSE+ | 56 |
+| · FEADER | 23 |
+| Sin fondos de la UE | 13.991 |
+| Sin el campo (versiones antiguas) | 5.918 |
+
+(20.900 claves expediente + órgano antes de los filtros de la ingesta, que deja 17.589 licitaciones; las cifras finales se recalculan al cargarlo.)
+
+- **Para qué sirve:** etiqueta «financiado con fondos europeos (PRTR)» en la ficha de contrato y filtro en el panel de alertas y en el mapa. Los contratos del PRTR tienen obligaciones reforzadas de control (Orden HFP/1030/2021: conflicto de intereses, doble financiación), así que es un contexto relevante para quien revisa. **No es una señal de riesgo.**
+- **Coste:** bajo. Es una columna nueva en `contrato` (esquema aditivo, D-017) y unas líneas en el lector del Atom. No hace falta descargar nada.
+- **Con esto, los listados de perceptores del PRTR y de FEDER/FSE+ pierden prioridad**: repetirían lo que ya sabemos del contrato. Quedan como línea futura para las subvenciones con fondos europeos.
 
 ### Descartadas (23-nov)
 

@@ -296,3 +296,31 @@ Plantilla:
   - Lo que no hay se dice en la pantalla («Qué datos no tenemos»): gasto del año en curso, gasto que no es contratación, contratos sin fecha, criterios de adjudicación y órganos sin contratos en nuestras fuentes.
 - **Alternativas consideradas:** Componente propio con D3 (más trabajo y sin devolver el clic a Streamlit). Mantener Plotly (no se puede arrastrar un nodo y que tiren los demás). Cruzar partida a partida presupuesto y contratos (los datos no lo permiten, ver 02).
 - **Consecuencias:** `uv sync` para instalar `streamlit-agraph`. Presupuesto y contratos son fuentes distintas y se comparan por consejería y año, no partida a partida (`textos.AVISO_CONTEXTO`). Los nodos deben ser deterministas entre ejecuciones (si cambia el orden de un nombre, Streamlit ve un componente nuevo y pierde el clic): las consultas ordenan las adjudicatarias. Se actualizan [03-modulos.md](03-modulos.md) y el plan.
+
+## D-030 · RAG documental acotado: pliegos de PLACSP bajo demanda
+- **Fecha:** 2026-11-23
+- **Estado:** Propuesta. El Harrak pidió no aplicar el recorte 2 sin investigarlo antes; falta su decisión con este plan.
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** El plan preveía un RAG con BM25 y embeddings sobre informes, memorias y pliegos (D-010, [05](05-asistente.md)), y es el recorte 2. La investigación del 23-nov ([14-rag-documental.md](14-rag-documental.md)) ha comprobado varias cosas:
+  - el Atom de PLACSP ya enlaza el PCAP del 97 % de las licitaciones de la Comunidad;
+  - los PDF tienen texto digital;
+  - BM25 de DuckDB encuentra la página correcta en 5 de 5 preguntas;
+  - el modelo responde con cita de página por 0,0014 USD.
+  
+  También tiene límites: el portal no enlaza pliegos de emergencias ni de «otro procedimiento», OpenRouter no tiene embeddings y no hay informes de la Cámara de Cuentas de 2023 a 2026.
+- **Decisión propuesta:** hacer una versión acotada.
+  - **Qué se construye:**
+    - tabla aditiva `contrato_documento` con los enlaces de los pliegos de PLACSP;
+    - herramienta `buscar_en_pliego(contrato_id, consulta)`, que descarga el pliego bajo demanda con caché, lo extrae por páginas con `pypdf` y lo indexa con BM25 en DuckDB;
+    - 3 páginas como máximo, citadas y marcadas como datos.
+  - **Qué no se hace:** sin embeddings, sin informes de la Cámara de Cuentas y sin PDF del TACPCM (D-029) hasta una revisión legal.
+  - **Calendario:** punto de control el 24-nov a las 14:00. Si falla, la herramienta se desactiva.
+- **Alternativas consideradas:**
+  - Aplicar el recorte 2: ahorra unas 12 horas, pero se pierde la explicación del expediente junto a la señal.
+  - RAG completo con embeddings y corpus precargado: unos 15 GB, torch y varios días.
+  - Solo enlazar el PDF sin RAG: barato, pero no responde a la pregunta.
+- **Consecuencias:**
+  - Nueva dependencia `pypdf`.
+  - Cambio aditivo del esquema y de `ingesta/placsp.py`; hay que avisar a quien lleva la ingesta.
+  - 4 preguntas nuevas en la batería.
+  - Si se acepta, se actualizan 05, 06 y 08.

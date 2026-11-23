@@ -18,7 +18,10 @@
 ## Comprobaciones
 
 - `uv run pytest`: todo en verde. `ruff check` y `ruff format`: limpios.
-- Regeneración local de la base: ver «Resultados» (se rellena al terminar).
+- Regeneración local completa (carga, indicadores y anomalías: 8 min 53 s), con los CSV del portal del 16-nov, los zip de PLACSP y la BDNS:
+  - **Filas de relleno:** ya no aparecen. `S7800001E` y `Q7850065I` siguen solo en adjudicaciones legítimas: `Q7850065I` es el NIF del Organismo Autónomo Boletín Oficial de la Comunidad (56 adjudicaciones, 0,26 M€), y `S7800001E` el de la propia Comunidad (4 adjudicaciones, 3.235 €).
+  - **`contrato_financiacion`:** 14.772 licitaciones con el dato; **965 con fondos de la UE** (PRTR 540, FEDER 200, otros fondos europeos 153, FSE+ 52, FEADER 20) y 13.807 sin ellos.
+  - **Indicadores:** R-01 sin cambios (8.144 de 20.693); R-04 pasa de 84 a **83** activados; anomalías: 13.498 atípicos de 1.349.510.
 
 ## Qué falta
 

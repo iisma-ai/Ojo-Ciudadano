@@ -20,6 +20,7 @@ Estado a 21 de noviembre de 2026: **fase 2 (construcción) casi cerrada.** Datos
 | [09-preguntas-abiertas.md](09-preguntas-abiertas.md) | Lo que aún no sabemos y hay que confirmar | Al empezar cada sesión |
 | [10-glosario.md](10-glosario.md) | Jerga de contratación pública y siglas | Cuando dudes de un término |
 | [11-accesibilidad.md](11-accesibilidad.md) | **Accesibilidad y visualización**: principios, tareas A-xx por pantalla y estudios de visualización por indicador | Antes de tocar cualquier pantalla |
+| [13-fuentes-externas.md](13-fuentes-externas.md) | Fuentes externas candidatas (recursos del TACPCM, referencias de licitador único, DIR3, fondos europeos) y las descartadas, con recomendación priorizada | Antes de proponer una fuente nueva |
 | [marca.md](marca.md) | Logo, paleta, tipografía y reglas de estilo (sin emojis) | Antes de tocar la interfaz o la presentación |
 | [bitacora/](bitacora/) | Registro de lo hecho en cada sesión de trabajo | **Siempre**: al empezar (leer) y al terminar (escribir) |
 

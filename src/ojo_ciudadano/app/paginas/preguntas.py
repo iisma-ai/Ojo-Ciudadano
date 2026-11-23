@@ -6,7 +6,7 @@ la respuesta de respaldo de la demo mientras no esté conectado el modelo de len
 
 import streamlit as st
 
-from ojo_ciudadano.app import graficos, textos
+from ojo_ciudadano.app import buscador, graficos, textos
 from ojo_ciudadano.app.conexion import conexion
 from ojo_ciudadano.app.tablas import mostrar_resultado
 from ojo_ciudadano.asistente import sql_seguro
@@ -28,11 +28,9 @@ if "consejeria" in consulta.parametros:
     )["filas"]
     parametros["consejeria"] = st.selectbox("Consejería", [f[0] for f in opciones])
 if "empresa" in consulta.parametros:
-    parametros["empresa"] = st.text_input(
-        "Empresa", placeholder="Nombre o NIF (mínimo 3 caracteres)"
-    ).strip()
-    if len(parametros["empresa"]) < 3:
-        st.stop()
+    empresa = buscador.empresa("preguntas_empresa", "Empresa", valor="nif")
+    buscador.esperar(empresa, "Escribe las primeras letras de la empresa y elígela de la lista.")
+    parametros["empresa"] = empresa
 
 resultado = sql_seguro.ejecutar(conexion(), consulta.sql, parametros)
 

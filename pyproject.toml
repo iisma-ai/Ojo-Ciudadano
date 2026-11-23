@@ -13,6 +13,9 @@ dependencies = [
     "streamlit>=1.40",
     "plotly>=7.1.0",
     "scikit-learn>=1.9.1",
+    "fastexcel>=0.21.0",
+    "streamlit-searchbox>=0.1.24",
+    "streamlit-agraph>=0.0.45",
 ]
 
 # Las dependencias del asistente (cliente LLM, embeddings, índice híbrido)

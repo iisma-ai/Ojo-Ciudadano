@@ -340,3 +340,28 @@ def test_sugerencias_sin_tildes(con):
     """Quien escribe sin tildes («organo») encuentra «Órgano» y al revés."""
     assert datos.sugerir_organos(con, "organo")
     assert datos.sugerir_organos(con, "ÓRGANO")
+
+
+def test_encargos_atipicos_y_validacion(con):
+    assert datos.encargos_atipicos(con) == [] and datos.validacion_anomalias(con) == []
+    con.execute("INSERT INTO adjudicatario VALUES ('A28476208', 'A28476208', 'Tragsa', 'juridica')")
+    con.execute(
+        "INSERT INTO encargo (encargo_id, orden, fuente, organo_id, titulo, anio_publicacion, "
+        "medio_propio_id, importe_con_iva, url_origen, fecha_descarga) VALUES "
+        "('portal_cm:C1', 1, 'portal_cm', 'ORG', 'Incendios forestales', 2025, 'A28476208', "
+        "9000000, 'https://x/C1', DATE '2026-11-23')"
+    )
+    con.execute(
+        "CREATE TABLE anomalia_encargo AS SELECT 'portal_cm:C1' AS encargo_id, "
+        "'portal_cm · encargo' AS grupo, 60::BIGINT AS n_grupo, 0.99 AS puntuacion, "
+        "true AS atipico, 'importe' AS variables, 'Importe del encargo alto' AS motivo, "
+        "'https://x/C1' AS url_origen"
+    )
+    con.execute(
+        "CREATE TABLE anomalia_validacion AS SELECT 'Todos los contratos analizados' AS "
+        "grupo_validacion, 100::BIGINT AS contratos, 1::BIGINT AS atipicos, 0.01 AS "
+        "proporcion_atipicos, 0.2 AS puntuacion_riesgo_media"
+    )
+    (fila,) = datos.encargos_atipicos(con)
+    assert (fila["medio_propio"], fila["importe_con_iva"]) == ("Tragsa", 9000000)
+    assert datos.validacion_anomalias(con)[0]["contratos"] == 100

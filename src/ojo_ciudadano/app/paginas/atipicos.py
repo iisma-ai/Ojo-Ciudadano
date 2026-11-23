@@ -21,6 +21,70 @@ if not datos.hay_anomalias(con):
     )
     st.stop()
 
+# Encargos a medios propios y comprobación con datos oficiales (D-031).
+encargos = datos.encargos_atipicos(con)
+if encargos:
+    with st.expander(
+        f"Encargos a medios propios atípicos ({textos.numero(len(encargos))})",
+        icon=":material/assignment:",
+    ):
+        st.caption(
+            "Encargos que se alejan de los demás encargos (importe, modificaciones y peso del "
+            "medio propio en lo que encarga el órgano). Un encargo no es un contrato licitado: "
+            "la ley permite asignar trabajos a entidades públicas que actúan como medio propio. "
+            "Atípico no significa irregular."
+        )
+        for e in encargos:
+            organo = e["organo"] or "Órgano sin nombre"
+            medio = e["medio_propio"] or "medio propio"
+            st.markdown(
+                f"**{e['titulo'] or e['encargo_id']}**  \n"
+                f":gray[{organo} → {medio} · {textos.euros(e['importe_con_iva'], 'con IVA')}"
+                f" · {e['anio']}]  \n"
+                f"{e['motivo']}"
+            )
+            st.link_button(
+                "Ver el encargo en el portal", e["url_origen"], icon=":material/open_in_new:"
+            )
+        st.caption(
+            f"Fuente: {textos.NOMBRES_FUENTE['portal_cm']}, datos descargados el "
+            f"{encargos[0]['fecha_descarga']}."
+        )
+
+validacion = datos.validacion_anomalias(con)
+if validacion:
+    with st.expander(
+        "Comprobación con los recursos del Tribunal y los fondos europeos",
+        icon=":material/fact_check:",
+    ):
+        st.caption(
+            "Si la señal sirve, los contratos en los que el Tribunal Administrativo de "
+            "Contratación Pública estimó un recurso deberían ser atípicos más a menudo que el "
+            "resto. Es una comprobación descriptiva, con pocos casos enlazados a un contrato: "
+            "no prueba que la señal funcione. Los recursos y los fondos europeos no se usan "
+            "para calcular la señal."
+        )
+        st.dataframe(
+            {
+                "Grupo": [v["grupo_validacion"] for v in validacion],
+                "Contratos": [v["contratos"] for v in validacion],
+                "Atípicos": [v["atipicos"] for v in validacion],
+                "% atípicos": [
+                    textos.porcentaje(v["proporcion_atipicos"], 1)
+                    if v["proporcion_atipicos"] is not None
+                    else "—"
+                    for v in validacion
+                ],
+                "Puntuación de riesgo media": [
+                    f"{v['puntuacion_riesgo_media']:.3f}".replace(".", ",")
+                    if v["puntuacion_riesgo_media"] is not None
+                    else "—"
+                    for v in validacion
+                ],
+            },
+            hide_index=True,
+        )
+
 LIMITE = 100
 con_errores = st.toggle(
     "Mostrar posibles errores de datos",

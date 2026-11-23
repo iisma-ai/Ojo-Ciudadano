@@ -22,7 +22,7 @@ LINEA = "#5B6B86"
 BORDE = "#E7ECF3"
 COLOR_POCO = (0x1F, 0x5F, 0xBF)  # azul oscuro: poco dinero
 COLOR_MUCHO = (0x8C, 0xC2, 0xFF)  # azul claro: mucho dinero
-RADIO_MIN, RADIO_MAX = 16, 64
+RADIO_MAX = 64  # radio del círculo central (la Comunidad o la consejería)
 
 
 @dataclass
@@ -52,12 +52,6 @@ def _mezcla(t: float) -> str:
     t = min(max(t, 0.0), 1.0)
     r, g, b = (round(a + (c - a) * t) for a, c in zip(COLOR_POCO, COLOR_MUCHO, strict=True))
     return f"#{r:02X}{g:02X}{b:02X}"
-
-
-def _radio(importe: float, maximo: float) -> float:
-    if maximo <= 0 or importe <= 0:
-        return RADIO_MIN
-    return RADIO_MIN + (RADIO_MAX - RADIO_MIN) * math.sqrt(min(importe / maximo, 1.0))
 
 
 def svg_nodo(color: str, llenado: float | None, centro: bool = False) -> str:

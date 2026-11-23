@@ -196,3 +196,15 @@ def test_openrouter_traduce_las_herramientas_del_catalogo():
     funcion = salida[2]["tool_calls"][0]["function"]
     assert funcion["name"] == "buscar_conjunto"
     assert json.loads(funcion["arguments"]) == {"consulta": "paro"}
+
+
+def test_precargar_baja_los_conjuntos_de_la_bateria(monkeypatch, filas):
+    from ojo_ciudadano.asistente import bateria
+
+    esperados = {n for p in bateria.BATERIA if p.conjunto for n in (p.conjunto, *p.otros_conjuntos)}
+    indice = type("I", (), {"filas": {n: {"nombre": n} for n in esperados}})()
+    bajados = []
+    monkeypatch.setattr(catalogo, "_indice", lambda: indice)
+    monkeypatch.setattr(catalogo, "_bajar_csv", lambda fila: bajados.append(fila["nombre"]))
+    monkeypatch.setattr(catalogo, "PAUSA_SEGUNDOS", 0)
+    assert set(catalogo.precargar()) == esperados == set(bajados)

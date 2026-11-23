@@ -15,6 +15,7 @@ encontrar el conjunto adecuado y leer sus filas, no buscar en documentos
    con tilde, como «Año».
 
 Metadatos del catálogo: `uv run python -m ojo_ciudadano.asistente.catalogo` (3 peticiones).
+CSV de la demo en caché: `uv run python -m ojo_ciudadano.asistente.catalogo --precargar`.
 """
 
 import functools
@@ -331,9 +332,33 @@ def consultar(
     }
 
 
+def precargar(nombres: list[str] | None = None) -> list[str]:
+    """Deja en caché los CSV de los conjuntos de la demo (por defecto, los de las preguntas de
+    catálogo de la batería), para que la demo no dependa de la red."""
+    from ojo_ciudadano.asistente import bateria  # solo aquí: evita importarla al usar el módulo
+
+    if nombres is None:
+        nombres = [
+            n for p in bateria.BATERIA if p.conjunto for n in (p.conjunto, *p.otros_conjuntos)
+        ]
+    filas = _indice().filas
+    bajados = []
+    for nombre in nombres:
+        if nombre in filas:
+            _bajar_csv(filas[nombre])
+            bajados.append(nombre)
+            time.sleep(PAUSA_SEGUNDOS)
+    return bajados
+
+
 def main() -> None:
+    if "--precargar" in sys.argv:
+        bajados = precargar()
+        print(f"CSV en caché ({CARPETA_CSV}): {', '.join(bajados)}")
+        return
     ruta = descargar()
     print(f"Catálogo descargado en {ruta}: {len(conjuntos(ruta))} conjuntos con CSV.")
+    print("Para la demo: uv run python -m ojo_ciudadano.asistente.catalogo --precargar")
 
 
 if __name__ == "__main__":

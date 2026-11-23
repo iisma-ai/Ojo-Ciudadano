@@ -41,3 +41,10 @@ def test_pie_cumple_las_condiciones_de_reutilizacion():
 def test_aviso_menores_recientes_cita_la_ley():
     assert "art. 63.4" in textos.AVISO_MENORES_RECIENTES
     assert "no indica que se contrate menos" in textos.AVISO_MENORES_RECIENTES
+
+
+def test_contexto_de_senal_enlaza_a_sus_fuentes():
+    assert set(textos.CONTEXTO_SENAL) <= set(textos.NOMBRES_INDICADOR)
+    for frase in textos.CONTEXTO_SENAL.values():
+        assert "](https://" in frase
+    assert "45,5 %" in textos.lista_indicadores()

@@ -32,6 +32,19 @@ PATRON_EMPRESA = (
 )
 _EMPRESA = re.compile(PATRON_EMPRESA)
 
+# Filas de relleno de las fuentes: contratos con muchos adjudicatarios resumidos en una línea
+# («33 EMPRESAS ADJUDICATARIAS», «Ver resolución de adjudicación»), a veces con el NIF del
+# propio órgano o un NIF inventado. No son una empresa (docs/13-fuentes-externas.md, X-05).
+_NIF_RELLENO = re.compile(r"^(VARIOS?(ADJUDICATARIOS)?|VER.*ADJUDICACI[OÓ]N|[0X]0+[A-Z]?)$")
+_NOMBRE_RELLENO = re.compile(
+    r"(?i)^\s*(\d+\s+empresas\s+adjudicatarias\b|varios(\s+adjudicatarios)?\s*$|ver\b.*adjudicaci)"
+)
+
+
+def es_relleno(nif: str | None, nombre: str | None) -> bool:
+    """True si el NIF o el nombre no identifican a un adjudicatario sino a «varios»."""
+    return bool((nif and _NIF_RELLENO.match(nif)) or (nombre and _NOMBRE_RELLENO.match(nombre)))
+
 
 def normalizar_nif(texto: str | None) -> str | None:
     """Mayúsculas, sin espacios, puntos ni guiones, y sin prefijos como «NIF:» o «ES»."""
@@ -97,6 +110,14 @@ def identificar(texto_nif: str | None, nombre: str | None, sal: bytes | None = N
     """
     nifs = separar_nifs(texto_nif)
     nombre = nombre.strip() if nombre and nombre.strip() else None
+    if nifs and es_relleno(nifs[0], nombre):
+        # Sin nombre: entre los NIF inventados («00000000») también hay personas (D-007).
+        return {
+            "adjudicatario_id": None,
+            "nif": None,
+            "nombre": None,
+            "tipo_persona": "desconocido",
+        }
     if not nifs:
         return {
             "adjudicatario_id": None,

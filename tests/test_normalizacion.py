@@ -113,3 +113,27 @@ def test_nif_extranjero_sin_forma_juridica_se_trata_como_persona_fisica():
     empresa = nif.identificar("DE129360582", "BAYOOSOFT GmbH", SAL)
     assert empresa["tipo_persona"] == "otro"
     assert empresa["nombre"] == "BAYOOSOFT GmbH"
+
+
+def test_filas_de_relleno_no_son_un_adjudicatario():
+    # Casos reales de PLACSP y del portal: el NIF de la Comunidad o uno inventado con un
+    # nombre que resume a varios adjudicatarios.
+    for texto_nif, nombre in [
+        ("S7800001E", "33 EMPRESAS ADJUDICATARIAS"),
+        ("Q7850065I", "VER ORDEN DE ADJUDICACIÓN"),
+        ("X000000E", "32 empresas adjudicatarias (PRIMERA ADJUDICACIÓN)"),
+        ("VARIOSADJUDICATARIOS", "Varios adjudicatarios"),
+        ("0000000000", "22 empresas adjudicatarias"),
+        ("VERRESOLUCIÓNDEADJUDICACIÓN", "Ver Resolución de Adjudicación"),
+        ("VARIOS", "VARIOS"),
+    ]:
+        identidad = nif.identificar(texto_nif, nombre, SAL)
+        assert identidad["adjudicatario_id"] is None, texto_nif
+        assert identidad["tipo_persona"] == "desconocido"
+        assert identidad["nombre"] is None
+
+
+def test_empresa_con_varios_en_el_nombre_no_es_relleno():
+    identidad = nif.identificar("B10752806", "VARIOSMUNDOS S.L.", SAL)
+    assert identidad["adjudicatario_id"] == "B10752806"
+    assert nif.identificar("S7800001E", "Comunidad de Madrid", SAL)["tipo_persona"] == "juridica"

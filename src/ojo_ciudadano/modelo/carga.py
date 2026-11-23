@@ -10,7 +10,7 @@ from pathlib import Path
 import duckdb
 import polars as pl
 
-from ojo_ciudadano.ingesta import bdns, placsp, portal_cm
+from ojo_ciudadano.ingesta import bdns, encargos, placsp, portal_cm, tacp
 from ojo_ciudadano.normalizacion import texto as n_texto
 
 RUTA_DB = Path("data/ojo_ciudadano.duckdb")
@@ -39,6 +39,22 @@ COLUMNAS_CONTRATO = {
     "fecha_contrato": pl.Date,
     "fecha_fin_plazo": pl.Date,
     "duplicado_de": pl.String,
+    "url_origen": pl.String,
+    "fecha_descarga": pl.Date,
+}
+COLUMNAS_ENCARGO = {
+    "encargo_id": pl.String,
+    "orden": pl.Int32,
+    "fuente": pl.String,
+    "expediente": pl.String,
+    "referencia_portal": pl.String,
+    "organo_id": pl.String,
+    "titulo": pl.String,
+    "tipo_contrato": pl.String,
+    "anio_publicacion": pl.Int32,
+    "medio_propio_id": pl.String,
+    "importe_con_iva": pl.Float64,
+    "importe_modificaciones_con_iva": pl.Float64,
     "url_origen": pl.String,
     "fecha_descarga": pl.Date,
 }
@@ -100,10 +116,14 @@ def marcar_duplicados(portal: pl.DataFrame, de_placsp: pl.DataFrame) -> pl.DataF
 
 
 def unificar(
-    tablas_portal: list[dict], tablas_placsp: dict | None, tablas_bdns: dict | None = None
+    tablas_portal: list[dict],
+    tablas_placsp: dict | None,
+    tablas_bdns: dict | None = None,
+    tablas_encargos: dict | None = None,
 ) -> dict[str, pl.DataFrame]:
-    """Combina las tablas de las fuentes en las tablas del esquema. Las subvenciones (BDNS)
-    son opcionales: añaden la tabla `concesion` y sus órganos y beneficiarios."""
+    """Combina las tablas de las fuentes en las tablas del esquema. Las subvenciones (BDNS) y
+    los encargos a medios propios son opcionales: añaden `concesion` y `encargo`, con sus
+    órganos y sus beneficiarios o medios propios."""
     c_portal = pl.concat([t["contratos"] for t in tablas_portal]).unique(
         "contrato_id", keep="first"
     )
@@ -119,6 +139,7 @@ def unificar(
         c_portal = marcar_duplicados(c_portal, c_placsp)
         crudos_contratos = [c_placsp, c_portal]
         crudos_adjudicaciones = [tablas_placsp["adjudicaciones"], a_portal]
+    e_portal = _con_organo_id(tablas_encargos["encargos"]) if tablas_encargos else None
 
     organos = (
         pl.concat(
@@ -134,7 +155,7 @@ def unificar(
                         else pl.lit(None, dtype=pl.String)
                     ).alias("codigo_placsp"),
                 )
-                for c in crudos_contratos
+                for c in crudos_contratos + ([e_portal] if e_portal is not None else [])
             ]
             + _organos_bdns(tablas_bdns)
         )
@@ -155,6 +176,7 @@ def unificar(
                 for a in crudos_adjudicaciones
             ]
             + ([tablas_bdns["beneficiarios"]] if tablas_bdns else [])
+            + ([tablas_encargos["medios_propios"]] if tablas_encargos else [])
         )
         .filter(pl.col("adjudicatario_id").is_not_null())
         .group_by("adjudicatario_id", maintain_order=True)
@@ -167,6 +189,8 @@ def unificar(
     )
     concesiones = tablas_bdns["concesiones"] if tablas_bdns else None
     return {
+        "contrato_financiacion": _financiacion(tablas_placsp),
+        "encargo": _con_columnas(e_portal, COLUMNAS_ENCARGO) if e_portal is not None else None,
         "organo": organos,
         "adjudicatario": adjudicatarios,
         "concesion": concesiones,
@@ -175,6 +199,62 @@ def unificar(
             [_con_columnas(a, COLUMNAS_ADJUDICACION) for a in crudos_adjudicaciones]
         ),
     }
+
+
+def _financiacion(tablas_placsp: dict | None) -> pl.DataFrame | None:
+    """Contratos de PLACSP que dicen si tienen fondos europeos (004_financiacion_ue.sql)."""
+    if tablas_placsp is None or "financiado_ue" not in tablas_placsp["contratos"].columns:
+        return None
+    return (
+        tablas_placsp["contratos"]
+        .filter(pl.col("financiado_ue").is_not_null())
+        .select(
+            "contrato_id",
+            "financiado_ue",
+            "programas_ue",
+            "fuente",
+            "url_origen",
+            "fecha_descarga",
+        )
+    )
+
+
+def _expediente(columna: pl.Expr) -> pl.Expr:
+    """Expediente comparable: mayúsculas y sin espacios."""
+    return columna.str.to_uppercase().str.replace_all(r"\s", "")
+
+
+def cruzar_recursos(recursos: pl.DataFrame, contratos: pl.DataFrame) -> pl.DataFrame:
+    """Enlaza cada resolución con el contrato cuyo expediente cita su resumen, solo si ese
+    expediente corresponde a un único contrato (sin contar los menores ni las filas del
+    portal que duplican una de PLACSP). Si no casa o es ambiguo, `contrato_id` queda vacío."""
+    unicos = (
+        contratos.filter(~pl.col("es_menor") & pl.col("duplicado_de").is_null())
+        .select("contrato_id", _expediente(pl.col("expediente")).alias("clave"))
+        .filter(pl.col("clave").is_not_null())
+        .group_by("clave")
+        .agg(pl.col("contrato_id").first(), pl.len().alias("n"))
+        .filter(pl.col("n") == 1)
+        .drop("n")
+    )
+    candidatos = (
+        recursos.select("resolucion_id", "expedientes_citados")
+        .explode("expedientes_citados")
+        .with_columns(_expediente(pl.col("expedientes_citados")).alias("clave"))
+        .join(unicos, on="clave", how="inner")
+        .group_by("resolucion_id")
+        .agg(
+            pl.col("expedientes_citados").first().alias("expediente_citado"),
+            pl.col("contrato_id").unique().alias("contratos"),
+        )
+        .with_columns(
+            pl.when(pl.col("contratos").list.len() == 1)
+            .then(pl.col("contratos").list.first())
+            .alias("contrato_id")
+        )
+        .drop("contratos")
+    )
+    return recursos.join(candidatos, on="resolucion_id", how="left").drop("expedientes_citados")
 
 
 def _organos_bdns(tablas_bdns: dict | None) -> list[pl.DataFrame]:
@@ -201,7 +281,16 @@ def escribir(
     try:
         for ddl in sorted(ruta_esquema.glob("*.sql")):
             con.execute(ddl.read_text(encoding="utf-8"))
-        for nombre in ("organo", "adjudicatario", "contrato", "adjudicacion", "concesion"):
+        for nombre in (
+            "organo",
+            "adjudicatario",
+            "contrato",
+            "adjudicacion",
+            "concesion",
+            "contrato_financiacion",
+            "encargo",
+            "recurso_especial",
+        ):
             if tablas.get(nombre) is None:
                 continue
             df = tablas[nombre].to_arrow()  # noqa: F841 (DuckDB lo lee por su nombre)
@@ -221,6 +310,7 @@ def construir(
     carpeta_bdns: Path = CARPETA_BDNS,
     ruta_db: Path = RUTA_DB,
     carpeta_cm: Path | None = None,
+    carpeta_tacp: Path = tacp.CARPETA,
 ) -> dict[str, pl.DataFrame]:
     """Lee los ficheros brutos y regenera la base analítica. Con `carpeta_cm` carga además el
     contexto de la Comunidad de Madrid (presupuesto, convenios, registros; D-024)."""
@@ -236,7 +326,16 @@ def construir(
     tablas_bdns = (
         bdns.leer(meses_bdns, max(_fecha_fichero(m) for m in meses_bdns)) if meses_bdns else None
     )
-    tablas = unificar(tablas_portal, tablas_placsp, tablas_bdns)
+    ruta_encargos = encargos.fichero()
+    tablas_encargos = (
+        encargos.leer(ruta_encargos, _fecha_fichero(ruta_encargos)) if ruta_encargos else None
+    )
+    tablas = unificar(tablas_portal, tablas_placsp, tablas_bdns, tablas_encargos)
+    if any(carpeta_tacp.glob("*.html")):
+        tablas["recurso_especial"] = cruzar_recursos(
+            tacp.leer(carpeta_tacp, _fecha_fichero(max(carpeta_tacp.glob("*.html")))),
+            tablas["contrato"],
+        )
     escribir(tablas, ruta_db)
     if carpeta_cm is not None and any(carpeta_cm.glob("*.csv")):
         from ojo_ciudadano.modelo import contexto

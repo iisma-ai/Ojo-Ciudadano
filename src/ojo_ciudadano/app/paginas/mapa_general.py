@@ -326,6 +326,27 @@ else:
         f"{anio} (por fecha del contrato o de formalización); los que no traen fecha no salen "
         "aquí. Importes de la Plataforma sin IVA y del portal con IVA, sin sumar entre sí."
     )
+    with st.expander("Ver estos contratos en una tabla", icon=":material/table:"):
+        st.dataframe(
+            [
+                {
+                    "Adjudicataria": c["adjudicatarios"] or "Sin dato",
+                    "Importe": textos.euros(c["importe"], textos.iva_fuente(c["fuente"])),
+                    "Ofertas": c["n_ofertas"],
+                    "Cómo se contrató": c["procedimiento"],
+                    "Órgano": c["organo"],
+                    "Expediente": c["url_origen"],
+                }
+                for c in contratos
+            ],
+            column_config={
+                "Expediente": st.column_config.LinkColumn(
+                    "Expediente", display_text="Ver expediente oficial"
+                )
+            },
+            hide_index=True,
+            width="stretch",
+        )
 
     # --- Detalle de lo pulsado ---
     marcado = st.session_state.get("mg_contrato")

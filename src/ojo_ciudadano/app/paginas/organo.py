@@ -11,6 +11,7 @@ from ojo_ciudadano.app import (
     buscador,
     datos,
     datos_contexto,
+    datos_mapa,
     graficos,
     graficos_contexto,
     senales,
@@ -117,6 +118,27 @@ if ejecucion:
         f"**{textos.euros(ultimo['obligaciones'])}** de gasto sobre un crédito de "
         f"{textos.euros(ultimo['credito_actual'])}."
     )
+    propia = next(
+        (e for e in datos_mapa.reparto(con, ultimo["anio"])["entidades"] if e["organo_id"] == id_),
+        None,
+    )
+    if propia and propia["gastado"]:
+        k = st.columns(4)
+        k[0].metric("Gastado sobre lo disponible", textos.porcentaje(propia["llenado"], 1))
+        k[1].metric("Sin gastar", textos.millones(propia["sin_gastar"]))
+        for columna, titulo, clave in (
+            (k[2], "Contratos (Plataforma, sin IVA)", "contratos_plataforma"),
+            (k[3], "Subvenciones concedidas", "subvenciones"),
+        ):
+            columna.metric(
+                titulo,
+                textos.millones(propia[clave]),
+                delta=f"{textos.porcentaje((propia[clave] or 0) / propia['gastado'], 1)} del gasto",
+                delta_color="off",
+                help="Con fecha de "
+                f"{ultimo['anio']}, de sus órganos, sobre el gasto reconocido de la consejería. "
+                "Son fuentes distintas: orden de magnitud, no una resta.",
+            )
     st.plotly_chart(graficos_contexto.ejecucion_organo(ejecucion), config=graficos.CONFIG)
     st.caption(
         f"Fuente: [Datos abiertos de la Comunidad de Madrid]({ultimo['url_origen']}). "

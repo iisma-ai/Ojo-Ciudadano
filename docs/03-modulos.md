@@ -22,6 +22,15 @@ Las búsquedas de empresa y de organismo se autocompletan (primero lo que empiez
 
 Pantalla de contexto con datos de la Comunidad de Madrid: gasto por consejería con los contratos y subvenciones de sus órganos al lado, evolución por capítulo, gastos e ingresos presupuestados, personal, convenios y registros. La ficha de órgano muestra el presupuesto de su consejería y la de empresa, los registros donde figura su NIF. No son indicadores de riesgo y no se cruzan partida a partida con los contratos. Detalle en [12-datos-cm.md](12-datos-cm.md).
 
+## Encargos, fondos europeos y recursos (D-027 a D-029)
+
+Datos añadidos el 23-nov, ninguno es una señal de riesgo (`app/datos_flujos.py`):
+- **Ficha de órgano:** desplegable «Encargos a medios propios» con el total, a qué entidades y la lista de encargos enlazada a su ficha oficial.
+- **Ficha de empresa:** «Encargos recibidos como medio propio» por organismo. Además, la ficha y el buscador ya incluyen a las entidades **sin contratos** que reciben subvenciones o encargos (antes no se podían consultar: 22.115 entidades con ficha, ahora 44.926). Si no tiene contratos, la ficha lo dice y oculta las secciones de contratos.
+- **Tarjeta de contrato:** «Financiado con fondos de la Unión Europea (programa)» y, si está enlazado, «Recurrido ante el Tribunal de Contratación» con el resultado y el enlace a la resolución.
+- **Presupuesto y contexto:** pestañas «Encargos a medios propios» (por año, entidad y organismo) y «Recursos ante el Tribunal» (resultado por acto recurrido).
+- Textos de aviso: `textos.AVISO_ENCARGOS` y `textos.AVISO_RECURSOS`.
+
 ## Reglas de interfaz (todas las pantallas)
 
 1. **Cada cifra enlaza al registro oficial** del que sale (contrato, concesión, documento).

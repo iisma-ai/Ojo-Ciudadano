@@ -316,6 +316,42 @@ Plantilla:
 - **Alternativas consideradas:** Componente propio con D3 (más trabajo y sin devolver el clic a Streamlit). Mantener Plotly (no se puede arrastrar un nodo y que tiren los demás). Cruzar partida a partida presupuesto y contratos (los datos no lo permiten, ver 02).
 - **Consecuencias:** `uv sync` para instalar `streamlit-agraph`. Presupuesto y contratos son fuentes distintas y se comparan por consejería y año, no partida a partida (`textos.AVISO_CONTEXTO`). Los nodos deben ser deterministas entre ejecuciones (si cambia el orden de un nombre, Streamlit ve un componente nuevo y pierde el clic): las consultas ordenan las adjudicatarias. Se actualizan [03-modulos.md](03-modulos.md) y el plan.
 
+## D-027 · Financiación con fondos europeos desde PLACSP y filas de relleno fuera de los adjudicatarios
+- **Fecha:** 2026-11-23
+- **Estado:** Aceptada
+- **Autor:** Claude (agente), a petición de una persona del equipo
+- **Contexto:** La investigación de fuentes externas ([13-fuentes-externas.md](13-fuentes-externas.md)) mostró dos cosas sobre datos que ya tenemos. 1) El Atom de PLACSP dice en cada licitación si se financia con fondos de la UE y con qué programa (`FundingProgramCode`: PRTR, FEDER, FSE+, FEADER, OFE), y la ingesta no lo leía: 991 expedientes de la Comunidad con fondos europeos, 548 del PRTR. 2) En `adjudicatario` había filas de relleno de las fuentes («Varios adjudicatarios», «33 EMPRESAS ADJUDICATARIAS» con el NIF de la Comunidad, «Ver resolución de adjudicación», NIF de ceros): 15 «adjudicatarios», 165 adjudicaciones y 156,6 M€ con IVA atribuidos a empresas que no existen.
+- **Decisión:**
+  - Tabla nueva `contrato_financiacion` en `sql/esquema/004_financiacion_ue.sql` (ampliación **aditiva**, D-017; no cambia `contrato`). Una fila por contrato de PLACSP que trae el campo. Es **contexto**, no señal de riesgo: no entra en la puntuación.
+  - `normalizacion.nif.es_relleno`: esas filas se guardan como adjudicatario desconocido (sin identificador ni nombre), igual que una adjudicación sin NIF. La adjudicación y su importe se conservan.
+- **Alternativas consideradas:** Columna nueva en `contrato` (cambia el esquema congelado). Bajar los listados de perceptores del PRTR (repiten lo que ya dice el contrato). Para el relleno, borrarlo a mano en la interfaz (no arregla indicadores ni puntuación).
+- **Consecuencias:** Hay que regenerar la base (`modelo.carga`, `indicadores.ejecutor`, `anomalias.deteccion`). R-04 y la puntuación de empresa dejan de contar esas filas como empresa. Se actualizan 02, 06 y 13.
+
+## D-028 · Encargos a medios propios en una tabla aparte, fuera de los indicadores
+- **Fecha:** 2026-11-23
+- **Estado:** Aceptada
+- **Autor:** Claude (agente), a petición de una persona del equipo
+- **Contexto:** El portal de contratación publica los **encargos a medios propios** (art. 32 de la Ley 9/2017): trabajos que un órgano asigna sin licitación a una entidad pública que actúa como su medio propio. Nunca se habían exportado. La exportación del 23-nov tiene 2.405 encargos, 740,2 M€ con IVA, sobre todo a Tragsa (513 M€) y Tragsatec (117 M€). El CSV no trae ninguna fecha; la referencia del portal (`C<número>`) crece con la fecha de publicación, y los tramos por año coinciden exactamente con el buscador (236, 226, 260 y 222 encargos de 2023 a 2026).
+- **Decisión:**
+  - Tabla aditiva `encargo` (`sql/esquema/005_encargos.sql`, D-017) con el órgano, el medio propio (en `adjudicatario`, con la misma identidad que en los contratos), el importe y el **año de publicación** deducido de la referencia (`ingesta/encargos.py`, `LIMITES_REFERENCIA`). Solo 2023–2026 (D-006).
+  - **No entran en `contrato` ni en los indicadores ni en la puntuación**: no son contratos licitados, y meterlos cambiaría R-02 (aplicables) y R-04 (cuotas de los medios propios). Son un tercer flujo de dinero, igual que las subvenciones.
+  - El asistente puede consultarlos, diciendo que no son contratos.
+- **Alternativas consideradas:** Cargarlos en `contrato` con `tipo_publicacion = 'Encargos a medios propios'` y excluirlos en cada indicador (toca los seis SQL a un día del H3). Tomar la fecha de cada ficha (2.405 peticiones; la referencia da lo mismo con un recorrido de 95 páginas).
+- **Consecuencias:** Hay que regenerar la base. El CSV se exporta a mano (captcha): está en `data/raw/encargos/`, fuera de git. Si se exporta de nuevo en 2027, hay que añadir el tramo de referencias de ese año. Pendiente: mostrarlos en la ficha de órgano y en el mapa del dinero (lo coordina quien lleva la interfaz). Se actualizan 02, 06 y 13.
+
+## D-029 · Recursos especiales ante el TACPCM como contexto del contrato
+- **Fecha:** 2026-11-23
+- **Estado:** Aceptada
+- **Autor:** Claude (agente), a petición de una persona del equipo
+- **Contexto:** El Tribunal Administrativo de Contratación Pública de la Comunidad de Madrid publica sus resoluciones sobre recursos especiales (pliegos, exclusiones, adjudicaciones) en un buscador HTML. Es un hecho oficial sobre contratos concretos que no teníamos. De 2023 a 2026 hay unas 1.100 resoluciones de consejerías, hospitales, otros poderes adjudicadores y universidades ([13-fuentes-externas.md](13-fuentes-externas.md), X-02).
+- **Decisión:**
+  - Descarga reproducible del listado (`ingesta/tacp.py`), una petición cada vez con 2 s de pausa y caché en `data/raw/tacp/`. Se recorre por procedencia × tipo de resolución × acto recurrido: los filtros reparten las resoluciones sin huecos (comprobado con las 451 de consejerías), así que cada una sale una vez y ya etiquetada.
+  - Tabla aditiva `recurso_especial` (`sql/esquema/006_recursos_tacp.sql`). Se enlaza con `contrato` cuando el resumen cita un expediente que corresponde a **un único** contrato no menor y no duplicado; si no casa o es ambiguo, queda sin enlazar.
+  - **No se guarda el resumen** (nombra a empresas y puede nombrar a personas, D-007): solo los campos estructurados y los enlaces a la ficha y al PDF.
+  - Es **contexto, no señal**: no entra en la puntuación. Presentar un recurso no indica nada; una estimación solo dice que ese acto no se ajustaba a derecho según el Tribunal.
+- **Alternativas consideradas:** Abrir la ficha de cada resolución (1.100 peticiones frente a unas 340). Leer los PDF con IA para sacar el expediente (recorte n.º 3 del plan). Una señal «recursos estimados por órgano» (necesita definición y validación; queda como línea futura).
+- **Consecuencias:** Hay que bajar el listado (`uv run python -m ojo_ciudadano.ingesta.tacp`; el 23-nov fueron 377 páginas y unos 50 minutos, el servidor es lento) y regenerar la base. **Resultado y límites (23-nov):** 1.097 resoluciones de 1.109 (la paginación del buscador repite o salta filas cuando hay fechas empatadas). Solo **6 se enlazan con un contrato**: la mayoría de los resúmenes no citan el expediente, y el listado no da el órgano, solo la procedencia (consejerías, hospitales…). Por eso sirve sobre todo como **contexto agregado** (por ejemplo, el Tribunal estimó total o parcialmente el 30 % de los recursos contra pliegos, el 25 % contra adjudicaciones y el 18 % contra exclusiones). Enlazar más exigiría leer los PDF (recorte n.º 3), que queda como línea futura. Pendiente: mostrarlo en la ficha de contrato y de órgano. Se actualizan 02, 06 y 13.
+
 ## D-030 · RAG centrado en el catálogo de datos abiertos y, después, en los pliegos
 - **Fecha:** 2026-11-23
 - **Estado:** **Bloque A aceptado** el 2026-11-23 (El Harrak: «empieza el bloque A del catálogo») e implementado ese día; pasó el control (4 de 4 preguntas de catálogo). Bloque B: Propuesta, pendiente de decidir.

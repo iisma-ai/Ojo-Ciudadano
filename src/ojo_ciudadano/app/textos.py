@@ -92,6 +92,21 @@ AYUDA_INDICADOR = {
     "al menos dos ofertas. Incluye las adjudicaciones por encima del presupuesto.",
 }
 
+# Referencias externas para leer una señal frecuente sin tomarla por anómala
+# (docs/13-fuentes-externas.md, X-04). Se miden de forma algo distinta que aquí.
+CONTEXTO_SENAL = {
+    "R-01": "Como referencia: en 2025, el 45,5 % de los lotes que adjudicaron las comunidades "
+    "autónomas recibió una sola oferta ([OIReScon, Informe Anual de Supervisión 2026]"
+    "(https://www.hacienda.gob.es/rsc/oirescon/informe-anual-supervision-2026/"
+    "ias2026-modulo1.pdf), tabla 77), y en la Unión Europea la media fue del 28 % en 2024 "
+    "([Comisión Europea, Single Market Scoreboard]"
+    "(https://single-market-scoreboard.ec.europa.eu/countries/spain_en)). Esas cifras se "
+    "cuentan de otra manera (por lotes, o solo contratos grandes) y aquí se cuentan contratos "
+    "de la Comunidad de Madrid, así que sirven como orden de magnitud, no para comparar al "
+    "decimal ni para concluir que un contrato con una sola oferta sea anómalo (fuentes "
+    "consultadas el 23-nov-2026).",
+}
+
 NOMBRES_FUENTE = {
     "placsp": "Plataforma de Contratación del Sector Público",
     "portal_cm": "Portal de la Contratación Pública de la Comunidad de Madrid",
@@ -104,7 +119,9 @@ NOMBRES_FUENTE = {
 def lista_indicadores() -> str:
     """Explicación de cada indicador en Markdown, para el apartado de metodología."""
     return "\n".join(
-        f"- **{i} · {NOMBRES_INDICADOR[i]}**: {AYUDA_INDICADOR[i]}" for i in NOMBRES_INDICADOR
+        f"- **{i} · {NOMBRES_INDICADOR[i]}**: "
+        + " ".join(filter(None, [AYUDA_INDICADOR[i], CONTEXTO_SENAL.get(i)]))
+        for i in NOMBRES_INDICADOR
     )
 
 
@@ -321,3 +338,22 @@ def millones(valor: float | None) -> str:
     if abs(valor) >= 1_000_000:
         return f"{valor / 1_000_000:,.0f} M€".replace(",", ".")
     return f"{valor:,.0f} €".replace(",", ".")
+
+
+# --- Encargos, fondos europeos y recursos (D-027 a D-029) ---
+
+AVISO_ENCARGOS = (
+    "Un **encargo a medio propio** es un trabajo que un organismo asigna a una entidad pública "
+    "que actúa como su medio propio (como Tragsa o Canal de Isabel II). La ley lo permite sin "
+    "licitación cuando se cumplen los requisitos del art. 32 de la Ley 9/2017 de Contratos del "
+    "Sector Público; no comprobamos esos requisitos. No es un contrato "
+    "y no se le aplican las señales. Importes con IVA; el año es el de publicación en el portal."
+)
+
+AVISO_RECURSOS = (
+    "Cualquier empresa interesada puede recurrir los pliegos, su exclusión o la adjudicación de "
+    "un contrato ante el Tribunal Administrativo de Contratación Pública de la Comunidad de "
+    "Madrid. **Presentar un recurso no es una señal.** Que el Tribunal lo estime solo dice que "
+    "dio la razón al recurrente sobre ese acto; no es una señal sobre la empresa adjudicataria "
+    "ni sobre el organismo."
+)

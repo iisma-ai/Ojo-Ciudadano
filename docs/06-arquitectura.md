@@ -105,6 +105,12 @@ El ejecutor (`src/ojo_ciudadano/indicadores/ejecutor.py`) crea las funciones de 
 
 **Subvenciones (20-nov, ampliación aditiva de D-017):** [`sql/esquema/002_subvenciones.sql`](../sql/esquema/002_subvenciones.sql) crea `concesion` (una fila por concesión de la BDNS, clave `bdns:<codConcesion>`, con `organo_id`, `beneficiario_id`, convocatoria, fecha, importe y `url_origen` a la ficha de la convocatoria). Los beneficiarios van a `adjudicatario` con la misma identidad que en los contratos: una empresa con contratos y subvenciones es una sola fila. Los órganos nuevos de la BDNS se añaden a `organo`; si ya existían, se conservan el nombre y la consejería de los contratos. `modelo.carga` lee `data/raw/bdns/*.json` si existen; sin ellos la base se crea igual, sin concesiones. La interfaz las muestra en la ficha de empresa, la ficha de órgano y el mapa del dinero (fuente «Base de Datos Nacional de Subvenciones»); si la base no tiene `concesion`, esas secciones no aparecen (`datos.hay_subvenciones`).
 
+**Fondos europeos (23-nov, ampliación aditiva, D-027):** [`sql/esquema/004_financiacion_ue.sql`](../sql/esquema/004_financiacion_ue.sql) crea `contrato_financiacion` (`contrato_id`, `financiado_ue`, `programas_ue`, `fuente`, `url_origen`, `fecha_descarga`), leída del campo `FundingProgramCode` del Atom de PLACSP. Solo hay fila para las licitaciones que traen el campo. Es contexto: no entra en la puntuación.
+
+**Encargos a medios propios (23-nov, ampliación aditiva, D-028):** [`sql/esquema/005_encargos.sql`](../sql/esquema/005_encargos.sql) crea `encargo` (clave `encargo_id` + `orden`, con `organo_id`, `medio_propio_id` en `adjudicatario`, importe con IVA y `anio_publicacion`). `ingesta/encargos.py` lee `data/raw/encargos/encargos_todo_*.csv` si existe; el año sale de la referencia del portal (`LIMITES_REFERENCIA`, comprobado contra el buscador). No entran en `contrato`, ni en los indicadores, ni en la puntuación.
+
+**Recursos especiales (23-nov, ampliación aditiva, D-029):** [`sql/esquema/006_recursos_tacp.sql`](../sql/esquema/006_recursos_tacp.sql) crea `recurso_especial` (resolución del TACPCM con fecha, procedencia, tipo de resolución, acto recurrido, enlaces a la ficha y al PDF y, si casa con un único contrato, `contrato_id`). `ingesta/tacp.py` descarga el listado a `data/raw/tacp/`; `modelo.carga.cruzar_recursos` hace el enlace por expediente. No se guarda el resumen.
+
 ### Contratos atípicos (D-021)
 
 Tabla derivada `anomalia_resultado`, que se regenera entera (unos 45 segundos, después del ejecutor de indicadores) con:

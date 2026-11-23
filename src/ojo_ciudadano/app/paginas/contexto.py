@@ -10,6 +10,7 @@ lleva el enlace a su fuente y la fecha de descarga. Sin personas físicas (D-007
 import streamlit as st
 
 from ojo_ciudadano.app import datos_contexto as dc
+from ojo_ciudadano.app import datos_flujos as df
 from ojo_ciudadano.app import graficos_contexto as gc
 from ojo_ciudadano.app import textos
 from ojo_ciudadano.app.conexion import conexion
@@ -35,7 +36,15 @@ def fuente(url: str, fecha, nombre: str = "Datos abiertos de la Comunidad de Mad
 
 
 pestanas = st.tabs(
-    ["Gasto por consejería", "Evolución del presupuesto", "Personal", "Convenios", "Registros"]
+    [
+        "Gasto por consejería",
+        "Evolución del presupuesto",
+        "Personal",
+        "Convenios",
+        "Registros",
+        "Encargos a medios propios",
+        "Recursos ante el Tribunal",
+    ]
 )
 
 # --- Gasto por consejería ---
@@ -225,3 +234,82 @@ with pestanas[4]:
         )
         actual = next(r for r in resumen if r["registro"] == registro)
         fuente(actual["url_origen"], actual["fecha_descarga"])
+
+
+# --- Encargos a medios propios (D-028) ---
+with pestanas[5]:
+    st.info(textos.AVISO_ENCARGOS, icon=":material/info:")
+    encargos = df.resumen_encargos(con)
+    if not encargos:
+        st.write("Esta base no tiene encargos. Regenera la base con la exportación de encargos.")
+    else:
+        anios = st.columns(len(encargos["por_anio"]))
+        for columna, a in zip(anios, encargos["por_anio"], strict=True):
+            columna.metric(
+                str(a["anio"]),
+                textos.millones(a["importe"]),
+                help=f"{textos.numero(a['n_encargos'])} encargos publicados ese año, por "
+                f"{textos.euros(a['importe'], 'con IVA')}.",
+            )
+        for titulo, clave, campo in (
+            ("A qué entidades", "por_medio_propio", "medio_propio"),
+            ("Qué organismos encargan más", "por_organo", "organo"),
+        ):
+            st.markdown(f"**{titulo}**")
+            st.dataframe(
+                [
+                    {
+                        "Entidad" if campo == "medio_propio" else "Organismo": f[campo],
+                        "Encargos": f["n_encargos"],
+                        "Importe (con IVA)": textos.euros(f["importe"], "con IVA"),
+                    }
+                    for f in encargos[clave]
+                ],
+                hide_index=True,
+                width="stretch",
+            )
+        fuente(
+            "https://contratos-publicos.comunidad.madrid/contratos",
+            encargos["fecha_descarga"],
+            "Portal de la Contratación Pública de la Comunidad de Madrid",
+        )
+
+# --- Recursos ante el Tribunal (D-029) ---
+with pestanas[6]:
+    st.info(textos.AVISO_RECURSOS, icon=":material/info:")
+    recursos = df.resumen_recursos(con)
+    if not recursos:
+        st.write(
+            "Esta base no tiene recursos. Ejecuta `uv run python -m ojo_ciudadano.ingesta.tacp`."
+        )
+    else:
+        st.markdown(
+            f"Resoluciones del Tribunal entre el {min(r['desde'] for r in recursos)} y el "
+            f"{max(r['hasta'] for r in recursos)} sobre consejerías, hospitales, otros "
+            "poderes adjudicadores y universidades de la Comunidad, según el acto recurrido."
+        )
+        st.dataframe(
+            [
+                {
+                    "Acto recurrido": r["acto_recurrido"],
+                    "Resoluciones": r["n"],
+                    "% estimadas": textos.porcentaje(r["estimadas"] / r["n"]),
+                    "Estimadas (total o parcialmente)": r["estimadas"],
+                    "Desestimadas": r["desestimadas"],
+                    "Inadmitidas": r["inadmitidas"],
+                }
+                for r in recursos
+            ],
+            hide_index=True,
+            width="stretch",
+        )
+        st.caption(
+            "Algunas resoluciones resuelven a la vez varios actos y no se cuentan aquí. El "
+            "buscador del Tribunal no da el organismo de cada resolución, así que solo unas "
+            "pocas se pueden enlazar con su contrato (aparecen en la ficha del contrato)."
+        )
+        fuente(
+            "https://www.comunidad.madrid/tacp/busquedaresoluciones",
+            recursos[0]["fecha_descarga"],
+            "Tribunal Administrativo de Contratación Pública de la Comunidad de Madrid",
+        )

@@ -11,6 +11,7 @@ from ojo_ciudadano.app import (
     buscador,
     datos,
     datos_contexto,
+    datos_flujos,
     datos_mapa,
     graficos,
     graficos_contexto,
@@ -206,4 +207,29 @@ if subvenciones:
             st.markdown(
                 f"- {enlace}: {textos.euros(cv['importe'])} "
                 f"({textos.numero(cv['n_concesiones'])} concesiones)"
+            )
+
+# --- Encargos a medios propios (D-028) ---
+encargos = datos_flujos.encargos_organo(con, id_)
+if encargos:
+    with st.expander(
+        f"Encargos a medios propios: {textos.numero(encargos['n_encargos'])} por "
+        f"{textos.euros(encargos['importe'], 'con IVA')}",
+        icon=":material/handshake:",
+    ):
+        st.caption(
+            textos.AVISO_ENCARGOS
+            + " Fuente: [Portal de la Contratación Pública de la Comunidad de Madrid]"
+            "(https://contratos-publicos.comunidad.madrid/contratos), datos descargados el "
+            f"{encargos['fecha_descarga']}. Cada enlace lleva a la ficha oficial del encargo."
+        )
+        st.markdown(
+            "**A qué entidades:** "
+            + "; ".join(f"{m} ({textos.euros(i)})" for m, i in encargos["por_medio_propio"][:5])
+        )
+        for e in encargos["lista"][:LIMITE_CONTRATOS]:
+            titulo = (e["titulo"] or "Encargo sin título")[:90]
+            st.markdown(
+                f"- [{titulo}]({e['url_origen']}) · {e['medio_propio']} · "
+                f"{textos.euros(e['importe'], 'con IVA')} · {e['anio']}"
             )

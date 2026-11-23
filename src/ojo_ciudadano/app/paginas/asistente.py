@@ -113,7 +113,8 @@ def mostrar_documento(numero: int, consulta: dict) -> None:
             if "resolucion" in f:
                 cabecera = (
                     f"**Resolución {f['resolucion']}** ({f['fecha']}) · {f['tipo_resolucion']} · "
-                    f"acto recurrido: {f['acto_recurrido']} · pág. {f['pagina']}"
+                    f"acto recurrido: {f['acto_recurrido']} · pág. {f['pagina']} · "
+                    f"[ficha de la resolución]({f['url_origen']})"
                 )
             else:
                 cabecera = f"**{f['documento']}** · pág. {f['pagina']}"
@@ -126,10 +127,14 @@ def mostrar_documento(numero: int, consulta: dict) -> None:
             )
         st.caption(
             f"Fuente: {consulta['fuente']}, documento descargado el "
-            f"{consulta.get('fecha_descarga') or 'sin fecha'}. El extracto es texto del documento "
-            "oficial (los documentos de identidad aparecen tapados). Lo que dice un pliego "
-            "explica el expediente; no confirma ni descarta una señal. Que el Tribunal estime un "
-            "recurso no es una sanción ni dice nada de la empresa adjudicataria."
+            f"{consulta.get('fecha_descarga') or 'sin fecha'}. El extracto es texto literal del "
+            "documento oficial, con los nombres de personas y los documentos de identidad "
+            "tapados (si ves alguno sin tapar, el documento completo está en el enlace oficial y "
+            "aquí no debería aparecer). Las expresiones del extracto son del Tribunal o del "
+            "órgano de contratación, no de Ojo Ciudadano, y se refieren solo al acto que se "
+            "resolvió. Lo que dice un pliego da contexto al expediente; no confirma ni descarta "
+            "una señal. Que el Tribunal estime un recurso no es una sanción ni dice nada de la "
+            "empresa adjudicataria."
         )
         for fallo in consulta.get("fallos") or []:
             st.caption(f"No se ha podido leer: {fallo}")

@@ -140,8 +140,30 @@ def palabras_clave(consulta: str) -> list[str]:
     return [p for p in palabras if p not in _VACIAS and len(p) > 1]
 
 
+EXTRACTO_OCULTO = (
+    "Esta página puede contener datos de una persona física y no se muestra. Puedes leerla en "
+    "el PDF oficial."
+)
+
+
+def _comprobar_consulta(consulta: str) -> list[str]:
+    """Palabras de la búsqueda. Las búsquedas son por temas: con un DNI, un NIE o un nombre
+    con tratamiento («D. …») se rechazan (D-007)."""
+    from ojo_ciudadano.asistente.bateria import PATRON_DNI
+
+    if PATRON_DNI.search(consulta) or pdf.TRATAMIENTO.search(consulta):
+        raise DocumentoNoDisponible("La búsqueda en documentos es por temas, no por personas.")
+    palabras = palabras_clave(consulta)
+    if not palabras:
+        raise DocumentoNoDisponible("La búsqueda está vacía: usa palabras del tema.")
+    return palabras
+
+
 def extracto(texto: str, palabras: list[str], largo: int = CARACTERES_EXTRACTO) -> str:
-    """Trozo de la página alrededor de la zona con más palabras de la búsqueda."""
+    """Trozo de la página alrededor de la zona con más palabras de la búsqueda. Si la página
+    puede tratar de una persona física («en nombre propio»), no se da el texto."""
+    if pdf.puede_tener_persona_fisica(texto):
+        return EXTRACTO_OCULTO
     if len(texto) <= largo:
         return texto
     plano = _plano(texto)
@@ -283,8 +305,7 @@ def buscar_en_documento(
 ) -> dict:
     """Las páginas más parecidas a la consulta en los documentos de ese contrato o
     resolución. `tipo` (pcap o ppt) limita a un pliego; sin él, se busca en todos."""
-    if not palabras_clave(consulta):
-        raise DocumentoNoDisponible("La búsqueda está vacía: usa palabras del tema.")
+    palabras = _comprobar_consulta(consulta)
     documentos = documentos_de(con, identificador)
     if tipo in ("pcap", "ppt"):
         documentos = [d for d in documentos if d["tipo"] == tipo]
@@ -295,7 +316,6 @@ def buscar_en_documento(
             + ". Los pliegos solo están en las licitaciones de PLACSP (contrato_id 'placsp:…'); "
             "los menores, las emergencias y el portal regional no los enlazan."
         )
-    palabras = palabras_clave(consulta)
     filas, fallos, leidos = [], [], []
     for documento in documentos:
         try:
@@ -407,9 +427,7 @@ def buscar_resoluciones(
 ) -> dict:
     """Las resoluciones del Tribunal cuyo texto más se parece a la consulta, con su mejor
     página. `tipo_resolucion` filtra (p. ej. «Estimatoria»: incluye las parciales)."""
-    palabras = palabras_clave(consulta)
-    if not palabras:
-        raise DocumentoNoDisponible("La búsqueda está vacía: usa palabras del tema.")
+    palabras = _comprobar_consulta(consulta)
     if not resoluciones_disponibles(con):
         raise DocumentoNoDisponible(
             "El texto de las resoluciones no está indexado en esta base "

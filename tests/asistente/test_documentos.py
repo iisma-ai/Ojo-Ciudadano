@@ -271,3 +271,48 @@ def test_el_texto_de_documentos_no_es_consultable_por_sql(con):
     assert documentos.TABLA_RESOLUCIONES not in sql_seguro.TABLAS_PERMITIDAS
     with pytest.raises(sql_seguro.SQLNoPermitido):
         sql_seguro.validar(con, f"SELECT texto FROM {documentos.TABLA_RESOLUCIONES}")
+
+
+# ------------------------------------------------- revisión legal (D-032): personas y cifras
+
+
+def test_tapa_nombres_con_tratamiento_y_firmas():
+    texto = pdf.ocultar_personas(
+        "D. Juan Pérez García, en nombre y representación de ACME, S.L., y Dña. Ana de la "
+        "Fuente López recurren.\nFdo.: Pedro Ruiz Gómez\nEl Tribunal resuelve."
+    )
+    assert texto.startswith("D. [nombre oculto], en nombre y representación de ACME, S.L.")
+    assert "Dña. [nombre oculto] recurren" in texto
+    assert "Pérez" not in texto and "Fuente" not in texto and "Ruiz" not in texto
+    assert "Fdo.: [firma oculta]" in texto and "El Tribunal resuelve." in texto
+
+
+def test_la_cache_antigua_tambien_se_tapa(tmp_path):
+    ruta = _cachear(tmp_path, URL_RES, "tacpcm", ["Recurre D. Juan Pérez, con DNI 12345678Z."])
+    (pagina,) = pdf.paginas(ruta)
+    assert "Juan" not in pagina and "12345678" not in pagina
+
+
+def test_no_busca_personas_en_los_documentos(con, carpeta):
+    for consulta in ("D. Juan Pérez", "12345678Z"):
+        with pytest.raises(documentos.DocumentoNoDisponible, match="no por personas"):
+            documentos.buscar_resoluciones(con, consulta)
+        with pytest.raises(documentos.DocumentoNoDisponible, match="no por personas"):
+            documentos.buscar_en_documento(con, "placsp:1", consulta, carpeta=carpeta)
+
+
+def test_pagina_con_posible_persona_fisica_no_se_muestra():
+    pagina = "El licitador, que actúa en nombre propio, recurre la exclusión por la solvencia."
+    assert documentos.extracto(pagina, ["solvencia"]) == documentos.EXTRACTO_OCULTO
+
+
+def test_cifras_que_no_estan_en_los_extractos_se_retienen(con):
+    def responde(texto):
+        salidas = [LlamadaBuscarDocumento("placsp:1", "solvencia económica"), TextoFinal(texto)]
+        return agente.responder(con, lambda s, m: salidas.pop(0), "¿Qué solvencia pide?")
+
+    bien = responde("Pide un volumen de negocios de 200.000 € (pág. 3). Fuente: …")
+    assert bien.retencion is None
+    mal = responde("Pide un volumen de negocios de 350.000 € (pág. 3). Fuente: …")
+    assert mal.retencion == agente.RETENCION_CIFRAS
+    assert "Da cifras que no están en los extractos" in mal.avisos

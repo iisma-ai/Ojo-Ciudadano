@@ -261,7 +261,8 @@ def cruzar_recursos(recursos: pl.DataFrame, contratos: pl.DataFrame) -> pl.DataF
     - por el expediente que cita su resumen o su PDF (`expedientes_citados`), y
     - si la tabla trae `titulos_citados` (texto entre comillas del encabezamiento del PDF,
       `tacp.con_texto_pdf`), por el título exacto del contrato, de `MIN_TITULO` caracteres
-      o más, una vez normalizado.
+      o más, una vez normalizado, y solo si la fecha del contrato (`fecha_contrato` o
+      `fecha_fin_plazo`) es anterior a la resolución y de no más de 24 meses antes.
 
     Si no casa o es ambiguo (dos contratos distintos), `contrato_id` queda vacío.
     `expediente_citado` solo se rellena cuando casa un expediente."""
@@ -276,11 +277,25 @@ def cruzar_recursos(recursos: pl.DataFrame, contratos: pl.DataFrame) -> pl.DataF
     )
     por_titulo = por_expediente.clear()
     if "titulos_citados" in recursos.columns and "titulo" in contratos.columns:
+        # Coherencia de fechas (revisión legal): un título se repite al volver a licitar, así
+        # que el contrato tiene que ser anterior a la resolución y de no más de 24 meses antes.
+        fechas = [c for c in ("fecha_contrato", "fecha_fin_plazo") if c in contratos.columns]
+        fecha_contrato = contratos.select(
+            "contrato_id",
+            pl.coalesce([pl.col(c) for c in fechas]).alias("fecha_contrato")
+            if fechas
+            else pl.lit(None, dtype=pl.Date).alias("fecha_contrato"),
+        )
         por_titulo = (
-            recursos.select("resolucion_id", "titulos_citados")
+            recursos.select("resolucion_id", "fecha", "titulos_citados")
             .explode("titulos_citados")
             .with_columns(_clave_titulo(pl.col("titulos_citados")).alias("clave"))
             .join(_unicos(contratos, _clave_titulo(pl.col("titulo"))), on="clave", how="inner")
+            .join(fecha_contrato, on="contrato_id", how="left")
+            .filter(
+                (pl.col("fecha_contrato") <= pl.col("fecha"))
+                & (pl.col("fecha_contrato") >= pl.col("fecha").dt.offset_by("-24mo"))
+            )
             .select(
                 "resolucion_id",
                 pl.lit(None, dtype=pl.String).alias("expediente_citado"),

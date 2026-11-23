@@ -6,7 +6,9 @@ instrucción** (riesgo de inyección, K-13): quien lo use lo marca así.
 - Solo se bajan PDF de los dominios oficiales de `DOMINIOS`, de `MAX_BYTES` como mucho.
 - Cada PDF se guarda en `data/raw/documentos/<tipo>/` con un nombre derivado de su URL, y su
   texto por páginas en un JSON al lado: la segunda vez no se lee el PDF.
-- Los DNI y NIE que aparezcan en el texto se tapan al extraerlo (D-007).
+- Al extraer el texto se tapan los DNI y NIE, los nombres precedidos de tratamiento («D.»,
+  «Dña.», «Sr.»…) y las líneas de firma (D-007, D-032). Riesgo residual: un nombre sin
+  tratamiento.
 """
 
 import hashlib
@@ -86,21 +88,50 @@ def descargar(url: str, tipo: str, carpeta: Path = CARPETA, cliente=None) -> Pat
     return destino
 
 
+# Nombre precedido de tratamiento («D. Juan Pérez García», «Dña. Ana de la Fuente»): las
+# resoluciones nombran así a representantes, firmantes y licitadores (revisión legal, D-032).
+_MAYUSCULA = r"[A-ZÁÉÍÓÚÑ][\wÁÉÍÓÚÑáéíóúñü'-]+"
+TRATAMIENTO = re.compile(
+    r"\b(D\.ª|Dª|Dña\.?|D\.|Don|Doña|Sr\.|Sra\.)\s+"
+    + _MAYUSCULA
+    + r"(?:\s+(?:de\s+la\s+|de\s+los\s+|del\s+|de\s+|y\s+)?"
+    + _MAYUSCULA
+    + r"){0,4}"
+)
+_FIRMA = re.compile(r"(?im)^(\s*(?:Fdo\.?|Firmado(?:\s+por)?)\s*:?).*$")
+OCULTO_NOMBRE = "[nombre oculto]"
+# Señales de que la página puede tratar de un licitador que es una persona física, cuyo
+# nombre no lleva tratamiento: la web no enseña el extracto de esa página.
+_NOMBRE_PROPIO = re.compile(r"(?i)en (su )?(propio nombre|nombre propio)|persona f[ií]sica")
+
+
 def ocultar_identificadores(texto: str) -> str:
     return _DNI.sub(OCULTO, texto)
 
 
+def ocultar_personas(texto: str) -> str:
+    """Tapa DNI y NIE, nombres con tratamiento y líneas de firma (D-007)."""
+    texto = ocultar_identificadores(texto)
+    texto = TRATAMIENTO.sub(lambda m: f"{m.group(1)} {OCULTO_NOMBRE}", texto)
+    return _FIRMA.sub(r"\1 [firma oculta]", texto)
+
+
+def puede_tener_persona_fisica(texto: str) -> bool:
+    return bool(_NOMBRE_PROPIO.search(texto))
+
+
 def _limpiar(texto: str) -> str:
-    texto = ocultar_identificadores(texto or "")
+    texto = ocultar_personas(texto or "")
     texto = re.sub(r"[ \t]+", " ", texto)
     return re.sub(r"\n\s*\n+", "\n", texto).strip()
 
 
 def paginas(ruta: Path) -> list[str]:
-    """Texto de cada página (la 1 es la posición 0), con los DNI y NIE tapados."""
+    """Texto de cada página (la 1 es la posición 0), con DNI, NIE, nombres con tratamiento y
+    firmas tapados. También se tapan al leer la caché, por si se creó con reglas antiguas."""
     cache = ruta.with_suffix(".json")
     if cache.exists() and cache.stat().st_mtime >= ruta.stat().st_mtime:
-        return json.loads(cache.read_text(encoding="utf-8"))
+        return [ocultar_personas(t) for t in json.loads(cache.read_text(encoding="utf-8"))]
     from pypdf import PdfReader  # solo hace falta si no está en caché
 
     try:

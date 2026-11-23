@@ -265,20 +265,23 @@ def test_recurso_se_enlaza_por_el_titulo_citado_en_el_pdf():
             "titulo": [titulo.upper(), "Limpieza de edificios", "Limpieza de edificios", titulo],
             "es_menor": [False, False, False, False],
             "duplicado_de": [None, None, None, "placsp:1"],
+            "fecha_fin_plazo": [date(2023, 10, 1)] * 4,
         },
         schema_overrides={"duplicado_de": pl.String},
     )
     recursos = pl.DataFrame(
         {
-            "resolucion_id": ["tacpcm:1/2024", "tacpcm:2/2024", "tacpcm:3/2024"],
-            "expedientes_citados": [[], [], ["E-2"]],
+            "resolucion_id": [f"tacpcm:{n}/2024" for n in range(1, 6)],
+            "fecha": [date(2024, 1, 11)] * 3 + [date(2023, 9, 1), date(2026, 1, 1)],
+            "expedientes_citados": [[], [], ["E-2"], [], []],
             # Con tildes y comillas distintas casa igual; un título repetido no enlaza.
-            "titulos_citados": [[titulo], ["Limpieza de edificios"], [titulo]],
+            "titulos_citados": [[titulo], ["Limpieza de edificios"], [titulo], [titulo], [titulo]],
         },
         schema_overrides={"expedientes_citados": pl.List(pl.String)},
     )
     cruce = carga.cruzar_recursos(recursos, contratos).sort("resolucion_id")
     # La 3 cita un expediente (E-2) y un título (placsp:1) distintos: ambigua, sin enlace.
-    assert cruce["contrato_id"].to_list() == ["placsp:1", None, None]
-    assert cruce["expediente_citado"].to_list() == [None, None, "E-2"]
+    # La 4 es anterior al contrato y la 5, de más de 24 meses después: el título no basta.
+    assert cruce["contrato_id"].to_list() == ["placsp:1", None, None, None, None]
+    assert cruce["expediente_citado"].to_list() == [None, None, "E-2", None, None]
     assert "titulos_citados" not in cruce.columns

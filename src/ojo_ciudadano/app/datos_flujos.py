@@ -109,7 +109,7 @@ def recursos_contrato(con: duckdb.DuckDBPyConnection, contrato_id: str) -> list[
         con,
         """
         SELECT r.numero, r.fecha, r.tipo_resolucion, r.acto_recurrido, r.url_origen,
-               r.fecha_descarga
+               r.fecha_descarga, r.expediente_citado
         FROM contrato c
         JOIN recurso_especial r ON r.contrato_id IN (c.contrato_id, c.duplicado_de)
         WHERE c.contrato_id = ?

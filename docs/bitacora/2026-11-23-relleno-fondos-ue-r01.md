@@ -25,7 +25,7 @@
 1. **Regenerar la base** en cada máquina: `uv run python -m ojo_ciudadano.modelo.carga`, luego `indicadores.ejecutor` y `anomalias.deteccion`.
 2. Mostrar los fondos europeos en la interfaz (etiqueta en la ficha de contrato o filtro). No se ha hecho: la interfaz la está cambiando la otra línea (D-025) y chocaría.
 3. **Contratos menores recientes (P-12):** volver a exportar julio a noviembre de 2026 del portal. La exportación tiene captcha y el buscador tiene protección antibot, así que lo tiene que hacer una persona en el navegador.
-4. Revisión legal de `CONTEXTO_SENAL` con `revisor-legal` antes de la demo.
+4. Revisión legal de `CONTEXTO_SENAL` hecha con `revisor-legal`: aplicados sus dos cambios (no invitar a comparar al decimal ni a ver anómalo un contrato con una oferta; fecha de consulta).
 
 ## Siguiente paso
 

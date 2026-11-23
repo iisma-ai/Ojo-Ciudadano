@@ -96,3 +96,36 @@ def test_nodos_svg_y_texto():
         "Familia, Juventud\ny Asuntos Sociales"
     )
     assert red.mapa([], []) is None
+
+
+def test_contratos_principales_de_todas_las_consejerias(base):
+    con = base.con
+    _presupuesto(con)
+    for n, importe in enumerate((100.0, 5000.0, 300.0), start=1):
+        base.contrato(
+            f"c{n}",
+            [{"adjudicatario_id": f"A{n}", "importe_sin_iva": importe}],
+            titulo=f"Contrato {n}",
+            fecha_contrato=date(2025, 3, n),
+        )
+    base.contrato(
+        "m1",
+        [{"adjudicatario_id": "A9", "importe_con_iva": 40.0}],
+        fuente="portal_cm",
+        es_menor=True,
+        fecha_contrato=date(2025, 5, 1),
+    )
+    top2 = datos_mapa.contratos_principales(con, 2025, 2)
+    assert [c["contrato_id"] for c in top2["CONSEJERIA DE SANIDAD"]] == ["c2", "c3"]
+    assert datos_mapa.contratos_principales(con, 2025, 0) == {}
+    assert datos_mapa.contratos_principales(con, 2024, 3) == {}
+    agrupados = datos_mapa.menores_y_subvenciones(con, 2025)
+    assert agrupados["CONSEJERIA DE SANIDAD"]["menores"] == {"n": 1, "importe": 40.0}
+
+
+def test_diseno_radial_cabe_en_el_lienzo():
+    puntos = red.posiciones_radiales(8, 200)
+    assert len(puntos) == 8
+    assert all(abs(x) <= 200.01 and abs(y) <= 200.01 for x, y in puntos)
+    assert round(sum(x for x, _ in puntos), 6) == 0  # repartidos por igual alrededor del centro
+    assert red.alternar_tamanos([1, 2, 3, 4, 5]) == [1, 5, 2, 4, 3]

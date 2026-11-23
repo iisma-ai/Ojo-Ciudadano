@@ -274,3 +274,44 @@ Plantilla:
   - Para la demo, las tareas de prioridad alta. El resto entra en la lista de recortes, detrás de la detección de anomalías.
   - Se actualizan 03 (reglas de interfaz), 08 (plan) y 11.
 
+## D-024 · Contexto de la Comunidad de Madrid: presupuesto, convenios y registros
+- **Fecha:** 2026-11-23
+- **Estado:** Aceptada
+- **Autor:** Claude (agente), a petición de la persona que coordina; amplía D-001
+- **Contexto:** La web tenía poca información y las fuentes cargadas (contratos y subvenciones) no tenían contexto: nada de presupuesto, convenios ni registros de entidades. D-001 ya preveía presupuesto y altos cargos «como contexto, mostrados por separado». Se pidió usar solo fuentes de la Comunidad de Madrid.
+- **Decisión:**
+  - Se incorporan datos de la **Comunidad de Madrid** (catálogo de datos abiertos y Portal de Transparencia): 25 series presupuestarias y de personal, presupuesto por órgano y fase, convenios vigentes, registros con NIF (transparencia, fundaciones, cooperativas) y puestos de la RPT.
+  - Esquema: ampliación **aditiva** `sql/esquema/003_contexto_cm.sql` (cinco tablas; no cambia el esquema v1 congelado, igual que 002 en D-017).
+  - Un comando para todo el equipo (`uv run python -m ojo_ciudadano.modelo.contexto`), con referencia en `docs/datos-cm-referencia.json` para comprobar que todos tienen lo mismo.
+  - Nueva dependencia `fastexcel` (lector de Excel para polars): el Portal de Transparencia publica los convenios en `.xlsx`.
+  - Es **contexto**, no indicador de riesgo: no entra en la puntuación y no se cruza partida a partida con los contratos.
+  - Privacidad: solo NIF de persona jurídica en los registros; en convenios, solo firmantes con forma de entidad (D-007).
+  - Fuera de la ampliación (decisión explícita): datos de otras administraciones (ayuntamientos), cualquier dato con identidad de personas y lo listado en [12-datos-cm.md](12-datos-cm.md).
+- **Alternativas consideradas:** Más fuentes estatales o europeas (TED repite PLACSP y no son de la Comunidad). Parsear los 103 Excel de planes de medios (mucho esfuerzo, poco valor). Guardar las series en una tabla por conjunto de datos (más tablas que mantener; la tabla larga `serie_cm` basta).
+- **Consecuencias:** Nuevo [12-datos-cm.md](12-datos-cm.md). Pantalla «Presupuesto y contexto», bloque de presupuesto en la ficha de órgano, registros en la ficha de empresa y tablas nuevas en el asistente. Pie de la interfaz con las dos fuentes nuevas. [02-fuentes-datos.md](02-fuentes-datos.md) y el plan actualizados. **Todo el equipo debe bajar los datos antes de seguir** ([LO-PRIMERO.md](LO-PRIMERO.md)).
+
+## D-025 · Buscadores con autocompletado y más filtros en las pantallas de señales
+- **Fecha:** 2026-11-23
+- **Estado:** Aceptada
+- **Autor:** Claude (agente), a petición de la persona que coordina
+- **Contexto:** Quien no conoce los nombres de las empresas no podía buscarlas: la búsqueda pedía tres letras y no sugería nada. En «Contratos atípicos» había contratos con valores sin sentido (por ejemplo, una baja de -300.000 %) que se confundían con atípicos reales, y las dos pantallas de señales casi no tenían filtros ni formas de ordenar (D-023: «primero se ve, luego se lee»).
+- **Decisión:**
+  - Los buscadores de empresa y de organismo sugieren mientras se escribe, primero lo que **empieza** por lo escrito y luego lo que lo contiene (`app/buscador.py`, consultas `datos.sugerir_empresas` y `datos.sugerir_organos`). Se usan en la ficha de empresa, la de organismo, las preguntas guiadas y los filtros de «Contratos a revisar». Solo salen empresas y entidades con contratos o subvenciones, sin personas físicas (D-007).
+  - Nueva dependencia de interfaz **`streamlit-searchbox`** (componente de Streamlit, sin llamadas externas): Streamlit no trae autocompletado que consulte la base mientras se escribe.
+  - «Contratos atípicos»: orden (más o menos alejado, mayor o menor importe), nivel mínimo de lejanía, variable en la que se aleja, búsqueda y un interruptor **«Mostrar posibles errores de datos»** (apagado por defecto). Es un posible error cuando la baja es inferior a -100 % (adjudicado por más del doble del presupuesto, criterio que ya usaba la detección), las modificaciones superan cinco veces el importe adjudicado o el importe es inferior a 1 euro. No es una afirmación: se llama «posible error al introducir los datos en la fuente».
+  - «Contratos a revisar»: varias señales a la vez (cualquiera o todas), año, tipo de contrato, orden, mínimo de señales, cuántos mostrar y organismo o empresa concretos.
+- **Alternativas consideradas:** `st.selectbox` con todas las empresas (decenas de miles de opciones enviadas al navegador). Un cuadro de texto con botón de buscar (no sugiere mientras se escribe). Quitar los posibles errores del cálculo del modelo (cambiaría D-021; aquí solo se ocultan en la pantalla).
+- **Consecuencias:** `uv sync` para instalar la dependencia. Los umbrales de «posible error» están en `app/datos.py` (`_POSIBLE_ERROR`). Se actualiza [03-modulos.md](03-modulos.md).
+
+## D-026 · Mapa general del dinero y mapa de nodos arrastrable
+- **Fecha:** 2026-11-23
+- **Estado:** Aceptada
+- **Autor:** Claude (agente), a petición de la persona que coordina
+- **Contexto:** El «Mapa del dinero» dibujaba la red como un gráfico más (burbujas y líneas de grosor variable) y no daba la visión de conjunto: cuánto dinero tiene la Comunidad, cómo se reparte entre consejerías y cuánto han gastado. Se pidió un mapa principal, visual, con nodos que se mueven al estilo de Neo4j.
+- **Decisión:**
+  - Nuevo componente `app/red.py`: mapa de nodos arrastrable (los conectados se mueven al tirar de uno, sin zoom). El **tamaño y el color** de cada círculo son el dinero (más grande y más claro, más dinero) y el **relleno** muestra qué parte se ha gastado (el resto, en gris). Todas las líneas son iguales. Usa la nueva dependencia **`streamlit-agraph`** (vis-network), que devuelve el nodo pulsado.
+  - Nueva pantalla **«Mapa general»**, la primera de la navegación y la que se abre por defecto: la Comunidad en el centro y sus consejerías y órganos alrededor, con selector de periodo (2015 a 2026) y de qué ver (presupuesto y gasto; contratos de la Plataforma; contratos del portal; subvenciones). Arriba, dinero disponible, gastado, sin gastar y pagado. Al pulsar una consejería, sus 15 contratos más grandes del año más los menores y las subvenciones agrupados; al pulsar un contrato, su ficha (importe, presupuesto de licitación, ofertas, cómo se contrató, adjudicataria, señales y enlace) y qué parte del dinero de la consejería es.
+  - El «Mapa del dinero» (organismo y sus empresas) usa el mismo componente.
+  - Lo que no hay se dice en la pantalla («Qué datos no tenemos»): gasto del año en curso, gasto que no es contratación, contratos sin fecha, criterios de adjudicación y órganos sin contratos en nuestras fuentes.
+- **Alternativas consideradas:** Componente propio con D3 (más trabajo y sin devolver el clic a Streamlit). Mantener Plotly (no se puede arrastrar un nodo y que tiren los demás). Cruzar partida a partida presupuesto y contratos (los datos no lo permiten, ver 02).
+- **Consecuencias:** `uv sync` para instalar `streamlit-agraph`. Presupuesto y contratos son fuentes distintas y se comparan por consejería y año, no partida a partida (`textos.AVISO_CONTEXTO`). Los nodos deben ser deterministas entre ejecuciones (si cambia el orden de un nombre, Streamlit ve un componente nuevo y pierde el clic): las consultas ordenan las adjudicatarias. Se actualizan [03-modulos.md](03-modulos.md) y el plan.

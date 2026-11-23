@@ -66,6 +66,28 @@ HERRAMIENTA_SQL = {
 
 # Tablas derivadas, que no están en el DDL de sql/esquema/.
 DESCRIPCION_TABLAS = {
+    "serie_cm": (
+        "Series oficiales de la Comunidad de Madrid (presupuestos iniciales y liquidados, ayudas "
+        "de la UE, personal, recaudación). Es contexto, no contratos: no se puede cruzar con "
+        "contrato partida a partida. valor_eur ya está en euros; dimension es la fase de "
+        "ejecución o el capítulo."
+    ),
+    "presupuesto_organo": (
+        "Presupuesto de cada consejería u órgano por año: tipo inicial o liquidado y, en el "
+        "liquidado, fase (Crédito actual, Obligaciones reconocidas, Pagos realizados). "
+        "organo_id enlaza con organo cuando se reconoce el nombre. importe_eur en euros."
+    ),
+    "convenio": (
+        "Convenios vigentes de la Comunidad (Portal de Transparencia). Los firmantes van por "
+        "nombre, sin NIF; entidades solo incluye los que son entidades. financiacion es texto "
+        "de la fuente: no se suma."
+    ),
+    "entidad_registro": (
+        "Entidades (con NIF de persona jurídica) en el registro de transparencia, el registro "
+        "de fundaciones o el de cooperativas de la Comunidad. Se une a adjudicatario por nif. "
+        "Estar inscrita no es una señal de riesgo."
+    ),
+    "plantilla_organismo": "Número de puestos de la RPT de funcionarios por organismo.",
     "contrato_unico": "Contratos sin duplicados entre fuentes (usar siempre en vez de contrato).",
     "indicador_resultado": (
         "Una fila por contrato e indicador aplicable (R-01 a R-06). activado = el indicador "

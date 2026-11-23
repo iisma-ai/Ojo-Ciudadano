@@ -7,7 +7,16 @@ aparecen agregadas (D-007).
 
 import streamlit as st
 
-from ojo_ciudadano.app import datos, graficos, senales, textos
+from ojo_ciudadano.app import (
+    buscador,
+    datos,
+    datos_contexto,
+    datos_mapa,
+    graficos,
+    graficos_contexto,
+    senales,
+    textos,
+)
 from ojo_ciudadano.app.conexion import conexion
 
 FUENTES_REPARTO = {
@@ -21,18 +30,13 @@ con = conexion()
 st.header("Ficha de organismo")
 st.caption("Cómo contrata una consejería, un hospital o una empresa pública, y a quién adjudica.")
 
-texto = st.text_input("Buscar", placeholder="Nombre (vacío: los de más contratos)")
-encontrados = datos.buscar_organos(con, texto)
-if not encontrados:
-    st.info("No hay resultados.")
-    st.stop()
-elegido = st.selectbox(
-    "Organismo",
-    encontrados,
-    help=textos.GLOSARIO["organismo"],
-    format_func=lambda o: f"{o['nombre']} · {textos.numero(o['n_contratos'])} contratos",
+elegido = buscador.organo("buscar_organo", "Buscar organismo")
+buscador.esperar(
+    elegido,
+    "Escribe las primeras letras del nombre y elige un organismo de la lista "
+    "(consejería, hospital, empresa pública…).",
 )
-ficha = datos.ficha_organo(con, elegido["organo_id"])
+ficha = datos.ficha_organo(con, elegido)
 if ficha is None:
     st.stop()
 id_ = ficha["organo_id"]
@@ -102,6 +106,43 @@ if fuentes:
     st.caption(
         "Que una empresa reciba mucho de un organismo puede tener causas legítimas (mercado "
         "pequeño, proveedor único); no implica trato de favor."
+    )
+
+# --- Presupuesto (solo consejerías con datos liquidados, D-024) ---
+ejecucion = datos_contexto.ejecucion_organo(con, id_) if datos_contexto.hay_contexto(con) else []
+if ejecucion:
+    ultimo = ejecucion[-1]
+    st.subheader("Presupuesto de la consejería")
+    st.markdown(
+        f"En {ultimo['anio']}, esta consejería reconoció "
+        f"**{textos.euros(ultimo['obligaciones'])}** de gasto sobre un crédito de "
+        f"{textos.euros(ultimo['credito_actual'])}."
+    )
+    propia = next(
+        (e for e in datos_mapa.reparto(con, ultimo["anio"])["entidades"] if e["organo_id"] == id_),
+        None,
+    )
+    if propia and propia["gastado"]:
+        k = st.columns(4)
+        k[0].metric("Gastado sobre lo disponible", textos.porcentaje(propia["llenado"], 1))
+        k[1].metric("Sin gastar", textos.millones(propia["sin_gastar"]))
+        for columna, titulo, clave in (
+            (k[2], "Contratos (Plataforma, sin IVA)", "contratos_plataforma"),
+            (k[3], "Subvenciones concedidas", "subvenciones"),
+        ):
+            columna.metric(
+                titulo,
+                textos.millones(propia[clave]),
+                delta=f"{textos.porcentaje((propia[clave] or 0) / propia['gastado'], 1)} del gasto",
+                delta_color="off",
+                help="Con fecha de "
+                f"{ultimo['anio']}, de sus órganos, sobre el gasto reconocido de la consejería. "
+                "Son fuentes distintas: orden de magnitud, no una resta.",
+            )
+    st.plotly_chart(graficos_contexto.ejecucion_organo(ejecucion), config=graficos.CONFIG)
+    st.caption(
+        f"Fuente: [Datos abiertos de la Comunidad de Madrid]({ultimo['url_origen']}). "
+        + textos.AVISO_CONTEXTO
     )
 
 # --- Comparación y vías ---

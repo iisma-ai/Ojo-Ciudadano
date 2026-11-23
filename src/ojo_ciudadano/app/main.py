@@ -10,7 +10,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from ojo_ciudadano.app import datos, textos
+from ojo_ciudadano.app import datos, datos_contexto, textos
 from ojo_ciudadano.app.conexion import conexion
 
 ESTATICOS = Path(__file__).parent / "static"
@@ -34,7 +34,11 @@ def barra_lateral() -> None:
             st.markdown(textos.AVISO)
             st.markdown("**Qué mide cada indicador**")
             st.markdown(textos.lista_indicadores())
-        st.caption(textos.fechas_descarga(datos.fechas_datos(conexion())))
+        st.caption(
+            textos.fechas_descarga(
+                datos.fechas_datos(conexion()) + datos_contexto.fechas_contexto(conexion())
+            )
+        )
         with st.expander("Aviso legal y fuentes"):
             st.caption(textos.PIE)
 
@@ -42,7 +46,13 @@ def barra_lateral() -> None:
 paginas = st.navigation(
     {
         "": [
-            st.Page("paginas/inicio.py", title="Inicio", icon=":material/home:", default=True),
+            st.Page(
+                "paginas/mapa_general.py",
+                title="Mapa general",
+                icon=":material/hub:",
+                default=True,
+            ),
+            st.Page("paginas/inicio.py", title="Inicio", icon=":material/home:"),
         ],
         "Señales": [
             st.Page(
@@ -56,6 +66,11 @@ paginas = st.navigation(
         ],
         "Explorar": [
             st.Page("paginas/mapa.py", title="Mapa del dinero", icon=":material/account_tree:"),
+            st.Page(
+                "paginas/contexto.py",
+                title="Presupuesto y contexto",
+                icon=":material/account_balance_wallet:",
+            ),
             st.Page("paginas/empresa.py", title="Ficha de empresa", icon=":material/domain:"),
             st.Page(
                 "paginas/organo.py", title="Ficha de órgano", icon=":material/account_balance:"

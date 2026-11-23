@@ -25,6 +25,7 @@ Saber qué empresas reciben más dinero de una consejería, o si esa consejería
 
 | | |
 | --- | --- |
+| **Mapa general** | La Comunidad y sus consejerías en un mapa de nodos arrastrable: dinero disponible, gastado y sin gastar, y los contratos de cada una. |
 | **Mapa del dinero** | Flujos órgano → empresa y órgano → beneficiario, por año, tipo de contrato y procedimiento. |
 | **Ficha de empresa** | Todo lo que ha recibido un NIF: contratos, menores, prórrogas, modificaciones y subvenciones. |
 | **Ficha de órgano** | Cómo contrata cada consejería u organismo, comparado con los demás. |

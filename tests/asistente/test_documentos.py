@@ -281,6 +281,8 @@ def test_tapa_nombres_con_tratamiento_y_firmas():
         "D. Juan Pérez García, en nombre y representación de ACME, S.L., y Dña. Ana de la "
         "Fuente López recurren.\nFdo.: Pedro Ruiz Gómez\nEl Tribunal resuelve."
     )
+    minusculas = pdf.ocultar_personas("formulado por doña Isabel García Díaz contra el acuerdo")
+    assert "Isabel" not in minusculas and "contra el acuerdo" in minusculas
     assert texto.startswith("D. [nombre oculto], en nombre y representación de ACME, S.L.")
     assert "Dña. [nombre oculto] recurren" in texto
     assert "Pérez" not in texto and "Fuente" not in texto and "Ruiz" not in texto

@@ -158,3 +158,42 @@ Herramienta `buscar_texto(consulta, en)` (`texto.py`), con `en` = `contrato`, `c
   - B-28: órganos con más contratos con fondos europeos.
   - B-29: medios propios con más importe encargado.
   - B-30: proporción de recursos estimados por acto recurrido.
+
+## Pliegos y resoluciones del Tribunal (23-nov, D-030 bloques B y C, D-032)
+
+Dos herramientas nuevas (`asistente/documentos.py`):
+
+1. `buscar_en_documento(identificador, consulta, tipo)`:
+   - busca en los pliegos de una licitación de PLACSP (`contrato_documento`: `pcap` y `ppt`) o en el PDF de una resolución del Tribunal (`tacpcm:<n>/<año>`);
+   - el PDF se baja la primera vez a `data/raw/documentos/`, se parte en páginas y se buscan las 4 más parecidas con BM25;
+   - devuelve, por página, el extracto (1.500 caracteres como mucho) y el enlace al PDF en esa página (`…#page=N`);
+   - una licitación del portal regional que duplica una de PLACSP usa los pliegos de esa.
+2. `buscar_resoluciones(consulta, tipo_resolucion)`:
+   - busca en el texto de todas las resoluciones (tabla derivada `resolucion_pagina`, no consultable por SQL);
+   - devuelve las 6 más parecidas con su mejor página, su tipo, el acto recurrido y el contrato enlazado;
+   - «Estimatoria» incluye las parciales y no trae las desestimatorias.
+
+**Reglas** (`REGLAS_DOCUMENTOS`):
+- responde solo con lo que dicen los extractos, cita el documento y la página;
+- un pliego da contexto, no confirma ni descarta una señal, y no se valora si lo alegado es suficiente;
+- una estimatoria no es una sanción, y una desestimatoria no significa que el contrato «esté bien»;
+- sin nombres de personas, y las herramientas son para temas, no para personas.
+
+**Protección de datos (D-032):**
+- al extraer el texto se tapan DNI, NIE, nombres con tratamiento y firmas;
+- las páginas «en nombre propio» no se muestran;
+- las búsquedas con un nombre con tratamiento o un DNI se rechazan;
+- si la respuesta solo usa documentos, cada cifra tiene que estar en un extracto.
+
+**Web:**
+- **Pantalla «Asistente»:** cada búsqueda en documentos muestra la página, el extracto, el botón «Abrir el PDF oficial en esta página», la fuente y la fecha.
+- **Ficha de contrato** (alertas, empresa, órgano):
+  - enlaces a los pliegos con su fuente y fecha;
+  - botón «¿Qué dice el pliego?», que abre el asistente con la pregunta escrita según las señales del contrato (R-01 solvencia y criterios, R-02 supuesto alegado, R-05 modificaciones, R-06 ofertas anormalmente bajas).
+
+**Batería:**
+- B-31 (supuesto de un negociado sin publicidad, buscando antes el contrato);
+- B-32 (la pregunta del botón);
+- B-33 (resoluciones estimatorias sobre criterios de juicio de valor);
+- B-34 (límites: nombres de personas en una resolución).
+- Las de documentos aciertan si se lee el documento esperado, y hay aviso si no se cita la página.

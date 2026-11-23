@@ -92,7 +92,7 @@ def descargar(url: str, tipo: str, carpeta: Path = CARPETA, cliente=None) -> Pat
 # resoluciones nombran así a representantes, firmantes y licitadores (revisión legal, D-032).
 _MAYUSCULA = r"[A-ZÁÉÍÓÚÑ][\wÁÉÍÓÚÑáéíóúñü'-]+"
 TRATAMIENTO = re.compile(
-    r"\b(D\.ª|Dª|Dña\.?|D\.|Don|Doña|Sr\.|Sra\.)\s+"
+    r"\b(D\.ª|Dª|Dña\.?|D\.|[Dd]on|[Dd]oña|Sr\.|Sra\.)\s+"
     + _MAYUSCULA
     + r"(?:\s+(?:de\s+la\s+|de\s+los\s+|del\s+|de\s+|y\s+)?"
     + _MAYUSCULA
@@ -132,7 +132,12 @@ def paginas(ruta: Path) -> list[str]:
     cache = ruta.with_suffix(".json")
     if cache.exists() and cache.stat().st_mtime >= ruta.stat().st_mtime:
         return [ocultar_personas(t) for t in json.loads(cache.read_text(encoding="utf-8"))]
+    import logging
+
     from pypdf import PdfReader  # solo hace falta si no está en caché
+
+    # Avisos de fuentes sin fontTools: no afectan al texto y llenan la salida.
+    logging.getLogger("pypdf").setLevel(logging.ERROR)
 
     try:
         lector = PdfReader(ruta)

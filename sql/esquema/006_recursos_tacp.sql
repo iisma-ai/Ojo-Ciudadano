@@ -9,8 +9,8 @@ CREATE TABLE recurso_especial (
     numero             VARCHAR NOT NULL,     -- número de resolución del Tribunal
     fecha              DATE,
     procedencia        VARCHAR NOT NULL,     -- Consejerías | Hospitales | Otros poderes adjudicadores | Universidades
-    tipo_resolucion    VARCHAR NOT NULL,     -- Desestimatoria | Estimatoria | Estimatoria parcial | Inadmisión | Otros
-    acto_recurrido     VARCHAR NOT NULL,     -- Pliegos | Anuncio | Admisión | Exclusión | Adjudicación | Otros
+    tipo_resolucion    VARCHAR NOT NULL,     -- Desestimatoria | Estimatoria | Estimatoria parcial | Inadmisión | Otros (varios: «; »)
+    acto_recurrido     VARCHAR NOT NULL,     -- Pliegos | Anuncio | Admisión | Exclusión | Adjudicación | Otros (varios: «; »)
     expediente_citado  VARCHAR,              -- expediente de contratación citado en el resumen que casa con un contrato
     contrato_id        VARCHAR REFERENCES contrato (contrato_id),  -- solo si casa con un único contrato
     fuente             VARCHAR NOT NULL,     -- tacpcm

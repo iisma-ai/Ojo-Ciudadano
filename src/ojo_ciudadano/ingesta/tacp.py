@@ -6,11 +6,12 @@ recurso se presente no es una señal; que se estime solo dice que ese acto no se
 derecho. Es contexto oficial del contrato (D-029), no un indicador de riesgo.
 
 Fuente: el buscador público https://www.comunidad.madrid/tacp/busquedaresoluciones (HTML,
-5 resoluciones por página, sin descarga masiva). Cada resolución tiene una sola procedencia,
-un solo tipo de resolución y un solo acto recurrido (comprobado el 23-nov-2026: los filtros
-reparten las 451 resoluciones de consejerías sin huecos), así que se recorre el listado por
-combinación de los tres filtros y cada resolución sale una vez, ya etiquetada. Las páginas se
-guardan en `data/raw/tacp/`, una petición cada vez y con pausa.
+5 resoluciones por página, sin descarga masiva). Casi todas las resoluciones tienen una sola
+procedencia, un solo tipo de resolución y un solo acto recurrido (el 23-nov-2026 los filtros
+sumaban las 451 de consejerías), así que se recorre el listado por combinación de los tres
+filtros y cada resolución sale ya etiquetada. Limitación: el listado ordena por fecha y, con
+empates, la paginación repite o salta alguna fila (el 23-nov se recogieron 1.097 de 1.109).
+Las páginas se guardan en `data/raw/tacp/`, una petición cada vez y con pausa.
 
 Uso:
     uv run python -m ojo_ciudadano.ingesta.tacp
@@ -157,7 +158,16 @@ def leer(carpeta: Path = CARPETA, fecha_descarga: date | None = None) -> pl.Data
     }
     return (
         pl.DataFrame(filas, schema=esquema)
-        .unique("resolucion_id", keep="first", maintain_order=True)
+        # Una resolución puede salir dos veces: si el listado repite una fila al paginar
+        # (ordena por fecha y hay empates) o si resuelve un recurso con dos actos recurridos
+        # o dos resultados (acumulación). Se queda una fila con las etiquetas unidas.
+        .group_by("resolucion_id", maintain_order=True)
+        .agg(
+            pl.col("numero", "fecha", "procedencia", "url_origen", "url_documento").first(),
+            pl.col("tipo_resolucion").unique(maintain_order=True).str.join("; "),
+            pl.col("acto_recurrido").unique(maintain_order=True).str.join("; "),
+            pl.col("expedientes_citados").first(),
+        )
         .with_columns(
             pl.lit(FUENTE).alias("fuente"), pl.lit(fecha_descarga).alias("fecha_descarga")
         )

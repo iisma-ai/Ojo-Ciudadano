@@ -29,3 +29,12 @@ def test_leer_pagina():
 
 def test_pagina_sin_resultados():
     assert tacp.leer_pagina("<html>NO HAY RESULTADOS</html>", "1", "35", "56") == []
+
+
+def test_resolucion_repetida_une_las_etiquetas(tmp_path):
+    (tmp_path / "p1_t41_a17_000.html").write_text(PAGINA, encoding="utf-8")
+    (tmp_path / "p1_t41_a56_000.html").write_text(PAGINA, encoding="utf-8")
+    (tmp_path / "p1_t41_a56_001.html").write_text(PAGINA, encoding="utf-8")
+    tabla = tacp.leer(tmp_path)
+    assert tabla.height == 1
+    assert tabla.row(0, named=True)["acto_recurrido"] == "Exclusión; Adjudicación"

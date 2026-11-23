@@ -20,6 +20,8 @@ from ojo_ciudadano.asistente.agente import (
     HERRAMIENTA_SQL,
     Llamada,
     LlamadaBuscarConjunto,
+    LlamadaBuscarDocumento,
+    LlamadaBuscarResoluciones,
     LlamadaBuscarTexto,
     LlamadaConsultarConjunto,
     LlamadaSQL,
@@ -194,6 +196,17 @@ def interpretar(respuesta: dict) -> Llamada | TextoFinal:
         if nombre == "consultar_conjunto":
             return LlamadaConsultarConjunto(
                 str(argumentos.get("conjunto", "")), str(argumentos.get("sql", ""))
+            )
+        if nombre == "buscar_en_documento":
+            return LlamadaBuscarDocumento(
+                str(argumentos.get("identificador", "")),
+                str(argumentos.get("consulta", "")),
+                str(argumentos["tipo"]) if argumentos.get("tipo") else None,
+            )
+        if nombre == "buscar_resoluciones":
+            return LlamadaBuscarResoluciones(
+                str(argumentos.get("consulta", "")),
+                str(argumentos["tipo_resolucion"]) if argumentos.get("tipo_resolucion") else None,
             )
     return TextoFinal((mensaje.get("content") or "").strip())
 

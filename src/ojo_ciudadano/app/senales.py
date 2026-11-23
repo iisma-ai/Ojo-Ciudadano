@@ -158,14 +158,46 @@ def tarjeta_contrato(con: duckdb.DuckDBPyConnection, fila: dict, prefijo: str) -
                 + ", según la Plataforma de Contratación. Es un dato, no una señal."
             )
         for r in datos_flujos.recursos_contrato(con, fila["contrato_id"]):
+            if r["expediente_citado"]:
+                cabecera = (
+                    "Resolución del Tribunal de Contratación de la Comunidad sobre este contrato"
+                )
+                metodo = "Enlazada por el expediente que cita la resolución."
+            else:  # enlace por el título citado en el PDF (D-030, bloque C)
+                cabecera = "Resolución del Tribunal que cita un contrato con el mismo título"
+                metodo = (
+                    "Enlazada por el título que cita la resolución, no por el expediente: "
+                    "comprueba en la resolución que se refiere a este contrato."
+                )
             st.markdown(
-                f"**Recurrido ante el Tribunal de Contratación de la Comunidad:** "
+                f"**{cabecera}:** "
                 f"[resolución {r['numero']}]({r['url_origen']}) del {r['fecha']}, "
                 f"{r['tipo_resolucion'].lower()} (acto recurrido: {r['acto_recurrido'].lower()}). "
-                "Fuente: Tribunal Administrativo de Contratación Pública de la Comunidad de "
-                f"Madrid, datos descargados el {r['fecha_descarga']}."
+                f"{metodo} Fuente: Tribunal Administrativo de Contratación Pública de la "
+                f"Comunidad de Madrid, datos descargados el {r['fecha_descarga']}."
             )
             st.caption(textos.AVISO_RECURSOS)
+        pliegos = datos_flujos.pliegos_contrato(con, fila["contrato_id"])
+        if pliegos:
+            enlaces = " · ".join(
+                f"[{textos.NOMBRE_PLIEGO[p['tipo']]}]({p['url_documento']})" for p in pliegos
+            )
+            st.markdown(
+                f"**Pliegos:** {enlaces} · Fuente: Plataforma de Contratación del Sector "
+                f"Público, enlaces descargados el {pliegos[0]['fecha_descarga']}."
+            )
+            if st.button(
+                "¿Qué dice el pliego?",
+                key=f"{prefijo}-pliego-{fila['contrato_id']}",
+                icon=":material/description:",
+                help="Abre el asistente con la pregunta escrita: busca en el pliego los "
+                "apartados relacionados con las señales de este contrato; no confirma ni "
+                "descarta ninguna.",
+            ):
+                st.session_state["pregunta_asistente"] = textos.pregunta_pliego(
+                    pliegos[0]["contrato_id"], encontradas
+                )
+                st.switch_page("paginas/asistente.py")
         if fila["url_origen"]:
             st.link_button(
                 "Ver el expediente oficial", fila["url_origen"], icon=":material/open_in_new:"

@@ -14,7 +14,8 @@ empates, la paginación repite o salta alguna fila (el 23-nov se recogieron 1.09
 Las páginas se guardan en `data/raw/tacp/`, una petición cada vez y con pausa.
 
 Uso:
-    uv run python -m ojo_ciudadano.ingesta.tacp
+    uv run python -m ojo_ciudadano.ingesta.tacp          # listado
+    uv run python -m ojo_ciudadano.ingesta.tacp --pdf    # y los PDF (D-030, bloque C; ~20 min)
 """
 
 import html
@@ -25,6 +26,8 @@ from pathlib import Path
 
 import httpx
 import polars as pl
+
+from ojo_ciudadano.ingesta import documentos
 
 CARPETA = Path("data/raw/tacp")
 URL = "https://www.comunidad.madrid/tacp/busquedaresoluciones"
@@ -180,8 +183,65 @@ def leer(carpeta: Path = CARPETA, fecha_descarga: date | None = None) -> pl.Data
     )
 
 
+TIPO_DOCUMENTO = "tacpcm"  # subcarpeta de data/raw/documentos/
+# Título del contrato recurrido, entre comillas, en el encabezamiento de la resolución
+# («… contra el acuerdo … por el que se adjudica el contrato de “Servicios de …”»).
+_TITULO_PDF = re.compile(r"[«“\"]([^»”\"]{15,400})[»”\"]")
+PAGINAS_ENCABEZADO = 2
+
+
+def descargar_pdfs(tabla: pl.DataFrame, pausa: float = documentos.PAUSA) -> dict:
+    """Baja los PDF de las resoluciones que falten (D-030, bloque C), uno cada vez y con
+    pausa. Devuelve {url: ruta o None}."""
+    urls = [u for u in tabla["url_documento"].drop_nulls().to_list()]
+    return documentos.descargar_varios(urls, TIPO_DOCUMENTO, pausa=pausa)
+
+
+def _encabezado(url: str | None, carpeta: Path) -> str:
+    """Texto de las primeras páginas del PDF si ya está en la caché (sin red)."""
+    if not url:
+        return ""
+    ruta = documentos.ruta_local(url, TIPO_DOCUMENTO, carpeta)
+    if not ruta.exists():
+        return ""
+    try:
+        return "\n".join(documentos.paginas(ruta)[:PAGINAS_ENCABEZADO])
+    except documentos.DocumentoNoDisponible:
+        return ""
+
+
+def titulos_citados(texto: str) -> list[str]:
+    """Textos entre comillas del encabezamiento que pueden ser el título del contrato."""
+    plano = re.sub(r"\s+", " ", texto)
+    return list(dict.fromkeys(m.group(1).strip() for m in _TITULO_PDF.finditer(plano)))
+
+
+def con_texto_pdf(tabla: pl.DataFrame, carpeta: Path = documentos.CARPETA) -> pl.DataFrame:
+    """Añade los candidatos que salen del PDF ya descargado: más expedientes citados y los
+    títulos entre comillas del encabezamiento (`titulos_citados`). Sirve para enlazar más
+    resoluciones con su contrato (`carga.cruzar_recursos`). El texto no se guarda en la base."""
+    expedientes, titulos = [], []
+    filas = tabla.select("url_documento", "expedientes_citados").iter_rows()
+    for url, citados in filas:
+        encabezado = _encabezado(url, carpeta)
+        # Del PDF solo los que llevan letras: los números sin letras del encabezamiento son
+        # casi siempre del propio Tribunal («Recurso nº 432/2023»), leyes o fechas.
+        extra = [c for c in expedientes_citados(encabezado.upper()) if re.search(r"[A-Z]", c)]
+        expedientes.append(list(dict.fromkeys([*(citados or []), *extra])))
+        titulos.append(titulos_citados(encabezado) if encabezado else [])
+    return tabla.with_columns(
+        pl.Series("expedientes_citados", expedientes, dtype=pl.List(pl.String)),
+        pl.Series("titulos_citados", titulos, dtype=pl.List(pl.String)),
+    )
+
+
 if __name__ == "__main__":
+    import sys
+
     print(f"Páginas pedidas: {descargar()}")
     tabla = leer()
     print(f"Resoluciones: {tabla.height}")
     print(tabla.group_by("procedencia", "tipo_resolucion").len().sort("procedencia", "len"))
+    if "--pdf" in sys.argv:
+        bajados = descargar_pdfs(tabla)
+        print(f"PDF disponibles: {sum(r is not None for r in bajados.values())} de {len(bajados)}")

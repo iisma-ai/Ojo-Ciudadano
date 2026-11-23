@@ -48,3 +48,9 @@ def test_contexto_de_senal_enlaza_a_sus_fuentes():
     for frase in textos.CONTEXTO_SENAL.values():
         assert "](https://" in frase
     assert "45,5 %" in textos.lista_indicadores()
+
+
+def test_pregunta_del_pliego_segun_las_senales():
+    pregunta = textos.pregunta_pliego("placsp:1", ["R-02", "R-03"])
+    assert "placsp:1" in pregunta and "sin publicidad" in pregunta and "página" in pregunta
+    assert "objeto" in textos.pregunta_pliego("placsp:1", ["R-04"])

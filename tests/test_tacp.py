@@ -1,3 +1,5 @@
+import polars as pl
+
 from ojo_ciudadano.ingesta import tacp
 
 # Fragmento con la estructura real del listado del buscador del Tribunal.
@@ -43,3 +45,33 @@ def test_resolucion_repetida_une_las_etiquetas(tmp_path):
 def test_numeros_de_ley_no_son_expedientes():
     citados = tacp.expedientes_citados("LEY 9/2017, EXPEDIENTE A/SER-025050/2026 Y 129-2025")
     assert citados == ["A/SER-025050/2026", "129-2025"]
+
+
+def test_titulos_y_expedientes_del_pdf(tmp_path):
+    import json
+
+    from ojo_ciudadano.ingesta import documentos
+
+    url = "https://www.comunidad.madrid/tacp/file/1/download?token=a"
+    encabezado = (
+        "Recurso nº 432/2023\nResolución nº 001/2024\nVISTO el recurso contra la adjudicación "
+        "del contrato de “Servicios de Seguridad y Vigilancia\ndel Parque Tecnológico”, "
+        "expediente A/SER-012345/2023, de MADRID ACTIVA"
+    )
+    ruta = documentos.ruta_local(url, tacp.TIPO_DOCUMENTO, tmp_path)
+    ruta.parent.mkdir(parents=True)
+    ruta.write_bytes(b"%PDF-1.4")
+    ruta.with_suffix(".json").write_text(json.dumps([encabezado, "Fundamentos"]), "utf-8")
+    tabla = pl.DataFrame(
+        {
+            "resolucion_id": ["tacpcm:1/2024", "tacpcm:2/2024"],
+            "url_documento": [url, None],
+            "expedientes_citados": [["BAC01/2024"], []],
+        },
+        schema_overrides={"expedientes_citados": pl.List(pl.String)},
+    )
+    fila, sin_pdf = tacp.con_texto_pdf(tabla, tmp_path).iter_rows(named=True)
+    assert fila["titulos_citados"] == ["Servicios de Seguridad y Vigilancia del Parque Tecnológico"]
+    # Del PDF solo entran los que llevan letras: no el número del recurso (432/2023).
+    assert fila["expedientes_citados"] == ["BAC01/2024", "A/SER-012345/2023"]
+    assert sin_pdf["titulos_citados"] == [] and sin_pdf["expedientes_citados"] == []

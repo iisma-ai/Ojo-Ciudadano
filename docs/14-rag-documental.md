@@ -1,6 +1,6 @@
 # 14 · RAG: datos nuevos, catálogo de la Comunidad y documentos (investigación del 23-nov)
 
-> **Estado (23-nov, noche):** el **bloque A (RAG de catálogo) está implementado** en la rama `feat/rag-catalogo` y pasó el control: 4 de 4 preguntas de catálogo bien con `gpt-6.1-terra`. Ver «Bloque A: implementado» al final. El bloque B (pliegos) sigue como propuesta.
+> **Estado (23-nov, noche):** los **tres bloques están implementados**: A (catálogo, en `main`), B (pliegos) y C (resoluciones del Tribunal), en la rama `feat/rag-documentos` con D-032. Ver las secciones finales.
 
 El asistente de texto a SQL ya está conectado (D-010, rama `feat/asistente-openrouter`). Este documento recoge la investigación del 23-nov para decidir qué recupera la segunda parte del asistente, el **RAG**, y cómo. Es el recorte n.º 2 del plan. Decisión propuesta: [D-030](decisions.md).
 
@@ -252,3 +252,59 @@ Son unas 2 h. Solo merece la pena si sobra tiempo: `ILIKE` ya resuelve los casos
 
 - **Batería:** 26 preguntas, entre ellas 4 de catálogo, 1 de búsqueda por palabras y B-25, de personas en convenios.
 - **Gasto de la clave al cerrar:** 0,63 USD.
+
+## Bloques B y C: implementados (23-nov, noche)
+
+**Aceptados** por El Harrak («realiza los bloques B y C en su integridad»). Están en la rama `feat/rag-documentos`, con las medidas de protección de datos de [D-032](decisions.md).
+
+**Piezas:**
+
+| Pieza | Qué hace |
+| --- | --- |
+| `ingesta/placsp.py` | Lee de cada licitación los enlaces al PCAP y al PPT, de la versión que se conserva, y los guarda en la tabla nueva `contrato_documento` (`sql/esquema/007_documentos.sql`) |
+| `ingesta/documentos.py` | Baja los PDF solo de portales oficiales, de 30 MB como mucho, con caché. Extrae el texto por páginas con `pypdf`, nueva dependencia, y tapa DNI, NIE, nombres con tratamiento y firmas |
+| `ingesta/tacp.py --pdf` | Baja los 1.092 PDF del Tribunal y saca de su encabezamiento más expedientes y el título del contrato entre comillas |
+| `modelo/carga.cruzar_recursos` | Enlaza cada resolución por expediente o por título exacto. El título solo vale si el contrato es único, anterior a la resolución y de no más de 24 meses antes |
+| `asistente/documentos.py` | Las herramientas `buscar_en_documento` (pliegos de una licitación o PDF de una resolución) y `buscar_resoluciones` (todas las resoluciones, en la tabla derivada `resolucion_pagina` con BM25) |
+| Web | En el asistente, cada página encontrada con su extracto y el enlace al PDF en esa página. En la ficha de contrato, los pliegos y el botón «¿Qué dice el pliego?» |
+
+**Resultados con los datos reales:**
+- **Pliegos:** 32.112 enlaces. 16.431 de las 17.589 licitaciones de PLACSP (93 %) tienen PCAP.
+- **Precarga:** hay en caché los pliegos de la batería y de 50 licitaciones con señales. Se bajaron 101 y fallaron 2.
+- **Resoluciones:** 14.831 páginas indexadas de los 1.092 PDF.
+  - Quedan tapados 78 nombres con tratamiento, 27 firmas y 29 documentos de identidad.
+  - 150 páginas que dicen «en nombre propio» o «persona física» no se muestran.
+  - En casi todas las resoluciones el propio Tribunal ya escribe las personas solo con iniciales.
+- **Resoluciones enlazadas con un contrato:** **396, frente a 6 antes.**
+  - 247 por un expediente citado en el resumen o en el PDF.
+  - 149 por el título.
+  - Comprobé a mano 20 de las enlazadas por título y en las 20 coinciden el órgano, el objeto y unas fechas coherentes.
+- **Comprobación de las anomalías** (`anomalia_validacion`):
+  - 0 atípicos entre los 55 contratos con algún recurso estimado.
+  - 8 atípicos entre los 174 contratos con recursos solo desestimados o inadmitidos (4,6 %).
+  - 1,0 % en el conjunto de los contratos.
+  - Con tan pocos casos no se puede decir que la señal de atípicos acierte con los recursos estimados.
+- **Batería con `gpt-6.1-terra`:** las 34 preguntas costaron 0,297 USD.
+  - B-31 a B-33 bien, con el documento y la página.
+  - B-34 no da nombres.
+  - Las preguntas anteriores responden como en la pasada de las 14:11. Las que el evaluador marca mal (B-07 a B-11, B-16 y B-30) dan las cifras correctas con otro desglose: por fuente, sumando lotes o con los actos múltiples aparte.
+  - Ninguna respuesta retenida.
+
+**Revisión de `revisor-legal` (23-nov), aplicada:**
+- **Alto:**
+  - nombres en los extractos: tapado al extraer y al leer la caché, páginas «en nombre propio» ocultas, búsquedas por persona rechazadas y regla al modelo;
+  - enlace por título: fechas coherentes, y la ficha y el asistente dicen que el enlace es por título y piden comprobarlo.
+- **Medio:**
+  - D-032 registrada;
+  - si la respuesta solo usa documentos, sus cifras tienen que estar en los extractos;
+  - la web aclara que las expresiones del extracto son del Tribunal o del órgano.
+- **Bajo:**
+  - «dar contexto» en lugar de «explicar» una señal;
+  - cita de las resoluciones con número y página;
+  - fuente y fecha de los pliegos en la ficha;
+  - tests sintéticos de tapado.
+
+**Pendiente:**
+- Validar D-032 en equipo.
+- Avisar a quien lleva la ingesta de PLACSP: `placsp.leer_zips` devuelve ahora también `documentos`.
+- En cada instalación: `ingesta.tacp --pdf` antes de `modelo.carga` y, después, `asistente.documentos --precargar`.

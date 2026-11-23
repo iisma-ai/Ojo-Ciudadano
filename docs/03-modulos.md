@@ -10,6 +10,10 @@ Cinco módulos; los cinco entran en la demo, dos de ellos en versión simplifica
 | **Panel de alertas** | Contratos ordenados por puntuación de riesgo, con el motivo de cada alerta | ¿Qué contratos merece la pena revisar primero? | Sí, simplificado |
 | **Asistente de investigación** | Preguntas en lenguaje natural sobre todo lo anterior, con respuestas citadas | Cualquier pregunta ad hoc | Sí, con preguntas de demo preparadas |
 
+## Presupuesto y contexto (D-024)
+
+Pantalla de contexto con datos de la Comunidad de Madrid: gasto por consejería con los contratos y subvenciones de sus órganos al lado, evolución por capítulo, gastos e ingresos presupuestados, personal, convenios y registros. La ficha de órgano muestra el presupuesto de su consejería y la de empresa, los registros donde figura su NIF. No son indicadores de riesgo y no se cruzan partida a partida con los contratos. Detalle en [12-datos-cm.md](12-datos-cm.md).
+
 ## Reglas de interfaz (todas las pantallas)
 
 1. **Cada cifra enlaza al registro oficial** del que sale (contrato, concesión, documento).

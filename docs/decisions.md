@@ -255,3 +255,18 @@ Plantilla:
   - Para la demo, las tareas de prioridad alta. El resto entra en la lista de recortes, detrás de la detección de anomalías.
   - Se actualizan 03 (reglas de interfaz), 08 (plan) y 11.
 
+## D-024 · Contexto de la Comunidad de Madrid: presupuesto, convenios y registros
+- **Fecha:** 2026-11-23
+- **Estado:** Aceptada
+- **Autor:** Claude (agente), a petición de la persona que coordina; amplía D-001
+- **Contexto:** La web tenía poca información y las fuentes cargadas (contratos y subvenciones) no tenían contexto: nada de presupuesto, convenios ni registros de entidades. D-001 ya preveía presupuesto y altos cargos «como contexto, mostrados por separado». Se pidió usar solo fuentes de la Comunidad de Madrid.
+- **Decisión:**
+  - Se incorporan datos de la **Comunidad de Madrid** (catálogo de datos abiertos y Portal de Transparencia): 25 series presupuestarias y de personal, presupuesto por órgano y fase, convenios vigentes, registros con NIF (transparencia, fundaciones, cooperativas) y puestos de la RPT.
+  - Esquema: ampliación **aditiva** `sql/esquema/003_contexto_cm.sql` (cinco tablas; no cambia el esquema v1 congelado, igual que 002 en D-017).
+  - Un comando para todo el equipo (`uv run python -m ojo_ciudadano.modelo.contexto`), con referencia en `docs/datos-cm-referencia.json` para comprobar que todos tienen lo mismo.
+  - Nueva dependencia `fastexcel` (lector de Excel para polars): el Portal de Transparencia publica los convenios en `.xlsx`.
+  - Es **contexto**, no indicador de riesgo: no entra en la puntuación y no se cruza partida a partida con los contratos.
+  - Privacidad: solo NIF de persona jurídica en los registros; en convenios, solo firmantes con forma de entidad (D-007).
+  - Fuera de la ampliación (decisión explícita): datos de otras administraciones (ayuntamientos), cualquier dato con identidad de personas y lo listado en [12-datos-cm.md](12-datos-cm.md).
+- **Alternativas consideradas:** Más fuentes estatales o europeas (TED repite PLACSP y no son de la Comunidad). Parsear los 103 Excel de planes de medios (mucho esfuerzo, poco valor). Guardar las series en una tabla por conjunto de datos (más tablas que mantener; la tabla larga `serie_cm` basta).
+- **Consecuencias:** Nuevo [12-datos-cm.md](12-datos-cm.md). Pantalla «Presupuesto y contexto», bloque de presupuesto en la ficha de órgano, registros en la ficha de empresa y tablas nuevas en el asistente. Pie de la interfaz con las dos fuentes nuevas. [02-fuentes-datos.md](02-fuentes-datos.md) y el plan actualizados. **Todo el equipo debe bajar los datos antes de seguir** ([LO-PRIMERO.md](LO-PRIMERO.md)).

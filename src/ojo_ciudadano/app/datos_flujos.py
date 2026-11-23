@@ -154,6 +154,24 @@ def cpv_contrato(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | Non
     return filas[0] if filas else None
 
 
+def sector_publico(con: duckdb.DuckDBPyConnection, nif: str | None, nombre: str | None):
+    """El ente del sector público (INVENTE, D-033) con ese NIF, si lo hay, y si su nombre se
+    parece al del adjudicatario (`nombre_compatible`)."""
+    from ojo_ciudadano.ingesta.invente import nombres_compatibles
+
+    if not nif or not hay_tabla(con, "entidad_sector_publico"):
+        return None
+    filas = _filas(
+        con,
+        "SELECT nombre, forma_juridica, administracion, fecha_descarga, url_origen "
+        "FROM entidad_sector_publico WHERE nif = ?",
+        [nif],
+    )
+    if not filas:
+        return None
+    return {**filas[0], "nombre_compatible": nombres_compatibles(nombre, filas[0]["nombre"])}
+
+
 def resumen_recursos(con: duckdb.DuckDBPyConnection) -> list[dict]:
     """Resoluciones por acto recurrido y resultado, para el contexto general."""
     if not hay_tabla(con, "recurso_especial"):

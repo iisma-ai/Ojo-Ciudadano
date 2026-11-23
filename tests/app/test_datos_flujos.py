@@ -95,3 +95,17 @@ def test_cpv_con_su_nombre_tambien_desde_el_duplicado(con):
     for contrato_id in ("placsp:1", "portal_cm:C1"):
         objeto = datos_flujos.cpv_contrato(con, contrato_id)
         assert objeto["codigo"] == "33100000" and objeto["nombre"] == "Equipamiento médico"
+
+
+def test_sector_publico_con_aviso_si_el_nombre_no_se_parece(con):
+    con.execute(
+        "INSERT INTO entidad_sector_publico VALUES ('Q2818011E', 'INV3', "
+        "'Universidad Complutense de Madrid', 'Universidad pública', 'Estado', NULL, 'OE1', "
+        "'invente', 'https://x.test', DATE '2026-11-23')"
+    )
+    bien = datos_flujos.sector_publico(con, "Q2818011E", "UNIVERSIDAD COMPLUTENSE DE MADRID")
+    assert bien["forma_juridica"] == "Universidad pública" and bien["nombre_compatible"]
+    mal = datos_flujos.sector_publico(con, "Q2818011E", "AUDALIA AUDITORES SL")
+    assert not mal["nombre_compatible"]
+    assert datos_flujos.sector_publico(con, "B00000000", "Otra") is None
+    assert datos_flujos.sector_publico(con, None, "Sin NIF") is None

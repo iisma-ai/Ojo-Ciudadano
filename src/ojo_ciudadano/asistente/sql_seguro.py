@@ -37,6 +37,8 @@ TABLAS_PERMITIDAS = {
     "contrato_documento",
     # Nombres oficiales de los códigos CPV (008, D-033): diccionario para leer contrato.cpv.
     "cpv",
+    # Entes del sector público institucional (009, INVENTE, D-033): se cruzan por NIF.
+    "entidad_sector_publico",
     "indicador_resultado",
     "puntuacion_contrato",
     "puntuacion_empresa_contrato",

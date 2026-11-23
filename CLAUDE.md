@@ -47,7 +47,7 @@ uv run streamlit run src/ojo_ciudadano/app/main.py   # (cuando exista)
 - Ingesta: polars, lxml (Atom de PLACSP), httpx. Base analítica: **DuckDB** en un fichero (`data/ojo_ciudadano.duckdb`). Interfaz: **Streamlit**.
 - Indicadores: **un fichero SQL por indicador** en `sql/indicadores/` (`r01_licitador_unico.sql`…), con test y definición en `docs/04-indicadores-riesgo.md` (D-004). Usa `/nuevo-indicador`.
 - Nueva fuente de datos: usa `/nueva-fuente`.
-- Asistente: texto a SQL (solo lectura, validado) + RAG con citas. Proveedor de LLM **pendiente (D-010)**: no añadas dependencias de LLM sin cerrar esa decisión.
+- Asistente: texto a SQL (solo lectura, validado) + RAG con citas. LLM por **OpenRouter** (D-010): principal `openai/gpt-6.1-terra`, respaldo `anthropic/claude-haiku-5.5`, clave `OPENROUTER_API_KEY` en `.env`. Sin SDK de proveedores: el adaptador usa `httpx`. Las llamadas gastan saldo compartido: no repitas la batería sin motivo (`asistente/comparar_modelos.py` tiene topes de gasto).
 - Estructura de carpetas prevista en `docs/06-arquitectura.md`. No crees carpetas vacías por adelantado.
 
 ## Reglas de datos

@@ -31,7 +31,7 @@ Cuatro fases en 11 días, con hitos internos que protegen la entrega: **esquema 
 - [x] Revisar licencias y avisos legales de reutilización (P-03). Resuelto el 21-nov (ver 02, «Condiciones de reutilización»).
 - [x] Descargar una muestra del Atom de PLACSP filtrada a órganos de la Comunidad de Madrid (octubre de 2026).
 - [x] Probar la API de la BDNS con concesiones de la Comunidad. Resuelto el 20-nov: filtro por los 27 órganos hijos de la Comunidad (id 16); 849.878 concesiones 2023–2026 cargadas.
-- [ ] Decidir proveedor de LLM (D-010). Aplazado el 16-nov: no bloquea datos ni indicadores.
+- [x] Decidir proveedor de LLM (D-010): OpenRouter, con `openai/gpt-6.1-terra` como principal y `anthropic/claude-haiku-5.5` de respaldo (23-nov).
 - [x] Asignar nombres a las personas 1–4 de la tabla de responsables. Hecho el 21-nov según el trabajo ya hecho: Ignacio e Ismael.
 
 ## Responsables
@@ -105,3 +105,4 @@ Todo lo marcado «tras el datatón» o «largo plazo» en [01-vision.md](01-visi
 | 21-nov | 2 | **Respuestas con gráfico (D-023, A-08)** (rama `feat/accesibilidad-preguntas`): gráfico automático según el tipo de resultado y frase resumen en «Preguntas guiadas»; listo para el asistente. |
 | 21-nov | 2 | **Revisión de accesibilidad y glosario (D-023, A-09, A-10, guion de A-11)** (rama `fix/accesibilidad-revision`): contraste medido (todo AA; el gris de las barras sube a 3,5:1), etiqueta además de color en E-01, definiciones en la ayuda de los términos clave, guion para la prueba con personas no expertas. **Pendiente:** hacer la prueba A-11 y la pasada final de A-10 el 24-25. |
 | 21-nov (cierre) | 2 | Resumen del día y pasos para retomar en [`bitacora/2026-11-21-cierre-del-dia.md`](bitacora/2026-11-21-cierre-del-dia.md). **H2:** entregables de las personas 1, 2 y 3 hechos; la 4 (asistente) espera a D-010; detección de anomalías (D-021) adelantada. **Siguiente:** D-010, P-09, prueba A-11 antes del H3 (24-nov). |
+| 23-nov | 2 | **Asistente conectado (D-010)** (rama `feat/asistente-openrouter`): OpenRouter con `gpt-6.1-terra` de principal y `claude-haiku-5.5` de respaldo, elegidos con la batería (5 modelos probados por 0,47 USD); evaluador que acepta todas las consultas del modelo, rankings más cortos y códigos de fuente; una reescritura si el filtro de lenguaje retendría la respuesta (el filtro no se relaja); aviso si el proveedor falla. **Entregable de la persona 4 hecho.** **Pendiente:** decidir si se aplica el recorte 2 (RAG documental), P-09 y A-11. |

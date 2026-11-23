@@ -58,15 +58,43 @@ Limitaciones de los datos que el asistente debe explicar: las licitaciones del p
   - `responder` hace el bucle: hasta 5 consultas, y los errores del validador vuelven al modelo para que corrija. Al modelo le llegan como mucho 50 filas, en JSON y marcadas como datos, con los seudónimos ya ocultos. Admite historial para preguntas de seguimiento. Una pregunta con DNI o NIE no llega al modelo, porque el proveedor es externo.
   - **Retención** (`Respuesta.retencion`, revisión de `revisor-legal` del 21-nov): la interfaz no muestra la respuesta, y explica por qué, en tres casos. Si hay un DNI o NIE en el texto o en los datos de alguna consulta. Si hay un término acusatorio de la tabla de docs/07 fuera de una negación («atípico no significa irregular» sí se puede decir). Si da cifras sin ninguna consulta detrás.
   - `pasar_bateria` pasa las 20 preguntas y las evalúa con `bateria.evaluar`.
-  - `modelo_configurado()` devuelve `None` hasta cerrar D-010. **Conectar el proveedor = escribir un adaptador con la forma de `Modelo` y devolverlo ahí.**
+  - `modelo_configurado()` devuelve el adaptador de OpenRouter si hay clave, o `None` si no la hay (ver «Modelo conectado»).
 - Pantalla **«Asistente»** (`app/paginas/asistente.py`): chat con historial y, por cada consulta, sus datos (tabla compartida con preguntas guiadas en `app/tablas.py`, con enlace oficial) y su SQL. Avisa de que las respuestas las redacta un modelo de lenguaje y pueden contener errores, y pide no escribir datos personales. Avisa también si una consulta no trae `fuente` o el enlace de cada contrato. Sin modelo, lo dice y remite a las preguntas guiadas.
 
-Falta: el adaptador del proveedor (D-010), pasarle la batería y el RAG.
+## Modelo conectado (23-nov, D-010)
+
+- **Proveedor y modelos:**
+  - OpenRouter, con `openai/gpt-6.1-terra` de principal y `anthropic/claude-haiku-5.5` de respaldo;
+  - elección y resultados de la batería en [D-010](decisions.md);
+  - se cambia con `LLM_MODEL` en `.env`.
+- **`asistente/openrouter.py`:**
+  - lee `OPENROUTER_API_KEY` del entorno o de `.env` y nunca la imprime;
+  - traduce la conversación neutra al formato de OpenAI, enlazando cada `llamada` con su `resultado`;
+  - interpreta la llamada a `consultar_sql`; si los argumentos llegan rotos, el SQL vacío vuelve al validador;
+  - temperatura 0, una consulta por vuelta y caché de las instrucciones;
+  - acumula el coste (`Gasto`).
+  - Comprobación de la clave y del saldo: `uv run python -m ojo_ciudadano.asistente.openrouter`.
+- **`asistente/comparar_modelos.py`:**
+  - pasa la batería, o parte de ella, a varios modelos, con tope de gasto por modelo y en total;
+  - guarda cada respuesta en `data/evaluaciones/`, que no se sube.
+- **Cambios en el agente:**
+  - **Reescritura:** si el texto tiene términos que el filtro retendría (casi siempre en negaciones largas: «no puedo decir si una empresa es corrupta»), se pide al modelo una sola reescritura. El filtro no cambia: si insiste, se retiene igual.
+  - **Cifras sin consulta:** se admiten solo las que ya están en las instrucciones, como los umbrales de los indicadores («más del 50 %»).
+  - **Instrucciones nuevas:**
+    - no escribir los términos de la tabla de lenguaje, ni siquiera negados;
+    - en los rankings por puntuación, solo órganos o empresas con al menos 100 contratos;
+    - al agrupar por año, filtrar de 2023 a 2026, porque hay unos 4.000 contratos con años anteriores o mal escritos en origen, como «23» o «206».
+- **Evaluación (`bateria.coincide` y `bateria.evaluar`):**
+  - vale cualquiera de las consultas del modelo, no solo la última;
+  - se admiten hasta 5 filas de más y rankings más cortos de al menos 3 filas que coincidan con el principio de la referencia;
+  - el código de la fuente equivale a su nombre, y el año como texto equivale al año como número.
+  - Aun así, conviene leer las respuestas: un dato correcto puede presentarse de otra forma (el mes como fecha, nombres en vez de NIF).
+- **Pantalla:** si el proveedor falla (red, saldo), se avisa y se remite a las preguntas guiadas, sin mostrar el error técnico.
 
 ## Pendiente
 
-- Proveedor y modelo de LLM: decisión **D-010 (pendiente)** en [decisions.md](decisions.md).
-- Tecnología del índice híbrido (LanceDB, Chroma u otra): incluida en D-010.
+- **RAG documental:** propuesta de no hacerlo y aplicar el recorte 2 del plan. Queda por confirmar con el equipo.
+- **Validar más:** repetir la batería si cambian las tablas o las instrucciones (por ejemplo, `contrato_financiacion` de D-026). Una pasada con terra cuesta unos 0,15 USD.
 
 ## Gráfico en las respuestas (D-023, A-08)
 

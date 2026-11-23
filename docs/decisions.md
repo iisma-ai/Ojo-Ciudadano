@@ -109,12 +109,31 @@ Plantilla:
 
 ## D-010 · Proveedor de LLM e índice híbrido del asistente
 - **Fecha:** 2026-11-15
-- **Estado:** Propuesta (aplazada: El Harrak indicó el 2026-11-16 que el LLM se decide más adelante; no bloquea ingesta, esquema ni indicadores)
-- **Autor:** Claude (agente)
-- **Contexto:** La propuesta dice «LLM por API con llamada a herramientas» y «LanceDB o Chroma», sin concretar.
-- **Decisión:** _Por decidir el día 1._ Criterios: soporte sólido de *tool calling*, calidad en texto a SQL en español, coste para la demo, disponibilidad de un modelo alternativo como respaldo (K-14).
-- **Alternativas consideradas:** —
-- **Consecuencias:** Bloquea las dependencias del asistente y el trabajo de la persona 4 (P-04).
+- **Estado:** Aceptada el 2026-11-23 para el proveedor y los modelos (El Harrak eligió OpenRouter y pidió elegir los modelos con la batería). El índice híbrido del RAG queda **Propuesta**: no hacerlo, aplicando el recorte 2.
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** La propuesta dice «LLM por API con llamada a herramientas» y «LanceDB o Chroma», sin concretar. Criterios del 15-nov: buena llamada a herramientas, texto a SQL en español, coste de la demo y un modelo de respaldo (K-14). El 23-nov el equipo tiene una clave de OpenRouter con un límite de 6 USD. El presupuesto para probar es de 1,40 USD.
+- **Decisión:**
+  - **Proveedor:** OpenRouter, por API compatible con OpenAI. El adaptador es `asistente/openrouter.py`, sobre `httpx`; no se añaden dependencias.
+  - **Modelo principal:** `openai/gpt-6.1-terra`.
+  - **Respaldo:** `anthropic/claude-haiku-5.5`, de otro proveedor. OpenRouter cambia al respaldo solo si el principal falla.
+  - **Cómo cambiarlo:** con `LLM_MODEL` en `.env`, sin tocar el código.
+- **Resultados de la batería de 20 preguntas (23-nov):**
+
+  | Modelo | Datos, evaluación automática | Datos, revisión a mano | Retenidas por lenguaje | Coste de las 20 | Mediana de palabras |
+  | --- | --- | --- | --- | --- | --- |
+  | `openai/gpt-6.1-terra` | 12/16 | 16/16 (los 4 restantes cambian la forma, no el dato) | 0 | 0,153 USD | 206 |
+  | `anthropic/claude-haiku-5.5` | 13/16 | — | 4 (0 con la reescritura) | 0,037 USD | 278 |
+  | `deepseek/deepseek-v4.1-flash` | 11/16 | — | 2 | 0,064 USD | 342 |
+
+  En la primera ronda, de 6 preguntas, se descartaron `mistralai/mistral-large-4-0` (lento y con errores de SQL) y `google/gemini-3.8-flash` (el triple de caro sin mejores datos).
+- **Por qué terra:** es el que mejor se entiende. Da respuestas más cortas, en lenguaje llano y con los nombres de las convocatorias traducidos, y no tuvo ninguna respuesta retenida. Cuesta unos 0,008 USD por pregunta, así que 1 USD da para unas 130 preguntas.
+- **Alternativas consideradas:**
+  - Haiku como principal: más barato y con la mejor nota automática, pero escribe respuestas más largas y repite las palabras de la pregunta.
+  - Modelos más caros (`claude-sonnet-5.5`, `gpt-6.2-sol`, 2 USD por millón de tokens de entrada): no se probaron, por presupuesto.
+- **Consecuencias:**
+  - El asistente responde preguntas libres si hay `OPENROUTER_API_KEY` en `.env`; sin clave, la pantalla remite a las preguntas guiadas.
+  - Para que pruebe todo el equipo, cada persona necesita la clave en su `.env`. Nunca se sube al repositorio.
+  - Las pruebas y la demo gastan del saldo compartido: los resultados se guardan en `data/evaluaciones/` para no repetir llamadas.
 
 ## D-011 · Convenciones de código y colaboración
 - **Fecha:** 2026-11-15

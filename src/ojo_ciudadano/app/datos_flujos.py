@@ -136,6 +136,24 @@ def pliegos_contrato(con: duckdb.DuckDBPyConnection, contrato_id: str) -> list[d
     )
 
 
+def cpv_contrato(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | None:
+    """Código CPV del contrato (o de su fila de PLACSP) con su nombre oficial (D-033)."""
+    if not hay_tabla(con, "cpv"):
+        return None
+    filas = _filas(
+        con,
+        """
+        SELECT coalesce(c.cpv, p.cpv) AS codigo, v.nombre, v.nombre_division, v.fecha_descarga
+        FROM contrato c
+        LEFT JOIN contrato p ON p.contrato_id = c.duplicado_de
+        JOIN cpv v ON v.codigo = coalesce(c.cpv, p.cpv)
+        WHERE c.contrato_id = ?
+        """,
+        [contrato_id],
+    )
+    return filas[0] if filas else None
+
+
 def resumen_recursos(con: duckdb.DuckDBPyConnection) -> list[dict]:
     """Resoluciones por acto recurrido y resultado, para el contexto general."""
     if not hay_tabla(con, "recurso_especial"):

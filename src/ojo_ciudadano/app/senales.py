@@ -131,6 +131,13 @@ def tarjeta_contrato(con: duckdb.DuckDBPyConnection, fila: dict, prefijo: str) -
         )
         if not desplegable.open:
             return
+        objeto = datos_flujos.cpv_contrato(con, fila["contrato_id"])
+        if objeto:
+            st.caption(
+                f"Objeto (CPV {objeto['codigo']}): {objeto['nombre']} · sector: "
+                f"{objeto['nombre_division']}. Clasificación oficial de la Plataforma de "
+                "Contratación del Sector Público."
+            )
         if encontradas:
             columnas = st.columns(2) if len(encontradas) > 1 else [st.container()]
             for n, indicador in enumerate(encontradas):

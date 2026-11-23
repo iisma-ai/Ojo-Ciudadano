@@ -35,6 +35,8 @@ TABLAS_PERMITIDAS = {
     # Enlaces a los pliegos de cada licitación de PLACSP (007, D-030 bloque B). El texto de los
     # pliegos y de las resoluciones no es consultable por SQL: solo con sus herramientas.
     "contrato_documento",
+    # Nombres oficiales de los códigos CPV (008, D-033): diccionario para leer contrato.cpv.
+    "cpv",
     "indicador_resultado",
     "puntuacion_contrato",
     "puntuacion_empresa_contrato",

@@ -340,6 +340,10 @@ busca con ILIKE y avisa.
 nombre ni NIF en la base y solo se muestran agregadas. Muestra nombres solo si tipo_persona IN \
 ('juridica', 'ute').
 - Importes con decimales en euros. Proporciones entre 0 y 1 (multiplica por 100 para porcentajes).
+- Objeto del contrato: contrato_unico.cpv (código de 8 cifras del Vocabulario Común de Contratos \
+Públicos) solo viene en las licitaciones de PLACSP; el portal regional no lo trae. Para su nombre, \
+JOIN cpv ON cpv.codigo = c.cpv; para agrupar por sector, usa cpv.division y cpv.nombre_division \
+(p. ej. 33 = equipamiento médico). Da el nombre junto al código.
 """
 
 REGLAS_RESPUESTA = """\

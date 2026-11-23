@@ -84,3 +84,14 @@ def test_pliegos_tambien_desde_el_duplicado_del_portal(con):
 def test_sin_tabla_de_pliegos(base):
     base.con.execute("DROP TABLE contrato_documento")
     assert datos_flujos.pliegos_contrato(base.con, "placsp:1") == []
+
+
+def test_cpv_con_su_nombre_tambien_desde_el_duplicado(con):
+    con.execute("UPDATE contrato SET cpv = '33100000' WHERE contrato_id = 'placsp:1'")
+    con.execute(
+        "INSERT INTO cpv VALUES ('33100000', 'Equipamiento médico', '33', "
+        "'Equipamiento y artículos médicos', 'placsp', 'https://x.test', DATE '2026-11-23')"
+    )
+    for contrato_id in ("placsp:1", "portal_cm:C1"):
+        objeto = datos_flujos.cpv_contrato(con, contrato_id)
+        assert objeto["codigo"] == "33100000" and objeto["nombre"] == "Equipamiento médico"

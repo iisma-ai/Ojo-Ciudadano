@@ -488,15 +488,22 @@ ORDER BY 1
 def _normalizar(valor):
     if isinstance(valor, float):
         return round(valor, 2)
+    if isinstance(valor, list | dict):  # columnas de tipo lista o estructura
+        return str(valor)
     return valor
+
+
+# Filas de más que se toleran: un año fuera del periodo, los nulos o un ranking algo más largo.
+HOLGURA_FILAS = 5
 
 
 def coincide(referencia: dict, modelo: dict, claves: tuple[str, ...]) -> bool:
     """El modelo acierta si, para cada columna clave de la referencia, alguna de sus columnas
-    tiene los mismos valores en las primeras filas (sin importar el nombre ni el orden)."""
+    contiene todos los valores esperados (sin importar el nombre ni el orden de columnas y
+    filas, y con unas pocas filas de más)."""
     n = len(referencia["filas"])
-    filas_modelo = modelo["filas"][:n]
-    if len(filas_modelo) != n:
+    filas_modelo = modelo["filas"][: n + HOLGURA_FILAS]
+    if len(filas_modelo) < n:
         return False
     columnas_modelo = [
         {_normalizar(f[i]) for f in filas_modelo} for i in range(len(modelo["columnas"]))
@@ -504,7 +511,7 @@ def coincide(referencia: dict, modelo: dict, claves: tuple[str, ...]) -> bool:
     for clave in claves:
         i = referencia["columnas"].index(clave)
         esperado = {_normalizar(f[i]) for f in referencia["filas"]}
-        if esperado not in columnas_modelo:
+        if not any(esperado <= columna for columna in columnas_modelo):
             return False
     return True
 
@@ -524,24 +531,34 @@ def revisar_texto(texto: str) -> list[str]:
 
 
 def evaluar(
-    con: duckdb.DuckDBPyConnection, pregunta: PreguntaPrueba, sql_modelo: str | None, texto: str
+    con: duckdb.DuckDBPyConnection,
+    pregunta: PreguntaPrueba,
+    sql_modelo: str | list[str] | None,
+    texto: str,
 ) -> dict:
-    """Evalúa una respuesta del asistente. `datos_ok` es None en las preguntas de límites: allí
-    se revisa a mano con los criterios. Los avisos del texto también se revisan a mano."""
+    """Evalúa una respuesta del asistente. `sql_modelo` es la consulta o las consultas que hizo
+    el modelo: acierta si alguna coincide con la referencia (a menudo la primera da el ranking
+    y las siguientes lo desglosan). `datos_ok` es None en las preguntas de límites: allí se
+    revisa a mano con los criterios. Los avisos del texto también se revisan a mano."""
     datos_ok = None
     avisos = revisar_texto(texto)
+    consultas = [sql_modelo] if isinstance(sql_modelo, str) else list(sql_modelo or [])
     if pregunta.sql is not None:
-        if sql_modelo is None:
+        if not consultas:
             datos_ok = False
             avisos.append("Sin SQL en una pregunta de datos")
         else:
             referencia = sql_seguro.ejecutar(con, pregunta.sql, pregunta.parametros)
-            try:
-                modelo = sql_seguro.ejecutar(con, sql_modelo)
-                datos_ok = coincide(referencia, modelo, pregunta.claves)
-            except (sql_seguro.SQLNoPermitido, duckdb.Error) as error:
-                datos_ok = False
-                avisos.append(f"El SQL del modelo falla: {error}")
+            datos_ok = False
+            for sql in consultas:
+                try:
+                    modelo = sql_seguro.ejecutar(con, sql)
+                except (sql_seguro.SQLNoPermitido, duckdb.Error) as error:
+                    avisos.append(f"El SQL del modelo falla: {error}")
+                    continue
+                if coincide(referencia, modelo, pregunta.claves):
+                    datos_ok = True
+                    break
     return {
         "id": pregunta.id,
         "datos_ok": datos_ok,

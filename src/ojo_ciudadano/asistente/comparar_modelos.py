@@ -51,8 +51,11 @@ def evaluar_modelo(
             filas.append({"id": pregunta.id, "error": f"{type(error).__name__}: {error}"})
             print(f"  {pregunta.id}: ERROR {error}")
             continue
-        sql = respuesta.consultas[-1]["sql"] if respuesta.consultas else None
-        evaluacion = bateria.evaluar(con, pregunta, sql, respuesta.texto)
+        sqls = [c["sql"] for c in respuesta.consultas]
+        try:
+            evaluacion = bateria.evaluar(con, pregunta, sqls, respuesta.texto)
+        except Exception as error:  # un fallo del evaluador tampoco
+            evaluacion = {"id": pregunta.id, "datos_ok": False, "avisos": [f"Evaluador: {error}"]}
         fila = {
             **evaluacion,
             "pregunta": pregunta.pregunta,

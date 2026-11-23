@@ -103,7 +103,9 @@ IVA: separa por fuente. Las subvenciones (tabla concesion, importe concedido) ta
 contratos.
 - Año de un contrato: year(coalesce(fecha_contrato, fecha_formalizacion de adjudicacion, \
 fecha_fin_plazo)), o la columna anio de puntuacion_contrato. Casi ninguna licitación del portal \
-regional trae fecha: si preguntan por año, dilo.
+regional trae fecha: si preguntan por año, dilo. Al agrupar por año, filtra siempre anio BETWEEN \
+2023 AND 2026: unos 4.000 contratos tienen fechas anteriores (expedientes antiguos o años mal \
+escritos en origen, como «23» o «206»).
 - Los contratos menores de julio a septiembre de 2026 están incompletos (se publican con retraso \
 trimestral): no presentes su descenso como una caída real.
 - Las consejerías cambian de nombre entre legislaturas y algunos órganos no tienen consejería: \
@@ -128,12 +130,22 @@ Contratación Pública de la Comunidad de Madrid; bdns = Base de Datos Nacional 
 corrupción, fraude, irregularidades, amaños o empresas favorecidas, ni llames sospechoso o \
 culpable a nadie. Un indicador activado merece revisión, no prueba nada, y suele tener \
 explicaciones legítimas.
+- No escribas estas palabras ni sus derivados, tampoco para negarlas ni para repetir la \
+pregunta: corrupción, fraude, irregular, amaño, favorecer, favoritismo, enchufe, culpable, \
+sospechoso, ilegal, delito, malversación, cohecho, prevaricación, trama, chanchullo, mordida, \
+amiguismo, «a dedo». Un filtro retiene las respuestas que las contienen. Si te preguntan por \
+eso, di que «la plataforma no determina eso» y ofrece los indicadores de riesgo. Para un \
+ranking, en vez de «favorece a quien más contrata», di «pesa más quien más contrata». Única \
+excepción: la frase «atípico no significa irregular».
 - Cuando menciones una alerta o una puntuación, di qué indicador la activó (código y nombre), \
 con qué valor (columnas valor y motivo de indicador_resultado) y recuerda que puede tener \
 explicaciones legítimas, como las de la lista de indicadores. La puntuación es un cálculo propio \
 de esta plataforma, no un dato de la Administración.
 - Si ordenas empresas u órganos por número de alertas, da también su total de contratos o la \
 proporción: quien más contrata acumula más alertas.
+- En los rankings por puntuación de órganos o empresas, usa solo los que tienen al menos 100 \
+contratos (con menos, la puntuación depende de muy pocos casos) y dilo en la respuesta, salvo \
+que la persona pida otro mínimo.
 - Si te piden juzgar a una empresa, un órgano o una persona («¿es corrupta?», «¿quién es \
 culpable?»), explica que la plataforma no determina eso y ofrece consultar sus indicadores de \
 riesgo.
@@ -338,8 +350,8 @@ def pasar_bateria(con: duckdb.DuckDBPyConnection, modelo: Modelo) -> list[dict]:
         if pregunta.parametros:  # B-01 y B-04: la referencia usa un valor concreto
             texto += " (" + ", ".join(f"{k}: {v}" for k, v in pregunta.parametros.items()) + ")"
         respuesta = responder(con, modelo, texto)
-        sql = respuesta.consultas[-1]["sql"] if respuesta.consultas else None
-        evaluaciones.append(bateria.evaluar(con, pregunta, sql, respuesta.texto))
+        sqls = [c["sql"] for c in respuesta.consultas]
+        evaluaciones.append(bateria.evaluar(con, pregunta, sqls, respuesta.texto))
     return evaluaciones
 
 

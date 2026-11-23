@@ -52,7 +52,7 @@ uv run python -m ojo_ciudadano.modelo.contexto       # contexto de la Comunidad 
 - Ingesta: polars, lxml (Atom de PLACSP), httpx. Base analítica: **DuckDB** en un fichero (`data/ojo_ciudadano.duckdb`). Interfaz: **Streamlit**.
 - Indicadores: **un fichero SQL por indicador** en `sql/indicadores/` (`r01_licitador_unico.sql`…), con test y definición en `docs/04-indicadores-riesgo.md` (D-004). Usa `/nuevo-indicador`.
 - Nueva fuente de datos: usa `/nueva-fuente`.
-- Asistente: texto a SQL (solo lectura, validado) + RAG con citas. LLM por **OpenRouter** (D-010): principal `openai/gpt-6.1-terra`, respaldo `anthropic/claude-haiku-5.5`, clave `OPENROUTER_API_KEY` en `.env`. Sin SDK de proveedores: el adaptador usa `httpx`. Las llamadas gastan saldo compartido: no repitas la batería sin motivo (`asistente/comparar_modelos.py` tiene topes de gasto).
+- Asistente: texto a SQL (solo lectura, validado) + RAG con citas. LLM por **OpenRouter** (D-010): principal `openai/gpt-6.1-terra`, respaldo `anthropic/claude-haiku-5.5`, clave `OPENROUTER_API_KEY` en `.env`. Sin SDK de proveedores: el adaptador usa `httpx`. Las llamadas gastan saldo compartido: no repitas la batería sin motivo (`asistente/comparar_modelos.py` tiene topes de gasto). El asistente también consulta el catálogo de datos abiertos de la Comunidad (D-030, `asistente/catalogo.py`): bájalo una vez con `uv run python -m ojo_ciudadano.asistente.catalogo`.
 - Estructura de carpetas prevista en `docs/06-arquitectura.md`. No crees carpetas vacías por adelantado.
 
 ## Reglas de datos

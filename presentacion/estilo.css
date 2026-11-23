@@ -1,0 +1,80 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #021526;
+  color: #eef6ff;
+  font-family: "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+body.quieto { cursor: none; }
+
+#lienzo { position: fixed; inset: 0; display: block; }
+#capa { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+
+#cortina {
+  position: fixed;
+  inset: 0;
+  background: #010812;
+  display: grid;
+  place-items: center;
+  color: #9fb6cc;
+  transition: opacity 2.4s ease;
+  z-index: 50;
+}
+#cortina.fuera { opacity: 0; pointer-events: none; }
+
+/* Textos sobre el 3D: entran desenfocados y se enfocan */
+.t {
+  position: absolute;
+  left: 0;
+  top: 0;
+  text-align: center;
+  white-space: nowrap;
+  opacity: 0;
+  filter: blur(14px);
+  transition: opacity 1.2s ease, filter 1.4s ease;
+  text-shadow: 0 2px 30px rgba(0, 18, 40, 0.6);
+  will-change: transform, opacity, filter;
+}
+.t.on { opacity: 1; filter: blur(0); }
+
+.titulo { font-weight: 200; letter-spacing: -0.035em; line-height: 1; }
+.subtitulo { font-weight: 350; color: rgba(222, 240, 255, 0.82); letter-spacing: 0.005em; }
+.nota { font-weight: 500; text-transform: uppercase; letter-spacing: 0.32em; color: rgba(196, 226, 248, 0.68); }
+
+.etiqueta { display: flex; flex-direction: column; align-items: center; gap: 0.25em; }
+.etiqueta span {
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  font-size: 0.82em;
+  color: rgba(225, 242, 255, 0.9);
+}
+.etiqueta.dentro b { font-weight: 200; font-size: 2.1em; letter-spacing: -0.03em; line-height: 1; }
+.etiqueta.dentro span { font-size: 0.55em; }
+
+.cifra .num {
+  font-size: 5.6em;
+  font-weight: 100;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.cifra .cap {
+  margin-top: 0.5em;
+  font-weight: 500;
+  font-size: 0.6em;
+  text-transform: uppercase;
+  letter-spacing: 0.4em;
+  color: rgba(196, 226, 248, 0.75);
+}
+
+#progreso { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 20; opacity: 0.5; }
+#progreso i { width: 6px; height: 6px; border-radius: 50%; background: rgba(230, 245, 255, 0.35); cursor: pointer; transition: all 0.5s; }
+#progreso i.on { background: #fff; transform: scale(1.4); }
+#ayuda { position: fixed; bottom: 46px; right: 30px; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(200, 225, 245, 0.6); transition: opacity 1.2s; z-index: 20; }
+#ayuda.oculta { opacity: 0; }

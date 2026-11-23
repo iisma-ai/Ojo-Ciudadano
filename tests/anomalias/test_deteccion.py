@@ -169,6 +169,18 @@ def test_encargos_atipicos_frente_a_otros_encargos(base):
     )
 
 
+def test_motivo_de_encargo_sin_lenguaje_de_contratos():
+    motivo = (
+        "Cuota del adjudicatario en lo que adjudica este órgano en este tipo de contrato "
+        "(2023–2026) de 90,0 % (por encima de la mediana de 5,0 % de contratos similares); "
+        "importe adjudicado de 1.000 € con IVA"
+    )
+    texto = deteccion._texto_encargo(motivo)
+    assert texto.startswith("Cuota del medio propio en lo que encarga este órgano")
+    assert "adjudica" not in texto and "contratos" not in texto
+    assert "importe del encargo" in texto
+
+
 def test_validacion_con_recursos_y_fondos_europeos(base):
     _licitaciones(base)
     deteccion.calcular(base.con)
@@ -189,5 +201,6 @@ def test_validacion_con_recursos_y_fondos_europeos(base):
     assert tabla["Con algún recurso estimado (total o parcial) ante el TACPCM"]["contratos"] == 1
     assert tabla["Con recursos solo desestimados o inadmitidos ante el TACPCM"]["contratos"] == 1
     assert tabla["Licitaciones de PLACSP con fondos europeos"]["contratos"] == 1
+    assert tabla["Licitaciones de PLACSP con fondos europeos"]["fecha_descarga"] is not None
     guardada = base.con.execute("SELECT count(*) FROM anomalia_validacion").fetchall()[0][0]
     assert guardada == len(deteccion.VALIDACION)

@@ -23,8 +23,8 @@ Datos de D-027 a D-029 (D-031):
   * Encargos a medios propios (D-028): no son contratos licitados, así que no se mezclan con
     ellos; forman su propio grupo de pares («portal_cm · encargo») con importe, modificaciones
     y cuota del medio propio en lo que encarga el órgano. Resultado aparte: `anomalia_encargo`.
-  * Recursos ante el TACPCM (D-029) y fondos europeos (D-027): **no son variables**. Un recurso
-    estimado es una decisión oficial de que un acto no se ajustaba a derecho: sirve para
+    * Recursos ante el TACPCM (D-029) y fondos europeos (D-027): **no son variables**. En un
+    recurso estimado el Tribunal dio la razón, total o parcialmente, a quien recurrió el acto:
     **validar** la señal (¿hay más atípicos entre los contratos con recurso estimado?), y
     usarlo como variable haría que el modelo solo aprendiera a marcar los recurridos. Los
     fondos europeos no indican nada sobre el riesgo. Ambos van a `anomalia_validacion`.
@@ -174,16 +174,17 @@ def _texto_encargo(motivo: str | None) -> str | None:
     propios, y el importe es el del encargo."""
     if motivo is None:
         return None
-    return (
-        motivo.replace("contratos similares", "encargos similares")
-        .replace(
-            "cuota del adjudicatario en lo que adjudica este órgano en este tipo de contrato",
-            "cuota del medio propio en lo que encarga este órgano",
-        )
-        .replace("importe adjudicado", "importe del encargo")
-        .replace("Importe adjudicado", "Importe del encargo")
-        .replace("modificaciones sobre el importe adjudicado", "modificaciones sobre el importe")
-    )
+    cambios = {
+        "contratos similares": "encargos similares",
+        "cuota del adjudicatario en lo que adjudica este órgano en este tipo de contrato": (
+            "cuota del medio propio en lo que encarga este órgano"
+        ),
+        "importe adjudicado": "importe del encargo",
+    }
+    for viejo, nuevo in cambios.items():
+        # `explicar` pone en mayúscula la primera letra del motivo: también esa forma.
+        motivo = motivo.replace(viejo, nuevo).replace(viejo.capitalize(), nuevo.capitalize())
+    return motivo
 
 
 def calcular_encargos(con: duckdb.DuckDBPyConnection) -> pl.DataFrame:
@@ -253,6 +254,10 @@ def validar(con: duckdb.DuckDBPyConnection) -> pl.DataFrame:
                 "atipicos": atipicos,
                 "proporcion_atipicos": atipicos / n if n else None,
                 "puntuacion_riesgo_media": puntuacion,
+                "fuente": tabla or "contrato_unico",
+                "fecha_descarga": con.execute(
+                    f"SELECT max(fecha_descarga) FROM {tabla or 'contrato_unico'}"
+                ).fetchall()[0][0],
             }
         )
     resultado = pl.DataFrame(
@@ -263,6 +268,8 @@ def validar(con: duckdb.DuckDBPyConnection) -> pl.DataFrame:
             "atipicos": pl.Int64,
             "proporcion_atipicos": pl.Float64,
             "puntuacion_riesgo_media": pl.Float64,
+            "fuente": pl.String,
+            "fecha_descarga": pl.Date,
         },
     )
     tabla = resultado.to_arrow()  # noqa: F841

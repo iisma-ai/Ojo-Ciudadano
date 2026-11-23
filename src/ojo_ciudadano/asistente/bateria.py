@@ -635,7 +635,9 @@ LIMIT 10
         criterios=(
             "Usa recurso_especial: por acto recurrido, resoluciones y estimadas (total o "
             "parcialmente). Explica que presentar un recurso no es una señal y que una "
-            "estimación solo dice que ese acto no se ajustaba a derecho."
+            "estimación significa que el Tribunal dio la razón, total o parcialmente, al "
+            "recurrente sobre ese acto; no es una sanción ni dice nada de la empresa "
+            "adjudicataria."
         ),
         sql="""
 WITH actos AS (  -- 7 resoluciones traen dos actos o dos resultados unidos con «; »

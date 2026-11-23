@@ -36,6 +36,15 @@
 - **B-30:** el modelo separó bien las 7 resoluciones con dos actos o dos resultados unidos. La referencia se ha corregido para hacer lo mismo, y había además un fallo mío: `ILIKE '%Estimatoria%'` también contaba «Desestimatoria».
 - **Gasto de la clave:** unos 0,67 USD.
 
+## Revisión de `revisor-legal`, aplicada
+- **Tabla de validación:**
+  - cita las fuentes con su fecha (TACPCM y PLACSP);
+  - el aviso dice cuántos contratos con recurso estimado hay enlazados, y que un recurso estimado no dice nada de la empresa;
+  - los grupos con menos de 30 contratos muestran «— (muy pocos casos)»;
+  - la columna pasa a llamarse «Puntuación de riesgo media (indicadores)».
+- **Motivo de los encargos:** ya no puede empezar por «Cuota del adjudicatario…» cuando la cuota es la primera variable. Lleva test.
+- **Asistente:** la regla de `anomalia_validacion` aclara qué es un recurso estimado (no es una sanción) y pide las fuentes con su fecha; el criterio de B-30 dice lo mismo.
+
 ## Decisiones tomadas
 - D-031, en Propuesta.
 

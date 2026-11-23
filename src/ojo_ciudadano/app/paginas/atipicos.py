@@ -22,6 +22,7 @@ if not datos.hay_anomalias(con):
     st.stop()
 
 # Encargos a medios propios y comprobación con datos oficiales (D-031).
+MIN_VALIDACION = 30  # con menos contratos, un porcentaje parece más preciso de lo que es
 encargos = datos.encargos_atipicos(con)
 if encargos:
     with st.expander(
@@ -41,7 +42,7 @@ if encargos:
                 f"**{e['titulo'] or e['encargo_id']}**  \n"
                 f":gray[{organo} → {medio} · {textos.euros(e['importe_con_iva'], 'con IVA')}"
                 f" · {e['anio']}]  \n"
-                f"{e['motivo']}"
+                f"Motivo de la señal: {e['motivo']}"
             )
             st.link_button(
                 "Ver el encargo en el portal", e["url_origen"], icon=":material/open_in_new:"
@@ -57,12 +58,19 @@ if validacion:
         "Comprobación con los recursos del Tribunal y los fondos europeos",
         icon=":material/fact_check:",
     ):
+        enlazados = next(
+            (v["contratos"] for v in validacion if "recurso estimado" in v["grupo_validacion"]),
+            0,
+        )
         st.caption(
             "Si la señal sirve, los contratos en los que el Tribunal Administrativo de "
             "Contratación Pública estimó un recurso deberían ser atípicos más a menudo que el "
-            "resto. Es una comprobación descriptiva, con pocos casos enlazados a un contrato: "
-            "no prueba que la señal funcione. Los recursos y los fondos europeos no se usan "
-            "para calcular la señal."
+            f"resto. Solo {textos.numero(enlazados)} contratos con recurso estimado están "
+            "enlazados con su resolución, así que esta tabla es orientativa: no prueba que la "
+            "señal funcione ni que falle. Que el Tribunal estime un recurso no dice nada de la "
+            "empresa adjudicataria. Los fondos europeos se muestran solo como comparación: no "
+            "son un indicador de riesgo. Ni los recursos ni los fondos se usan para calcular "
+            "la señal."
         )
         st.dataframe(
             {
@@ -71,11 +79,11 @@ if validacion:
                 "Atípicos": [v["atipicos"] for v in validacion],
                 "% atípicos": [
                     textos.porcentaje(v["proporcion_atipicos"], 1)
-                    if v["proporcion_atipicos"] is not None
-                    else "—"
+                    if v["proporcion_atipicos"] is not None and v["contratos"] >= MIN_VALIDACION
+                    else "— (muy pocos casos)"
                     for v in validacion
                 ],
-                "Puntuación de riesgo media": [
+                "Puntuación de riesgo media (indicadores)": [
                     f"{v['puntuacion_riesgo_media']:.3f}".replace(".", ",")
                     if v["puntuacion_riesgo_media"] is not None
                     else "—"
@@ -83,6 +91,14 @@ if validacion:
                 ],
             },
             hide_index=True,
+        )
+        fechas = {v["fuente"]: v["fecha_descarga"] for v in validacion}
+        st.caption(
+            "Fuentes: Tribunal Administrativo de Contratación Pública de la Comunidad de Madrid "
+            f"(resoluciones, descargadas el {fechas.get('recurso_especial', 'sin fecha')}), "
+            "Plataforma de Contratación del Sector Público (fondos europeos, descargados el "
+            f"{fechas.get('contrato_financiacion', 'sin fecha')}) y la detección de anomalías "
+            "de esta plataforma."
         )
 
 LIMITE = 100

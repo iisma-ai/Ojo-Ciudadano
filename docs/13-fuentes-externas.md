@@ -114,6 +114,10 @@ Explorado el 23-nov-2026. Directorio oficial de unidades de todas las administra
 - **Para qué sí sirve:**
   1. **Lista canónica de órganos** con su jerarquía oficial: mejora la ficha de órgano y la agrupación por consejería.
   2. **Reconocer adjudicatarios que son sector público** por NIF (encargos a medios propios, convenios entre entes): hoy aparecen como «empresas» en la ficha y en R-04.
+- **Prueba de cruce con nuestra base** (base local del 20-nov, `adjudicatario.nif` contra `NIF_CIF` de las 18.825 unidades autonómicas de DIR3): **101 NIF, 1.237 adjudicaciones y 81,4 M€ con IVA**. Lo que aparece:
+  - **Filas de relleno de la fuente**: el NIF de la propia Comunidad (`S7800001E`) con el nombre «33 EMPRESAS ADJUDICATARIAS» (6 adjudicaciones, 35,2 M€) y `Q7850065I` con «VER ORDEN DE ADJUDICACIÓN» (58 adjudicaciones, 3,9 M€). No son empresas: son contratos con muchos adjudicatarios que el portal resume en una línea. Hoy cuentan como una «empresa» en las fichas, en R-04 y en la puntuación de empresa. **Hay que tratarlos en la normalización** (aviso a la línea de ingesta).
+  - Entes públicos y fundaciones del sector público que contratan con la Comunidad: fundaciones de investigación de hospitales, Fundación Orquesta y Coro de Madrid, Parque Científico de Madrid, y de otras comunidades (Banc de Sang i Teixits, Hospital Clínic de Barcelona).
+  - Alguna coincidencia por error en DIR3 (una sociedad anónima privada con el NIF de una unidad): **revisar a mano** antes de etiquetar.
 - **Coste:** bajo para descargar y leer (necesita `fastexcel`, que entra con D-024); medio para el cruce por nombre. Prioridad: después de X-02 y X-04.
 
 ### Descartadas (23-nov)

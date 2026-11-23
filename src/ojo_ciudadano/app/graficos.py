@@ -18,6 +18,10 @@ AZUL = "#3D8BFD"
 GRIS = "#5B6B86"  # contraste 3,5:1 con el fondo (WCAG 1.4.11, gráficos)
 GRIS_CLARO = "#93A1B8"
 TEXTO = "#E7ECF3"
+# Separación entre sectores y rectángulos, y borde de los puntos: líneas claras y casi
+# transparentes (como cristal), nunca negras sobre el fondo de mar.
+SEPARADOR = "rgba(220, 240, 255, 0.22)"
+BRILLO = "rgba(235, 248, 255, 0.75)"
 REJILLA = "#24314A"
 AMBAR = "#F2B544"
 
@@ -147,7 +151,7 @@ def menores(detalle: dict, contrato_id: str) -> go.Figure:
         marker={
             "size": [16 if c["contrato_id"] == contrato_id else 8 for c in contratos],
             "color": [AZUL if c["contrato_id"] == contrato_id else GRIS_CLARO for c in contratos],
-            "line": {"width": 2, "color": "#0B1120"},
+            "line": {"width": 1, "color": SEPARADOR},
         },
         customdata=[[c["importe"], c["titulo"] or ""] for c in contratos],
         hovertemplate=(
@@ -182,7 +186,7 @@ def reparto(detalle: dict) -> go.Figure:
             direction="clockwise",
             marker={
                 "colors": [AZUL if p["es_este"] else GRIS for p in partes],
-                "line": {"color": "#0B1120", "width": 2},
+                "line": {"color": SEPARADOR, "width": 1},
             },
             textinfo="none",
             hovertemplate="%{label}: %{value:,.0f} € (%{percent})<extra></extra>",
@@ -313,7 +317,7 @@ def reparto_organismos(
             parents=[""] * len(etiquetas),
             values=valores,
             customdata=numeros,
-            marker={"colors": colores, "line": {"color": "#0B1120", "width": 2}},
+            marker={"colors": colores, "line": {"color": SEPARADOR, "width": 1}},
             texttemplate="<b>%{text}</b><br>%{value:,.0f} €",
             hovertemplate="%{label}<br>%{value:,.0f} € en %{customdata} contratos o "
             "concesiones<extra></extra>",
@@ -407,7 +411,7 @@ def comparacion_senales(filas: list[dict], nombres: dict[str, str]) -> go.Figure
         y=etiquetas,
         mode="markers",
         name="Este organismo",
-        marker={"color": AZUL, "size": 13, "line": {"width": 2, "color": "#0B1120"}},
+        marker={"color": AZUL, "size": 13, "line": {"width": 1.5, "color": BRILLO}},
         customdata=[[f["activados"], f["aplicables"]] for f in filas],
         hovertemplate="Este organismo: %{x:.1%} (%{customdata[0]:,} de %{customdata[1]:,} "
         "contratos)<extra></extra>",
@@ -494,7 +498,7 @@ def _circulo(figura: go.Figure, x: float, y: float, r: float, color: str) -> Non
         x1=x + r,
         y1=y + r,
         fillcolor=color,
-        line={"color": "#0B1120", "width": 2},
+        line={"color": SEPARADOR, "width": 1},
         layer="below",
     )
 
@@ -703,7 +707,7 @@ def atipico(detalle: dict, variables: list[str]) -> go.Figure:
             y=[este[vy]],
             mode="markers",
             name="Este contrato",
-            marker={"color": AZUL, "size": 16, "line": {"width": 2, "color": "#0B1120"}},
+            marker={"color": AZUL, "size": 16, "line": {"width": 1.5, "color": BRILLO}},
             hovertemplate="Este contrato<extra></extra>",
         )
         _eje(figura, "x", vx, [p[vx] for p in puntos] + [este[vx]], este[vx])

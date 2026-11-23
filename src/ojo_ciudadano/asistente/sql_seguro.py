@@ -32,6 +32,9 @@ TABLAS_PERMITIDAS = {
     "encargo",
     # Recursos especiales ante el TACPCM (006, D-029): contexto oficial, no señal.
     "recurso_especial",
+    # Enlaces a los pliegos de cada licitación de PLACSP (007, D-030 bloque B). El texto de los
+    # pliegos y de las resoluciones no es consultable por SQL: solo con sus herramientas.
+    "contrato_documento",
     "indicador_resultado",
     "puntuacion_contrato",
     "puntuacion_empresa_contrato",

@@ -1,4 +1,4 @@
-"""Mapa general del dinero de la Comunidad de Madrid (D-026, D-032).
+"""Mapa general del dinero de la Comunidad de Madrid (D-026, D-033).
 
 De un vistazo: la Comunidad en el centro, sus consejerías alrededor y, si se quiere, los
 contratos más grandes de cada una. Tamaño y color = dinero; relleno = parte gastada (el resto,

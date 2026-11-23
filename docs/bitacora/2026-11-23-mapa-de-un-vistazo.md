@@ -1,7 +1,7 @@
-# 2026-11-23 · Mapa general de un vistazo, sin recortes (D-032)
+# 2026-11-23 · Mapa general de un vistazo, sin recortes (D-033)
 
 - **Autor:** Claude (agente), a petición de la persona que coordina
-- **Fase del plan:** 2, víspera del H3. Decisión D-032, que ajusta D-026.
+- **Fase del plan:** 2, víspera del H3. Decisión D-033, que ajusta D-026.
 
 ## Qué se hizo
 

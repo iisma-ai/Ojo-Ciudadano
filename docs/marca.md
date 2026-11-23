@@ -18,10 +18,10 @@ No se deforma, no se rota y no se cambian sus colores fuera de esta paleta.
 
 | Nombre | Color | Uso |
 | --- | --- | --- |
-| Fondo | `#0B1120` | Fondo de la aplicación |
-| Superficie | `#131C2E` | Tarjetas, desplegables, métricas |
-| Barra lateral | `#0E1626` | Fondo de la navegación |
-| Borde | `#24314A` | Bordes y separadores |
+| Fondo | `#041627` | Fondo de la aplicación (mar profundo; en pantalla, degradado de `#0A3A55` arriba a `#020C17` abajo, D-034) |
+| Superficie | `#0B2236` (y cristal: blanco al 3-10 %) | Tarjetas, desplegables, métricas |
+| Barra lateral | `#06202F` (cristal) | Fondo de la navegación |
+| Borde | `#1E3A52` (en el cristal, `rgba(170,225,255,.16)`) | Bordes y separadores |
 | Texto | `#E7ECF3` | Texto principal y trazo del logo |
 | Texto secundario | `#93A1B8` | Notas, fuentes, fechas |
 | Azul (acento) | `#3D8BFD` | Color principal: botones, selección, pupila del logo |
@@ -31,6 +31,10 @@ No se deforma, no se rota y no se cambian sus colores fuera de esta paleta.
 Para distinguir entidades en un gráfico (p. ej. organismos en el mapa del dinero) se usa la paleta categórica de `app/graficos.py` (`CATEGORICOS`), en orden fijo y validada sobre el fondo oscuro: `#3987E5`, `#D95926`, `#199E70`, `#C98500`, `#D55181`, `#0CA30C`, `#9085E9`; del 8.º en adelante, gris.
 
 Tipografía: **Inter** (Google Fonts) para todo el texto y una monoespaciada para el SQL.
+
+## Estética «océano» (D-034)
+
+Fondo de mar con luz que baja y burbujas que suben; paneles, botones y campos de cristal esmerilado con un brillo arriba; títulos finos con degradado blanco a azul claro; en los mapas de nodos, burbujas de cristal sobrias y sin recuadro. Las separaciones de los gráficos son líneas claras casi transparentes: **nunca bordes negros**. Misma estética que la presentación (`presentacion/`).
 
 ## Reglas
 

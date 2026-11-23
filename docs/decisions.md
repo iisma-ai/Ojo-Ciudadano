@@ -354,7 +354,7 @@ Plantilla:
 
 ## D-030 · RAG centrado en el catálogo de datos abiertos y, después, en los pliegos
 - **Fecha:** 2026-11-23
-- **Estado:** **Bloque A aceptado** el 2026-11-23 (El Harrak: «empieza el bloque A del catálogo») e implementado ese día; pasó el control (4 de 4 preguntas de catálogo). Bloque B: Propuesta, pendiente de decidir.
+- **Estado:** **Bloque A aceptado** el 2026-11-23 (El Harrak: «empieza el bloque A del catálogo») e implementado ese día; pasó el control (4 de 4 preguntas de catálogo). **Bloques B y C aceptados** el 2026-11-23 (El Harrak: «realiza los bloques B y C en su integridad») e implementados ese día en la rama `feat/rag-documentos`. El bloque C, que esta decisión dejaba fuera de la entrega, se adelanta con las medidas de [D-032](#d-032--texto-de-los-pdf-del-tacpcm-y-de-los-pliegos-en-el-asistente).
 - **Autor:** Claude (agente), a petición de El Harrak
 - **Contexto:** El plan preveía un RAG con BM25 y embeddings sobre informes, memorias y pliegos (D-010, [05](05-asistente.md)), y es el recorte 2. La investigación del 23-nov está en [14-rag-documental.md](14-rag-documental.md).
   - **El catálogo son tablas:** 2.231 de 2.276 conjuntos en CSV o JSON, y solo 12 con PDF.
@@ -414,7 +414,29 @@ Plantilla:
   - Sin el CSV de encargos, que se exporta a mano por el captcha, `anomalia_encargo` queda vacía.
   - Se actualizan 04, 05, 06 y 08.
 
-## D-032 · Mapa general de un vistazo: diseño radial, niveles y ficha lateral
+## D-032 · Texto de los PDF del TACPCM y de los pliegos en el asistente
+- **Fecha:** 2026-11-23
+- **Estado:** Propuesta. El Harrak pidió hacer los bloques B y C de D-030 «en su integridad»; las medidas de protección de datos las propone el agente, tras la revisión de `revisor-legal`, y falta que el equipo las valide.
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** D-029 no guardaba el resumen de las resoluciones porque nombra a empresas y puede nombrar a personas. El bloque C indexa el texto completo de sus PDF, que es más que el resumen. La revisión legal del 23-nov encontró que la regla al modelo no basta: el extracto literal se ve en la web, se envía al proveedor del modelo y el índice permitía buscar por apellidos.
+- **Decisión propuesta:**
+  - **Texto solo en tablas que no se consultan por SQL.** El texto de las resoluciones va a la tabla derivada `resolucion_pagina`, con índice BM25, que solo usa la herramienta `buscar_resoluciones`. El de los pliegos no entra en la base: se lee bajo demanda desde la caché local. En el esquema solo se añade `contrato_documento`, con los enlaces (`007_documentos.sql`).
+  - **Tapado al extraer el texto** (`ingesta/documentos.py`), también al leer la caché: DNI y NIE, nombres con tratamiento («D.», «Dña.», «Sr.»…) y líneas de firma.
+  - **Si una página dice «en nombre propio» o «persona física»**, ni la web ni el modelo reciben su extracto: solo el enlace al PDF oficial.
+  - **Las búsquedas son por temas.** Se rechazan las que llevan un DNI, un NIE o un nombre con tratamiento, y una regla del modelo prohíbe buscar o escribir nombres de personas.
+  - **Cifras:** si la respuesta solo se apoya en documentos, cada cifra tiene que estar en algún extracto. Si no, se retiene.
+  - **Enlace de resoluciones por título:** solo con el título exacto (25 caracteres o más) de un único contrato que sea anterior a la resolución y de no más de 24 meses antes. La ficha del contrato y el asistente dicen «cita un contrato con el mismo título» y piden comprobarlo en la resolución.
+- **Alternativas consideradas:**
+  - No mostrar nunca el extracto, solo el enlace: protege más, pero el asistente no podría citar lo que dice el documento.
+  - Reconocimiento de entidades con un modelo: nueva dependencia pesada y sin tiempo para validarlo.
+  - Dejar el bloque C para después de la entrega, como decía D-030.
+- **Consecuencias:**
+  - **Riesgo residual:** un nombre de persona sin tratamiento ni marca de «nombre propio» puede verse en un extracto. Está en el K-02 de [07](07-riesgos.md).
+  - Antes de la demo, hay que comprobar a mano unas 20 resoluciones enlazadas por título. Si falla más de 1 de cada 10, se desactiva ese enlace.
+  - El comentario de `expediente_citado` en `006_recursos_tacp.sql` («citado en el resumen») ahora incluye el expediente que sale del PDF. No se cambia porque el esquema está congelado: se avisa al equipo.
+  - Cada instalación ejecuta `ingesta.tacp --pdf` (unos 25 minutos la primera vez) y, tras regenerar la base, `asistente.documentos`.
+
+## D-033 · Mapa general de un vistazo: diseño radial, niveles y ficha lateral
 - **Fecha:** 2026-11-23
 - **Estado:** Aceptada
 - **Autor:** Claude (agente), a petición de la persona que coordina; ajusta D-026
@@ -427,3 +449,12 @@ Plantilla:
   - El «Mapa del dinero» (organismo y sus empresas) usa el mismo diseño.
 - **Alternativas consideradas:** Dejar solo la física (círculos fuera del lienzo). Pedir zoom (se quiso sin zoom). Ventana emergente para la ficha (se cierra al interactuar y el componente no repite un clic sobre el mismo círculo).
 - **Consecuencias:** Más consultas al abrir el mapa (los contratos principales de todas las consejerías en una sola consulta, con caché de una hora). Se actualizan 03-modulos y el plan.
+
+## D-034 · Estética «océano» y cristal en la web
+
+- **Fecha:** 2026-11-23 · **Estado:** aceptada (prueba de concepto revisada por Lucas)
+- **Contexto:** la presentación (carpeta `presentacion/`) usa una estética submarina con burbujas de cristal; la web debía verse coherente con ella y más moderna.
+- **Decisión:** solo estilo, sin tocar datos ni lógica. Fondo de mar profundo con luz y burbujas que suben (CSS); métricas, tarjetas, desplegables, avisos, barra lateral, botones y campos de cristal esmerilado; títulos finos con degradado; burbujas de cristal sobrias en los mapas de nodos (sin manchas de brillo); los mapas de nodos sin recuadro (el fondo del componente se funde con `mix-blend-mode: lighten` y bordes difuminados); separaciones de gráficos claras y casi transparentes, nunca negras. Paleta del tema ajustada a azul océano (`docs/marca.md`).
+- **Alternativas:** mantener el tema plano anterior; tema claro.
+- **Consecuencias:** `static/estilo.css`, `.streamlit/config.toml`, `red.svg_nodo` y los bordes de `graficos.py`. Los selectores de Streamlit pueden cambiar con la versión: si algo deja de verse de cristal, revisar `estilo.css`. Sin animación con `prefers-reduced-motion`.
+

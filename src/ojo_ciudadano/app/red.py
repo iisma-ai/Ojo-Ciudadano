@@ -55,47 +55,41 @@ def _mezcla(t: float) -> str:
 
 
 def svg_nodo(color: str, llenado: float | None, centro: bool = False) -> str:
-    """Burbuja de cristal (data URI): el líquido en `color` sube hasta lo gastado, con una ola
-    arriba, y el resto queda como cristal gris azulado. Reflejos y borde de luz encima."""
+    """Burbuja de cristal (data URI): el líquido en `color` sube hasta lo gastado y el resto queda
+    como cristal gris azulado. Sin manchas de brillo: solo un velo de luz muy suave arriba, el borde
+    algo más claro (efecto Fresnel) y una línea fina en la superficie del líquido."""
     lado = 100
     base = VACIO if llenado is not None else color
-    borde = 0.95 if centro else 0.7
     parte = ""
     if llenado is not None:
         nivel = lado * (1 - min(max(llenado, 0.0), 1.0))
-        ola = (
-            f'<path d="M0 {nivel:.1f} Q12.5 {nivel - 3:.1f} 25 {nivel:.1f} T50 {nivel:.1f} '
-            f'T75 {nivel:.1f} T100 {nivel:.1f} V{nivel + 4:.1f} H0 Z" fill="url(#l)"/>'
-        )
         parte = (
-            f'<g clip-path="url(#c)"><rect x="0" y="{nivel + 2:.1f}" width="{lado}" '
-            f'height="{lado - nivel:.1f}" fill="url(#l)"/>{ola}'
-            f'<path d="M0 {nivel:.1f} Q12.5 {nivel - 3:.1f} 25 {nivel:.1f} T50 {nivel:.1f} '
-            f'T75 {nivel:.1f} T100 {nivel:.1f}" fill="none" stroke="#fff" stroke-opacity=".55" '
-            'stroke-width="1.5"/></g>'
+            f'<g clip-path="url(#c)"><rect x="0" y="{nivel:.1f}" width="{lado}" '
+            f'height="{lado - nivel:.1f}" fill="url(#l)"/>'
+            f'<rect x="0" y="{nivel:.1f}" width="{lado}" height="1.2" fill="#fff" '
+            'fill-opacity=".35"/></g>'
         )
     svg = (
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{lado}" height="{lado}" '
         f'viewBox="0 0 {lado} {lado}"><defs>'
-        '<clipPath id="c"><circle cx="50" cy="50" r="46"/></clipPath>'
-        f'<linearGradient id="l" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{color}" '
-        f'stop-opacity=".95"/><stop offset="1" stop-color="{color}" stop-opacity=".6"/>'
+        '<clipPath id="c"><circle cx="50" cy="50" r="47"/></clipPath>'
+        '<linearGradient id="l" x1="0" y1="0" x2="0" y2="1">'
+        f'<stop offset="0" stop-color="{color}"/>'
+        f'<stop offset="1" stop-color="{color}" stop-opacity=".75"/></linearGradient>'
+        # borde más claro que el centro, como un cristal de verdad
+        '<radialGradient id="f" cx="50%" cy="50%" r="50%"><stop offset=".72" stop-color="#dff4ff" '
+        'stop-opacity="0"/><stop offset="1" stop-color="#dff4ff" stop-opacity=".32"/>'
+        "</radialGradient>"
+        # velo de luz que entra desde arriba
+        '<linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" '
+        'stop-opacity=".16"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/>'
         "</linearGradient>"
-        '<radialGradient id="v" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#fff" '
-        'stop-opacity=".1"/><stop offset=".72" stop-color="#bfe6ff" stop-opacity=".04"/>'
-        '<stop offset="1" stop-color="#e6f8ff" stop-opacity=".42"/></radialGradient>'
-        '<linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" '
-        f'stop-opacity="{borde}"/><stop offset=".5" stop-color="#fff" stop-opacity=".08"/>'
-        '<stop offset="1" stop-color="#9fe8ff" stop-opacity=".55"/></linearGradient>'
         "</defs>"
-        f'<circle cx="50" cy="50" r="46" fill="{base}"/>{parte}'
-        '<circle cx="50" cy="50" r="46" fill="url(#v)"/>'
-        f'<circle cx="50" cy="50" r="46" fill="none" stroke="url(#b)" '
-        f'stroke-width="{3 if centro else 2}"/>'
-        '<ellipse cx="34" cy="22" rx="15" ry="6.5" fill="#fff" fill-opacity=".55" '
-        'transform="rotate(-30 34 22)"/>'
-        '<ellipse cx="70" cy="78" rx="6" ry="2.2" fill="#fff" fill-opacity=".3" '
-        'transform="rotate(-30 70 78)"/>'
+        f'<circle cx="50" cy="50" r="47" fill="{base}"/>{parte}'
+        '<circle cx="50" cy="50" r="47" fill="url(#f)"/>'
+        '<circle cx="50" cy="50" r="47" fill="url(#s)"/>'
+        f'<circle cx="50" cy="50" r="46.5" fill="none" stroke="#e6f6ff" '
+        f'stroke-opacity="{0.55 if centro else 0.3}" stroke-width="{1.6 if centro else 1}"/>'
         "</svg>"
     )
     return "data:image/svg+xml;base64," + base64.b64encode(svg.encode()).decode()

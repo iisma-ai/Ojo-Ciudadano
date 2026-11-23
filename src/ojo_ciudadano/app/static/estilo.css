@@ -116,10 +116,7 @@ h3 {
 /* ---------- Cristal ---------- */
 [data-testid="stMetric"],
 [data-testid="stExpander"] details,
-[data-testid="stPopoverBody"],
-[data-testid="stPlotlyChart"],
-[data-testid="stDataFrame"],
-iframe[title^="streamlit_agraph"] {
+[data-testid="stPopoverBody"] {
   background: var(--oc-cristal);
   border: 1px solid var(--oc-cristal-borde) !important;
   border-radius: 1rem !important;
@@ -175,11 +172,23 @@ iframe[title^="streamlit_agraph"] {
 [data-testid="stExpander"] details summary:hover {
   color: var(--oc-cian);
 }
-[data-testid="stPlotlyChart"] {
-  padding: 0.4rem;
-}
+/* Mapas de nodos: sin recuadro. El componente pinta su propio fondo oscuro dentro del marco;
+   con «lighten» ese fondo desaparece sobre el mar y solo quedan burbujas, líneas y textos.
+   Detrás, un resplandor suave sin bordes para dar algo de contraste. */
 iframe[title^="streamlit_agraph"] {
-  border-radius: 1.2rem !important;
+  mix-blend-mode: lighten;
+  border: none !important;
+  /* bordes que se desvanecen: donde el mar es más oscuro que el fondo del marco no se ve la línea */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent),
+    linear-gradient(180deg, transparent, #000 5%, #000 95%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent),
+    linear-gradient(180deg, transparent, #000 5%, #000 95%, transparent);
+  mask-composite: intersect;
+}
+[data-testid="stElementContainer"]:has(> iframe[title^="streamlit_agraph"]),
+[data-testid="stElementContainer"]:has(iframe[title^="streamlit_agraph"]) {
+  background: radial-gradient(ellipse 60% 55% at 50% 50%, rgba(56, 189, 248, 0.07), transparent 75%);
 }
 
 /* ---------- Barra lateral de cristal ---------- */

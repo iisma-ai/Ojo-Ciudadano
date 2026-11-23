@@ -190,6 +190,7 @@ def unificar(
     concesiones = tablas_bdns["concesiones"] if tablas_bdns else None
     return {
         "contrato_financiacion": _financiacion(tablas_placsp),
+        "contrato_documento": _documentos(tablas_placsp),
         "encargo": _con_columnas(e_portal, COLUMNAS_ENCARGO) if e_portal is not None else None,
         "organo": organos,
         "adjudicatario": adjudicatarios,
@@ -219,32 +220,93 @@ def _financiacion(tablas_placsp: dict | None) -> pl.DataFrame | None:
     )
 
 
+def _documentos(tablas_placsp: dict | None) -> pl.DataFrame | None:
+    """Pliegos enlazados en cada licitación de PLACSP (007_documentos.sql)."""
+    if tablas_placsp is None:
+        return None
+    return tablas_placsp.get("documentos")
+
+
 def _expediente(columna: pl.Expr) -> pl.Expr:
     """Expediente comparable: mayúsculas y sin espacios."""
     return columna.str.to_uppercase().str.replace_all(r"\s", "")
 
 
-def cruzar_recursos(recursos: pl.DataFrame, contratos: pl.DataFrame) -> pl.DataFrame:
-    """Enlaza cada resolución con el contrato cuyo expediente cita su resumen, solo si ese
-    expediente corresponde a un único contrato (sin contar los menores ni las filas del
-    portal que duplican una de PLACSP). Si no casa o es ambiguo, `contrato_id` queda vacío."""
-    unicos = (
+MIN_TITULO = 25  # caracteres: títulos más cortos («Servicio de limpieza») se repiten
+
+
+def _unicos(contratos: pl.DataFrame, clave: pl.Expr) -> pl.DataFrame:
+    """Claves que corresponden a un único contrato (sin menores ni duplicados del portal)."""
+    return (
         contratos.filter(~pl.col("es_menor") & pl.col("duplicado_de").is_null())
-        .select("contrato_id", _expediente(pl.col("expediente")).alias("clave"))
+        .select("contrato_id", clave.alias("clave"))
         .filter(pl.col("clave").is_not_null())
         .group_by("clave")
         .agg(pl.col("contrato_id").first(), pl.len().alias("n"))
         .filter(pl.col("n") == 1)
         .drop("n")
     )
-    candidatos = (
+
+
+def _clave_titulo(columna: pl.Expr) -> pl.Expr:
+    """Título comparable: mayúsculas, sin tildes ni signos; vacío si es demasiado corto."""
+    clave = columna.map_elements(n_texto.clave, return_dtype=pl.String)
+    return pl.when(clave.str.len_chars() >= MIN_TITULO).then(clave)
+
+
+def cruzar_recursos(recursos: pl.DataFrame, contratos: pl.DataFrame) -> pl.DataFrame:
+    """Enlaza cada resolución con su contrato, solo si todo apunta a un único contrato (sin
+    contar los menores ni las filas del portal que duplican una de PLACSP):
+
+    - por el expediente que cita su resumen o su PDF (`expedientes_citados`), y
+    - si la tabla trae `titulos_citados` (texto entre comillas del encabezamiento del PDF,
+      `tacp.con_texto_pdf`), por el título exacto del contrato, de `MIN_TITULO` caracteres
+      o más, una vez normalizado, y solo si la fecha del contrato (`fecha_contrato` o
+      `fecha_fin_plazo`) es anterior a la resolución y de no más de 24 meses antes.
+
+    Si no casa o es ambiguo (dos contratos distintos), `contrato_id` queda vacío.
+    `expediente_citado` solo se rellena cuando casa un expediente."""
+    por_expediente = (
         recursos.select("resolucion_id", "expedientes_citados")
         .explode("expedientes_citados")
         .with_columns(_expediente(pl.col("expedientes_citados")).alias("clave"))
-        .join(unicos, on="clave", how="inner")
-        .group_by("resolucion_id")
+        .join(_unicos(contratos, _expediente(pl.col("expediente"))), on="clave", how="inner")
+        .select(
+            "resolucion_id", pl.col("expedientes_citados").alias("expediente_citado"), "contrato_id"
+        )
+    )
+    por_titulo = por_expediente.clear()
+    if "titulos_citados" in recursos.columns and "titulo" in contratos.columns:
+        # Coherencia de fechas (revisión legal): un título se repite al volver a licitar, así
+        # que el contrato tiene que ser anterior a la resolución y de no más de 24 meses antes.
+        fechas = [c for c in ("fecha_contrato", "fecha_fin_plazo") if c in contratos.columns]
+        fecha_contrato = contratos.select(
+            "contrato_id",
+            pl.coalesce([pl.col(c) for c in fechas]).alias("fecha_contrato")
+            if fechas
+            else pl.lit(None, dtype=pl.Date).alias("fecha_contrato"),
+        )
+        por_titulo = (
+            recursos.select("resolucion_id", "fecha", "titulos_citados")
+            .explode("titulos_citados")
+            .with_columns(_clave_titulo(pl.col("titulos_citados")).alias("clave"))
+            .join(_unicos(contratos, _clave_titulo(pl.col("titulo"))), on="clave", how="inner")
+            .join(fecha_contrato, on="contrato_id", how="left")
+            .filter(
+                (pl.col("fecha_contrato") <= pl.col("fecha"))
+                & (pl.col("fecha_contrato") >= pl.col("fecha").dt.offset_by("-24mo"))
+            )
+            .select(
+                "resolucion_id",
+                pl.lit(None, dtype=pl.String).alias("expediente_citado"),
+                "contrato_id",
+            )
+        )
+    candidatos = (
+        pl.concat([por_expediente, por_titulo])
+        .group_by("resolucion_id", maintain_order=True)
         .agg(
-            pl.col("expedientes_citados").first().alias("expediente_citado"),
+            pl.col("expediente_citado").drop_nulls().first(),
             pl.col("contrato_id").unique().alias("contratos"),
         )
         .with_columns(
@@ -254,7 +316,8 @@ def cruzar_recursos(recursos: pl.DataFrame, contratos: pl.DataFrame) -> pl.DataF
         )
         .drop("contratos")
     )
-    return recursos.join(candidatos, on="resolucion_id", how="left").drop("expedientes_citados")
+    sobran = [c for c in ("expedientes_citados", "titulos_citados") if c in recursos.columns]
+    return recursos.join(candidatos, on="resolucion_id", how="left").drop(sobran)
 
 
 def _organos_bdns(tablas_bdns: dict | None) -> list[pl.DataFrame]:
@@ -288,6 +351,7 @@ def escribir(
             "adjudicacion",
             "concesion",
             "contrato_financiacion",
+            "contrato_documento",
             "encargo",
             "recurso_especial",
         ):
@@ -332,9 +396,11 @@ def construir(
     )
     tablas = unificar(tablas_portal, tablas_placsp, tablas_bdns, tablas_encargos)
     if any(carpeta_tacp.glob("*.html")):
+        recursos = tacp.leer(carpeta_tacp, _fecha_fichero(max(carpeta_tacp.glob("*.html"))))
+        # Con los PDF ya bajados (`tacp --pdf`), también los expedientes y títulos de su
+        # encabezamiento (D-030, bloque C). Sin ellos, solo el resumen del listado.
         tablas["recurso_especial"] = cruzar_recursos(
-            tacp.leer(carpeta_tacp, _fecha_fichero(max(carpeta_tacp.glob("*.html")))),
-            tablas["contrato"],
+            tacp.con_texto_pdf(recursos), tablas["contrato"]
         )
     escribir(tablas, ruta_db)
     if carpeta_cm is not None and any(carpeta_cm.glob("*.csv")):

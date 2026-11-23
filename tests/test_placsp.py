@@ -198,3 +198,36 @@ def test_financiacion_con_fondos_europeos(tmp_path):
     assert exp1["financiado_ue"] is None  # la entrada no trae el campo
     assert exp2["financiado_ue"] is True
     assert exp2["programas_ue"] == "PRTR"
+
+
+PLIEGOS = """<cac:LegalDocumentReference>
+      <cbc:ID>anon_pcap_1.pdf</cbc:ID>
+      <cac:Attachment><cac:ExternalReference>
+        <cbc:URI>https://contratos-publicos.comunidad.madrid/sites/default/files/PCON/pcap_1.pdf</cbc:URI>
+      </cac:ExternalReference></cac:Attachment>
+    </cac:LegalDocumentReference>
+    <cac:TechnicalDocumentReference>
+      <cbc:ID>anon_ppt_1.pdf</cbc:ID>
+      <cac:Attachment><cac:ExternalReference>
+        <cbc:URI>https://contratos-publicos.comunidad.madrid/sites/default/files/PCON/ppt_1.pdf</cbc:URI>
+      </cac:ExternalReference></cac:Attachment>
+    </cac:TechnicalDocumentReference>"""
+
+
+def test_pliegos_de_la_ultima_version(tmp_path):
+    ruta = _zip(
+        tmp_path,
+        {
+            "a.atom": [_entrada(100, "EXP-1", "2026-10-01T10:00:00+02:00", "PUB")],
+            "b.atom": [_entrada(100, "EXP-1", "2026-10-15T10:00:00+02:00", "EV", fondos=PLIEGOS)],
+        },
+    )
+    tablas = placsp.leer_zips([ruta], date(2026, 11, 16), SAL)
+    assert "documentos" not in tablas["contratos"].columns  # el contrato sigue igual
+    documentos = tablas["documentos"]
+    assert documentos["tipo"].to_list() == ["pcap", "ppt"]
+    assert documentos["orden"].to_list() == [1, 2]
+    assert documentos["nombre"].to_list() == ["anon_pcap_1.pdf", "anon_ppt_1.pdf"]
+    assert documentos["url_documento"].str.ends_with("pcap_1.pdf").to_list() == [True, False]
+    assert documentos["contrato_id"].unique().to_list() == ["placsp:100"]
+    assert documentos["fecha_descarga"].to_list() == [date(2026, 11, 16)] * 2

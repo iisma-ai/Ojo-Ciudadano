@@ -68,3 +68,19 @@ def test_base_sin_tablas_nuevas(base):
     base.con.execute("DROP TABLE encargo")
     assert datos_flujos.encargos_organo(base.con, "ORG") is None
     assert datos_flujos.resumen_encargos(base.con) is None
+
+
+def test_pliegos_tambien_desde_el_duplicado_del_portal(con):
+    con.execute(
+        "INSERT INTO contrato_documento VALUES ('placsp:1', 1, 'pcap', 'p.pdf', "
+        "'https://contratos-publicos.comunidad.madrid/p.pdf', 'placsp', 'https://x.test', "
+        "DATE '2026-11-23')"
+    )
+    for contrato_id in ("placsp:1", "portal_cm:C1"):
+        (pliego,) = datos_flujos.pliegos_contrato(con, contrato_id)
+        assert pliego["contrato_id"] == "placsp:1" and pliego["tipo"] == "pcap"
+
+
+def test_sin_tabla_de_pliegos(base):
+    base.con.execute("DROP TABLE contrato_documento")
+    assert datos_flujos.pliegos_contrato(base.con, "placsp:1") == []

@@ -34,9 +34,10 @@ def con(base):
 
 def test_hay_veinticinco_preguntas_con_identificador_unico():
     ids = [p.id for p in bateria.BATERIA]
-    assert len(ids) == 30
-    assert len(set(ids)) == 30
+    assert len(ids) == 34
+    assert len(set(ids)) == 34
     assert sum(p.tipo == "catalogo" for p in bateria.BATERIA) == 4
+    assert sum(p.tipo == "documento" for p in bateria.BATERIA) == 3
 
 
 def test_catalogo_acierta_si_consulta_el_conjunto_esperado(con):

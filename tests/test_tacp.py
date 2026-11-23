@@ -38,3 +38,8 @@ def test_resolucion_repetida_une_las_etiquetas(tmp_path):
     tabla = tacp.leer(tmp_path)
     assert tabla.height == 1
     assert tabla.row(0, named=True)["acto_recurrido"] == "Exclusión; Adjudicación"
+
+
+def test_numeros_de_ley_no_son_expedientes():
+    citados = tacp.expedientes_citados("LEY 9/2017, EXPEDIENTE A/SER-025050/2026 Y 129-2025")
+    assert citados == ["A/SER-025050/2026", "129-2025"]

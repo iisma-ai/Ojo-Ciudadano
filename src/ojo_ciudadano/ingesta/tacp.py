@@ -105,8 +105,13 @@ def _listado(pagina: str) -> str:
 
 
 def expedientes_citados(resumen: str) -> list[str]:
-    """Candidatos a número de expediente de contratación citados en el resumen."""
-    return list(dict.fromkeys(m.group(0).rstrip(".-/") for m in _EXPEDIENTE.finditer(resumen)))
+    """Candidatos a número de expediente de contratación citados en el resumen.
+
+    Se descartan los cortos sin letras («9/2017», «3/2020»): suelen ser leyes, sentencias o
+    expedientes del propio Tribunal, y casarían por azar con algún contrato.
+    """
+    candidatos = (m.group(0).rstrip(".-/") for m in _EXPEDIENTE.finditer(resumen))
+    return list(dict.fromkeys(c for c in candidatos if re.search(r"[A-Z]", c) or len(c) >= 8))
 
 
 def leer_pagina(texto: str, procedencia: str, tipo: str, acto: str) -> list[dict]:

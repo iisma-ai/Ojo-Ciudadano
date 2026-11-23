@@ -138,3 +138,14 @@ Herramienta `buscar_texto(consulta, en)` (`texto.py`), con `en` = `contrato`, `c
 - una búsqueda por alternativa, sin sumar coincidencias repetidas;
 - decir que cuenta títulos que mencionan las palabras;
 - no sumar importes con y sin IVA.
+
+**Revisión de `revisor-legal` de la búsqueda por palabras (23-nov), aplicada:**
+- **Títulos con personas:**
+  - los títulos de contratos con un adjudicatario persona física (28.258) se muestran como «Con una persona física: título no mostrado»;
+  - lo mismo con los convenios con firmantes no guardados por no ser entidades (353);
+  - esas filas siguen contando en el resumen.
+- **Búsquedas de personas:** la herramienta no se usa con nombres de personas. B-27 lo comprueba: el modelo se niega y ofrece el dato agregado.
+- **Presentación:**
+  - `relevancia_busqueda`, con la aclaración de que no es un indicador de riesgo;
+  - fuentes con su nombre oficial;
+  - criterio de B-26 con búsquedas separadas, sin sumarlas, y con la cita.

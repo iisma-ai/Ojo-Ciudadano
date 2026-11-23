@@ -56,3 +56,14 @@
 - **En cada instalación,** bajar el catálogo con `uv run python -m ojo_ciudadano.asistente.catalogo`.
 - **Decidir el bloque B** (pliegos).
 - **Ensayar las preguntas de catálogo en la demo** y precargar sus CSV, que quedan en caché al hacer la pregunta una vez.
+
+## Revisión legal de la búsqueda por palabras
+- **Alto:**
+  - títulos de contratos o convenios con personas físicas ocultos en los ejemplos (28.258 y 353), aunque cuentan en los totales;
+  - regla para no buscar nombres de personas, y B-27, comprobada con el modelo: se niega y ofrece el dato agregado.
+- **Medio y bajo:**
+  - criterio de B-26 ampliado;
+  - importes separados por IVA en la descripción de la herramienta;
+  - `relevancia_busqueda`;
+  - nombres oficiales de las fuentes.
+- **Gasto de la clave:** 0,64 USD.

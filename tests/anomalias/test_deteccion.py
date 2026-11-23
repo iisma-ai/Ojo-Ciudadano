@@ -119,3 +119,75 @@ def test_explicar_avisa_de_posible_error_si_se_adjudica_por_mas_del_doble():
     _, motivo = deteccion.explicar(fila, {"baja": -50.0}, {"baja": 0.135}, "sin IVA")
     assert motivo.startswith("Adjudicado un 9900,0 % por encima del presupuesto, posible error")
     assert "baja mediana es 13,5 %" in motivo
+
+
+def _encargos(base, n=80):
+    """n encargos parecidos (~200.000 € con IVA) de dos órganos a dos medios propios."""
+    rng = np.random.default_rng(1)
+    for medio in ("A28476208", "A83052407"):
+        base.con.execute(
+            "INSERT OR IGNORE INTO adjudicatario VALUES (?, ?, 'Medio propio', 'juridica')",
+            [medio, medio],
+        )
+    for i in range(n):
+        base.con.execute(
+            "INSERT INTO encargo (encargo_id, orden, fuente, organo_id, titulo, anio_publicacion, "
+            "medio_propio_id, importe_con_iva, importe_modificaciones_con_iva, url_origen, "
+            "fecha_descarga) VALUES (?, 1, 'portal_cm', ?, 'Encargo', 2025, ?, ?, 0, ?, ?)",
+            [
+                f"portal_cm:C{i}",
+                "ORG" if i % 2 else "OTRO",
+                "A28476208" if i % 3 else "A83052407",
+                float(rng.uniform(180_000, 220_000)),
+                f"https://ejemplo.test/C{i}",
+                date(2026, 11, 23),
+            ],
+        )
+
+
+def test_encargos_atipicos_frente_a_otros_encargos(base):
+    _encargos(base)
+    base.con.execute(
+        "INSERT INTO encargo (encargo_id, orden, fuente, organo_id, titulo, anio_publicacion, "
+        "medio_propio_id, importe_con_iva, importe_modificaciones_con_iva, url_origen, "
+        "fecha_descarga) VALUES ('portal_cm:CX', 1, 'portal_cm', 'ORG', 'Encargo grande', 2025, "
+        "'A28476208', 40000000, 0, 'https://ejemplo.test/CX', DATE '2026-11-23')"
+    )
+    _licitaciones(base)
+    deteccion.calcular(base.con)
+    fila = base.con.execute(
+        "SELECT atipico, grupo, motivo FROM anomalia_encargo WHERE encargo_id = 'portal_cm:CX'"
+    ).fetchall()[0]
+    assert fila[0] is True and fila[1] == "portal_cm · encargo"
+    assert "importe del encargo" in fila[2].lower() and "encargos similares" in fila[2]
+    # Los encargos no se mezclan con los contratos.
+    assert (
+        base.con.execute(
+            "SELECT count(*) FROM anomalia_resultado WHERE contrato_id LIKE 'portal_cm:C%'"
+        ).fetchall()[0][0]
+        == 0
+    )
+
+
+def test_validacion_con_recursos_y_fondos_europeos(base):
+    _licitaciones(base)
+    deteccion.calcular(base.con)
+    base.con.execute(
+        "INSERT INTO recurso_especial (resolucion_id, numero, procedencia, tipo_resolucion, "
+        "acto_recurrido, contrato_id, fuente, url_origen, fecha_descarga) VALUES "
+        "('tacpcm:1/2025', '1/2025', 'Consejerías', 'Estimatoria', 'Pliegos', 'placsp:1', "
+        "'tacpcm', 'https://x', DATE '2026-11-23'), "
+        "('tacpcm:2/2025', '2/2025', 'Consejerías', 'Desestimatoria', 'Adjudicación', "
+        "'placsp:2', 'tacpcm', 'https://x', DATE '2026-11-23')"
+    )
+    base.con.execute(
+        "INSERT INTO contrato_financiacion VALUES ('placsp:3', true, 'PRTR', 'placsp', "
+        "'https://x', DATE '2026-11-23')"
+    )
+    tabla = {f["grupo_validacion"]: f for f in deteccion.validar(base.con).to_dicts()}
+    assert tabla["Todos los contratos analizados"]["contratos"] == 120
+    assert tabla["Con algún recurso estimado (total o parcial) ante el TACPCM"]["contratos"] == 1
+    assert tabla["Con recursos solo desestimados o inadmitidos ante el TACPCM"]["contratos"] == 1
+    assert tabla["Licitaciones de PLACSP con fondos europeos"]["contratos"] == 1
+    guardada = base.con.execute("SELECT count(*) FROM anomalia_validacion").fetchall()[0][0]
+    assert guardada == len(deteccion.VALIDACION)

@@ -19,6 +19,16 @@ Variables (todas ya están en la base):
 Cada contrato atípico se explica con las variables en las que más se aleja de la mediana de su
 grupo (desviación robusta). Reproducible: semilla fija y parámetros en este fichero.
 
+Datos de D-027 a D-029 (D-031):
+  * Encargos a medios propios (D-028): no son contratos licitados, así que no se mezclan con
+    ellos; forman su propio grupo de pares («portal_cm · encargo») con importe, modificaciones
+    y cuota del medio propio en lo que encarga el órgano. Resultado aparte: `anomalia_encargo`.
+  * Recursos ante el TACPCM (D-029) y fondos europeos (D-027): **no son variables**. Un recurso
+    estimado es una decisión oficial de que un acto no se ajustaba a derecho: sirve para
+    **validar** la señal (¿hay más atípicos entre los contratos con recurso estimado?), y
+    usarlo como variable haría que el modelo solo aprendiera a marcar los recurridos. Los
+    fondos europeos no indican nada sobre el riesgo. Ambos van a `anomalia_validacion`.
+
 Uso: uv run python -m ojo_ciudadano.anomalias.deteccion
 """
 
@@ -113,6 +123,151 @@ LEFT JOIN menores AS m USING (contrato_id)
 GROUP BY a.contrato_id, a.fuente, a.es_menor, a.tipo_contrato
 HAVING sum(a.importe) > 0
 """
+
+
+CONSULTA_ENCARGOS = """
+WITH encargos AS (
+    SELECT encargo_id, any_value(organo_id) AS organo_id, any_value(url_origen) AS url_origen,
+           arg_min(medio_propio_id, orden) AS medio_propio_id,
+           sum(importe_con_iva) AS importe,
+           sum(importe_modificaciones_con_iva) AS modificaciones
+    FROM encargo
+    GROUP BY encargo_id
+    HAVING sum(importe_con_iva) > 0
+),
+por_medio AS (
+    SELECT organo_id, medio_propio_id, sum(importe) AS importe
+    FROM encargos
+    WHERE medio_propio_id IS NOT NULL
+    GROUP BY 1, 2
+),
+cuotas AS (
+    SELECT organo_id, medio_propio_id,
+           importe / sum(importe) OVER (PARTITION BY organo_id) AS cuota
+    FROM por_medio
+)
+SELECT e.encargo_id AS contrato_id, 'portal_cm · encargo' AS grupo, false AS es_menor,
+       e.url_origen, e.importe, NULL::INTEGER AS n_ofertas, NULL::DOUBLE AS baja,
+       e.modificaciones / e.importe AS modificaciones, q.cuota, NULL::BIGINT AS menores_12m
+FROM encargos AS e
+LEFT JOIN cuotas AS q USING (organo_id, medio_propio_id)
+"""
+
+
+def _hay_tabla(con: duckdb.DuckDBPyConnection, tabla: str) -> bool:
+    return bool(
+        con.execute(
+            "SELECT count(*) FROM information_schema.tables WHERE table_name = ?", [tabla]
+        ).fetchall()[0][0]
+    )
+
+
+def leer_encargos(con: duckdb.DuckDBPyConnection) -> pl.DataFrame:
+    """Una fila por encargo con las variables que tienen sentido para un encargo."""
+    if not _hay_tabla(con, "encargo"):
+        return pl.DataFrame()
+    return con.sql(CONSULTA_ENCARGOS).pl().sort("contrato_id")
+
+
+def _texto_encargo(motivo: str | None) -> str | None:
+    """El motivo habla de contratos y adjudicatarios; en un encargo son encargos y medios
+    propios, y el importe es el del encargo."""
+    if motivo is None:
+        return None
+    return (
+        motivo.replace("contratos similares", "encargos similares")
+        .replace(
+            "cuota del adjudicatario en lo que adjudica este órgano en este tipo de contrato",
+            "cuota del medio propio en lo que encarga este órgano",
+        )
+        .replace("importe adjudicado", "importe del encargo")
+        .replace("Importe adjudicado", "Importe del encargo")
+        .replace("modificaciones sobre el importe adjudicado", "modificaciones sobre el importe")
+    )
+
+
+def calcular_encargos(con: duckdb.DuckDBPyConnection) -> pl.DataFrame:
+    """Encargos atípicos respecto a los demás encargos, en `anomalia_encargo`."""
+    datos = leer_encargos(con)
+    resultado = puntuar_grupo(datos) if datos.height else pl.DataFrame(schema=_esquema())
+    resultado = resultado.with_columns(
+        pl.col("motivo").map_elements(_texto_encargo, return_dtype=pl.String)
+    ).rename({"contrato_id": "encargo_id"})
+    tabla = resultado.to_arrow()  # noqa: F841 (DuckDB lo lee por su nombre)
+    con.execute("CREATE OR REPLACE TABLE anomalia_encargo AS SELECT * FROM tabla")
+    return resultado
+
+
+# Grupos de la validación: (nombre, condición sobre el contrato `r`). Solo se calculan los que
+# tienen sus tablas en la base.
+VALIDACION = [
+    ("Todos los contratos analizados", None, "TRUE"),
+    (
+        "Con algún recurso estimado (total o parcial) ante el TACPCM",
+        "recurso_especial",
+        "r.contrato_id IN (SELECT contrato_id FROM recurso_especial "
+        "WHERE tipo_resolucion IN ('Estimatoria', 'Estimatoria parcial'))",
+    ),
+    (
+        "Con recursos solo desestimados o inadmitidos ante el TACPCM",
+        "recurso_especial",
+        "r.contrato_id IN (SELECT contrato_id FROM recurso_especial) AND r.contrato_id NOT IN "
+        "(SELECT contrato_id FROM recurso_especial WHERE contrato_id IS NOT NULL AND "
+        "tipo_resolucion IN ('Estimatoria', 'Estimatoria parcial'))",
+    ),
+    (
+        "Licitaciones de PLACSP con fondos europeos",
+        "contrato_financiacion",
+        "r.contrato_id IN (SELECT contrato_id FROM contrato_financiacion WHERE financiado_ue)",
+    ),
+    (
+        "Licitaciones de PLACSP sin fondos europeos",
+        "contrato_financiacion",
+        "r.contrato_id IN (SELECT contrato_id FROM contrato_financiacion WHERE NOT financiado_ue)",
+    ),
+]
+
+
+def validar(con: duckdb.DuckDBPyConnection) -> pl.DataFrame:
+    """Proporción de atípicos y puntuación de riesgo media por grupo de validación, en
+    `anomalia_validacion`. Es una comprobación descriptiva, no un entrenamiento: si la señal
+    sirve, los contratos con recurso estimado deberían ser atípicos más a menudo que el 1 %."""
+    filas = []
+    con_puntuacion = _hay_tabla(con, "puntuacion_contrato")
+    puntuacion_sql = "avg(p.puntuacion)" if con_puntuacion else "NULL"
+    union = "LEFT JOIN puntuacion_contrato AS p USING (contrato_id)" if con_puntuacion else ""
+    for nombre, tabla, condicion in VALIDACION:
+        if tabla and not _hay_tabla(con, tabla):
+            continue
+        n, atipicos, puntuacion = con.execute(
+            f"""
+            SELECT count(*), count_if(r.atipico), {puntuacion_sql}
+            FROM anomalia_resultado AS r {union}
+            WHERE {condicion}
+            """
+        ).fetchall()[0]
+        filas.append(
+            {
+                "grupo_validacion": nombre,
+                "contratos": n,
+                "atipicos": atipicos,
+                "proporcion_atipicos": atipicos / n if n else None,
+                "puntuacion_riesgo_media": puntuacion,
+            }
+        )
+    resultado = pl.DataFrame(
+        filas,
+        schema={
+            "grupo_validacion": pl.String,
+            "contratos": pl.Int64,
+            "atipicos": pl.Int64,
+            "proporcion_atipicos": pl.Float64,
+            "puntuacion_riesgo_media": pl.Float64,
+        },
+    )
+    tabla = resultado.to_arrow()  # noqa: F841
+    con.execute("CREATE OR REPLACE TABLE anomalia_validacion AS SELECT * FROM tabla")
+    return resultado
 
 
 def leer_variables(con: duckdb.DuckDBPyConnection) -> pl.DataFrame:
@@ -286,6 +441,8 @@ def calcular(con: duckdb.DuckDBPyConnection) -> pl.DataFrame:
     con.execute("CREATE OR REPLACE TABLE anomalia_resultado AS SELECT * FROM tabla")
     variables = datos.select(["contrato_id", "grupo", *VARIABLES]).to_arrow()  # noqa: F841
     con.execute("CREATE OR REPLACE TABLE anomalia_variables AS SELECT * FROM variables")
+    calcular_encargos(con)
+    validar(con)
     return resultado
 
 
@@ -304,6 +461,10 @@ def main() -> None:
     with duckdb.connect(str(RUTA_DB)) as con:
         calcular(con)
         resumen(con).show(max_rows=100)
+        con.sql(
+            "SELECT count(*) AS encargos, count_if(atipico) AS atipicos FROM anomalia_encargo"
+        ).show()
+        con.sql("SELECT * FROM anomalia_validacion").show()
 
 
 if __name__ == "__main__":

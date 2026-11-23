@@ -382,8 +382,10 @@ def ficha_contrato(con, contrato_id: str, entidades: list[dict]) -> None:
     importe = detalle["importe_sin_iva"] or detalle["importe_con_iva"]
     presupuesto = detalle["presupuesto_sin_iva"] or detalle["presupuesto_con_iva"]
     m = st.columns(2)
-    m[0].metric(f"Importe adjudicado ({iva})", textos.millones(importe))
-    m[1].metric(f"Presupuesto de licitación ({iva})", textos.millones(presupuesto))
+    m[0].metric("Adjudicado", textos.millones(importe), help=f"Importe adjudicado, {iva}.")
+    m[1].metric(
+        "Licitación", textos.millones(presupuesto), help=f"Presupuesto de licitación, {iva}."
+    )
     m = st.columns(2)
     m[0].metric(
         "Ofertas recibidas",
@@ -391,7 +393,7 @@ def ficha_contrato(con, contrato_id: str, entidades: list[dict]) -> None:
     )
     if entidad:
         m[1].metric(
-            "Del dinero de la consejería",
+            "De la consejería",
             textos.porcentaje((importe or 0) / entidad["credito"], 2),
             help="Importe adjudicado sobre el dinero disponible de la consejería este año.",
         )

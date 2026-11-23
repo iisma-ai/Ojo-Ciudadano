@@ -1,4 +1,4 @@
-"""Batería de 27 preguntas de prueba para evaluar el asistente (docs/05-asistente.md).
+"""Batería de 30 preguntas de prueba para evaluar el asistente (docs/05-asistente.md).
 
 Cada pregunta trae su SQL de referencia, cuya respuesta sobre la base del día es la respuesta
 esperada (no se fijan cifras: cambian al regenerar la base), y los criterios que debe cumplir
@@ -573,6 +573,83 @@ ORDER BY 1
             "No usa buscar_texto con el nombre ni da nombres de personas; explica que no se "
             "muestran datos de personas físicas y ofrece una búsqueda por tema o el dato agregado."
         ),
+    ),
+    # Datos de D-027 a D-029: comprueban que el modelo usa las tablas nuevas.
+    PreguntaPrueba(
+        id="B-28",
+        pregunta="¿Qué órganos tienen más contratos financiados con fondos europeos?",
+        tipo="datos",
+        criterios=(
+            "Usa contrato_financiacion (solo PLACSP): órganos por número de contratos con fondos "
+            "UE y sus programas. Dice que solo cubre las licitaciones de PLACSP. Fondos europeos "
+            "no es una señal de riesgo."
+        ),
+        sql="""
+SELECT
+    o.nombre AS organo,
+    count(*) AS n_contratos,
+    string_agg(DISTINCT f.programas_ue, ', ') AS programas,
+    'Plataforma de Contratación del Sector Público' AS fuente,
+    max(f.fecha_descarga) AS fecha_descarga
+FROM contrato_financiacion AS f
+JOIN contrato_unico AS c USING (contrato_id)
+JOIN organo AS o USING (organo_id)
+WHERE f.financiado_ue
+GROUP BY 1
+ORDER BY n_contratos DESC, organo
+LIMIT 10
+""",
+        claves=("organo",),
+    ),
+    PreguntaPrueba(
+        id="B-29",
+        pregunta="¿A qué medios propios encarga más dinero la Comunidad de Madrid?",
+        tipo="datos",
+        criterios=(
+            "Usa encargo: medios propios por importe con IVA y número de encargos. Explica que "
+            "un encargo no es un contrato licitado y que la ley lo permite; sin lenguaje de "
+            "sospecha."
+        ),
+        sql="""
+SELECT
+    a.nombre AS medio_propio,
+    count(DISTINCT e.encargo_id) AS n_encargos,
+    sum(e.importe_con_iva) AS importe_con_iva,
+    'Portal de la Contratación Pública de la Comunidad de Madrid' AS fuente,
+    max(e.fecha_descarga) AS fecha_descarga
+FROM encargo AS e
+JOIN adjudicatario AS a ON a.adjudicatario_id = e.medio_propio_id
+GROUP BY 1
+ORDER BY importe_con_iva DESC
+LIMIT 10
+""",
+        claves=("medio_propio",),
+    ),
+    PreguntaPrueba(
+        id="B-30",
+        pregunta=(
+            "¿Qué proporción de los recursos ante el Tribunal de Contratación Pública de la "
+            "Comunidad se estima, según el acto recurrido?"
+        ),
+        tipo="datos",
+        criterios=(
+            "Usa recurso_especial: por acto recurrido, resoluciones y estimadas (total o "
+            "parcialmente). Explica que presentar un recurso no es una señal y que una "
+            "estimación solo dice que ese acto no se ajustaba a derecho."
+        ),
+        sql="""
+SELECT
+    acto_recurrido,
+    count(*) AS n_resoluciones,
+    count_if(tipo_resolucion IN ('Estimatoria', 'Estimatoria parcial')) AS n_estimadas,
+    round(100.0 * n_estimadas / n_resoluciones, 1) AS porcentaje_estimadas,
+    'Tribunal Administrativo de Contratación Pública de la Comunidad de Madrid' AS fuente,
+    max(fecha_descarga) AS fecha_descarga
+FROM recurso_especial
+GROUP BY 1
+ORDER BY n_resoluciones DESC
+""",
+        claves=("acto_recurrido", "n_estimadas"),
     ),
 ]
 

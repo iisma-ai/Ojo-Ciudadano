@@ -571,6 +571,7 @@ def _normalizar(valor):
 
 # Filas de más que se toleran: un año fuera del periodo, los nulos o un ranking algo más largo.
 HOLGURA_FILAS = 5
+FILA_AGREGADA_PF = "Personas físicas o sin identificar (agregadas)"  # consultas_demo
 MINIMO_FILAS = 3
 
 
@@ -578,7 +579,12 @@ def coincide(referencia: dict, modelo: dict, claves: tuple[str, ...]) -> bool:
     """El modelo acierta si, para cada columna clave de la referencia, alguna de sus columnas
     contiene todos los valores esperados (sin importar el nombre ni el orden de columnas y
     filas, y con unas pocas filas de más). Un ranking más corto (el top 5 de un top 10) vale
-    si coincide con el principio de la referencia y tiene al menos `MINIMO_FILAS`."""
+    si coincide con el principio de la referencia y tiene al menos `MINIMO_FILAS`. La fila que
+    agrega a las personas físicas no cuenta: omitirla en un ranking de empresas es correcto."""
+    referencia = {
+        **referencia,
+        "filas": [f for f in referencia["filas"] if FILA_AGREGADA_PF not in f],
+    }
     n = min(len(referencia["filas"]), len(modelo["filas"]))
     if n < min(len(referencia["filas"]), MINIMO_FILAS):
         return False

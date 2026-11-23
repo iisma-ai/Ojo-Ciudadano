@@ -117,3 +117,12 @@ def test_las_preguntas_de_limites_se_revisan_a_mano(con):
     resultado = bateria.evaluar(con, b19, None, "La base solo cubre la Comunidad de Madrid.")
     assert resultado["datos_ok"] is None
     assert resultado["criterios"]
+
+
+def test_omitir_la_fila_agregada_de_personas_fisicas_no_es_un_fallo():
+    referencia = {
+        "columnas": ["adjudicatario", "n"],
+        "filas": [["Empresa A", 9], [bateria.FILA_AGREGADA_PF, 8], ["Empresa B", 7], ["C", 6]],
+    }
+    modelo = {"columnas": ["empresa", "n"], "filas": [["Empresa A", 9], ["Empresa B", 7], ["C", 6]]}
+    assert bateria.coincide(referencia, modelo, ("adjudicatario",))

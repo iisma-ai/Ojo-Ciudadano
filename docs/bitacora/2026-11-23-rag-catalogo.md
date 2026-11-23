@@ -33,6 +33,12 @@
 - **B-01**, pregunta de demo sin relación con el catálogo, ha fallado en esta pasada. Es variación del modelo en la ventana de fechas; hay que vigilarla en el ensayo.
 - **La extensión `fts` de DuckDB** se descarga la primera vez que se usa. Sin red, la búsqueda pasa al respaldo.
 - **Gasto total de la clave:** 0,551 USD; quedan unos 0,85 de saldo.
+- **Revisión de `revisor-legal` aplicada:**
+  - 57 conjuntos con listados de personas fuera del catálogo del asistente;
+  - cita con licencia y fecha de descarga del CSV;
+  - sin mezclar fuentes ni usar el catálogo como señal;
+  - B-25.
+  - Comprobado con el modelo, por 0,027 USD. Gasto total de la clave: 0,569 USD.
 
 ## Siguiente paso
 - **Fusionar en `main`,** en este orden: `feat/asistente-openrouter` y después `feat/rag-catalogo`, que va encima.

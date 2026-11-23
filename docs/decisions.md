@@ -347,5 +347,6 @@ Plantilla:
 - **Consecuencias:**
   - Sin cambio de esquema en A. Con B, esquema aditivo (D-017) y cambio en `ingesta/placsp.py`: hay que avisar a quien lleva la ingesta.
   - Cada instalación baja el catálogo con `uv run python -m ojo_ciudadano.asistente.catalogo` (3 peticiones).
+  - **RGPD (revisión legal del 23-nov):** no se ofrecen al asistente 57 conjuntos con listados que pueden nombrar a personas: registros, agenda de Gobierno, listas de interinos, ayudas con beneficiarios… Detalle en [14](14-rag-documental.md).
   - De 4 a 7 preguntas nuevas en la batería.
   - Si se acepta, se actualizan 05, 06 y 08.

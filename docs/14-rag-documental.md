@@ -221,3 +221,21 @@ Son unas 2 h. Solo merece la pena si sobra tiempo: `ILIKE` ya resuelve los casos
 - La primera pasada tenía un fallo: B-21 tenía las cifras y no las daba, porque la regla antigua solo admitía las de `consultar_sql`. Está corregido.
 - **Coste:** de 0,007 a 0,012 USD por pregunta de catálogo (de 4 a 6 llamadas). Las dos pasadas costaron 0,077 USD.
 - **Tests:** 11 en `tests/asistente/test_catalogo.py`, sin red: búsqueda, consulta, tablas no permitidas, ficheros bloqueados, dominio ajeno, agente de punta a punta y adaptador.
+
+**Revisión de `revisor-legal` (23-nov), aplicada:**
+- **Alto, personas físicas:** el CSV del catálogo llega sin los filtros de D-024. Por eso no se ofrecen 57 de los 2.244 conjuntos con CSV; quedan 2.187.
+  - Siempre fuera: los que D-024 descartó.
+  - Entre los que publica la Comunidad, no el Instituto de Estadística, que solo publica agregados: los listados registro a registro que pueden nombrar a personas. Son registros (agentes inmobiliarios, explotaciones ganaderas, asociaciones, farmacias…), la agenda de Gobierno, listas de interinos y destinos de docentes, ayudas y bonos con beneficiarios, quejas y autoridades bibliográficas.
+  - La lista es prudente y aproximada: excluye también algunas estadísticas agregadas. Un conjunto nuevo del catálogo puede necesitar entrar en `catalogo._LISTADOS_CM`.
+  - Regla nueva: si las filas traen nombres de personas, no se escriben.
+- **Medio:**
+  - la cita lleva la licencia (CC BY) y la fecha real de descarga del CSV;
+  - una línea de fuente por cada origen si se mezclan base y catálogo;
+  - una cifra del catálogo nunca es un indicador de riesgo ni sirve para ordenar por riesgo.
+- **Bajo:**
+  - el resultado que ve el modelo lleva el título, las fechas y el enlace del conjunto que consultó;
+  - criterios de B-21 a B-24 con la cita;
+  - **B-25** (firmantes de convenios), que comprueba que no se dan nombres de personas.
+- **Comprobado con `gpt-6.1-terra`** (0,027 USD):
+  - B-21 cita «…(licencia CC BY), conjunto «Lista de espera quirúrgica por hospitales», actualizado el 08-05-2026, datos descargados el 2026-11-23»;
+  - B-25 da solo entidades firmantes y dice que no muestra personas físicas.

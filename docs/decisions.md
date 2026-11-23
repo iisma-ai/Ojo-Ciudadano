@@ -297,30 +297,35 @@ Plantilla:
 - **Alternativas consideradas:** Componente propio con D3 (más trabajo y sin devolver el clic a Streamlit). Mantener Plotly (no se puede arrastrar un nodo y que tiren los demás). Cruzar partida a partida presupuesto y contratos (los datos no lo permiten, ver 02).
 - **Consecuencias:** `uv sync` para instalar `streamlit-agraph`. Presupuesto y contratos son fuentes distintas y se comparan por consejería y año, no partida a partida (`textos.AVISO_CONTEXTO`). Los nodos deben ser deterministas entre ejecuciones (si cambia el orden de un nombre, Streamlit ve un componente nuevo y pierde el clic): las consultas ordenan las adjudicatarias. Se actualizan [03-modulos.md](03-modulos.md) y el plan.
 
-## D-030 · RAG documental acotado: pliegos de PLACSP bajo demanda
+## D-030 · RAG centrado en el catálogo de datos abiertos y, después, en los pliegos
 - **Fecha:** 2026-11-23
-- **Estado:** Propuesta. El Harrak pidió no aplicar el recorte 2 sin investigarlo antes; falta su decisión con este plan.
+- **Estado:** Propuesta. El Harrak pidió no aplicar el recorte 2 sin investigarlo y centrar el RAG en el catálogo de datos abiertos de la Comunidad; falta su decisión con este plan.
 - **Autor:** Claude (agente), a petición de El Harrak
-- **Contexto:** El plan preveía un RAG con BM25 y embeddings sobre informes, memorias y pliegos (D-010, [05](05-asistente.md)), y es el recorte 2. La investigación del 23-nov ([14-rag-documental.md](14-rag-documental.md)) ha comprobado varias cosas:
-  - el Atom de PLACSP ya enlaza el PCAP del 97 % de las licitaciones de la Comunidad;
-  - los PDF tienen texto digital;
-  - BM25 de DuckDB encuentra la página correcta en 5 de 5 preguntas;
-  - el modelo responde con cita de página por 0,0014 USD.
-  
-  También tiene límites: el portal no enlaza pliegos de emergencias ni de «otro procedimiento», OpenRouter no tiene embeddings y no hay informes de la Cámara de Cuentas de 2023 a 2026.
-- **Decisión propuesta:** hacer una versión acotada.
-  - **Qué se construye:**
-    - tabla aditiva `contrato_documento` con los enlaces de los pliegos de PLACSP;
-    - herramienta `buscar_en_pliego(contrato_id, consulta)`, que descarga el pliego bajo demanda con caché, lo extrae por páginas con `pypdf` y lo indexa con BM25 en DuckDB;
-    - 3 páginas como máximo, citadas y marcadas como datos.
-  - **Qué no se hace:** sin embeddings, sin informes de la Cámara de Cuentas y sin PDF del TACPCM (D-029) hasta una revisión legal.
-  - **Calendario:** punto de control el 24-nov a las 14:00. Si falla, la herramienta se desactiva.
+- **Contexto:** El plan preveía un RAG con BM25 y embeddings sobre informes, memorias y pliegos (D-010, [05](05-asistente.md)), y es el recorte 2. La investigación del 23-nov está en [14-rag-documental.md](14-rag-documental.md).
+  - **El catálogo son tablas:** 2.231 de 2.276 conjuntos en CSV o JSON, y solo 12 con PDF.
+  - **Su buscador no encuentra lo que se pregunta.** Un índice BM25 propio acierta 6 de 8 preguntas, y las otras 2 piden datos que no existen.
+  - **La consulta remota** (`datastore_search_sql`) falla con columnas con tilde.
+  - **El CSV bajo demanda es pequeño:** 42 KB de mediana. La prueba de punta a punta (listas de espera por hospital) respondió bien por 0,0028 USD.
+  - **Los pliegos de PLACSP** están enlazados en el 97 % de las licitaciones de la muestra, y la prueba con R-02 citó el art. 168.a.2 con su página.
+- **Decisión propuesta:**
+  - **Bloque A, RAG de catálogo (6 h):**
+    - tabla aditiva `catalogo_conjunto` con índice BM25 de DuckDB;
+    - herramientas `buscar_conjunto` y `consultar_conjunto`: CSV bajo demanda con caché, consultado en local con el validador de `sql_seguro`;
+    - control el 24-nov a las 12:00.
+  - **Bloque B, pliegos de PLACSP bajo demanda (10 h):**
+    - tabla aditiva `contrato_documento`, herramienta `buscar_en_pliego` y dependencia `pypdf`;
+    - solo si A pasa el control; control el 24-nov a las 20:00.
+  - **Fuera de esta entrega:**
+    - PDF del TACPCM (D-029): necesitan revisión legal y la fusión de su rama;
+    - embeddings;
+    - informes de la Cámara de Cuentas.
 - **Alternativas consideradas:**
-  - Aplicar el recorte 2: ahorra unas 12 horas, pero se pierde la explicación del expediente junto a la señal.
-  - RAG completo con embeddings y corpus precargado: unos 15 GB, torch y varios días.
-  - Solo enlazar el PDF sin RAG: barato, pero no responde a la pregunta.
+  - Aplicar el recorte 2.
+  - Solo pliegos, que era la primera versión de esta propuesta: menos alineado con el núcleo.
+  - Consulta remota con `datastore_search_sql`: falla con las tildes.
+  - RAG completo con embeddings: torch y varios días.
 - **Consecuencias:**
-  - Nueva dependencia `pypdf`.
-  - Cambio aditivo del esquema y de `ingesta/placsp.py`; hay que avisar a quien lleva la ingesta.
-  - 4 preguntas nuevas en la batería.
+  - Esquema aditivo (D-017).
+  - Con B, cambio en `ingesta/placsp.py`: hay que avisar a quien lleva la ingesta.
+  - De 4 a 7 preguntas nuevas en la batería.
   - Si se acepta, se actualizan 05, 06 y 08.

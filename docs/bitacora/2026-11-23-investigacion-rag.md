@@ -1,4 +1,4 @@
-# 2026-11-23 · Investigación del RAG documental
+# 2026-11-23 · Investigación del RAG: datos nuevos, catálogo y pliegos
 
 - **Autor:** Claude (agente), a petición de El Harrak
 - **Fase del plan:** 2. El Harrak pidió no aplicar el recorte 2 sin comprobar antes si el RAG funcionaría y qué aportaría.
@@ -16,8 +16,22 @@
   - D-029 (TACPCM), en la rama de otra persona, enlaza resoluciones con contratos.
 - Escrito el plan en `docs/14-rag-documental.md`.
 
+## Segunda parte: datos nuevos y catálogo de datos abiertos
+El Harrak pidió revisar los datos nuevos de las ramas y centrar el RAG en el catálogo de datos abiertos de la Comunidad.
+- **Datos de D-024 cargados en local** con `modelo.contexto`. Coinciden con la referencia del equipo. No he hecho la confirmación de `LO-PRIMERO.md`: queda pendiente de que la pida la persona.
+- **Inventario:** D-024 está en `main`; D-027, D-028 y D-029, en `fix/relleno-y-referencia-r01`. Ninguno sube datos a GitHub; se bajan con código.
+- **Catálogo CKAN completo** (3 peticiones a `package_search`):
+  - 2.276 conjuntos, 2.231 con CSV o JSON y solo 12 con PDF;
+  - 2.097 son del Instituto de Estadística;
+  - 2.361 recursos tienen `datastore_active`.
+- **Su buscador falla** («contratos menores sanidad» devuelve carnicerías). Un BM25 propio sobre los metadatos acierta 6 de 8 preguntas.
+- **`datastore_search_sql`** responde, pero da error interno con columnas con tilde.
+- **CSV:** mediana de 42 KB y p90 de 1,2 MB.
+- **Prueba de punta a punta** con CSV bajo demanda y DuckDB local: listas de espera por hospital en 2025, bien respondida, por 0,0028 USD.
+- **Gasto de la investigación** en OpenRouter: unos 0,009 USD, incluido un intento fallido por agotar `max_tokens`. terra razona antes de contestar: no hay que bajar `max_tokens` de unos 2.000.
+
 ## Decisiones tomadas
-- **D-030, Propuesta:** RAG acotado a los pliegos de PLACSP bajo demanda, con BM25 y sin embeddings. Falta la decisión del equipo.
+- **D-030, Propuesta, reescrita:** bloque A, el RAG de catálogo, primero; bloque B, los pliegos, solo si A pasa el control del 24-nov a las 12:00. Falta la decisión del equipo.
 
 ## Desviaciones del plan
 - Ninguna todavía. Si se acepta D-030, el RAG se queda sin embeddings y sin informes de la Cámara de Cuentas, a diferencia de lo previsto en `docs/05`.
@@ -29,6 +43,6 @@
 
 ## Siguiente paso
 - **Decisión sobre D-030.** Si es sí:
-  - fase 1, enlaces en la ingesta de PLACSP; avisar antes a quien la lleva;
-  - fases 2 y 3 el 24-nov por la mañana;
-  - punto de control a las 14:00.
+  - A1–A3 (catálogo) hoy por la tarde y el 24-nov por la mañana;
+  - control a las 12:00;
+  - B (pliegos) por la tarde, avisando antes a quien lleva la ingesta de PLACSP.

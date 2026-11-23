@@ -70,6 +70,7 @@ class PreguntaPrueba:
     claves: tuple[str, ...] = ()  # columnas de la referencia que el modelo debe acertar
     # Preguntas de catálogo (D-030): el conjunto del catálogo de datos abiertos que hay que usar.
     conjunto: str | None = None
+    otros_conjuntos: tuple[str, ...] = ()  # conjuntos igual de válidos
 
 
 def _demo(id_, consulta, parametros, claves, criterios):
@@ -504,6 +505,7 @@ ORDER BY 1
         tipo="catalogo",
         criterios="Usa el conjunto de personal de la Administración Autonómica, con año y tipo.",
         conjunto="personal_administracion_autonomica_por_sexo_y_tipo_personal",
+        otros_conjuntos=("personal_comunidad_madrid_por_area_actividad_y_sexo",),
     ),
     PreguntaPrueba(
         id="B-23",
@@ -599,7 +601,7 @@ def evaluar_respuesta(
             avisos.append("No consultó el catálogo")
         return {
             "id": pregunta.id,
-            "datos_ok": pregunta.conjunto in usados,
+            "datos_ok": bool({pregunta.conjunto, *pregunta.otros_conjuntos} & set(usados)),
             "avisos": avisos,
             "criterios": pregunta.criterios,
         }

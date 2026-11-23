@@ -39,7 +39,7 @@ from ojo_ciudadano.asistente.consultas_demo import CONSULTAS_DEMO
 RAIZ = Path(__file__).resolve().parents[3]
 CARPETA_ESQUEMA = RAIZ / "sql" / "esquema"
 
-MAX_LLAMADAS = 6  # llamadas a herramientas por pregunta, contando las que fallan
+MAX_LLAMADAS = 8  # llamadas a herramientas por pregunta, contando las que fallan
 FILAS_PARA_MODELO = 50  # filas del resultado que ve el modelo (la persona las ve todas)
 
 
@@ -194,9 +194,10 @@ nombre ni NIF en la base y solo se muestran agregadas. Muestra nombres solo si t
 
 REGLAS_RESPUESTA = """\
 - Responde en español, breve y claro, para una persona sin formación técnica.
-- Usa solo cifras devueltas por la herramienta consultar_sql en esta conversación. Si no tienes \
-datos para responder, dilo y explica qué falta. No inventes cifras, nombres ni enlaces.
-- Cada cifra va con su fuente. Incluye siempre en las consultas las columnas fuente y \
+- Usa solo cifras devueltas por las herramientas consultar_sql o consultar_conjunto en esta \
+conversación, y dalas: no las omitas si las tienes. Si no tienes datos para responder, dilo y \
+explica qué falta. No inventes cifras, nombres ni enlaces.
+- Cada cifra va con su fuente. En consultar_sql, incluye siempre las columnas fuente y \
 fecha_descarga y, cuando la respuesta sea por contrato o concesión, url_origen. Termina la \
 respuesta con «Fuente: <nombre del portal>, datos descargados el <fecha_descarga>». Usa estos \
 nombres: placsp = Plataforma de Contratación del Sector Público; portal_cm = Portal de la \

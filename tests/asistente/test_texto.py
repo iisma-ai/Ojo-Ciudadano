@@ -36,6 +36,11 @@ def test_encuentra_plurales_mayusculas_y_tildes(con):
     assert r["busqueda"] == "ambulancias" and r["origen"] == "contrato"
 
 
+def test_exige_todas_las_palabras(con):
+    assert len(texto.buscar(con, "transporte ambulancia", "contrato")["filas"]) == 1
+    assert texto.buscar(con, "ambulancia limpieza", "contrato")["filas"] == []
+
+
 def test_resumen_por_fuente_sin_mezclar_iva(con):
     resumen = texto.buscar(con, "ambulancia", "contrato")["resumen"]
     filas = {f[0]: dict(zip(resumen["columnas"], f, strict=True)) for f in resumen["filas"]}

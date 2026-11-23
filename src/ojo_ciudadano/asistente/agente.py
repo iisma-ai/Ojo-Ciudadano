@@ -132,7 +132,8 @@ HERRAMIENTA_BUSCAR_TEXTO = {
         "convenios o las convocatorias de subvenciones de la base. Devuelve un resumen por "
         "fuente (número y, en contratos y convocatorias, importe) y los 20 títulos más "
         "relevantes con su enlace oficial. Úsala para preguntas por tema («contratos de "
-        "ambulancias») en vez de ILIKE."
+        "ambulancias») en vez de ILIKE. Cuenta los títulos que tienen todas las palabras: "
+        "para alternativas («ambulancias» o «transporte sanitario»), haz búsquedas separadas."
     ),
     "parametros": {
         "type": "object",
@@ -313,6 +314,8 @@ REGLAS_TEXTO = """\
 «limpieza de hospitales», «becas de comedor»), usa buscar_texto: encuentra plurales y palabras \
 sin tilde que ILIKE no encuentra. Para filtros exactos (un órgano, un NIF, un año), usa \
 consultar_sql.
+- buscar_texto exige todas las palabras: usa pocas y haz una búsqueda por alternativa (las \
+coincidencias pueden repetirse entre búsquedas: no las sumes).
 - Las cifras de buscar_texto cuentan los títulos que contienen esas palabras: dilo así \
 («contratos cuyo título menciona…») y avisa de que puede haber otros del mismo tema con otro \
 título. En contratos, los importes van separados por fuente (sin IVA en PLACSP, con IVA en el \

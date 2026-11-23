@@ -8,7 +8,10 @@ frente a 73 con `ILIKE`.
 Construir (con la interfaz cerrada, tras regenerar la base):
     uv run python -m ojo_ciudadano.asistente.texto
 
-La consulta del modelo nunca entra en el SQL como texto: va como parámetro.
+Deben aparecer todas las palabras de la consulta (modo conjuntivo): si no, «ambulancias
+transporte sanitario» contaría cualquier título con «transporte». Para alternativas, se
+hacen búsquedas separadas. La consulta del modelo nunca entra en el SQL como texto: va
+como parámetro.
 """
 
 import sys
@@ -67,7 +70,7 @@ class BusquedaNoDisponible(ValueError):
 
 _COINCIDENCIAS = f"""
 WITH c AS (
-    SELECT b.*, fts_main_{TABLA}.match_bm25(b.id, $consulta) AS relevancia
+    SELECT b.*, fts_main_{TABLA}.match_bm25(b.id, $consulta, conjunctive := 1) AS relevancia
     FROM {TABLA} AS b WHERE b.origen = $origen
 )
 SELECT * FROM c WHERE relevancia IS NOT NULL

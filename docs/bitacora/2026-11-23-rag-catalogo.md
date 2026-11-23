@@ -41,6 +41,17 @@
   - Comprobado con el modelo, por 0,027 USD. Gasto total de la clave: 0,569 USD.
 
 ## Siguiente paso
+- (Cierre de la noche) **Bloque A completo:**
+  - `buscar_texto`, búsqueda por palabras en títulos, con la tabla derivada `busqueda_texto` y modo conjuntivo, porque sin él los recuentos se inflaban;
+  - `catalogo --precargar`;
+  - pantalla del asistente probada con `streamlit.testing` y el modelo real;
+  - evaluador de B-01 corregido;
+  - integrado `main` (D-027 a D-029) en las dos ramas y fusionado en `main`.
+  - Gasto de la clave: 0,63 USD.
+- **En cada instalación:**
+  - `uv run python -m ojo_ciudadano.asistente.catalogo`;
+  - `uv run python -m ojo_ciudadano.asistente.catalogo --precargar`;
+  - `uv run python -m ojo_ciudadano.asistente.texto`, con la interfaz cerrada.
 - **Fusionar en `main`,** en este orden: `feat/asistente-openrouter` y después `feat/rag-catalogo`, que va encima.
 - **En cada instalación,** bajar el catálogo con `uv run python -m ojo_ciudadano.asistente.catalogo`.
 - **Decidir el bloque B** (pliegos).

@@ -117,3 +117,24 @@ El asistente responde también con cualquiera de los 2.276 conjuntos del catálo
 **Preparación:** cada instalación baja el catálogo una vez con `uv run python -m ojo_ciudadano.asistente.catalogo`. Sin ese paso, las herramientas responden al modelo que el catálogo no está descargado.
 
 Detalle, pruebas y resultados en [14-rag-documental.md](14-rag-documental.md).
+
+## Búsqueda por palabras en títulos (23-nov, D-030, bloque A)
+
+Herramienta `buscar_texto(consulta, en)` (`texto.py`), con `en` = `contrato`, `convenio` o `convocatoria`:
+- BM25 de DuckDB, con raíces en español y sin tildes, sobre la tabla derivada `busqueda_texto`: 1.361.618 títulos con su índice guardado en la base.
+- **Exige todas las palabras.** Sin esa condición, «ambulancias transporte sanitario» contaba cualquier título con «transporte».
+- **Mejora a ILIKE:** «ambulancias» encuentra 120 contratos frente a 73.
+
+**Qué devuelve:**
+- un resumen por fuente: número de títulos y, en contratos, el importe sin IVA de PLACSP y el importe con IVA del portal, por separado;
+- en convocatorias, las concesiones y el importe;
+- los 20 títulos más relevantes con su enlace oficial.
+
+**Conexión:** la de solo lectura carga `fts` antes de cerrar el acceso a ficheros (`sql_seguro.conexion_lectura`).
+
+**Construir** con la interfaz cerrada, tras regenerar la base: `uv run python -m ojo_ciudadano.asistente.texto`. Sin la tabla, la herramienta le dice al modelo que use `consultar_sql` con ILIKE.
+
+**Reglas:**
+- una búsqueda por alternativa, sin sumar coincidencias repetidas;
+- decir que cuenta títulos que mencionan las palabras;
+- no sumar importes con y sin IVA.

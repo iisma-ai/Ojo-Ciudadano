@@ -239,3 +239,16 @@ Son unas 2 h. Solo merece la pena si sobra tiempo: `ILIKE` ya resuelve los casos
 - **Comprobado con `gpt-6.1-terra`** (0,027 USD):
   - B-21 cita «…(licencia CC BY), conjunto «Lista de espera quirúrgica por hospitales», actualizado el 08-05-2026, datos descargados el 2026-11-23»;
   - B-25 da solo entidades firmantes y dice que no muestra personas físicas.
+
+## Bloque A: cierre (23-nov)
+
+| Pendiente | Estado |
+| --- | --- |
+| Fusión en `main` | Hecha: `feat/asistente-openrouter` y `feat/rag-catalogo` |
+| Catálogo en cada instalación | `uv run python -m ojo_ciudadano.asistente.catalogo` y, para la demo, `--precargar`, que deja en caché los CSV de B-21 a B-24 |
+| Prueba en la web | Pantalla «Asistente» probada con `streamlit.testing` y el modelo real: catálogo (B-21) y búsqueda por palabras (becas de comedor), sin errores, con cita, enlace y fechas |
+| B-01 inestable | El evaluador ya no cuenta la fila agregada de personas físicas: omitirla en un ranking de empresas es correcto. Las dos pasadas guardadas salen bien |
+| Opcional: búsqueda por palabras en títulos | Hecha: `buscar_texto` (ver [05](05-asistente.md)). B-26 bien con el modelo |
+
+- **Batería:** 26 preguntas, entre ellas 4 de catálogo, 1 de búsqueda por palabras y B-25, de personas en convenios.
+- **Gasto de la clave al cerrar:** 0,63 USD.

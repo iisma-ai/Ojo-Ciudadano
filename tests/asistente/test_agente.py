@@ -95,8 +95,24 @@ def test_retiene_cifras_sin_consulta(con):
     ["La empresa fue favorecida.", "Hay fraude en este órgano.", "Contratos dados a dedo."],
 )
 def test_retiene_lenguaje_acusatorio(con, texto):
-    r = agente.responder(con, Guion(TextoFinal(texto)), "¿?")
+    # El modelo tiene una oportunidad de reescribir; si insiste, se retiene.
+    modelo = Guion(TextoFinal(texto), TextoFinal(texto))
+    r = agente.responder(con, modelo, "¿?")
     assert r.retencion == agente.RETENCION_LENGUAJE
+    assert len(modelo.llamadas) == 2
+
+
+def test_una_reescritura_sin_terminos_se_muestra(con):
+    modelo = Guion(
+        TextoFinal("No puedo decir si una empresa es corrupta: no lo determino."),
+        TextoFinal("La plataforma no determina eso; puedo mostrar indicadores de riesgo."),
+    )
+    r = agente.responder(con, modelo, "¿Qué empresas son corruptas?")
+    assert r.retencion is None
+    assert r.texto.startswith("La plataforma no determina eso")
+    _, mensajes = modelo.llamadas[1]
+    assert mensajes[-2]["rol"] == "modelo"
+    assert "«corrup…»" in mensajes[-1]["contenido"]
 
 
 @pytest.mark.parametrize(

@@ -306,6 +306,34 @@ def _cerrar(texto: str, consultas: list[dict], errores: list[str], completa: boo
     return Respuesta(texto, consultas, errores, avisos, completa, retencion)
 
 
+PETICION_REESCRITURA = (
+    "Reescribe tu respuesta anterior con los mismos datos, sin usar estas palabras ni sus "
+    "derivados, tampoco en una negación: {terminos}. Si hace falta, di «la plataforma no "
+    "determina eso» o «pesa más quien más contrata». Devuelve solo la respuesta reescrita."
+)
+
+
+def _sin_terminos_acusatorios(
+    modelo: Modelo, sistema: str, mensajes: list[dict], texto: str
+) -> str:
+    """Si el texto tiene términos que el filtro retiene (a menudo en negaciones largas: «no
+    puedo decir si una empresa es corrupta»), pide al modelo una sola reescritura. El filtro
+    no se relaja: si la reescritura los mantiene, la respuesta se retiene igual."""
+    terminos = bateria.terminos_acusatorios(texto)
+    if not terminos:
+        return texto
+    peticion = PETICION_REESCRITURA.format(terminos=", ".join(f"«{t}…»" for t in terminos))
+    otra = modelo(
+        sistema,
+        [
+            *mensajes,
+            {"rol": "modelo", "contenido": texto},
+            {"rol": "usuario", "contenido": peticion},
+        ],
+    )
+    return otra.texto if isinstance(otra, TextoFinal) and otra.texto else texto
+
+
 def responder(
     con: duckdb.DuckDBPyConnection,
     modelo: Modelo,
@@ -323,7 +351,8 @@ def responder(
     for _ in range(MAX_LLAMADAS):
         salida = modelo(sistema, mensajes)
         if isinstance(salida, TextoFinal):
-            return _cerrar(salida.texto, consultas, errores, completa=True)
+            texto = _sin_terminos_acusatorios(modelo, sistema, mensajes, salida.texto)
+            return _cerrar(texto, consultas, errores, completa=True)
         mensajes.append({"rol": "llamada", "sql": salida.sql})
         try:
             resultado = sql_seguro.ejecutar(con, salida.sql)

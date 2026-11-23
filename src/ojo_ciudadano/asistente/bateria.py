@@ -485,9 +485,18 @@ ORDER BY 1
 ]
 
 
+_NOMBRES_FUENTE = {"placsp": PLACSP, "portal_cm": PORTAL, "bdns": BDNS}
+
+
 def _normalizar(valor):
+    """Iguala formas distintas del mismo dato: código o nombre de la fuente, año como texto."""
     if isinstance(valor, float):
         return round(valor, 2)
+    if isinstance(valor, str):
+        if valor in _NOMBRES_FUENTE:
+            return _NOMBRES_FUENTE[valor]
+        if valor.isdigit():
+            return int(valor)
     if isinstance(valor, list | dict):  # columnas de tipo lista o estructura
         return str(valor)
     return valor
@@ -495,22 +504,24 @@ def _normalizar(valor):
 
 # Filas de más que se toleran: un año fuera del periodo, los nulos o un ranking algo más largo.
 HOLGURA_FILAS = 5
+MINIMO_FILAS = 3
 
 
 def coincide(referencia: dict, modelo: dict, claves: tuple[str, ...]) -> bool:
     """El modelo acierta si, para cada columna clave de la referencia, alguna de sus columnas
     contiene todos los valores esperados (sin importar el nombre ni el orden de columnas y
-    filas, y con unas pocas filas de más)."""
-    n = len(referencia["filas"])
-    filas_modelo = modelo["filas"][: n + HOLGURA_FILAS]
-    if len(filas_modelo) < n:
+    filas, y con unas pocas filas de más). Un ranking más corto (el top 5 de un top 10) vale
+    si coincide con el principio de la referencia y tiene al menos `MINIMO_FILAS`."""
+    n = min(len(referencia["filas"]), len(modelo["filas"]))
+    if n < min(len(referencia["filas"]), MINIMO_FILAS):
         return False
+    filas_modelo = modelo["filas"][: n + HOLGURA_FILAS]
     columnas_modelo = [
         {_normalizar(f[i]) for f in filas_modelo} for i in range(len(modelo["columnas"]))
     ]
     for clave in claves:
         i = referencia["columnas"].index(clave)
-        esperado = {_normalizar(f[i]) for f in referencia["filas"]}
+        esperado = {_normalizar(f[i]) for f in referencia["filas"][:n]}
         if not any(esperado <= columna for columna in columnas_modelo):
             return False
     return True

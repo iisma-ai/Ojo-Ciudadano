@@ -24,3 +24,8 @@ Los avisos dicen «posible error al introducir los datos en la fuente» y que no
 1. Pasar los textos nuevos (`textos.AYUDA_POSIBLES_ERRORES`, `aviso_errores_ocultos`) por `revisor-legal`.
 2. Probar el autocompletado en móvil y con teclado (D-023, A-10).
 3. Si se quiere, mover la búsqueda por palabra del título a sugerencias de organismos.
+
+## Ajustes posteriores (misma tarde)
+
+- **Error «connection is busy» de DuckDB:** con el autocompletado, Streamlit puede tener una ejecución a medias y otra nueva de la misma sesión usando el mismo cursor. `app/conexion.py` da ahora **un cursor nuevo en cada llamada** (con un cerrojo solo para crearlo). Comprobado con 8 hilos y 240 consultas a la vez sin errores.
+- **Filtros recogidos:** en «Contratos atípicos» solo se ve el interruptor de posibles errores de datos y un desplegable «Filtros y orden» (grupo, orden, variable, búsqueda, nivel mínimo). En «Contratos a revisar» se ven la búsqueda, las señales y el interruptor de menores; el resto (con qué señales, año, tipo, orden, mínimo, cuántos, organismo y empresa) va en «Filtros y orden». Si hay filtros activos dentro, una línea los resume fuera del desplegable.

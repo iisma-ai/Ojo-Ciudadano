@@ -21,54 +21,64 @@ if not datos.hay_anomalias(con):
     )
     st.stop()
 
-grupos = datos.grupos_anomalias(con)
-grupo = st.selectbox(
-    "Grupo de contratos similares",
-    [None, *(g["grupo"] for g in grupos)],
-    format_func=lambda g: (
-        "Todos"
-        if g is None
-        else next(
-            f"{textos.nombre_grupo(g)} ({x['n_atipicos']} atípicos de {x['n_grupo']} contratos)"
-            for x in grupos
-            if x["grupo"] == g
-        )
-    ),
-)
-
 LIMITE = 100
-fila1 = st.columns([3, 2, 2])
-orden = fila1[0].selectbox(
-    "Ordenar por", list(textos.ORDEN_ATIPICOS), format_func=textos.ORDEN_ATIPICOS.get
-)
-variable = fila1[1].selectbox(
-    "Se aleja en",
-    [None, *graficos.NOMBRE_VARIABLE],
-    format_func=lambda v: "Cualquier variable" if v is None else graficos.NOMBRE_VARIABLE[v],
-    help="La variable en la que el contrato más se aleja de sus pares.",
-)
-texto = (
-    fila1[2]
-    .text_input("Buscar", placeholder="Organismo, empresa o título", help="Parte del nombre.")
-    .strip()
-)
-fila2 = st.columns([3, 3])
-nivel = fila2[0].slider(
-    "Nivel mínimo de lejanía",
-    min_value=99.0,
-    max_value=100.0,
-    value=99.0,
-    step=0.1,
-    format="%.1f %%",
-    help="Deja solo los contratos más alejados de sus pares que este porcentaje de ellos. "
-    "El 99 % es el mínimo: todos los atípicos lo superan.",
-)
-con_errores = fila2[1].toggle(
+con_errores = st.toggle(
     "Mostrar posibles errores de datos",
     help=textos.AYUDA_POSIBLES_ERRORES,
     value=False,
 )
+grupos = datos.grupos_anomalias(con)
+with st.expander("Filtros y orden", icon=":material/tune:"):
+    grupo = st.selectbox(
+        "Grupo de contratos similares",
+        [None, *(g["grupo"] for g in grupos)],
+        format_func=lambda g: (
+            "Todos"
+            if g is None
+            else next(
+                f"{textos.nombre_grupo(g)} ({x['n_atipicos']} atípicos de {x['n_grupo']} contratos)"
+                for x in grupos
+                if x["grupo"] == g
+            )
+        ),
+    )
+    fila1 = st.columns(2)
+    orden = fila1[0].selectbox(
+        "Ordenar por", list(textos.ORDEN_ATIPICOS), format_func=textos.ORDEN_ATIPICOS.get
+    )
+    variable = fila1[1].selectbox(
+        "Se aleja en",
+        [None, *graficos.NOMBRE_VARIABLE],
+        format_func=lambda v: "Cualquier variable" if v is None else graficos.NOMBRE_VARIABLE[v],
+        help="La variable en la que el contrato más se aleja de sus pares.",
+    )
+    texto = st.text_input(
+        "Buscar", placeholder="Organismo, empresa o título", help="Parte del nombre."
+    ).strip()
+    nivel = st.slider(
+        "Nivel mínimo de lejanía",
+        min_value=99.0,
+        max_value=100.0,
+        value=99.0,
+        step=0.1,
+        format="%.1f %%",
+        help="Deja solo los contratos más alejados de sus pares que este porcentaje de ellos. "
+        "El 99 % es el mínimo: todos los atípicos lo superan.",
+    )
 minimo = nivel / 100
+activos = [
+    etiqueta
+    for etiqueta, activo in (
+        ("grupo", grupo is not None),
+        ("orden", orden != "mas_atipico"),
+        ("variable", variable is not None),
+        ("búsqueda", bool(texto)),
+        ("nivel mínimo", nivel > 99.0),
+    )
+    if activo
+]
+if activos:
+    st.caption("Filtros activos: " + ", ".join(activos) + ".")
 filas = datos.atipicos(
     con,
     grupo,

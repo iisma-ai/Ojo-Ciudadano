@@ -119,6 +119,23 @@ def recursos_contrato(con: duckdb.DuckDBPyConnection, contrato_id: str) -> list[
     )
 
 
+def pliegos_contrato(con: duckdb.DuckDBPyConnection, contrato_id: str) -> list[dict]:
+    """Pliegos que enlaza PLACSP para el contrato o para su fila de PLACSP (D-030, bloque B)."""
+    if not hay_tabla(con, "contrato_documento"):
+        return []
+    return _filas(
+        con,
+        """
+        SELECT d.contrato_id, d.tipo, d.url_documento, d.fecha_descarga
+        FROM contrato c
+        JOIN contrato_documento d ON d.contrato_id = coalesce(c.duplicado_de, c.contrato_id)
+        WHERE c.contrato_id = ?
+        ORDER BY d.orden
+        """,
+        [contrato_id],
+    )
+
+
 def resumen_recursos(con: duckdb.DuckDBPyConnection) -> list[dict]:
     """Resoluciones por acto recurrido y resultado, para el contexto general."""
     if not hay_tabla(con, "recurso_especial"):

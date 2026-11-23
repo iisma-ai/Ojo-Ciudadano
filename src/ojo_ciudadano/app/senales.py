@@ -166,6 +166,23 @@ def tarjeta_contrato(con: duckdb.DuckDBPyConnection, fila: dict, prefijo: str) -
                 f"Madrid, datos descargados el {r['fecha_descarga']}."
             )
             st.caption(textos.AVISO_RECURSOS)
+        pliegos = datos_flujos.pliegos_contrato(con, fila["contrato_id"])
+        if pliegos:
+            enlaces = " · ".join(
+                f"[{textos.NOMBRE_PLIEGO[p['tipo']]}]({p['url_documento']})" for p in pliegos
+            )
+            st.markdown(f"**Pliegos:** {enlaces}")
+            if st.button(
+                "¿Qué dice el pliego?",
+                key=f"{prefijo}-pliego-{fila['contrato_id']}",
+                icon=":material/description:",
+                help="Abre el asistente con la pregunta escrita: busca en el pliego lo que "
+                "explica las señales de este contrato.",
+            ):
+                st.session_state["pregunta_asistente"] = textos.pregunta_pliego(
+                    pliegos[0]["contrato_id"], encontradas
+                )
+                st.switch_page("paginas/asistente.py")
         if fila["url_origen"]:
             st.link_button(
                 "Ver el expediente oficial", fila["url_origen"], icon=":material/open_in_new:"

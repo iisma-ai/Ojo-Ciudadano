@@ -4,6 +4,8 @@ import pytest
 
 from ojo_ciudadano.asistente import agente, bateria, texto
 from ojo_ciudadano.asistente.agente import (
+    LlamadaBuscarDocumento,
+    LlamadaBuscarResoluciones,
     LlamadaBuscarTexto,
     LlamadaConsultarConjunto,
     LlamadaSQL,
@@ -192,7 +194,24 @@ def test_el_historial_llega_al_modelo(con):
     assert historial[-1]["contenido"] == "Dos."  # no se modifica el historial recibido
 
 
-def test_pasar_bateria_con_un_modelo_que_usa_las_referencias(con):
+def test_pasar_bateria_con_un_modelo_que_usa_las_referencias(con, monkeypatch):
+    from ojo_ciudadano.asistente import documentos
+
+    def documento_falso(con_, identificador, consulta, *otros, **opciones):
+        return {
+            "documento": identificador,
+            "consulta_documento": consulta,
+            "sql": "-- búsqueda en documentos",
+            "columnas": ["pagina", "extracto"],
+            "filas": [[2, "Texto del pliego"]],
+            "recortado": False,
+        }
+
+    monkeypatch.setattr(documentos, "buscar_en_documento", documento_falso)
+    monkeypatch.setattr(
+        documentos, "buscar_resoluciones", lambda c, q, *o: documento_falso(c, "resoluciones", q)
+    )
+
     def modelo(sistema, mensajes):
         if mensajes[-1]["rol"] == "resultado":
             return TextoFinal("Respuesta con los datos de la consulta.")
@@ -202,6 +221,10 @@ def test_pasar_bateria_con_un_modelo_que_usa_las_referencias(con):
             return LlamadaConsultarConjunto(p.conjunto, "SELECT * FROM conjunto")
         if p.busqueda_texto:
             return LlamadaBuscarTexto("ambulancia", "contrato")
+        if p.documento == "resoluciones":
+            return LlamadaBuscarResoluciones("juicio de valor", "Estimatoria")
+        if p.documento:
+            return LlamadaBuscarDocumento(p.documento, "solvencia")
         if p.sql is None:
             return TextoFinal("No puedo responder a eso con estos datos.")
         sql = p.sql
@@ -220,9 +243,9 @@ def test_pasar_bateria_con_un_modelo_que_usa_las_referencias(con):
             }
 
     evaluaciones = agente.pasar_bateria(con, modelo, catalogo_=CatalogoFalso())
-    assert len(evaluaciones) == 30
+    assert len(evaluaciones) == 34  # B-31 a B-34: pliegos y resoluciones (D-030, B y C)
     de_datos = [e for e in evaluaciones if e["datos_ok"] is not None]
-    assert len(de_datos) == 24
+    assert len(de_datos) == 27
     assert all(e["datos_ok"] for e in de_datos), [e for e in de_datos if not e["datos_ok"]]
 
 

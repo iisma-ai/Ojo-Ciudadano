@@ -350,6 +350,30 @@ AVISO_ENCARGOS = (
     "y no se le aplican las señales. Importes con IVA; el año es el de publicación en el portal."
 )
 
+NOMBRE_PLIEGO = {
+    "pcap": "Pliego de cláusulas administrativas",
+    "ppt": "Pliego de prescripciones técnicas",
+}
+# Qué buscar en el pliego para explicar cada señal (D-030, bloque B).
+BUSCAR_EN_PLIEGO = {
+    "R-01": "qué solvencia y qué criterios de adjudicación pide",
+    "R-02": "qué supuesto alega para adjudicarlo sin publicidad",
+    "R-05": "qué modificaciones prevé",
+    "R-06": "cómo define las ofertas anormalmente bajas",
+}
+
+
+def pregunta_pliego(contrato_id: str, indicadores: list[str]) -> str:
+    """Pregunta para el asistente sobre el pliego de un contrato, según sus señales."""
+    temas = [BUSCAR_EN_PLIEGO[i] for i in indicadores if i in BUSCAR_EN_PLIEGO]
+    if not temas:
+        temas = ["cuál es su objeto y qué criterios de adjudicación fija"]
+    return (
+        f"Según su pliego, en el contrato {contrato_id}: {'; '.join(temas)}. "
+        "Cita la página del pliego."
+    )
+
+
 AVISO_RECURSOS = (
     "Cualquier empresa interesada puede recurrir los pliegos, su exclusión o la adjudicación de "
     "un contrato ante el Tribunal Administrativo de Contratación Pública de la Comunidad de "

@@ -179,7 +179,9 @@ for pregunta, respuesta in turnos:
     with st.chat_message("assistant"):
         mostrar_respuesta(respuesta)
 
-if pregunta := st.chat_input("Escribe tu pregunta"):
+# Una pregunta que llega escrita desde otra pantalla («¿Qué dice el pliego?»).
+pendiente = st.session_state.pop("pregunta_asistente", None)
+if pregunta := st.chat_input("Escribe tu pregunta") or pendiente:
     st.chat_message("user").write(pregunta)
     historial = []
     for anterior, respuesta in turnos:

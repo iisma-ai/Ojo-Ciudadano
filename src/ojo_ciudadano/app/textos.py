@@ -311,3 +311,13 @@ def aviso_errores_ocultos(n: int) -> str:
         "datos en la fuente (por ejemplo, adjudicados por más del doble del presupuesto). "
         "Activa «Mostrar posibles errores de datos» para verlos."
     )
+
+
+def millones(valor: float | None) -> str:
+    """Importe corto para cifras grandes: «33.286 M€» (millones de euros); menos de un millón,
+    en euros."""
+    if valor is None:
+        return "sin dato"
+    if abs(valor) >= 1_000_000:
+        return f"{valor / 1_000_000:,.0f} M€".replace(",", ".")
+    return f"{valor:,.0f} €".replace(",", ".")

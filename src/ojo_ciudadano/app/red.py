@@ -8,6 +8,7 @@ zoom. Usa `streamlit-agraph` (vis-network). Los nodos devuelven su identificador
 
 import base64
 import math
+import textwrap
 from dataclasses import dataclass, field
 
 from streamlit_agraph import Config, Edge, Node, agraph
@@ -36,6 +37,11 @@ class NodoRed:
     centro: bool = False
     color: str | None = None  # fuerza un color (p. ej. el nodo central)
     extra: dict = field(default_factory=dict)
+
+
+def envolver(texto: str, ancho: int = 18) -> str:
+    """Parte un texto largo en líneas (con saltos de línea, no etiquetas HTML)."""
+    return chr(10).join(textwrap.wrap(texto, ancho, break_long_words=False)) or texto
 
 
 def _mezcla(t: float) -> str:
@@ -94,9 +100,9 @@ def configuracion(alto: int = 560) -> Config:
         "enabled": True,
         "solver": "forceAtlas2Based",
         "forceAtlas2Based": {
-            "gravitationalConstant": -90,
+            "gravitationalConstant": -70,
             "centralGravity": 0.012,
-            "springLength": 190,
+            "springLength": 150,
             "springConstant": 0.07,
             "damping": 0.55,
             "avoidOverlap": 0.9,
@@ -131,8 +137,13 @@ def mapa(
     """Dibuja el mapa y devuelve el `id` del nodo pulsado (None si no se ha pulsado ninguno)."""
     if not nodos:
         return None
-    maximo = max((n.importe for n in nodos if not n.centro), default=0.0)
-    minimo = min((n.importe for n in nodos if not n.centro and n.importe > 0), default=0.0)
+    # La escala de tamaño y color usa solo los nodos "normales": los que llevan un color propio
+    # (agregados como «contratos menores») no deforman la escala de los demás.
+    normales = [n for n in nodos if not n.centro and n.color is None] or [
+        n for n in nodos if not n.centro
+    ]
+    maximo = max((n.importe for n in normales), default=0.0)
+    minimo = min((n.importe for n in normales if n.importe > 0), default=0.0)
     elementos = []
     for n in nodos:
         if n.centro:
@@ -140,7 +151,7 @@ def mapa(
             color = n.color or _mezcla(1.0)
         else:
             radio = _radio(n.importe, maximo)
-            t = 0.5 if maximo == minimo else (n.importe - minimo) / (maximo - minimo)
+            t = 0.5 if maximo == minimo else max((n.importe - minimo) / (maximo - minimo), 0)
             color = n.color or _mezcla(math.sqrt(max(t, 0.0)))
         elementos.append(
             Node(

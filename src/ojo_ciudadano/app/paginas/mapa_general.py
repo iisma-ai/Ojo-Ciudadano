@@ -11,7 +11,6 @@ import streamlit as st
 
 from ojo_ciudadano.app import datos, datos_mapa, graficos_contexto, red, senales, textos
 from ojo_ciudadano.app.conexion import conexion
-from ojo_ciudadano.app.graficos import partir
 
 VISTAS = {
     "presupuesto": "Presupuesto y gasto",
@@ -32,7 +31,14 @@ def nombre_corto(nombre: str) -> str:
     """«Consejería de Familia, Juventud y Asuntos Sociales» → «Familia, Juventud y Asuntos
     Sociales», en varias líneas."""
     corto = nombre.replace("Consejería de ", "").replace("Consejería ", "")
-    return partir(corto, 18)
+    return red.envolver(corto, 18)
+
+
+def etiqueta_contrato(contrato: dict) -> str:
+    """Quién recibe el contrato y cuánto, para que se lea de un vistazo (el título completo
+    sale al pasar el ratón y al pulsar)."""
+    quien = (contrato["adjudicatarios"] or "Sin adjudicataria").split(" ; ")[0]
+    return red.envolver(quien[:30], 18) + chr(10) + textos.millones(contrato["importe"])
 
 
 def importe_vista(entidad: dict, vista: str) -> float:
@@ -118,7 +124,7 @@ liquidado = datos_anio["liquidado"]
 cifras = st.columns(4)
 cifras[0].metric(
     "Dinero disponible" if liquidado else "Presupuesto inicial",
-    textos.euros(datos_anio["credito"]),
+    textos.millones(datos_anio["credito"]),
     help="Crédito actual de todas las consejerías y órganos (presupuesto liquidado)."
     if liquidado
     else "Presupuesto inicial aprobado para el año.",
@@ -127,15 +133,15 @@ if liquidado:
     gastado, credito = datos_anio["gastado"], datos_anio["credito"]
     cifras[1].metric(
         "Gastado",
-        textos.euros(gastado),
+        textos.millones(gastado),
         delta=f"{textos.porcentaje(gastado / credito, 1)} del disponible",
         delta_color="off",
         help="Obligaciones reconocidas: gasto ya comprometido por la Administración.",
     )
-    cifras[2].metric("Sin gastar", textos.euros(max(credito - gastado, 0)))
+    cifras[2].metric("Sin gastar", textos.millones(max(credito - gastado, 0)))
     cifras[3].metric(
         "Pagado",
-        textos.euros(datos_anio["pagado"]),
+        textos.millones(datos_anio["pagado"]),
         help="Pagos realizados sobre las obligaciones reconocidas.",
     )
 else:
@@ -228,15 +234,15 @@ else:
     )
     st.subheader(entidad["entidad"])
     k = st.columns(4)
-    k[0].metric("Disponible", textos.euros(entidad["credito"]))
+    k[0].metric("Disponible", textos.millones(entidad["credito"]))
     if liquidado:
         k[1].metric(
             "Gastado",
-            textos.euros(entidad["gastado"]),
+            textos.millones(entidad["gastado"]),
             delta=textos.porcentaje(entidad["llenado"], 1),
             delta_color="off",
         )
-        k[2].metric("Sin gastar", textos.euros(entidad["sin_gastar"]))
+        k[2].metric("Sin gastar", textos.millones(entidad["sin_gastar"]))
     else:
         k[1].metric("Gastado", "Sin publicar")
         k[2].metric("Sin gastar", "Sin publicar")
@@ -284,9 +290,9 @@ else:
         nodos.append(
             red.NodoRed(
                 id=f"con:{c['contrato_id']}",
-                etiqueta=partir((c["titulo"] or "Contrato")[:60], 20),
+                etiqueta=etiqueta_contrato(c),
                 importe=c["importe"],
-                detalle=f"{c['organo']} · {iva}",
+                detalle=f"{(c['titulo'] or '')[:90]} · {c['organo']} · {iva}",
             )
         )
     if menores:

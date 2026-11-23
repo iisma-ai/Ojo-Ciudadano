@@ -12,7 +12,6 @@ import streamlit as st
 from ojo_ciudadano.asistente.sql_seguro import conexion_lectura
 from ojo_ciudadano.indicadores.ejecutor import RUTA_DB
 
-
 _CERROJO = threading.Lock()
 
 

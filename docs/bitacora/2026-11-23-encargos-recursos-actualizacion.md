@@ -41,7 +41,7 @@ Indicadores: R-01 8.178 de 20.763 (39,4 %), R-02 11.260 de 36.361, R-03 228.122 
 
 1. **Interfaz:** mostrar encargos (ficha de órgano y de empresa, mapa del dinero), recursos (ficha de contrato) y fondos europeos. Lo coordina quien lleva la interfaz; esta rama no toca pantallas.
 2. **Cada máquina debe regenerar la base.** Los CSV de menores de jul–sep y de encargos no se bajan por código (captcha): hay que repetir la exportación o pasarse los ficheros por un canal privado. El listado del TACPCM sí se baja con `uv run python -m ojo_ciudadano.ingesta.tacp`.
-3. Revisión legal de las descripciones nuevas del asistente (`encargo`, `recurso_especial`) con `revisor-legal`.
+3. Revisión legal de las descripciones del asistente y de los comentarios de 005 y 006 hecha con `revisor-legal`: aplicados sus dos ajustes de redacción.
 4. Línea futura: leer los PDF del TACPCM para enlazar más recursos con su contrato; DIR3 desde las fichas del portal.
 
 ## Siguiente paso

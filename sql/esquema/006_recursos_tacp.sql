@@ -1,7 +1,8 @@
 -- Ampliación aditiva del esquema v1 (D-017, D-029): resoluciones del Tribunal Administrativo
 -- de Contratación Pública de la Comunidad de Madrid sobre recursos especiales. Es contexto
 -- oficial del contrato, no un indicador de riesgo: no entra en la puntuación. Presentar un
--- recurso no es una señal; que se estime solo dice que ese acto no se ajustaba a derecho.
+-- recurso no es una señal; que se estime solo dice que el Tribunal dio la razón al recurrente
+-- sobre ese acto, no es una señal sobre la empresa adjudicataria ni sobre el órgano.
 -- No se guarda el resumen de la resolución: nombra a las empresas y puede nombrar a personas.
 
 CREATE TABLE recurso_especial (

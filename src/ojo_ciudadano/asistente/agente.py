@@ -112,16 +112,18 @@ DESCRIPCION_TABLAS = {
         "(PRTR, FEDER, FSE+, FEADER, OFE). Solo las que traen el dato. Contexto, no una señal."
     ),
     "encargo": (
-        "Encargos a medios propios (Tragsa, Canal de Isabel II…): trabajos asignados sin "
-        "licitación a una entidad pública (art. 32 Ley 9/2017). No son contratos: no se suman "
+        "Encargos a medios propios (Tragsa, Canal de Isabel II…): trabajos asignados a una "
+        "entidad pública por la vía legal del encargo, que no exige licitación (art. 32 Ley "
+        "9/2017). No son contratos: no se suman "
         "con ellos sin decirlo y no tienen señales. anio_publicacion es el año de publicación en "
         "el portal; importe_con_iva, con impuestos."
     ),
     "recurso_especial": (
         "Resoluciones del Tribunal Administrativo de Contratación Pública de la Comunidad sobre "
         "recursos especiales. contrato_id solo si el expediente citado casa con un único "
-        "contrato. Presentar un recurso no es una señal; «Estimatoria» solo dice que ese acto "
-        "(pliegos, exclusión, adjudicación…) no se ajustaba a derecho según el Tribunal."
+        "contrato. Presentar un recurso no es una señal; «Estimatoria» solo dice que el Tribunal "
+        "dio la razón al recurrente sobre ese acto (pliegos, exclusión, adjudicación…); no es "
+        "una señal sobre la empresa adjudicataria ni sobre el órgano."
     ),
     "anomalia_resultado": (
         "Contratos atípicos respecto a contratos similares (D-021, Isolation Forest por grupo "

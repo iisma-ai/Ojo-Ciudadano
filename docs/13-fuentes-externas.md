@@ -2,7 +2,7 @@
 
 Investigación del 23-nov-2026. Complementa [12-datos-cm.md](12-datos-cm.md) (rama `feat/datos-cm-abiertos`, fuentes de la propia Comunidad: presupuesto, convenios, registros, RPT). Aquí se buscan fuentes **que no son del catálogo ni del Portal de Transparencia de la Comunidad** y que mejoran la calidad de las señales sobre los mismos contratos y empresas.
 
-> **Estado (23-nov):** incorporados X-04 (referencia en la ayuda de R-01), X-07 (fondos europeos, D-027) y el tratamiento de las filas de relleno (D-027), en la rama `fix/relleno-y-referencia-r01`. El resto es solo investigación: incorporarlo exige decisión registrada y avisar al equipo.
+> **Estado (23-nov):** incorporados X-04 (referencia en la ayuda de R-01), X-07 (fondos europeos, D-027) y el tratamiento de las filas de relleno (D-027), en la rama `fix/relleno-y-referencia-r01`. Con el navegador integrado se añadieron además los menores de jul–sep de 2026 (P-12) y los **encargos a medios propios** (D-028, ver abajo). El resto es solo investigación: incorporarlo exige decisión registrada y avisar al equipo.
 
 ## Reparto para no pisarnos
 
@@ -165,6 +165,16 @@ Ordenada por valor para el jurado y por coste. Ninguna cambia el esquema v1 ni l
 | — | X-01, X-03, X-06, X-08 | — | Descartadas o solo manuales (ver arriba) |
 
 Con el calendario (H3 el 24-nov, el 25 no se añaden funciones), lo razonable es **1 y 2 hoy**, **3 si da tiempo antes del H3**, y 4 y 5 como línea futura documentada en la presentación.
+
+### Y-01 · Encargos a medios propios (portal de contratación de la Comunidad)
+
+Encontrado el 23-nov-2026 con el navegador integrado. No es una fuente nueva: es un tipo de publicación del portal (F-01) que **nunca se había exportado**.
+
+- 2.405 encargos en el portal (todos los años); **944 publicados de 2023 a 2026**. Importe total del fichero: **740,2 M€ con IVA**, casi todo a Transformación Agraria, S.A. (Tragsa, 513,0 M€ en 389 encargos) y Tecnologías y Servicios Agrarios, S.A. (Tragsatec, 116,7 M€ en 408), y después Canal de Isabel II, Hispanagua y Canal de Comunicaciones. El Boletín Oficial de la Comunidad suma 1.474 encargos pequeños (0,8 M€).
+- El CSV tiene el formato de siempre, pero **sin fecha**. El año de publicación se deduce de la referencia `C<número>`, que crece con la fecha: los tramos por año reproducen exactamente los recuentos del buscador por «Fecha de publicación en el Portal».
+- Calidad: un encargo a «TRAGSA» con el NIF mal escrito (`A24876208` en lugar de `A28476208`, 9,0 M€) y otro con un NIF de 10 caracteres. Se dejan como vienen; la ficha de empresa los mostrará aparte.
+- Cada ficha del portal trae además el **código DIR3 del órgano**, que el CSV no tiene (útil para X-05 si algún día se recorren las fichas).
+- Cargado en `encargo` (D-028), fuera de los indicadores.
 
 ### Descartadas (23-nov)
 

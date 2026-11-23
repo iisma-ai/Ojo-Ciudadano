@@ -107,6 +107,8 @@ El ejecutor (`src/ojo_ciudadano/indicadores/ejecutor.py`) crea las funciones de 
 
 **Fondos europeos (23-nov, ampliación aditiva, D-027):** [`sql/esquema/004_financiacion_ue.sql`](../sql/esquema/004_financiacion_ue.sql) crea `contrato_financiacion` (`contrato_id`, `financiado_ue`, `programas_ue`, `fuente`, `url_origen`, `fecha_descarga`), leída del campo `FundingProgramCode` del Atom de PLACSP. Solo hay fila para las licitaciones que traen el campo. Es contexto: no entra en la puntuación.
 
+**Encargos a medios propios (23-nov, ampliación aditiva, D-028):** [`sql/esquema/005_encargos.sql`](../sql/esquema/005_encargos.sql) crea `encargo` (clave `encargo_id` + `orden`, con `organo_id`, `medio_propio_id` en `adjudicatario`, importe con IVA y `anio_publicacion`). `ingesta/encargos.py` lee `data/raw/encargos/encargos_todo_*.csv` si existe; el año sale de la referencia del portal (`LIMITES_REFERENCIA`, comprobado contra el buscador). No entran en `contrato`, ni en los indicadores, ni en la puntuación.
+
 ### Contratos atípicos (D-021)
 
 Tabla derivada `anomalia_resultado`, que se regenera entera (unos 45 segundos, después del ejecutor de indicadores) con:

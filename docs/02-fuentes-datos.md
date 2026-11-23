@@ -51,6 +51,7 @@ Otras referencias útiles:
 | `licitaciones_todo_2026-11-16.csv` | «Convocatoria anunciada a licitación», todos los años | 24.796 |
 | `sin_publicidad_todo_2026-11-16.csv` | «Contratos adjudicados por procedimientos sin publicidad», todos los años | 11.333 |
 | `menores_AAAA-MM-DD_AAAA-MM-DD.csv` (42 ficheros) | Contratos menores con fecha de contrato de 2023-01-01 a 2026-09-30 | 1.317.983 |
+| `../encargos/encargos_todo_2026-11-23.csv` (exportado el **23-nov**) | «Encargos a medios propios», todos los años. **Sin ninguna fecha** en el CSV: el año de publicación sale de la referencia (D-028). 944 de 2023–2026, 740,2 M€ con IVA en total (todos los años) | 2.405 |
 | `menores_2026-07-01_2026-09-30.csv` (exportado el **23-nov**) | Contratos menores de jul–sep de 2026, que se publicaron con retraso (P-12). Sustituye a los de agosto y septiembre del 16-nov, guardados en `data/raw/portal_cm_respaldo_2026-11-16/`; el de junio–julio se conserva y los julios repetidos se descartan por referencia | 24.924 |
 | `muestras_por_texto/` | Dos búsquedas por palabra, solo para explorar el formato | — |
 

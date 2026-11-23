@@ -1,6 +1,6 @@
 """Compara modelos de OpenRouter con la batería de preguntas del asistente (D-010).
 
-Para cada modelo pasa las preguntas elegidas, evalúa el SQL con `bateria.evaluar` y guarda
+Para cada modelo pasa las preguntas elegidas, evalúa con `bateria.evaluar_respuesta` y guarda
 las respuestas completas en `data/evaluaciones/` (no se sube) para leerlas a mano. Lleva la
 cuenta del gasto y para en cuanto un modelo supera su tope o el conjunto supera el tope total.
 
@@ -51,9 +51,10 @@ def evaluar_modelo(
             filas.append({"id": pregunta.id, "error": f"{type(error).__name__}: {error}"})
             print(f"  {pregunta.id}: ERROR {error}")
             continue
-        sqls = [c["sql"] for c in respuesta.consultas]
         try:
-            evaluacion = bateria.evaluar(con, pregunta, sqls, respuesta.texto)
+            evaluacion = bateria.evaluar_respuesta(
+                con, pregunta, respuesta.consultas, respuesta.texto
+            )
         except Exception as error:  # un fallo del evaluador tampoco
             evaluacion = {"id": pregunta.id, "datos_ok": False, "avisos": [f"Evaluador: {error}"]}
         fila = {

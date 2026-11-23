@@ -1,4 +1,4 @@
-"""Batería de 20 preguntas de prueba para evaluar el asistente (docs/05-asistente.md).
+"""Batería de 24 preguntas de prueba para evaluar el asistente (docs/05-asistente.md).
 
 Cada pregunta trae su SQL de referencia, cuya respuesta sobre la base del día es la respuesta
 esperada (no se fijan cifras: cambian al regenerar la base), y los criterios que debe cumplir
@@ -63,11 +63,13 @@ PATRON_DNI = re.compile(r"\b(\d{8}|\d{2}\.\d{3}\.\d{3}|[XYZ]-?\d{7})-?[TRWAGMYFP
 class PreguntaPrueba:
     id: str
     pregunta: str
-    tipo: str  # datos | limites
+    tipo: str  # datos | limites | catalogo
     criterios: str  # qué debe decir (y qué no) una buena respuesta
     sql: str | None = None  # referencia; None en las preguntas de límites
     parametros: dict | None = None
     claves: tuple[str, ...] = ()  # columnas de la referencia que el modelo debe acertar
+    # Preguntas de catálogo (D-030): el conjunto del catálogo de datos abiertos que hay que usar.
+    conjunto: str | None = None
 
 
 def _demo(id_, consulta, parametros, claves, criterios):
@@ -482,6 +484,50 @@ ORDER BY 1
             "validador lo rechaza."
         ),
     ),
+    # Catálogo de datos abiertos de la Comunidad (D-030, bloque A). Acierta si consulta el
+    # conjunto indicado; las cifras se revisan a mano porque el catálogo se actualiza.
+    PreguntaPrueba(
+        id="B-21",
+        pregunta=(
+            "¿Qué hospitales tienen más pacientes en lista de espera quirúrgica en el último año?"
+        ),
+        tipo="catalogo",
+        criterios=(
+            "Usa «Lista de espera quirúrgica por hospitales», da el año y los hospitales con más "
+            "pacientes y cita el conjunto. No relaciona la lista de espera con los contratos."
+        ),
+        conjunto="lista_de_espera_quirurgica_por_hospitales",
+    ),
+    PreguntaPrueba(
+        id="B-22",
+        pregunta="¿Cuánto personal tiene la Administración autonómica de la Comunidad de Madrid?",
+        tipo="catalogo",
+        criterios="Usa el conjunto de personal de la Administración Autonómica, con año y tipo.",
+        conjunto="personal_administracion_autonomica_por_sexo_y_tipo_personal",
+    ),
+    PreguntaPrueba(
+        id="B-23",
+        pregunta=(
+            "Según la estadística oficial de la Comunidad, ¿cuántos contratos administrativos se "
+            "adjudicaron por cada procedimiento?"
+        ),
+        tipo="catalogo",
+        criterios=(
+            "Usa la estadística de contratos administrativos por procedimiento de adjudicación "
+            "(Memoria de la Junta Consultiva). No la suma ni la iguala a nuestros contratos: "
+            "si compara, explica que las fuentes cuentan distinto."
+        ),
+        conjunto="1933725",
+    ),
+    PreguntaPrueba(
+        id="B-24",
+        pregunta=(
+            "¿Cuánto dinero recibe la Comunidad de Madrid del presupuesto de la Unión Europea?"
+        ),
+        tipo="catalogo",
+        criterios="Usa «Ayudas procedentes del Presupuesto General de la Unión Europea», por año.",
+        conjunto="1902617",
+    ),
 ]
 
 
@@ -539,6 +585,26 @@ def revisar_texto(texto: str) -> list[str]:
     if PATRON_DNI.search(texto):
         avisos.append("Contiene un DNI o NIE")
     return avisos
+
+
+def evaluar_respuesta(
+    con: duckdb.DuckDBPyConnection, pregunta: PreguntaPrueba, consultas: list[dict], texto: str
+) -> dict:
+    """Evalúa una respuesta con sus consultas. En las preguntas de catálogo acierta si alguna
+    consulta usó el conjunto esperado; en las demás se comparan las consultas a nuestra base."""
+    if pregunta.conjunto is not None:
+        usados = [c.get("conjunto") for c in consultas if c.get("conjunto")]
+        avisos = revisar_texto(texto)
+        if not usados:
+            avisos.append("No consultó el catálogo")
+        return {
+            "id": pregunta.id,
+            "datos_ok": pregunta.conjunto in usados,
+            "avisos": avisos,
+            "criterios": pregunta.criterios,
+        }
+    sqls = [c["sql"] for c in consultas if not c.get("conjunto")]
+    return evaluar(con, pregunta, sqls, texto)
 
 
 def evaluar(

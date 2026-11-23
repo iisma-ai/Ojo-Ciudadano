@@ -83,11 +83,11 @@ def _nombres_cte(nodo: dict) -> set[str]:
     return {entrada["key"] for entrada in nodo.get("cte_map", {}).get("map", [])}
 
 
-def _revisar(nodo, ctes: set[str]) -> None:
+def _revisar(nodo, ctes: set[str], tablas: set[str] = TABLAS_PERMITIDAS) -> None:
     """Recorre el árbol de la consulta y rechaza lo que no está permitido."""
     if isinstance(nodo, list):
         for hijo in nodo:
-            _revisar(hijo, ctes)
+            _revisar(hijo, ctes, tablas)
         return
     if not isinstance(nodo, dict):
         return
@@ -105,22 +105,22 @@ def _revisar(nodo, ctes: set[str]) -> None:
         esquema = (nodo.get("schema_name") or "").lower()
         if nodo.get("catalog_name") or esquema not in ("", "main"):
             raise SQLNoPermitido(f"Solo se pueden consultar tablas de la base principal: {tabla}.")
-        if tabla not in TABLAS_PERMITIDAS and not (esquema == "" and tabla in ctes):
+        if tabla not in tablas and not (esquema == "" and tabla in ctes):
             raise SQLNoPermitido(
-                f"Tabla no permitida: {tabla}. Tablas disponibles: "
-                + ", ".join(sorted(TABLAS_PERMITIDAS))
+                f"Tabla no permitida: {tabla}. Tablas disponibles: " + ", ".join(sorted(tablas))
             )
     if nodo.get("class") == "FUNCTION":
         nombre = nodo.get("function_name", "").lower()
         if nombre in _FUNCIONES_PROHIBIDAS or nombre.startswith(_PREFIJOS_PROHIBIDOS):
             raise SQLNoPermitido(f"Función no permitida: {nombre}.")
     for valor in nodo.values():
-        _revisar(valor, ctes)
+        _revisar(valor, ctes, tablas)
 
 
-def validar(con: duckdb.DuckDBPyConnection, sql: str) -> None:
-    """Lanza SQLNoPermitido si el SQL no es una consulta de solo lectura permitida."""
-    _revisar(_arbol(con, sql)["statements"], set())
+def validar(con: duckdb.DuckDBPyConnection, sql: str, tablas: set[str] = TABLAS_PERMITIDAS) -> None:
+    """Lanza SQLNoPermitido si el SQL no es una consulta de solo lectura permitida. `tablas` es
+    la lista blanca (por defecto, la de la base; el catálogo usa solo `conjunto`)."""
+    _revisar(_arbol(con, sql)["statements"], set(), tablas)
 
 
 def _ocultar_seudonimos(valor):
@@ -134,10 +134,11 @@ def ejecutar(
     sql: str,
     parametros: list | dict | None = None,
     limite: int = LIMITE_FILAS,
+    tablas: set[str] = TABLAS_PERMITIDAS,
 ) -> dict:
     """Valida y ejecuta. Devuelve columnas, filas, si se recortó y el SQL usado (se muestra
     siempre al usuario para que pueda comprobarlo)."""
-    validar(con, sql)
+    validar(con, sql, tablas)
     temporizador = threading.Timer(SEGUNDOS_MAXIMOS, con.interrupt)
     temporizador.start()
     try:

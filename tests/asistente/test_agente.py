@@ -3,7 +3,7 @@
 import pytest
 
 from ojo_ciudadano.asistente import agente, bateria
-from ojo_ciudadano.asistente.agente import LlamadaSQL, TextoFinal
+from ojo_ciudadano.asistente.agente import LlamadaConsultarConjunto, LlamadaSQL, TextoFinal
 from ojo_ciudadano.indicadores import ejecutor
 
 
@@ -192,6 +192,8 @@ def test_pasar_bateria_con_un_modelo_que_usa_las_referencias(con):
             return TextoFinal("Respuesta con los datos de la consulta.")
         contenido = mensajes[-1]["contenido"]
         p = next(p for p in bateria.BATERIA if contenido.startswith(p.pregunta))
+        if p.conjunto is not None:
+            return LlamadaConsultarConjunto(p.conjunto, "SELECT * FROM conjunto")
         if p.sql is None:
             return TextoFinal("No puedo responder a eso con estos datos.")
         sql = p.sql
@@ -199,10 +201,20 @@ def test_pasar_bateria_con_un_modelo_que_usa_las_referencias(con):
             sql = sql.replace(f"${nombre}", f"'{valor}'")
         return LlamadaSQL(sql)
 
-    evaluaciones = agente.pasar_bateria(con, modelo)
-    assert len(evaluaciones) == 20
+    class CatalogoFalso:
+        def consultar(self, nombre, sql):
+            return {
+                "conjunto": nombre,
+                "sql": sql,
+                "columnas": ["a"],
+                "filas": [[1]],
+                "recortado": False,
+            }
+
+    evaluaciones = agente.pasar_bateria(con, modelo, catalogo_=CatalogoFalso())
+    assert len(evaluaciones) == 24
     de_datos = [e for e in evaluaciones if e["datos_ok"] is not None]
-    assert len(de_datos) == 16
+    assert len(de_datos) == 20
     assert all(e["datos_ok"] for e in de_datos), [e for e in de_datos if not e["datos_ok"]]
 
 

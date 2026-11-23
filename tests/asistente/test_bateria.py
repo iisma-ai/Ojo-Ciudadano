@@ -32,10 +32,21 @@ def con(base):
     return base.con
 
 
-def test_hay_veinte_preguntas_con_identificador_unico():
+def test_hay_veinticuatro_preguntas_con_identificador_unico():
     ids = [p.id for p in bateria.BATERIA]
-    assert len(ids) == 20
-    assert len(set(ids)) == 20
+    assert len(ids) == 24
+    assert len(set(ids)) == 24
+    assert sum(p.tipo == "catalogo" for p in bateria.BATERIA) == 4
+
+
+def test_catalogo_acierta_si_consulta_el_conjunto_esperado(con):
+    p = next(p for p in bateria.BATERIA if p.id == "B-21")
+    usada = [{"conjunto": p.conjunto, "sql": "SELECT 1", "columnas": [], "filas": []}]
+    assert bateria.evaluar_respuesta(con, p, usada, "Texto.")["datos_ok"] is True
+    otra = [{"conjunto": "otro", "sql": "SELECT 1", "columnas": [], "filas": []}]
+    assert bateria.evaluar_respuesta(con, p, otra, "Texto.")["datos_ok"] is False
+    sin = bateria.evaluar_respuesta(con, p, [], "Texto.")
+    assert sin["datos_ok"] is False and "No consultó el catálogo" in sin["avisos"]
 
 
 @pytest.mark.parametrize("pregunta", DE_DATOS, ids=lambda p: p.id)

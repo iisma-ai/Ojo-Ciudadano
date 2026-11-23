@@ -9,7 +9,7 @@ import streamlit as st
 from ojo_ciudadano.app import graficos, textos
 from ojo_ciudadano.app.conexion import conexion
 from ojo_ciudadano.app.tablas import mostrar_resultado
-from ojo_ciudadano.asistente import agente, bateria
+from ojo_ciudadano.asistente import agente, bateria, catalogo
 
 # Qué se muestra en lugar de una respuesta retenida (agente.RETENCION_*).
 RETENIDAS = {
@@ -36,7 +36,8 @@ def texto_visible(respuesta: agente.Respuesta) -> str:
 
 st.header("Asistente")
 st.caption(
-    "Pregunta en tus palabras sobre los contratos y las subvenciones de la Comunidad de Madrid. "
+    "Pregunta en tus palabras sobre los contratos y las subvenciones de la Comunidad de Madrid, "
+    "o sobre los datos de su catálogo de datos abiertos (sanidad, educación, presupuestos…). "
     "Las respuestas las redacta un modelo de lenguaje y pueden contener errores: comprueba "
     "siempre la consulta, los datos y el enlace oficial que se muestran con cada una. No "
     "escribas datos personales en tus preguntas."
@@ -56,6 +57,25 @@ if modelo is None:
     st.stop()
 
 
+def mostrar_conjunto(numero: int, consulta: dict) -> None:
+    """Una consulta al catálogo de datos abiertos (D-030): el conjunto, su enlace y su fecha."""
+    with st.expander(f"Datos de la consulta {numero} · catálogo de datos abiertos"):
+        st.markdown(
+            f"**[{consulta['titulo_conjunto']}]({consulta['url_origen']})** · "
+            f"{catalogo.NOMBRE_FUENTE}, actualizado el {consulta['actualizado']}"
+        )
+        if consulta.get("municipal"):
+            st.caption(
+                "Son datos de municipios: la plataforma trata la Comunidad de Madrid, no los "
+                "ayuntamientos."
+            )
+        st.dataframe(
+            {c: [f[i] for f in consulta["filas"]] for i, c in enumerate(consulta["columnas"])},
+            hide_index=True,
+        )
+        st.code(consulta["sql"].strip(), language="sql")
+
+
 def mostrar_respuesta(respuesta: agente.Respuesta) -> None:
     if respuesta.retencion:
         st.warning(texto_visible(respuesta))
@@ -70,6 +90,9 @@ def mostrar_respuesta(respuesta: agente.Respuesta) -> None:
             )
             break
     for numero, consulta in enumerate(respuesta.consultas, start=1):
+        if consulta.get("conjunto"):
+            mostrar_conjunto(numero, consulta)
+            continue
         with st.expander(f"Datos de la consulta {numero}"):
             mostrar_resultado(consulta)
             if "fuente" not in consulta["columnas"]:

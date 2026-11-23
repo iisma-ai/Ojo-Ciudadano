@@ -16,7 +16,17 @@ from pathlib import Path
 
 import httpx
 
-from ojo_ciudadano.asistente.agente import HERRAMIENTA_SQL, LlamadaSQL, TextoFinal
+from ojo_ciudadano.asistente.agente import (
+    HERRAMIENTA_SQL,
+    Llamada,
+    LlamadaBuscarConjunto,
+    LlamadaConsultarConjunto,
+    LlamadaSQL,
+    TextoFinal,
+)
+from ojo_ciudadano.asistente.agente import (
+    HERRAMIENTAS as HERRAMIENTAS_AGENTE,
+)
 
 URL_BASE = "https://openrouter.ai/api/v1"
 RUTA_ENV = Path(__file__).resolve().parents[3] / ".env"
@@ -34,11 +44,12 @@ HERRAMIENTAS = [
     {
         "type": "function",
         "function": {
-            "name": HERRAMIENTA_SQL["nombre"],
-            "description": HERRAMIENTA_SQL["descripcion"],
-            "parameters": HERRAMIENTA_SQL["parametros"],
+            "name": h["nombre"],
+            "description": h["descripcion"],
+            "parameters": h["parametros"],
         },
     }
+    for h in HERRAMIENTAS_AGENTE
 ]
 
 
@@ -131,7 +142,10 @@ def mensajes_openai(instrucciones: str, mensajes: list[dict], cache: bool = Fals
             salida.append({"role": "assistant", "content": mensaje["contenido"]})
         elif rol == "llamada":
             llamada_abierta = f"consulta_{numero}"
-            argumentos = json.dumps({"sql": mensaje["sql"]}, ensure_ascii=False)
+            herramienta = mensaje.get("herramienta", HERRAMIENTA_SQL["nombre"])
+            argumentos = json.dumps(
+                mensaje.get("argumentos") or {"sql": mensaje["sql"]}, ensure_ascii=False
+            )
             salida.append(
                 {
                     "role": "assistant",
@@ -141,7 +155,7 @@ def mensajes_openai(instrucciones: str, mensajes: list[dict], cache: bool = Fals
                             "id": llamada_abierta,
                             "type": "function",
                             "function": {
-                                "name": HERRAMIENTA_SQL["nombre"],
+                                "name": herramienta,
                                 "arguments": argumentos,
                             },
                         }
@@ -155,18 +169,27 @@ def mensajes_openai(instrucciones: str, mensajes: list[dict], cache: bool = Fals
     return salida
 
 
-def interpretar(respuesta: dict) -> LlamadaSQL | TextoFinal:
-    """Convierte la respuesta del modelo en una llamada SQL o en el texto final."""
+def interpretar(respuesta: dict) -> Llamada | TextoFinal:
+    """Convierte la respuesta del modelo en una llamada a una herramienta o en el texto final.
+    Con argumentos rotos, los valores llegan vacíos y la herramienta devuelve el error."""
     mensaje = respuesta["choices"][0]["message"]
     for llamada in mensaje.get("tool_calls") or []:
         funcion = llamada.get("function", {})
-        if funcion.get("name") != HERRAMIENTA_SQL["nombre"]:
-            continue
         try:
-            sql = json.loads(funcion.get("arguments") or "{}").get("sql", "")
+            argumentos = json.loads(funcion.get("arguments") or "{}")
         except json.JSONDecodeError:
-            sql = ""  # el validador lo rechaza y el error vuelve al modelo
-        return LlamadaSQL(sql)
+            argumentos = {}
+        if not isinstance(argumentos, dict):
+            argumentos = {}
+        nombre = funcion.get("name")
+        if nombre == HERRAMIENTA_SQL["nombre"]:
+            return LlamadaSQL(str(argumentos.get("sql", "")))
+        if nombre == "buscar_conjunto":
+            return LlamadaBuscarConjunto(str(argumentos.get("consulta", "")))
+        if nombre == "consultar_conjunto":
+            return LlamadaConsultarConjunto(
+                str(argumentos.get("conjunto", "")), str(argumentos.get("sql", ""))
+            )
     return TextoFinal((mensaje.get("content") or "").strip())
 
 
@@ -201,7 +224,7 @@ def modelo_openrouter(modelo: str, respaldo: list[str] | None = None, gasto: Gas
     """Adaptador con la forma `agente.Modelo`. `respaldo`: modelos a los que OpenRouter pasa si
     el principal falla o no está disponible. `gasto` acumula coste y tokens."""
 
-    def llamar(instrucciones: str, mensajes: list[dict]) -> LlamadaSQL | TextoFinal:
+    def llamar(instrucciones: str, mensajes: list[dict]) -> Llamada | TextoFinal:
         opciones = {
             "tools": HERRAMIENTAS,
             "tool_choice": "auto",

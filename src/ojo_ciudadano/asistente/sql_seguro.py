@@ -29,6 +29,8 @@ TABLAS_PERMITIDAS = {
     "contrato_financiacion",
     # Encargos a medios propios (005, D-028): no son contratos licitados ni entran en señales.
     "encargo",
+    # Recursos especiales ante el TACPCM (006, D-029): contexto oficial, no señal.
+    "recurso_especial",
     "indicador_resultado",
     "puntuacion_contrato",
     "puntuacion_empresa_contrato",

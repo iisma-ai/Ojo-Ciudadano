@@ -117,6 +117,12 @@ DESCRIPCION_TABLAS = {
         "con ellos sin decirlo y no tienen señales. anio_publicacion es el año de publicación en "
         "el portal; importe_con_iva, con impuestos."
     ),
+    "recurso_especial": (
+        "Resoluciones del Tribunal Administrativo de Contratación Pública de la Comunidad sobre "
+        "recursos especiales. contrato_id solo si el expediente citado casa con un único "
+        "contrato. Presentar un recurso no es una señal; «Estimatoria» solo dice que ese acto "
+        "(pliegos, exclusión, adjudicación…) no se ajustaba a derecho según el Tribunal."
+    ),
     "anomalia_resultado": (
         "Contratos atípicos respecto a contratos similares (D-021, Isolation Forest por grupo "
         "de pares). atipico = está en el 1 % más alejado de su grupo; puntuacion = percentil; "

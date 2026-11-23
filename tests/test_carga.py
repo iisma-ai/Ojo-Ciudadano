@@ -208,3 +208,24 @@ def test_encargos_van_a_su_tabla_y_no_a_contrato(tmp_path):
         assert organo.fetchone()[0] == "Consejería de Encargos"
     finally:
         con.close()
+
+
+def test_recurso_se_enlaza_solo_con_un_contrato_inequivoco():
+    contratos = pl.DataFrame(
+        {
+            "contrato_id": ["placsp:1", "placsp:2", "placsp:3", "portal_cm:D1"],
+            "expediente": ["BAC01/2026", "PA 9/2025", "PA 9/2025", "M-1/2026"],
+            "es_menor": [False, False, False, True],
+            "duplicado_de": [None, None, None, None],
+        },
+        schema_overrides={"duplicado_de": pl.String},
+    )
+    recursos = pl.DataFrame(
+        {
+            "resolucion_id": ["tacpcm:1/2026", "tacpcm:2/2026", "tacpcm:3/2026"],
+            "expedientes_citados": [["2029-2030", "BAC01/2026"], ["PA9/2025"], ["M-1/2026"]],
+        }
+    )
+    cruce = carga.cruzar_recursos(recursos, contratos).sort("resolucion_id")
+    assert cruce["contrato_id"].to_list() == ["placsp:1", None, None]
+    assert cruce["expediente_citado"].to_list()[0] == "BAC01/2026"

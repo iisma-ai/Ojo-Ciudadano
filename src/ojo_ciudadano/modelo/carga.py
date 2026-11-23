@@ -10,7 +10,7 @@ from pathlib import Path
 import duckdb
 import polars as pl
 
-from ojo_ciudadano.ingesta import bdns, encargos, placsp, portal_cm
+from ojo_ciudadano.ingesta import bdns, encargos, placsp, portal_cm, tacp
 from ojo_ciudadano.normalizacion import texto as n_texto
 
 RUTA_DB = Path("data/ojo_ciudadano.duckdb")
@@ -219,6 +219,44 @@ def _financiacion(tablas_placsp: dict | None) -> pl.DataFrame | None:
     )
 
 
+def _expediente(columna: pl.Expr) -> pl.Expr:
+    """Expediente comparable: mayúsculas y sin espacios."""
+    return columna.str.to_uppercase().str.replace_all(r"\s", "")
+
+
+def cruzar_recursos(recursos: pl.DataFrame, contratos: pl.DataFrame) -> pl.DataFrame:
+    """Enlaza cada resolución con el contrato cuyo expediente cita su resumen, solo si ese
+    expediente corresponde a un único contrato (sin contar los menores ni las filas del
+    portal que duplican una de PLACSP). Si no casa o es ambiguo, `contrato_id` queda vacío."""
+    unicos = (
+        contratos.filter(~pl.col("es_menor") & pl.col("duplicado_de").is_null())
+        .select("contrato_id", _expediente(pl.col("expediente")).alias("clave"))
+        .filter(pl.col("clave").is_not_null())
+        .group_by("clave")
+        .agg(pl.col("contrato_id").first(), pl.len().alias("n"))
+        .filter(pl.col("n") == 1)
+        .drop("n")
+    )
+    candidatos = (
+        recursos.select("resolucion_id", "expedientes_citados")
+        .explode("expedientes_citados")
+        .with_columns(_expediente(pl.col("expedientes_citados")).alias("clave"))
+        .join(unicos, on="clave", how="inner")
+        .group_by("resolucion_id")
+        .agg(
+            pl.col("expedientes_citados").first().alias("expediente_citado"),
+            pl.col("contrato_id").unique().alias("contratos"),
+        )
+        .with_columns(
+            pl.when(pl.col("contratos").list.len() == 1)
+            .then(pl.col("contratos").list.first())
+            .alias("contrato_id")
+        )
+        .drop("contratos")
+    )
+    return recursos.join(candidatos, on="resolucion_id", how="left").drop("expedientes_citados")
+
+
 def _organos_bdns(tablas_bdns: dict | None) -> list[pl.DataFrame]:
     """Órganos de la BDNS con las mismas columnas que los de contratos. Van detrás, así que
     si el órgano ya existe en los contratos se conserva su nombre y su consejería."""
@@ -251,6 +289,7 @@ def escribir(
             "concesion",
             "contrato_financiacion",
             "encargo",
+            "recurso_especial",
         ):
             if tablas.get(nombre) is None:
                 continue
@@ -271,6 +310,7 @@ def construir(
     carpeta_bdns: Path = CARPETA_BDNS,
     ruta_db: Path = RUTA_DB,
     carpeta_cm: Path | None = None,
+    carpeta_tacp: Path = tacp.CARPETA,
 ) -> dict[str, pl.DataFrame]:
     """Lee los ficheros brutos y regenera la base analítica. Con `carpeta_cm` carga además el
     contexto de la Comunidad de Madrid (presupuesto, convenios, registros; D-024)."""
@@ -291,6 +331,11 @@ def construir(
         encargos.leer(ruta_encargos, _fecha_fichero(ruta_encargos)) if ruta_encargos else None
     )
     tablas = unificar(tablas_portal, tablas_placsp, tablas_bdns, tablas_encargos)
+    if any(carpeta_tacp.glob("*.html")):
+        tablas["recurso_especial"] = cruzar_recursos(
+            tacp.leer(carpeta_tacp, _fecha_fichero(max(carpeta_tacp.glob("*.html")))),
+            tablas["contrato"],
+        )
     escribir(tablas, ruta_db)
     if carpeta_cm is not None and any(carpeta_cm.glob("*.csv")):
         from ojo_ciudadano.modelo import contexto

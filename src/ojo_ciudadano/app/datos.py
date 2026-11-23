@@ -94,7 +94,8 @@ def sugerir_organos(con: duckdb.DuckDBPyConnection, texto: str, limite: int = 15
         SELECT o.organo_id, o.nombre, p.n_contratos
         FROM organo AS o
         JOIN puntuacion_organo AS p USING (organo_id)
-        WHERE ? = '' OR strip_accents(o.nombre) ILIKE strip_accents(?) || '%' OR strip_accents(o.nombre) ILIKE '%' || strip_accents(?) || '%'
+        WHERE ? = '' OR strip_accents(o.nombre) ILIKE strip_accents(?) || '%'
+           OR strip_accents(o.nombre) ILIKE '%' || strip_accents(?) || '%'
         ORDER BY (strip_accents(o.nombre) ILIKE strip_accents(?) || '%') DESC, p.n_contratos DESC
         LIMIT ?
         """,

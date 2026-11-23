@@ -35,3 +35,10 @@
 2. Probar el mapa en móvil y con teclado (D-023, A-10): el componente no tiene alternativa de teclado; la tabla de debajo contiene las mismas cifras.
 3. Ir a por el dato que falta: ejecución de 2026 cuando la Comunidad la publique, y los criterios de adjudicación (no están en los datos abiertos).
 4. Llevar el «% del dinero disponible» a más sitios (ficha de órgano, ficha de empresa).
+
+## Revisión posterior (misma tarde)
+
+- **Buscadores sin tildes:** «consejeria de sanidad» no encontraba «Consejería de Sanidad». Las sugerencias de empresas y organismos ya no distinguen tildes ni mayúsculas (`strip_accents`), con test. Las búsquedas por palabra del título en «Contratos a revisar» y «Contratos atípicos» y en los convenios siguen distinguiendo tildes.
+- **Tabla accesible:** el mapa de contratos de cada consejería tiene debajo «Ver estos contratos en una tabla» (con enlace al expediente), alternativa al gráfico para teclado y lectores de pantalla.
+- **Ficha de órgano:** muestra el porcentaje gastado sobre lo disponible, lo que queda sin gastar y qué parte del gasto reconocido representan los contratos de la Plataforma y las subvenciones.
+- **Comprobado en el navegador:** vistas de presupuesto, contratos y 2026 del mapa general (2026 dice «Sin publicar»). **No se pudo comprobar el ancho de móvil**: la herramienta de captura no cambia el ancho real de la página; queda para una prueba en un móvil real (A-10).

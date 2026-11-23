@@ -1,4 +1,4 @@
-"""Batería de 25 preguntas de prueba para evaluar el asistente (docs/05-asistente.md).
+"""Batería de 26 preguntas de prueba para evaluar el asistente (docs/05-asistente.md).
 
 Cada pregunta trae su SQL de referencia, cuya respuesta sobre la base del día es la respuesta
 esperada (no se fijan cifras: cambian al regenerar la base), y los criterios que debe cumplir
@@ -71,6 +71,8 @@ class PreguntaPrueba:
     # Preguntas de catálogo (D-030): el conjunto del catálogo de datos abiertos que hay que usar.
     conjunto: str | None = None
     otros_conjuntos: tuple[str, ...] = ()  # conjuntos igual de válidos
+    # Preguntas que deben resolverse con la búsqueda por palabras (buscar_texto).
+    busqueda_texto: bool = False
 
 
 CITA_CATALOGO = " Termina con la cita del conjunto, su fecha de actualización y la de descarga."
@@ -549,6 +551,16 @@ ORDER BY 1
             "firmantes (tabla convenio). No busca nombres en el catálogo."
         ),
     ),
+    PreguntaPrueba(
+        id="B-26",
+        pregunta="¿Cuántos contratos de ambulancias o de transporte sanitario hay en la base?",
+        tipo="texto",
+        criterios=(
+            "Usa buscar_texto en contratos; da el número por fuente y los importes sin sumar "
+            "PLACSP con el portal; dice que cuenta títulos que mencionan esas palabras."
+        ),
+        busqueda_texto=True,
+    ),
 ]
 
 
@@ -619,6 +631,17 @@ def evaluar_respuesta(
 ) -> dict:
     """Evalúa una respuesta con sus consultas. En las preguntas de catálogo acierta si alguna
     consulta usó el conjunto esperado; en las demás se comparan las consultas a nuestra base."""
+    if pregunta.busqueda_texto:
+        avisos = revisar_texto(texto)
+        usada = any(c.get("busqueda") for c in consultas)
+        if not usada:
+            avisos.append("No usó la búsqueda por palabras")
+        return {
+            "id": pregunta.id,
+            "datos_ok": usada,
+            "avisos": avisos,
+            "criterios": pregunta.criterios,
+        }
     if pregunta.conjunto is not None:
         usados = [c.get("conjunto") for c in consultas if c.get("conjunto")]
         avisos = revisar_texto(texto)
@@ -630,7 +653,7 @@ def evaluar_respuesta(
             "avisos": avisos,
             "criterios": pregunta.criterios,
         }
-    sqls = [c["sql"] for c in consultas if not c.get("conjunto")]
+    sqls = [c["sql"] for c in consultas if not c.get("conjunto") and not c.get("busqueda")]
     return evaluar(con, pregunta, sqls, texto)
 
 

@@ -2,8 +2,13 @@
 
 import pytest
 
-from ojo_ciudadano.asistente import agente, bateria
-from ojo_ciudadano.asistente.agente import LlamadaConsultarConjunto, LlamadaSQL, TextoFinal
+from ojo_ciudadano.asistente import agente, bateria, texto
+from ojo_ciudadano.asistente.agente import (
+    LlamadaBuscarTexto,
+    LlamadaConsultarConjunto,
+    LlamadaSQL,
+    TextoFinal,
+)
 from ojo_ciudadano.indicadores import ejecutor
 
 
@@ -22,6 +27,7 @@ def con(base):
         "WHERE adjudicatario_id = 'PF-abc'"
     )
     ejecutor.calcular_todos(base.con)
+    texto.construir_en(base.con)
     return base.con
 
 
@@ -194,6 +200,8 @@ def test_pasar_bateria_con_un_modelo_que_usa_las_referencias(con):
         p = next(p for p in bateria.BATERIA if contenido.startswith(p.pregunta))
         if p.conjunto is not None:
             return LlamadaConsultarConjunto(p.conjunto, "SELECT * FROM conjunto")
+        if p.busqueda_texto:
+            return LlamadaBuscarTexto("ambulancia", "contrato")
         if p.sql is None:
             return TextoFinal("No puedo responder a eso con estos datos.")
         sql = p.sql
@@ -212,9 +220,9 @@ def test_pasar_bateria_con_un_modelo_que_usa_las_referencias(con):
             }
 
     evaluaciones = agente.pasar_bateria(con, modelo, catalogo_=CatalogoFalso())
-    assert len(evaluaciones) == 25
+    assert len(evaluaciones) == 26
     de_datos = [e for e in evaluaciones if e["datos_ok"] is not None]
-    assert len(de_datos) == 20
+    assert len(de_datos) == 21
     assert all(e["datos_ok"] for e in de_datos), [e for e in de_datos if not e["datos_ok"]]
 
 

@@ -77,6 +77,22 @@ def mostrar_conjunto(numero: int, consulta: dict) -> None:
         st.code(consulta["sql"].strip(), language="sql")
 
 
+def mostrar_busqueda(numero: int, consulta: dict) -> None:
+    """Una búsqueda por palabras en los títulos: el resumen por fuente y los ejemplos."""
+    with st.expander(f"Datos de la consulta {numero} · búsqueda «{consulta['busqueda']}»"):
+        resumen = consulta["resumen"]
+        st.dataframe(
+            {c: [f[i] for f in resumen["filas"]] for i, c in enumerate(resumen["columnas"])},
+            hide_index=True,
+        )
+        st.caption(
+            "Cuenta los títulos que contienen esas palabras: puede haber otros del mismo tema "
+            "con otro título. Debajo, los más relevantes con su enlace oficial."
+        )
+        mostrar_resultado(consulta)
+        st.code(consulta["sql"].strip(), language="sql")
+
+
 def mostrar_respuesta(respuesta: agente.Respuesta) -> None:
     if respuesta.retencion:
         st.warning(texto_visible(respuesta))
@@ -93,6 +109,9 @@ def mostrar_respuesta(respuesta: agente.Respuesta) -> None:
     for numero, consulta in enumerate(respuesta.consultas, start=1):
         if consulta.get("conjunto"):
             mostrar_conjunto(numero, consulta)
+            continue
+        if consulta.get("busqueda"):
+            mostrar_busqueda(numero, consulta)
             continue
         with st.expander(f"Datos de la consulta {numero}"):
             mostrar_resultado(consulta)

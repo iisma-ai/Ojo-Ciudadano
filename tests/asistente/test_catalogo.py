@@ -175,7 +175,7 @@ def test_el_agente_busca_consulta_y_cita(con_base, filas, csv):
 
 def test_openrouter_traduce_las_herramientas_del_catalogo():
     nombres = [h["function"]["name"] for h in openrouter.HERRAMIENTAS]
-    assert nombres == ["consultar_sql", "buscar_conjunto", "consultar_conjunto"]
+    assert nombres == ["consultar_sql", "buscar_texto", "buscar_conjunto", "consultar_conjunto"]
 
     def respuesta(nombre, argumentos):
         llamada = {"function": {"name": nombre, "arguments": json.dumps(argumentos)}}

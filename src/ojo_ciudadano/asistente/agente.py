@@ -34,6 +34,7 @@ import httpx
 
 from ojo_ciudadano.app.textos import AYUDA_INDICADOR, NOMBRES_INDICADOR
 from ojo_ciudadano.asistente import bateria, catalogo, sql_seguro
+from ojo_ciudadano.asistente import texto as busqueda
 from ojo_ciudadano.asistente.consultas_demo import CONSULTAS_DEMO
 
 RAIZ = Path(__file__).resolve().parents[3]
@@ -60,11 +61,17 @@ class LlamadaConsultarConjunto:
 
 
 @dataclass(frozen=True)
+class LlamadaBuscarTexto:
+    consulta: str
+    en: str  # contrato | convenio | convocatoria
+
+
+@dataclass(frozen=True)
 class TextoFinal:
     texto: str
 
 
-Llamada = LlamadaSQL | LlamadaBuscarConjunto | LlamadaConsultarConjunto
+Llamada = LlamadaSQL | LlamadaBuscarConjunto | LlamadaConsultarConjunto | LlamadaBuscarTexto
 Modelo = Callable[[str, list[dict]], Llamada | TextoFinal]
 
 # Descripción de la herramienta en JSON Schema, que admiten los proveedores con tool calling.
@@ -118,7 +125,34 @@ HERRAMIENTA_CONSULTAR_CONJUNTO = {
         "required": ["conjunto", "sql"],
     },
 }
-HERRAMIENTAS = [HERRAMIENTA_SQL, HERRAMIENTA_BUSCAR_CONJUNTO, HERRAMIENTA_CONSULTAR_CONJUNTO]
+HERRAMIENTA_BUSCAR_TEXTO = {
+    "nombre": "buscar_texto",
+    "descripcion": (
+        "Busca por palabras (reconoce plurales y tildes) en los títulos de los contratos, los "
+        "convenios o las convocatorias de subvenciones de la base. Devuelve un resumen por "
+        "fuente (número y, en contratos y convocatorias, importe) y los 20 títulos más "
+        "relevantes con su enlace oficial. Úsala para preguntas por tema («contratos de "
+        "ambulancias») en vez de ILIKE."
+    ),
+    "parametros": {
+        "type": "object",
+        "properties": {
+            "consulta": {"type": "string", "description": "Palabras clave del tema."},
+            "en": {
+                "type": "string",
+                "enum": ["contrato", "convenio", "convocatoria"],
+                "description": "Dónde buscar.",
+            },
+        },
+        "required": ["consulta", "en"],
+    },
+}
+HERRAMIENTAS = [
+    HERRAMIENTA_SQL,
+    HERRAMIENTA_BUSCAR_TEXTO,
+    HERRAMIENTA_BUSCAR_CONJUNTO,
+    HERRAMIENTA_CONSULTAR_CONJUNTO,
+]
 
 # Tablas derivadas, que no están en el DDL de sql/esquema/.
 DESCRIPCION_TABLAS = {
@@ -274,6 +308,19 @@ un alias.
 """
 
 
+REGLAS_TEXTO = """\
+- Para preguntas por tema (contratos, convenios o convocatorias sobre algo: «ambulancias», \
+«limpieza de hospitales», «becas de comedor»), usa buscar_texto: encuentra plurales y palabras \
+sin tilde que ILIKE no encuentra. Para filtros exactos (un órgano, un NIF, un año), usa \
+consultar_sql.
+- Las cifras de buscar_texto cuentan los títulos que contienen esas palabras: dilo así \
+(«contratos cuyo título menciona…») y avisa de que puede haber otros del mismo tema con otro \
+título. En contratos, los importes van separados por fuente (sin IVA en PLACSP, con IVA en el \
+portal regional): no los sumes.
+- Cita la fuente de cada fila y su fecha de descarga, como con consultar_sql.
+"""
+
+
 REGLAS_CATALOGO = """\
 - Para preguntas que no responde la base (sanidad, educación, empleo, personal, población, \
 presupuestos con más detalle, estadísticas oficiales), usa buscar_conjunto y después \
@@ -373,6 +420,8 @@ Comunidad (buscar_conjunto y consultar_conjunto).
 ## Ejemplos de consultas verificadas
 {_ejemplos()}
 
+## Búsqueda por palabras
+{REGLAS_TEXTO}
 ## Catálogo de datos abiertos de la Comunidad de Madrid
 {REGLAS_CATALOGO}"""
 
@@ -382,6 +431,8 @@ def resultado_para_modelo(resultado: dict) -> str:
     filas = resultado["filas"][:FILAS_PARA_MODELO]
     recortado = resultado["recortado"] or len(resultado["filas"]) > FILAS_PARA_MODELO
     contenido = {"columnas": resultado["columnas"], "filas": filas, "recortado": recortado}
+    if resultado.get("resumen"):  # buscar_texto: totales por fuente
+        contenido["resumen"] = resultado["resumen"]
     if resultado.get("conjunto"):  # catálogo: lo necesario para citarlo bien
         for clave in ("conjunto", "titulo_conjunto", "actualizado", "fecha_descarga", "url_origen"):
             contenido[clave] = resultado.get(clave)
@@ -496,6 +547,9 @@ def mensaje_llamada(llamada: Llamada) -> dict:
     if isinstance(llamada, LlamadaBuscarConjunto):
         argumentos = {"consulta": llamada.consulta}
         return {"rol": "llamada", "herramienta": "buscar_conjunto", "argumentos": argumentos}
+    if isinstance(llamada, LlamadaBuscarTexto):
+        argumentos = {"consulta": llamada.consulta, "en": llamada.en}
+        return {"rol": "llamada", "herramienta": "buscar_texto", "argumentos": argumentos}
     argumentos = {"conjunto": llamada.conjunto, "sql": llamada.sql}
     return {"rol": "llamada", "herramienta": "consultar_conjunto", "argumentos": argumentos}
 
@@ -508,6 +562,9 @@ def _usar_herramienta(con, llamada: Llamada, catalogo_) -> tuple[dict | None, st
         return resultado, resultado_para_modelo(resultado)
     if isinstance(llamada, LlamadaBuscarConjunto):
         return None, catalogo_.para_modelo(catalogo_.buscar(llamada.consulta))
+    if isinstance(llamada, LlamadaBuscarTexto):
+        resultado = busqueda.buscar(con, llamada.consulta, llamada.en)
+        return resultado, resultado_para_modelo(resultado)
     resultado = catalogo_.consultar(llamada.conjunto, llamada.sql)
     return resultado, resultado_para_modelo(resultado)
 
@@ -536,7 +593,12 @@ def responder(
         mensajes.append(mensaje_llamada(salida))
         try:
             resultado, para_modelo = _usar_herramienta(con, salida, catalogo_)
-        except (sql_seguro.SQLNoPermitido, catalogo.ConjuntoNoDisponible, duckdb.Error) as error:
+        except (
+            sql_seguro.SQLNoPermitido,
+            catalogo.ConjuntoNoDisponible,
+            busqueda.BusquedaNoDisponible,
+            duckdb.Error,
+        ) as error:
             errores.append(f"{error}")
             mensajes.append(
                 {"rol": "resultado", "contenido": f"Error, corrige la consulta: {error}"}

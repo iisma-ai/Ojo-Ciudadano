@@ -10,6 +10,7 @@ El SQL lo escribe un modelo de lenguaje, así que se trata como no fiable. Hay t
    físicas (D-007).
 """
 
+import contextlib
 import json
 import threading
 from pathlib import Path
@@ -69,8 +70,15 @@ class SQLNoPermitido(ValueError):
 
 
 def conexion_lectura(ruta: Path | str) -> duckdb.DuckDBPyConnection:
-    """Conexión de solo lectura y sin acceso a ficheros externos."""
-    return duckdb.connect(str(ruta), read_only=True, config={"enable_external_access": False})
+    """Conexión de solo lectura y sin acceso a ficheros externos. Antes de cerrar el acceso se
+    carga la extensión `fts` (búsqueda por palabras, `texto.py`), si está instalada: después ya
+    no se podría cargar, y cerrar el acceso no se puede deshacer desde SQL."""
+    con = duckdb.connect(str(ruta), read_only=True)
+    # Sin la extensión, la búsqueda por palabras dice que no está disponible.
+    with contextlib.suppress(duckdb.Error):
+        con.execute("LOAD fts")
+    con.execute("SET enable_external_access = false")
+    return con
 
 
 def _arbol(con: duckdb.DuckDBPyConnection, sql: str) -> dict:

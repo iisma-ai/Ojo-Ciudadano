@@ -148,3 +148,84 @@ def test_la_base_se_crea_con_el_esquema_y_la_vista_no_repite(tmp_path):
             assert sin_origen == 0
     finally:
         con.close()
+
+
+def test_financiacion_ue_se_carga_solo_si_la_entrada_la_trae(tmp_path):
+    placsp = _placsp()
+    placsp["contratos"] = placsp["contratos"].with_columns(
+        pl.lit(True).alias("financiado_ue"), pl.lit("PRTR,FEDER").alias("programas_ue")
+    )
+    ruta = tmp_path / "prueba.duckdb"
+    carga.escribir(carga.unificar([_portal()], placsp), ruta, ESQUEMA)
+    con = duckdb.connect(str(ruta), read_only=True)
+    try:
+        filas = con.execute(
+            "SELECT contrato_id, financiado_ue, programas_ue, fuente FROM contrato_financiacion"
+        ).fetchall()
+    finally:
+        con.close()
+    assert filas == [("placsp:100", True, "PRTR,FEDER", "placsp")]
+
+
+def test_encargos_van_a_su_tabla_y_no_a_contrato(tmp_path):
+    encargos = pl.DataFrame(
+        {
+            "encargo_id": ["portal_cm:C8000"],
+            "orden": pl.Series([1], dtype=pl.Int32),
+            "fuente": ["portal_cm"],
+            "expediente": ["EG/2025/1"],
+            "referencia_portal": ["C8000"],
+            "organo_nombre": ["Consejería de Encargos"],
+            "organo_jerarquia": [None],
+            "consejeria": [None],
+            "titulo": ["Apoyo técnico"],
+            "tipo_contrato": ["servicios"],
+            "anio_publicacion": pl.Series([2025], dtype=pl.Int32),
+            "medio_propio_id": ["A28476208"],
+            "importe_con_iva": [1_000_000.0],
+            "importe_modificaciones_con_iva": [0.0],
+            "url_origen": ["https://contratos-publicos.comunidad.madrid/contrato/C8000"],
+            "fecha_descarga": [HOY],
+        },
+        schema_overrides={"organo_jerarquia": pl.String, "consejeria": pl.String},
+    )
+    medios = pl.DataFrame(
+        {
+            "adjudicatario_id": ["A28476208"],
+            "nif": ["A28476208"],
+            "nombre": ["TRAGSA"],
+            "tipo_persona": ["juridica"],
+        }
+    )
+    tablas = {"encargos": encargos, "medios_propios": medios}
+    ruta = tmp_path / "prueba.duckdb"
+    carga.escribir(carga.unificar([_portal()], _placsp(), None, tablas), ruta, ESQUEMA)
+    con = duckdb.connect(str(ruta), read_only=True)
+    try:
+        assert con.execute("SELECT count(*) FROM encargo").fetchone()[0] == 1
+        assert con.execute("SELECT count(*) FROM contrato").fetchone()[0] == 3
+        organo = con.execute("SELECT o.nombre FROM encargo e JOIN organo o USING (organo_id)")
+        assert organo.fetchone()[0] == "Consejería de Encargos"
+    finally:
+        con.close()
+
+
+def test_recurso_se_enlaza_solo_con_un_contrato_inequivoco():
+    contratos = pl.DataFrame(
+        {
+            "contrato_id": ["placsp:1", "placsp:2", "placsp:3", "portal_cm:D1"],
+            "expediente": ["BAC01/2026", "PA 9/2025", "PA 9/2025", "M-1/2026"],
+            "es_menor": [False, False, False, True],
+            "duplicado_de": [None, None, None, None],
+        },
+        schema_overrides={"duplicado_de": pl.String},
+    )
+    recursos = pl.DataFrame(
+        {
+            "resolucion_id": ["tacpcm:1/2026", "tacpcm:2/2026", "tacpcm:3/2026"],
+            "expedientes_citados": [["2029-2030", "BAC01/2026"], ["PA9/2025"], ["M-1/2026"]],
+        }
+    )
+    cruce = carga.cruzar_recursos(recursos, contratos).sort("resolucion_id")
+    assert cruce["contrato_id"].to_list() == ["placsp:1", None, None]
+    assert cruce["expediente_citado"].to_list()[0] == "BAC01/2026"

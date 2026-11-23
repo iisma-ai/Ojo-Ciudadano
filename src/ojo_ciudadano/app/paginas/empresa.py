@@ -6,7 +6,15 @@ Primero se ve (cifras, mapa de áreas por organismo, contratos por año, señale
 
 import streamlit as st
 
-from ojo_ciudadano.app import buscador, datos, datos_contexto, graficos, senales, textos
+from ojo_ciudadano.app import (
+    buscador,
+    datos,
+    datos_contexto,
+    datos_flujos,
+    graficos,
+    senales,
+    textos,
+)
 from ojo_ciudadano.app.conexion import conexion
 
 FUENTES_REPARTO = {
@@ -100,34 +108,40 @@ if fuentes:
     )
     st.plotly_chart(graficos.reparto_organismos(filas), config=graficos.CONFIG)
 
-# --- Contratos por año y señales ---
-izquierda, derecha = st.columns(2)
-tendencia = datos.tendencia_empresa(con, id_)
-with izquierda:
-    st.subheader("Contratos por año")
-    if tendencia:
-        st.plotly_chart(graficos.contratos_por_anio(tendencia), config=graficos.CONFIG)
-        st.caption(textos.AVISO_MENORES_RECIENTES)
-with derecha:
-    st.subheader("Qué señales aparecen")
-    senales_empresa = datos.senales_empresa(con, id_)
-    if senales_empresa:
-        st.plotly_chart(
-            graficos.senales_de_empresa(senales_empresa, textos.SENAL_CORTA),
-            config=graficos.CONFIG,
-        )
-        st.caption("Número de contratos de la empresa en los que se encontró cada señal.")
-    else:
-        st.markdown("No hemos encontrado ninguna señal en sus contratos.")
+# --- Contratos por año, señales y contratos (solo si tiene contratos) ---
+if not ficha["n_contratos"]:
+    st.markdown(
+        "No tiene contratos en nuestros datos: aparece por sus subvenciones o por los encargos "
+        "que recibe como medio propio."
+    )
+else:
+    izquierda, derecha = st.columns(2)
+    tendencia = datos.tendencia_empresa(con, id_)
+    with izquierda:
+        st.subheader("Contratos por año")
+        if tendencia:
+            st.plotly_chart(graficos.contratos_por_anio(tendencia), config=graficos.CONFIG)
+            st.caption(textos.AVISO_MENORES_RECIENTES)
+    with derecha:
+        st.subheader("Qué señales aparecen")
+        senales_empresa = datos.senales_empresa(con, id_)
+        if senales_empresa:
+            st.plotly_chart(
+                graficos.senales_de_empresa(senales_empresa, textos.SENAL_CORTA),
+                config=graficos.CONFIG,
+            )
+            st.caption("Número de contratos de la empresa en los que se encontró cada señal.")
+        else:
+            st.markdown("No hemos encontrado ninguna señal en sus contratos.")
 
-# --- Contratos ---
-st.subheader("Sus contratos")
-st.caption(
-    f"Los {LIMITE_CONTRATOS} con más señales e importe. Pulsa uno para ver por qué tiene "
-    "cada señal."
-)
-for fila in datos.contratos_empresa(con, id_, LIMITE_CONTRATOS):
-    senales.tarjeta_contrato(con, fila, "empresa")
+    # --- Contratos ---
+    st.subheader("Sus contratos")
+    st.caption(
+        f"Los {LIMITE_CONTRATOS} con más señales e importe. Pulsa uno para ver por qué tiene "
+        "cada señal."
+    )
+    for fila in datos.contratos_empresa(con, id_, LIMITE_CONTRATOS):
+        senales.tarjeta_contrato(con, fila, "empresa")
 
 # --- Subvenciones ---
 if subvenciones:
@@ -143,3 +157,24 @@ if subvenciones:
             f"{textos.euros(sv['importe'])} en {sv['n_concesiones']} "
             f"{'concesión' if sv['n_concesiones'] == 1 else 'concesiones'}"
         )
+
+# --- Encargos recibidos como medio propio (D-028) ---
+encargos = datos_flujos.encargos_empresa(con, id_)
+if encargos:
+    st.subheader("Encargos recibidos como medio propio")
+    st.markdown(
+        f"**{textos.numero(encargos['n_encargos'])} encargos** por "
+        f"**{textos.euros(encargos['importe'], 'con IVA')}** de "
+        f"{textos.numero(len(encargos['por_organo']))} organismos."
+    )
+    for o in encargos["por_organo"][:10]:
+        st.markdown(
+            f"- {o['organo']}: {textos.euros(o['importe'], 'con IVA')} "
+            f"({textos.numero(o['n_encargos'])})"
+        )
+    st.caption(
+        textos.AVISO_ENCARGOS
+        + " Fuente: [Portal de la Contratación Pública de la Comunidad de Madrid]"
+        "(https://contratos-publicos.comunidad.madrid/contratos), datos descargados el "
+        f"{encargos['fecha_descarga']}. El detalle de cada encargo está en la ficha del organismo."
+    )

@@ -109,6 +109,8 @@ ESQUEMA_CONTRATOS = {
     "presupuesto_sin_iva": pl.Float64,
     "valor_estimado": pl.Float64,
     "fecha_fin_plazo": pl.Date,
+    "financiado_ue": pl.Boolean,
+    "programas_ue": pl.String,
     "fecha_actualizacion": pl.String,
     "url_origen": pl.String,
     "fecha_descarga": pl.Date,
@@ -187,6 +189,9 @@ def _leer_entrada(entrada, fecha_descarga: date, sal: bytes | None) -> tuple[dic
         namespaces=NS,
     )
     partido = ".//ext:LocatedContractingParty/cac:Party/cac:PartyIdentification"
+    # Financiación: «EU» / «NO-EU» y, si hay fondos europeos, el programa (PRTR, FEDER, FSE+…).
+    fondos = entrada.xpath(".//cac:TenderingTerms/cbc:FundingProgramCode/text()", namespaces=NS)
+    fondos = [f.strip() for f in fondos if f.strip()]
     contrato = {
         "contrato_id": contrato_id,
         "fuente": FUENTE,
@@ -216,6 +221,8 @@ def _leer_entrada(entrada, fecha_descarga: date, sal: bytes | None) -> tuple[dic
                 entrada, ".//cac:TenderingProcess/cac:TenderSubmissionDeadlinePeriod/cbc:EndDate"
             )
         ),
+        "financiado_ue": ("EU" in fondos) if fondos else None,
+        "programas_ue": ",".join(sorted(set(fondos) - {"EU", "NO-EU"})) or None,
         "fecha_actualizacion": _texto(entrada, "a:updated"),
         "url_origen": url,
         "fecha_descarga": fecha_descarga,

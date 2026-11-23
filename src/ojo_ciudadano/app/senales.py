@@ -7,7 +7,7 @@ Cada señal se muestra con su nombre en lenguaje claro, una frase con las cifras
 import duckdb
 import streamlit as st
 
-from ojo_ciudadano.app import datos, graficos, textos
+from ojo_ciudadano.app import datos, datos_flujos, graficos, textos
 
 
 def _porcentaje(parte: float, total: float) -> str:
@@ -145,6 +145,27 @@ def tarjeta_contrato(con: duckdb.DuckDBPyConnection, fila: dict, prefijo: str) -
                 "contratos similares (señal experimental, no suma a las demás; atípico no "
                 f"significa irregular): {anomalia['motivo']}"
             )
+        fondos = datos_flujos.financiacion_contrato(con, fila["contrato_id"])
+        if fondos and fondos["financiado_ue"]:
+            programas = ", ".join(
+                datos_flujos.NOMBRE_PROGRAMA_UE.get(p, p)
+                for p in (fondos["programas_ue"] or "").split(",")
+                if p
+            )
+            st.markdown(
+                "**Financiado con fondos de la Unión Europea**"
+                + (f" ({programas})" if programas else "")
+                + ", según la Plataforma de Contratación. Es un dato, no una señal."
+            )
+        for r in datos_flujos.recursos_contrato(con, fila["contrato_id"]):
+            st.markdown(
+                f"**Recurrido ante el Tribunal de Contratación de la Comunidad:** "
+                f"[resolución {r['numero']}]({r['url_origen']}) del {r['fecha']}, "
+                f"{r['tipo_resolucion'].lower()} (acto recurrido: {r['acto_recurrido'].lower()}). "
+                "Fuente: Tribunal Administrativo de Contratación Pública de la Comunidad de "
+                f"Madrid, datos descargados el {r['fecha_descarga']}."
+            )
+            st.caption(textos.AVISO_RECURSOS)
         if fila["url_origen"]:
             st.link_button(
                 "Ver el expediente oficial", fila["url_origen"], icon=":material/open_in_new:"

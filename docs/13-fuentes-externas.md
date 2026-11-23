@@ -1,0 +1,187 @@
+# 13 · Fuentes externas candidatas: empresas, recursos y referencias
+
+Investigación del 23-nov-2026. Complementa [12-datos-cm.md](12-datos-cm.md) (rama `feat/datos-cm-abiertos`, fuentes de la propia Comunidad: presupuesto, convenios, registros, RPT). Aquí se buscan fuentes **que no son del catálogo ni del Portal de Transparencia de la Comunidad** y que mejoran la calidad de las señales sobre los mismos contratos y empresas.
+
+> **Estado (23-nov):** incorporados X-04 (referencia en la ayuda de R-01), X-07 (fondos europeos, D-027) y el tratamiento de las filas de relleno (D-027), en la rama `fix/relleno-y-referencia-r01`. Con el navegador integrado se añadieron además los menores de jul–sep de 2026 (P-12) y los **encargos a medios propios** (D-028, ver abajo). El resto es solo investigación: incorporarlo exige decisión registrada y avisar al equipo.
+
+## Reparto para no pisarnos
+
+| Línea | Quién | Dónde |
+| --- | --- | --- |
+| Catálogo de datos abiertos y Portal de Transparencia de la Comunidad | Ismael (con Claude) | `feat/datos-cm-abiertos`, [12-datos-cm.md](12-datos-cm.md) |
+| Fuentes externas: prohibiciones y exclusiones, recursos contractuales, sanciones de competencia, referencias para comparar indicadores, directorios de normalización | Ignacio (con Claude) | `docs/fuentes-externas`, este documento |
+
+## Criterios de valoración
+
+1. **Aporta a una señal o a la calidad**: mejora un indicador, añade uno de prioridad alta o arregla un problema de normalización conocido.
+2. **Se cruza con lo que tenemos**: por NIF, expediente o código de órgano. Sin clave de cruce, solo sirve de contexto.
+3. **Descarga reproducible y licencia clara.**
+4. **Sin personas físicas** (D-007) o filtrables.
+5. **Coste antes de la demo** (24-nov) y de la entrega (26-nov; el 25 no se añaden funciones).
+
+## Candidatas en estudio
+
+| ID | Fuente | Para qué | Estado |
+| --- | --- | --- | --- |
+| X-01 | Prohibiciones de contratar (Junta Consultiva de Contratación Pública del Estado, ROLECE) | Señal: adjudicataria con prohibición vigente | **Descartada**: no hay listado público |
+| X-02 | Resoluciones del Tribunal Administrativo de Contratación Pública de la Comunidad de Madrid | Señal y contexto: contratos recurridos y estimados | **Incorporada** (D-029), con enlace a contrato limitado |
+| X-03 | Expedientes sancionadores de la CNMC por colusión en licitaciones | Contexto: empresas sancionadas por cárteles en contratación | **Solo manual, prioridad baja** (ver detalle) |
+| X-04 | Indicadores europeos de contratación (Single Market Scoreboard) y OIReScon | Referencia para comparar R-01 y R-02 con España y la UE | **Viable y barata** (ver detalle) |
+| X-05 | DIR3 (directorio común de unidades orgánicas) | Normalizar órganos entre portal y PLACSP | **Viable, valor medio** (ver detalle) |
+| X-06 | Sistema de exclusión de la UE (EDES) y listas de inhabilitación | Señal: entidad excluida | **Descartada**: 5 entidades en toda la UE |
+| X-07 | Fondos europeos (PRTR y FEDER/FSE+ de la Comunidad) | Contexto: contratos y beneficiarios con fondos europeos | **Ya está en PLACSP**: campo sin usar (ver detalle) |
+| X-08 | Listado de deudores con la Hacienda Pública (AEAT) | Señal posible | **Descartada**: la ley impide su reutilización |
+
+## Detalle por fuente
+
+### X-02 · Tribunal Administrativo de Contratación Pública de la Comunidad de Madrid (TACPCM)
+
+Explorado el 23-nov-2026. Resuelve los **recursos especiales en materia de contratación** contra pliegos, exclusiones y adjudicaciones de los órganos de la Comunidad (art. 3 de la Ley 9/2010 de la Comunidad de Madrid). Es de la Comunidad, pero no está en el catálogo de datos abiertos ni en el Portal de Transparencia.
+
+- **Acceso:** [buscador de resoluciones](https://www.comunidad.madrid/tacp/busquedaresoluciones), una página HTML (Drupal) por resolución en `https://www.comunidad.madrid/tacp/resolucion/<NNNAAAA>` (por ejemplo, `4002025` es la 400/2025) y el PDF de la resolución enlazado desde la ficha. No hay API ni descarga masiva: habría que recorrer el buscador página a página (10 por página), una petición cada vez y con pausa.
+- **Filtros del buscador (parámetros GET):** `field_procedencia`, `field_fecha[date]` y `field_fecha_1[date]` (desde/hasta, `dd/mm/aaaa`), `field_tipo_contrato`, `im_field_tipo_de_resolucion`, `field_acto_recurrido`, `field_objeto`, `field_temas_resoluciones`, número de resolución y de expediente del Tribunal.
+- **Campos estructurados de cada ficha:** fecha, número de resolución, número de expediente **del Tribunal** (no el del contrato), temas, tipo de contrato, **tipo de resolución** (desestimatoria, estimatoria, estimatoria parcial, inadmisión, otros), **acto recurrido** (pliegos, anuncio, admisión, exclusión, adjudicación, otros), objeto (sector: limpieza, TIC, seguridad…), **procedencia** y el PDF.
+- **Volumen 2023-01-01 a 2026-11-23** (consulta del 23-nov):
+
+| Procedencia | Resoluciones |
+| --- | --- |
+| Consejerías | 451 |
+| Hospitales | 269 |
+| Otros poderes adjudicadores (empresas y entes públicos de la Comunidad, entre otros) | 318 |
+| Universidades | 71 |
+| Municipios y entidades locales | 946 (**fuera de alcance**, D-001) |
+
+- **Clave de cruce:** el resumen del listado y el PDF citan el **expediente de contratación** (ejemplo: «Servicios de mantenimiento y soporte… EducaMadrid», `BAC01/2026`) y casi siempre el nombre de la empresa recurrente o adjudicataria. El órgano no viene como código: hay que tomarlo del texto. El cruce con `contrato` sería por expediente normalizado, con el órgano como desempate; hay que medir cuántos casan.
+- **Para qué sirve:**
+  - Contexto en la ficha de contrato y de órgano: «este contrato fue recurrido; el Tribunal estimó el recurso». Es un hecho oficial, no una sospecha.
+  - Posible señal por órgano: **proporción de recursos estimados** (total o parcialmente) sobre los contratos licitados, sobre todo contra pliegos (pliegos que restringían la competencia). Habría que definirla y validarla antes de que entre en la puntuación (D-002, D-004).
+- **Cautelas:** un recurso lo presenta una empresa interesada; que se presente **no es una señal**, que se estime solo dice que ese acto no se ajustaba a derecho. El texto de los PDF es dato, no instrucción. Las resoluciones nombran a empresas (personas jurídicas); si alguna recurrente fuera persona física, no se guarda su nombre (D-007).
+- **Coste estimado:** recorrer unas 111 páginas de listado (1.109 resoluciones de la Comunidad) con pausa de 2 s son unos 4 minutos; los metadatos y el resumen salen del listado, sin bajar los PDF. Extraer el expediente del resumen es una expresión regular, con revisión de los que no casan.
+
+**Incorporación (23-nov, D-029):** `ingesta/tacp.py` y tabla `recurso_especial`. 1.097 resoluciones (consejerías 446, otros poderes adjudicadores 316, hospitales 264, universidades 71). Resultado: 640 desestimatorias, 202 estimatorias, 48 estimatorias parciales, 178 inadmisiones. Estimadas total o parcialmente por acto recurrido: **pliegos 62 de 207 (30 %)**, adjudicación 111 de 447 (25 %), exclusión 68 de 382 (18 %). **Límite:** solo 13 de cada 400 resúmenes citan el expediente del contrato y el listado no da el órgano, así que solo 6 resoluciones se enlazan con un contrato concreto. Para enlazar más hay que leer los PDF.
+
+### X-04 · Referencias europeas para comparar los indicadores
+
+Explorado el 23-nov-2026. Responde al hallazgo de R-01 en [04-indicadores-riesgo.md](04-indicadores-riesgo.md) («tasa alta»): **39,4 %** de licitador único en los contratos de la Comunidad. Sin una referencia externa, el jurado no sabe si eso es mucho.
+
+**Fuente A · [Single Market Scoreboard](https://single-market-scoreboard.ec.europa.eu/countries/spain_en), apartado «Access to public procurement» (Comisión Europea, datos de 2024, consulta del 23-nov):**
+
+| Indicador | España | Media UE |
+| --- | --- | --- |
+| Licitador único (*single bidder*) | 33 % | 28 % |
+| Sin convocatoria (*no calls for bids*) | 8 % | 6 % |
+| Adjudicado solo por precio | 19 % | 54 % |
+| Días hasta la adjudicación | 110 | 74 |
+| Procedimientos divididos en lotes | 32 % | 32 % |
+
+**Fuente B · [Tribunal de Cuentas Europeo, informe especial 28/2023](https://www.eca.europa.eu/en/publications?ref=SR-2023-28), anexo de datos abiertos** ([zip de 886 KB](https://www.eca.europa.eu/OpenData/SR-2023-28/en/datavisualisation_data.zip), CC BY 4.0; los datos de origen de Opentender son CC BY-NC-SA 4.0). Trae el porcentaje de licitador único **por región NUTS2 y año**, 2011–2021, calculado sobre TED. Para **ES30 (Comunidad de Madrid)**, fichero `avg_singleb_nuts_yearly.csv`:
+
+| Año | 2015 | 2017 | 2019 | 2020 | 2021 |
+| --- | --- | --- | --- | --- | --- |
+| Licitador único ES30 | 25,6 % | 30,6 % | 34,6 % | 38,9 % | 37,5 % |
+| Contratos | 4.096 | 5.205 | 7.655 | 7.263 | 7.993 |
+
+España en conjunto (`avg_singleb_yearly_ted.csv`): 19,5 % (2016), 25,6 % (2019), 28,1 % (2020).
+
+**Cómo leerlo (para no comparar mal):**
+- El 39,4 % de R-01 está en la línea de la región en TED (37,5 % en 2021) y por encima de España (33 %) y de la UE (28 %). Es una **comparación de orden de magnitud, no de igual a igual**:
+  - TED solo recoge contratos **por encima de los umbrales europeos**; R-01 incluye también los abiertos simplificados, que son más pequeños.
+  - ES30 agrupa a **todos los compradores con sede en la región**, también los ministerios y el Ayuntamiento de Madrid, no solo la Comunidad.
+  - Periodos distintos: 2021 frente a 2023–2026.
+- Aun así, sirve para decir en la interfaz que «uno de cada tres contratos con una sola oferta es habitual en España; la media europea es menor», y deja de parecer un error de cálculo.
+
+**Uso propuesto:** una tabla pequeña `referencia_externa` (indicador, ámbito, año, valor, fuente, `url_origen`, `fecha_descarga`) o simplemente un texto en la ayuda de R-01 y R-02 con su enlace. Coste: menos de una hora. No cambia ningún indicador ni la puntuación.
+
+**Fuente C · [OIReScon, Informe Anual de Supervisión 2026, módulo I](https://www.hacienda.gob.es/rsc/oirescon/informe-anual-supervision-2026/ias2026-modulo1.pdf)** (Hacienda, datos de adjudicaciones de 2025 en la PLACSP y las plataformas autonómicas, **sin negociados sin publicidad**; tablas 74 a 78, págs. 141–145; consulta del 23-nov). Es la referencia **española y con la misma ventana** que la nuestra:
+
+| Sector público (2025) | Lotes con un único licitador | Importe adjudicado con un único licitador |
+| --- | --- | --- |
+| **Autonómico** | **45,49 %** (31.374 de 68.973) | 29,87 % |
+| Estatal | 45,76 % | 20,78 % |
+| Local | 37,31 % | 24,77 % |
+| Total | 41,93 % | 25,00 % |
+
+Evolución del importe con un único licitador en el sector autonómico: 27,8 % (2021), 31,2 % (2022), **29,4 % (2023)**, **31,8 % (2024)**, **29,9 % (2025)**.
+
+**Conclusión para R-01:** el 39,4 % de la Comunidad está **por debajo** de la media del sector autonómico español en 2025 (45,5 % de los lotes) y por encima de la media europea en TED (28 %). El indicador funciona como señal por contrato, pero la tasa global no es anómala en el contexto español. Hay que decirlo en la ayuda de R-01 para no inducir a error. Diferencias de método: la OIReScon cuenta lotes y todos los procedimientos menos el negociado sin publicidad; R-01 cuenta contratos y solo abiertos, abiertos simplificados y restringidos.
+
+### X-05 · DIR3, directorio común de unidades orgánicas
+
+Explorado el 23-nov-2026. Directorio oficial de unidades de todas las administraciones (Ministerio para la Transformación Digital y de la Función Pública), actualizado más o menos cada mes.
+
+- **Acceso:** [página de descargas](https://administracionelectronica.gob.es/ctt/dir3/descargas), Excel por nivel de administración. El de comunidades autónomas es [`Listado Unidades CCAA.xlsx`](https://administracionelectronica.gob.es/ctt/resources/Soluciones/238/Descargas/Listado%20Unidades%20CCAA.xlsx) (1,3 MB, 18.825 filas, descarga directa sin clave). Licencia: la general de reutilización de la AGE (citar fuente).
+- **Campos:** código DIR3 (`C_ID_UD_ORGANICA`), nombre, nivel jerárquico, unidad superior y unidad raíz con sus nombres, estado, fecha de alta y **NIF de la unidad** (`NIF_CIF`).
+- **Comunidad de Madrid** (códigos `A13…`): **499 unidades vigentes** en 6 niveles (la Comunidad, 10 consejerías u órganos de nivel 2, 121 de nivel 3…); 496 con NIF. Las consejerías comparten el NIF de la Comunidad (`S7800001E`); los organismos y hospitales con personalidad propia tienen el suyo (por ejemplo, el Hospital Psiquiátrico Dr. Rodríguez Lafora, `A13013753`, depende del Servicio Madrileño de Salud).
+- **Lo que no resuelve:** las entradas de la Comunidad en PLACSP **no traen código DIR3 ni NIF del órgano** (0 de 3.423 entradas en octubre de 2026; otras plataformas sí lo traen). El cruce sería **por nombre**, igual que ahora entre portal y PLACSP. Además, el fichero solo tiene las unidades **vigentes**: no da los nombres antiguos de las consejerías renombradas, que es una de las causas de los fallos de cruce documentadas en [02-fuentes-datos.md](02-fuentes-datos.md).
+- **Para qué sí sirve:**
+  1. **Lista canónica de órganos** con su jerarquía oficial: mejora la ficha de órgano y la agrupación por consejería.
+  2. **Reconocer adjudicatarios que son sector público** por NIF (encargos a medios propios, convenios entre entes): hoy aparecen como «empresas» en la ficha y en R-04.
+- **Prueba de cruce con nuestra base** (base local del 20-nov, `adjudicatario.nif` contra `NIF_CIF` de las 18.825 unidades autonómicas de DIR3): **101 NIF, 1.237 adjudicaciones y 81,4 M€ con IVA**. Lo que aparece:
+  - **Filas de relleno de la fuente**: el NIF de la propia Comunidad (`S7800001E`) con el nombre «33 EMPRESAS ADJUDICATARIAS» (6 adjudicaciones, 35,2 M€) y `Q7850065I` con «VER ORDEN DE ADJUDICACIÓN» (58 adjudicaciones, 3,9 M€). No son empresas: son contratos con muchos adjudicatarios que el portal resume en una línea. Hoy cuentan como una «empresa» en las fichas, en R-04 y en la puntuación de empresa. **Hay que tratarlos en la normalización** (aviso a la línea de ingesta).
+  - Entes públicos y fundaciones del sector público que contratan con la Comunidad: fundaciones de investigación de hospitales, Fundación Orquesta y Coro de Madrid, Parque Científico de Madrid, y de otras comunidades (Banc de Sang i Teixits, Hospital Clínic de Barcelona).
+  - Alguna coincidencia por error en DIR3 (una sociedad anónima privada con el NIF de una unidad): **revisar a mano** antes de etiquetar.
+- **Coste:** bajo para descargar y leer (necesita `fastexcel`, que entra con D-024); medio para el cruce por nombre. Prioridad: después de X-02 y X-04.
+
+### X-07 · Fondos europeos: ya vienen en PLACSP
+
+Explorado el 23-nov-2026. Antes de buscar los listados del Plan de Recuperación (PRTR) o de los programas FEDER y FSE+ de la Comunidad, se miró si los contratos ya lo dicen. **Sí**: cada licitación del Atom de PLACSP trae `cac:TenderingTerms/cbc:FundingProgramCode` (lista [`FundingProgramCode-2.08`](http://contrataciondelestado.es/codice/cl/2.08/FundingProgramCode-2.08.gc)), con `EU` / `NO-EU` y el programa: `PRTR`, `FEDER`, `FSE+`, `FEADER`, `OFE` (otros fondos europeos). **La ingesta actual no lo lee** (`ingesta/placsp.py`).
+
+Recuento sobre los 47 zip ya descargados (ene-2023 a nov-2026), última versión de cada expediente y órgano de la Comunidad:
+
+| Financiación | Expedientes |
+| --- | --- |
+| Con fondos de la UE | **991** |
+| · Plan de Recuperación (PRTR) | 548 |
+| · FEDER | 204 |
+| · Otros fondos europeos (OFE) | 160 |
+| · FSE+ | 56 |
+| · FEADER | 23 |
+| Sin fondos de la UE | 13.991 |
+| Sin el campo (versiones antiguas) | 5.918 |
+
+(20.900 claves expediente + órgano antes de los filtros de la ingesta, que deja 17.589 licitaciones; las cifras finales se recalculan al cargarlo.)
+
+- **Para qué sirve:** etiqueta «financiado con fondos europeos (PRTR)» en la ficha de contrato y filtro en el panel de alertas y en el mapa. Los contratos del PRTR tienen obligaciones reforzadas de control (Orden HFP/1030/2021: conflicto de intereses, doble financiación), así que es un contexto relevante para quien revisa. **No es una señal de riesgo.**
+- **Coste:** bajo. Es una columna nueva en `contrato` (esquema aditivo, D-017) y unas líneas en el lector del Atom. No hace falta descargar nada.
+- **Con esto, los listados de perceptores del PRTR y de FEDER/FSE+ pierden prioridad**: repetirían lo que ya sabemos del contrato. Quedan como línea futura para las subvenciones con fondos europeos.
+
+### X-03 · Expedientes sancionadores de la CNMC por colusión en licitaciones
+
+Explorado el 23-nov-2026.
+
+- **Acceso:** [buscador de expedientes de la CNMC](https://www.cnmc.es/expedientes) (HTML, con filtros de texto, ámbito y fechas) y una página por expediente con la resolución en PDF. **No hay fichero de datos**: una solicitud en datos.gob.es pidió un listado de «empresas condenadas por fraude en licitaciones públicas» y la respuesta fue que no existe una base sistemática ([solicitud](https://datos.gob.es/es/solicitud-de-datos/empresas-condenadas-por-fraude-en-licitaciones-publicas)).
+- **Casos de 2023–2026 vistos en la búsqueda:** ninguno sobre órganos de la Comunidad de Madrid. Los más cercanos son de compradores con sede en Madrid que no son de la Comunidad (agencias de viajes para el Banco de España y la Universidad Complutense, con prohibición de contratar de 3 a 6 meses; material militar del Ministerio de Defensa) y una incoación de 2026 sobre obra civil en Cantabria.
+- **Valoración:** solo se podría hacer como una **tabla pequeña hecha a mano** (expediente, fecha, mercado, empresas, enlace a la resolución), cruzada por nombre con `adjudicatario`. Riesgo legal alto: muchas sanciones están recurridas ante la Audiencia Nacional y nombrar empresas exige revisar la firmeza de cada una (D-002, `revisor-legal`). **No compensa antes del 26-nov.**
+
+## Recomendación (para decidir con el equipo)
+
+Ordenada por valor para el jurado y por coste. Ninguna cambia el esquema v1 ni los indicadores existentes; todas serían ampliaciones aditivas (D-017) que necesitan una decisión registrada.
+
+| Prioridad | Qué | Coste | Por qué |
+| --- | --- | --- | --- |
+| 1 | **X-04** · Texto y tabla de referencia de licitador único (OIReScon 2025, Scoreboard, TCE ES30) en la ayuda de R-01 | < 1 h, sin ingesta | Evita que el 39,4 % de R-01 se lea como anómalo: la media autonómica española es del 45,5 %. Da rigor ante el jurado |
+| 2 | **Filas de relleno** con el NIF de la Comunidad (`S7800001E` «33 EMPRESAS ADJUDICATARIAS», `Q7850065I` «VER ORDEN DE ADJUDICACIÓN») | < 1 h | Es una corrección de datos, no una función: 35,2 M€ atribuidos a una «empresa» que no existe (ver X-05) |
+| 3 | **X-07** · Columna de fondos europeos (PRTR, FEDER, FSE+) desde el Atom de PLACSP | 1–2 h | Dato oficial que ya tenemos descargado; 991 expedientes; filtro útil en la demo |
+| 4 | **X-02** · Recursos ante el TACPCM (metadatos del listado, sin PDF) cruzados por expediente | medio día | Hecho oficial nuevo en la ficha de contrato y órgano; posible señal futura (recursos estimados contra pliegos) |
+| 5 | **X-05** · DIR3 como lista canónica de órganos y para marcar adjudicatarios del sector público | medio día | Mejora la normalización; el cruce es por nombre |
+| — | X-01, X-03, X-06, X-08 | — | Descartadas o solo manuales (ver arriba) |
+
+Con el calendario (H3 el 24-nov, el 25 no se añaden funciones), lo razonable es **1 y 2 hoy**, **3 si da tiempo antes del H3**, y 4 y 5 como línea futura documentada en la presentación.
+
+### Y-01 · Encargos a medios propios (portal de contratación de la Comunidad)
+
+Encontrado el 23-nov-2026 con el navegador integrado. No es una fuente nueva: es un tipo de publicación del portal (F-01) que **nunca se había exportado**.
+
+- 2.405 encargos en el portal (todos los años); **944 publicados de 2023 a 2026**. Importe total del fichero: **740,2 M€ con IVA**, casi todo a Transformación Agraria, S.A. (Tragsa, 513,0 M€ en 389 encargos) y Tecnologías y Servicios Agrarios, S.A. (Tragsatec, 116,7 M€ en 408), y después Canal de Isabel II, Hispanagua y Canal de Comunicaciones. El Boletín Oficial de la Comunidad suma 1.474 encargos pequeños (0,8 M€).
+- El CSV tiene el formato de siempre, pero **sin fecha**. El año de publicación se deduce de la referencia `C<número>`, que crece con la fecha: los tramos por año reproducen exactamente los recuentos del buscador por «Fecha de publicación en el Portal».
+- Calidad: un encargo a «TRAGSA» con el NIF mal escrito (`A24876208` en lugar de `A28476208`, 9,0 M€) y otro con un NIF de 10 caracteres. Se dejan como vienen; la ficha de empresa los mostrará aparte.
+- Cada ficha del portal trae además el **código DIR3 del órgano**, que el CSV no tiene (útil para X-05 si algún día se recorren las fichas).
+- Cargado en `encargo` (D-028), fuera de los indicadores.
+
+### Descartadas (23-nov)
+
+| ID | Fuente | Por qué no |
+| --- | --- | --- |
+| X-01 | Prohibiciones de contratar ([Junta Consultiva del Estado](https://www.hacienda.gob.es/es-ES/Areas%20Tematicas/Contratacion/Junta%20Consultiva%20de%20Contratacion%20Administrativa/Paginas/prohibicion.aspx), ROLECE) | **No existe un listado público**: la página oficial «Empresas en situación de prohibición para contratar» solo remite al certificado de inscripción de cada empresa en el ROLECE. El Ministerio respondió en una reclamación de acceso a la información que el ROLECE no tiene un listado que las agrupe ([Consejo de Transparencia, R-0393-2022](https://www.consejodetransparencia.es/ct_Home/eu/dam/jcr:995e8f85-0a44-4905-86ab-9222fceea9ed/Resolucion%20372-2022_expte.%20R-0393-2022.pdf)). Consultar empresa a empresa no es viable ni razonable para 2026. Línea futura: pedirlo por la Ley 19/2013 |
+| X-06 | [Sistema de detección precoz y exclusión de la UE (EDES)](https://commission.europa.eu/strategy-and-policy/eu-budget/how-it-works/annual-lifecycle/implementation/anti-fraud-measures/edes/edes-database_es) | La lista pública solo recoge los casos que la Comisión decide publicar: **5 entidades** en la copia de [OpenSanctions](https://www.opensanctions.org/datasets/eu_edes/) del 22-nov-2026. No aporta nada a los contratos de la Comunidad |
+| X-08 | Listado de deudores con la Hacienda Pública (AEAT, art. 95 bis de la Ley General Tributaria) | El propio artículo obliga a impedir que se indexe y a retirar los listados **tres meses después de publicarlos** (la edición del 30-jun-2026 ya no está accesible). La ley lo diseña para consultarlo, no para reutilizarlo, e incluye personas físicas. Riesgo legal alto para poco beneficio |

@@ -42,6 +42,9 @@ TABLAS_PERMITIDAS = {
     # Contratos atípicos (D-021): señal experimental, aparte de la puntuación. Las respuestas
     # deben decir que «atípico» no es «irregular» (docs/05-asistente.md).
     "anomalia_resultado",
+    # Encargos atípicos frente a otros encargos y validación de los atípicos (D-031).
+    "anomalia_encargo",
+    "anomalia_validacion",
     # Contexto de la Comunidad de Madrid (D-024, sql/esquema/003): presupuesto, convenios,
     # registros con NIF y plantilla. No son indicadores de riesgo.
     "serie_cm",

@@ -9,7 +9,7 @@ import streamlit as st
 from ojo_ciudadano.app import graficos, textos
 from ojo_ciudadano.app.conexion import conexion
 from ojo_ciudadano.app.tablas import mostrar_resultado
-from ojo_ciudadano.asistente import agente, bateria
+from ojo_ciudadano.asistente import agente, bateria, catalogo
 
 # Qué se muestra en lugar de una respuesta retenida (agente.RETENCION_*).
 RETENIDAS = {
@@ -36,7 +36,8 @@ def texto_visible(respuesta: agente.Respuesta) -> str:
 
 st.header("Asistente")
 st.caption(
-    "Pregunta en tus palabras sobre los contratos y las subvenciones de la Comunidad de Madrid. "
+    "Pregunta en tus palabras sobre los contratos y las subvenciones de la Comunidad de Madrid, "
+    "o sobre los datos de su catálogo de datos abiertos (sanidad, educación, presupuestos…). "
     "Las respuestas las redacta un modelo de lenguaje y pueden contener errores: comprueba "
     "siempre la consulta, los datos y el enlace oficial que se muestran con cada una. No "
     "escribas datos personales en tus preguntas."
@@ -56,6 +57,44 @@ if modelo is None:
     st.stop()
 
 
+def mostrar_conjunto(numero: int, consulta: dict) -> None:
+    """Una consulta al catálogo de datos abiertos (D-030): el conjunto, su enlace y su fecha."""
+    with st.expander(f"Datos de la consulta {numero} · catálogo de datos abiertos"):
+        st.markdown(
+            f"**[{consulta['titulo_conjunto']}]({consulta['url_origen']})** · "
+            f"{catalogo.NOMBRE_FUENTE} (licencia CC BY) · actualizado el "
+            f"{consulta['actualizado']} · datos descargados el {consulta['fecha_descarga']}"
+        )
+        if consulta.get("municipal"):
+            st.caption(
+                "Son datos de municipios: la plataforma trata la Comunidad de Madrid, no los "
+                "ayuntamientos."
+            )
+        st.dataframe(
+            {c: [f[i] for f in consulta["filas"]] for i, c in enumerate(consulta["columnas"])},
+            hide_index=True,
+        )
+        st.code(consulta["sql"].strip(), language="sql")
+
+
+def mostrar_busqueda(numero: int, consulta: dict) -> None:
+    """Una búsqueda por palabras en los títulos: el resumen por fuente y los ejemplos."""
+    with st.expander(f"Datos de la consulta {numero} · búsqueda «{consulta['busqueda']}»"):
+        resumen = consulta["resumen"]
+        st.dataframe(
+            {c: [f[i] for f in resumen["filas"]] for i, c in enumerate(resumen["columnas"])},
+            hide_index=True,
+        )
+        st.caption(
+            "Cuenta los títulos que contienen esas palabras: puede haber otros del mismo tema "
+            "con otro título. Debajo, los más parecidos a la búsqueda con su enlace oficial. La "
+            "relevancia solo mide el parecido del título con la búsqueda: no es un indicador de "
+            "riesgo. Los títulos de contratos o convenios con personas físicas no se muestran."
+        )
+        mostrar_resultado(consulta)
+        st.code(consulta["sql"].strip(), language="sql")
+
+
 def mostrar_respuesta(respuesta: agente.Respuesta) -> None:
     if respuesta.retencion:
         st.warning(texto_visible(respuesta))
@@ -70,6 +109,12 @@ def mostrar_respuesta(respuesta: agente.Respuesta) -> None:
             )
             break
     for numero, consulta in enumerate(respuesta.consultas, start=1):
+        if consulta.get("conjunto"):
+            mostrar_conjunto(numero, consulta)
+            continue
+        if consulta.get("busqueda"):
+            mostrar_busqueda(numero, consulta)
+            continue
         with st.expander(f"Datos de la consulta {numero}"):
             mostrar_resultado(consulta)
             if "fuente" not in consulta["columnas"]:
@@ -98,8 +143,21 @@ if pregunta := st.chat_input("Escribe tu pregunta"):
             {"rol": "modelo", "contenido": texto_visible(respuesta)},
         ]
     with st.chat_message("assistant"):
-        with st.spinner("Consultando los datos…"):
-            respuesta = agente.responder(conexion(), modelo, pregunta, historial)
+        try:
+            with st.spinner("Consultando los datos…"):
+                respuesta = agente.responder(conexion(), modelo, pregunta, historial)
+        except Exception:  # red, saldo o proveedor caído: no enseñar la traza
+            st.warning(
+                "El modelo de lenguaje no está disponible ahora mismo. Vuelve a intentarlo en "
+                "unos minutos o usa las preguntas guiadas.",
+                icon=":material/cloud_off:",
+            )
+            st.page_link(
+                "paginas/preguntas.py",
+                label="Ir a las preguntas guiadas",
+                icon=":material/arrow_forward:",
+            )
+            st.stop()
         mostrar_respuesta(respuesta)
     turnos.append((pregunta, respuesta))
 

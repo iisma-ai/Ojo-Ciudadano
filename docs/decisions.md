@@ -109,12 +109,31 @@ Plantilla:
 
 ## D-010 · Proveedor de LLM e índice híbrido del asistente
 - **Fecha:** 2026-11-15
-- **Estado:** Propuesta (aplazada: El Harrak indicó el 2026-11-16 que el LLM se decide más adelante; no bloquea ingesta, esquema ni indicadores)
-- **Autor:** Claude (agente)
-- **Contexto:** La propuesta dice «LLM por API con llamada a herramientas» y «LanceDB o Chroma», sin concretar.
-- **Decisión:** _Por decidir el día 1._ Criterios: soporte sólido de *tool calling*, calidad en texto a SQL en español, coste para la demo, disponibilidad de un modelo alternativo como respaldo (K-14).
-- **Alternativas consideradas:** —
-- **Consecuencias:** Bloquea las dependencias del asistente y el trabajo de la persona 4 (P-04).
+- **Estado:** Aceptada el 2026-11-23 para el proveedor y los modelos (El Harrak eligió OpenRouter y pidió elegir los modelos con la batería). El índice híbrido del RAG queda **Propuesta**: no hacerlo, aplicando el recorte 2.
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** La propuesta dice «LLM por API con llamada a herramientas» y «LanceDB o Chroma», sin concretar. Criterios del 15-nov: buena llamada a herramientas, texto a SQL en español, coste de la demo y un modelo de respaldo (K-14). El 23-nov el equipo tiene una clave de OpenRouter con un límite de 6 USD. El presupuesto para probar es de 1,40 USD.
+- **Decisión:**
+  - **Proveedor:** OpenRouter, por API compatible con OpenAI. El adaptador es `asistente/openrouter.py`, sobre `httpx`; no se añaden dependencias.
+  - **Modelo principal:** `openai/gpt-6.1-terra`.
+  - **Respaldo:** `anthropic/claude-haiku-5.5`, de otro proveedor. OpenRouter cambia al respaldo solo si el principal falla.
+  - **Cómo cambiarlo:** con `LLM_MODEL` en `.env`, sin tocar el código.
+- **Resultados de la batería de 20 preguntas (23-nov):**
+
+  | Modelo | Datos, evaluación automática | Datos, revisión a mano | Retenidas por lenguaje | Coste de las 20 | Mediana de palabras |
+  | --- | --- | --- | --- | --- | --- |
+  | `openai/gpt-6.1-terra` | 12/16 | 16/16 (los 4 restantes cambian la forma, no el dato) | 0 | 0,153 USD | 206 |
+  | `anthropic/claude-haiku-5.5` | 13/16 | — | 4 (0 con la reescritura) | 0,037 USD | 278 |
+  | `deepseek/deepseek-v4.1-flash` | 11/16 | — | 2 | 0,064 USD | 342 |
+
+  En la primera ronda, de 6 preguntas, se descartaron `mistralai/mistral-large-4-0` (lento y con errores de SQL) y `google/gemini-3.8-flash` (el triple de caro sin mejores datos).
+- **Por qué terra:** es el que mejor se entiende. Da respuestas más cortas, en lenguaje llano y con los nombres de las convocatorias traducidos, y no tuvo ninguna respuesta retenida. Cuesta unos 0,008 USD por pregunta, así que 1 USD da para unas 130 preguntas.
+- **Alternativas consideradas:**
+  - Haiku como principal: más barato y con la mejor nota automática, pero escribe respuestas más largas y repite las palabras de la pregunta.
+  - Modelos más caros (`claude-sonnet-5.5`, `gpt-6.2-sol`, 2 USD por millón de tokens de entrada): no se probaron, por presupuesto.
+- **Consecuencias:**
+  - El asistente responde preguntas libres si hay `OPENROUTER_API_KEY` en `.env`; sin clave, la pantalla remite a las preguntas guiadas.
+  - Para que pruebe todo el equipo, cada persona necesita la clave en su `.env`. Nunca se sube al repositorio.
+  - Las pruebas y la demo gastan del saldo compartido: los resultados se guardan en `data/evaluaciones/` para no repetir llamadas.
 
 ## D-011 · Convenciones de código y colaboración
 - **Fecha:** 2026-11-15
@@ -332,3 +351,38 @@ Plantilla:
   - Es **contexto, no señal**: no entra en la puntuación. Presentar un recurso no indica nada; una estimación solo dice que ese acto no se ajustaba a derecho según el Tribunal.
 - **Alternativas consideradas:** Abrir la ficha de cada resolución (1.100 peticiones frente a unas 340). Leer los PDF con IA para sacar el expediente (recorte n.º 3 del plan). Una señal «recursos estimados por órgano» (necesita definición y validación; queda como línea futura).
 - **Consecuencias:** Hay que bajar el listado (`uv run python -m ojo_ciudadano.ingesta.tacp`; el 23-nov fueron 377 páginas y unos 50 minutos, el servidor es lento) y regenerar la base. **Resultado y límites (23-nov):** 1.097 resoluciones de 1.109 (la paginación del buscador repite o salta filas cuando hay fechas empatadas). Solo **6 se enlazan con un contrato**: la mayoría de los resúmenes no citan el expediente, y el listado no da el órgano, solo la procedencia (consejerías, hospitales…). Por eso sirve sobre todo como **contexto agregado** (por ejemplo, el Tribunal estimó total o parcialmente el 30 % de los recursos contra pliegos, el 25 % contra adjudicaciones y el 18 % contra exclusiones). Enlazar más exigiría leer los PDF (recorte n.º 3), que queda como línea futura. Pendiente: mostrarlo en la ficha de contrato y de órgano. Se actualizan 02, 06 y 13.
+
+## D-030 · RAG centrado en el catálogo de datos abiertos y, después, en los pliegos
+- **Fecha:** 2026-11-23
+- **Estado:** **Bloque A aceptado** el 2026-11-23 (El Harrak: «empieza el bloque A del catálogo») e implementado ese día; pasó el control (4 de 4 preguntas de catálogo). Bloque B: Propuesta, pendiente de decidir.
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** El plan preveía un RAG con BM25 y embeddings sobre informes, memorias y pliegos (D-010, [05](05-asistente.md)), y es el recorte 2. La investigación del 23-nov está en [14-rag-documental.md](14-rag-documental.md).
+  - **El catálogo son tablas:** 2.231 de 2.276 conjuntos en CSV o JSON, y solo 12 con PDF.
+  - **Su buscador no encuentra lo que se pregunta.** Un índice BM25 propio acierta 6 de 8 preguntas, y las otras 2 piden datos que no existen.
+  - **La consulta remota** (`datastore_search_sql`) falla con columnas con tilde.
+  - **El CSV bajo demanda es pequeño:** 42 KB de mediana. La prueba de punta a punta (listas de espera por hospital) respondió bien por 0,0028 USD.
+  - **Los pliegos de PLACSP** están enlazados en el 97 % de las licitaciones de la muestra, y la prueba con R-02 citó el art. 168.a.2 con su página.
+- **Decisión propuesta:**
+  - **Bloque A, RAG de catálogo (6 h):**
+    - tabla aditiva `catalogo_conjunto` con índice BM25 de DuckDB;
+    - herramientas `buscar_conjunto` y `consultar_conjunto`: CSV bajo demanda con caché, consultado en local con el validador de `sql_seguro`;
+    - control el 24-nov a las 12:00.
+  - **Bloque B, pliegos de PLACSP bajo demanda (10 h):**
+    - tabla aditiva `contrato_documento`, herramienta `buscar_en_pliego` y dependencia `pypdf`;
+    - solo si A pasa el control; control el 24-nov a las 20:00.
+  - **Fuera de esta entrega:**
+    - PDF del TACPCM (D-029): necesitan revisión legal y la fusión de su rama;
+    - embeddings;
+    - informes de la Cámara de Cuentas.
+- **Alternativas consideradas:**
+  - Aplicar el recorte 2.
+  - Solo pliegos, que era la primera versión de esta propuesta: menos alineado con el núcleo.
+  - Consulta remota con `datastore_search_sql`: falla con las tildes.
+  - RAG completo con embeddings: torch y varios días.
+- **Implementación del bloque A (23-nov):** sin cambio de esquema. Los metadatos del catálogo se guardan como caché JSON en `data/raw/catalogo/`, que no se sube, y el índice BM25 se crea en memoria la primera vez que se usa: 2.228 conjuntos con CSV en 2,2 s. Así no se toca `modelo/carga.py`, que otras ramas están cambiando.
+- **Consecuencias:**
+  - Sin cambio de esquema en A. Con B, esquema aditivo (D-017) y cambio en `ingesta/placsp.py`: hay que avisar a quien lleva la ingesta.
+  - Cada instalación baja el catálogo con `uv run python -m ojo_ciudadano.asistente.catalogo` (3 peticiones).
+  - **RGPD (revisión legal del 23-nov):** no se ofrecen al asistente 57 conjuntos con listados que pueden nombrar a personas: registros, agenda de Gobierno, listas de interinos, ayudas con beneficiarios… Detalle en [14](14-rag-documental.md).
+  - De 4 a 7 preguntas nuevas en la batería.
+  - Si se acepta, se actualizan 05, 06 y 08.

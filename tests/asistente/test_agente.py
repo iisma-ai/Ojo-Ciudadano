@@ -2,8 +2,13 @@
 
 import pytest
 
-from ojo_ciudadano.asistente import agente, bateria
-from ojo_ciudadano.asistente.agente import LlamadaSQL, TextoFinal
+from ojo_ciudadano.asistente import agente, bateria, texto
+from ojo_ciudadano.asistente.agente import (
+    LlamadaBuscarTexto,
+    LlamadaConsultarConjunto,
+    LlamadaSQL,
+    TextoFinal,
+)
 from ojo_ciudadano.indicadores import ejecutor
 
 
@@ -22,6 +27,7 @@ def con(base):
         "WHERE adjudicatario_id = 'PF-abc'"
     )
     ejecutor.calcular_todos(base.con)
+    texto.construir_en(base.con)
     return base.con
 
 
@@ -90,13 +96,60 @@ def test_retiene_cifras_sin_consulta(con):
     assert r.avisos == [] and r.retencion is None
 
 
+def test_admite_sin_consulta_los_umbrales_de_un_indicador_nombrado(con):
+    texto = "R-04 se activa si un adjudicatario recibe más del 50 % del importe."
+    r = agente.responder(con, Guion(TextoFinal(texto)), "¿Qué es R-04?")
+    assert r.retencion is None
+    assert "Cifras tomadas de las definiciones de los indicadores, no de la base" in r.avisos
+    r = agente.responder(con, Guion(TextoFinal("R-04: más del 50 % y un 37 % más.")), "¿?")
+    assert r.retencion == agente.RETENCION_CIFRAS
+
+
+def test_retiene_un_umbral_atribuido_a_una_entidad_sin_consulta(con):
+    # Revisión legal del 23-nov: una cifra de las definiciones no respalda un dato de una empresa.
+    texto = "La empresa Acme recibe más del 50 % del importe del órgano."
+    r = agente.responder(con, Guion(TextoFinal(texto)), "¿?")
+    assert r.retencion == agente.RETENCION_CIFRAS
+    texto = "Hay unos 4.000 contratos con fechas anteriores a 2023."  # cifra del contexto
+    r = agente.responder(con, Guion(TextoFinal(texto)), "¿?")
+    assert r.retencion == agente.RETENCION_CIFRAS
+
+
+def test_si_falla_la_reescritura_se_retiene_la_original(con):
+    class FallaAlReescribir(Guion):
+        def __call__(self, sistema, mensajes):
+            if self.llamadas:
+                raise RuntimeError("proveedor caído")
+            return super().__call__(sistema, mensajes)
+
+    modelo = FallaAlReescribir(TextoFinal("Hay fraude en este órgano."))
+    r = agente.responder(con, modelo, "¿?")
+    assert r.retencion == agente.RETENCION_LENGUAJE
+
+
 @pytest.mark.parametrize(
     "texto",
     ["La empresa fue favorecida.", "Hay fraude en este órgano.", "Contratos dados a dedo."],
 )
 def test_retiene_lenguaje_acusatorio(con, texto):
-    r = agente.responder(con, Guion(TextoFinal(texto)), "¿?")
+    # El modelo tiene una oportunidad de reescribir; si insiste, se retiene.
+    modelo = Guion(TextoFinal(texto), TextoFinal(texto))
+    r = agente.responder(con, modelo, "¿?")
     assert r.retencion == agente.RETENCION_LENGUAJE
+    assert len(modelo.llamadas) == 2
+
+
+def test_una_reescritura_sin_terminos_se_muestra(con):
+    modelo = Guion(
+        TextoFinal("No puedo decir si una empresa es corrupta: no lo determino."),
+        TextoFinal("La plataforma no determina eso; puedo mostrar indicadores de riesgo."),
+    )
+    r = agente.responder(con, modelo, "¿Qué empresas son corruptas?")
+    assert r.retencion is None
+    assert r.texto.startswith("La plataforma no determina eso")
+    _, mensajes = modelo.llamadas[1]
+    assert mensajes[-2]["rol"] == "modelo"
+    assert "«corrup…»" in mensajes[-1]["contenido"]
 
 
 @pytest.mark.parametrize(
@@ -145,6 +198,10 @@ def test_pasar_bateria_con_un_modelo_que_usa_las_referencias(con):
             return TextoFinal("Respuesta con los datos de la consulta.")
         contenido = mensajes[-1]["contenido"]
         p = next(p for p in bateria.BATERIA if contenido.startswith(p.pregunta))
+        if p.conjunto is not None:
+            return LlamadaConsultarConjunto(p.conjunto, "SELECT * FROM conjunto")
+        if p.busqueda_texto:
+            return LlamadaBuscarTexto("ambulancia", "contrato")
         if p.sql is None:
             return TextoFinal("No puedo responder a eso con estos datos.")
         sql = p.sql
@@ -152,12 +209,33 @@ def test_pasar_bateria_con_un_modelo_que_usa_las_referencias(con):
             sql = sql.replace(f"${nombre}", f"'{valor}'")
         return LlamadaSQL(sql)
 
-    evaluaciones = agente.pasar_bateria(con, modelo)
-    assert len(evaluaciones) == 20
+    class CatalogoFalso:
+        def consultar(self, nombre, sql):
+            return {
+                "conjunto": nombre,
+                "sql": sql,
+                "columnas": ["a"],
+                "filas": [[1]],
+                "recortado": False,
+            }
+
+    evaluaciones = agente.pasar_bateria(con, modelo, catalogo_=CatalogoFalso())
+    assert len(evaluaciones) == 27
     de_datos = [e for e in evaluaciones if e["datos_ok"] is not None]
-    assert len(de_datos) == 16
+    assert len(de_datos) == 21
     assert all(e["datos_ok"] for e in de_datos), [e for e in de_datos if not e["datos_ok"]]
 
 
-def test_sin_proveedor_no_hay_modelo():
+def test_sin_clave_no_hay_modelo(monkeypatch):
+    from ojo_ciudadano.asistente import openrouter
+
+    monkeypatch.setattr(openrouter, "hay_clave", lambda: False)
     assert agente.modelo_configurado() is None
+
+
+def test_con_clave_usa_openrouter_sin_llamar_todavia(monkeypatch):
+    from ojo_ciudadano.asistente import openrouter
+
+    monkeypatch.setattr(openrouter, "hay_clave", lambda: True)
+    monkeypatch.setattr(openrouter, "modelo_elegido", lambda: "proveedor/modelo")
+    assert callable(agente.modelo_configurado())

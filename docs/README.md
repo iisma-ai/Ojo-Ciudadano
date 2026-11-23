@@ -23,6 +23,7 @@ Estado a 21 de noviembre de 2026: **fase 2 (construcción) casi cerrada.** Datos
 | [10-glosario.md](10-glosario.md) | Jerga de contratación pública y siglas | Cuando dudes de un término |
 | [11-accesibilidad.md](11-accesibilidad.md) | **Accesibilidad y visualización**: principios, tareas A-xx por pantalla y estudios de visualización por indicador | Antes de tocar cualquier pantalla |
 | [12-datos-cm.md](12-datos-cm.md) | **Contexto de la Comunidad de Madrid**: presupuesto, convenios y registros; cómo cargarlos y qué se dejó fuera | Antes de tocar presupuesto, convenios o registros |
+| [14-rag-documental.md](14-rag-documental.md) | **RAG**: datos nuevos, RAG de catálogo de datos abiertos y de pliegos; pruebas reales, plan por bloques y recomendación (D-030) | Antes de decidir o tocar el RAG |
 | [LO-PRIMERO.md](LO-PRIMERO.md) | **Lo primero hoy**: bajar y cargar los datos nuevos, con contador de confirmaciones (se borra al llegar a 2) | **Antes que cualquier otra tarea**, mientras exista |
 | [13-fuentes-externas.md](13-fuentes-externas.md) | Fuentes externas candidatas (recursos del TACPCM, referencias de licitador único, DIR3, fondos europeos) y las descartadas, con recomendación priorizada | Antes de proponer una fuente nueva |
 | [marca.md](marca.md) | Logo, paleta, tipografía y reglas de estilo (sin emojis) | Antes de tocar la interfaz o la presentación |

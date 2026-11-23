@@ -435,3 +435,26 @@ Plantilla:
   - Antes de la demo, hay que comprobar a mano unas 20 resoluciones enlazadas por título. Si falla más de 1 de cada 10, se desactiva ese enlace.
   - El comentario de `expediente_citado` en `006_recursos_tacp.sql` («citado en el resumen») ahora incluye el expediente que sale del PDF. No se cambia porque el esquema está congelado: se avisa al equipo.
   - Cada instalación ejecuta `ingesta.tacp --pdf` (unos 25 minutos la primera vez) y, tras regenerar la base, `asistente.documentos`.
+
+## D-033 · Mapa general de un vistazo: diseño radial, niveles y ficha lateral
+- **Fecha:** 2026-11-23
+- **Estado:** Aceptada
+- **Autor:** Claude (agente), a petición de la persona que coordina; ajusta D-026
+- **Contexto:** Al probar el mapa general de D-026 se vieron dos fallos: algunos círculos se cortaban por abajo (la física los repartía fuera del lienzo) y había que pulsar una consejería para ver sus contratos, cuando lo que se quería era ver todo a la vez.
+- **Decisión:**
+  - **Diseño radial calculado** en vez de la distribución al azar de la física: la Comunidad en el centro, las consejerías en una circunferencia (los grandes intercalados con los pequeños) y los contratos en un anillo exterior. Los nodos parten de esas posiciones y la física solo da el efecto elástico al arrastrar; el lienzo se dimensiona para el diseño (700 px con un nivel, 900 con dos). Es el mismo dibujo en cada carga.
+  - **Niveles elegibles:** «Solo consejerías» o «Consejerías y sus contratos» (por defecto), con 1 a 5 contratos por consejería y la opción de añadir un círculo de contratos menores y otro de subvenciones por consejería. Todo se ve de una vez, sin pulsar.
+  - **Ficha lateral:** al pulsar un círculo, su ficha aparece a la derecha (consejería: cuánto tiene, cuánto ha gastado, sin gastar y parte de la Comunidad; contrato: importe, ofertas, cómo se contrató, adjudicataria, señales). Un botón amplía una consejería a sus 15 contratos más grandes.
+  - Cada grupo de nodos (consejerías, contratos, agrupados) tiene su propia escala de tamaño y color: un contrato no se compara con el dinero de una consejería.
+  - El «Mapa del dinero» (organismo y sus empresas) usa el mismo diseño.
+- **Alternativas consideradas:** Dejar solo la física (círculos fuera del lienzo). Pedir zoom (se quiso sin zoom). Ventana emergente para la ficha (se cierra al interactuar y el componente no repite un clic sobre el mismo círculo).
+- **Consecuencias:** Más consultas al abrir el mapa (los contratos principales de todas las consejerías en una sola consulta, con caché de una hora). Se actualizan 03-modulos y el plan.
+
+## D-034 · Estética «océano» y cristal en la web
+
+- **Fecha:** 2026-11-23 · **Estado:** aceptada (prueba de concepto revisada por Lucas)
+- **Contexto:** la presentación (carpeta `presentacion/`) usa una estética submarina con burbujas de cristal; la web debía verse coherente con ella y más moderna.
+- **Decisión:** solo estilo, sin tocar datos ni lógica. Fondo de mar profundo con luz y burbujas que suben (CSS); métricas, tarjetas, desplegables, avisos, barra lateral, botones y campos de cristal esmerilado; títulos finos con degradado; burbujas de cristal sobrias en los mapas de nodos (sin manchas de brillo); los mapas de nodos sin recuadro (el fondo del componente se funde con `mix-blend-mode: lighten` y bordes difuminados); separaciones de gráficos claras y casi transparentes, nunca negras. Paleta del tema ajustada a azul océano (`docs/marca.md`).
+- **Alternativas:** mantener el tema plano anterior; tema claro.
+- **Consecuencias:** `static/estilo.css`, `.streamlit/config.toml`, `red.svg_nodo` y los bordes de `graficos.py`. Los selectores de Streamlit pueden cambiar con la versión: si algo deja de verse de cristal, revisar `estilo.css`. Sin animación con `prefers-reduced-motion`.
+

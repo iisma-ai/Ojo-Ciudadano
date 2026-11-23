@@ -235,3 +235,84 @@ def detalle_contrato(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict |
         [contrato_id],
     )
     return filas[0] if filas else None
+
+
+def contratos_principales(
+    con: duckdb.DuckDBPyConnection, anio: int, por_consejeria: int = 3
+) -> dict[str, list[dict]]:
+    """Los `por_consejeria` contratos más grandes del año (sin menores) de cada consejería, para
+    pintar de un vistazo la Comunidad, sus consejerías y sus contratos principales.
+    Devuelve `{organo_id de la consejería: [contratos, el mayor primero]}`."""
+    if por_consejeria <= 0:
+        return {}
+    destino = datos_contexto._consejeria_de(con)
+    pares = list(destino.items())
+    valores = ", ".join(["(?, ?)"] * len(pares))
+    parametros = [x for par in pares for x in par]
+    filas = _filas(
+        con,
+        f"""
+        WITH mapa(organo_id, consejeria_id) AS (VALUES {valores}),
+        contratos AS (
+            SELECT m.consejeria_id, c.contrato_id, c.titulo, c.fuente, c.procedimiento,
+                   o.nombre AS organo, c.url_origen,
+                   sum(coalesce(a.importe_sin_iva, a.importe_con_iva)) AS importe,
+                   min(a.n_ofertas) AS n_ofertas,
+                   {_NOMBRES_VISIBLES} AS adjudicatarios
+            FROM contrato_unico AS c
+            JOIN adjudicacion AS a USING (contrato_id)
+            JOIN organo AS o ON o.organo_id = c.organo_id
+            JOIN mapa AS m ON m.organo_id = c.organo_id
+            LEFT JOIN adjudicatario AS d ON d.adjudicatario_id = a.adjudicatario_id
+            WHERE NOT c.es_menor
+              AND year(coalesce(c.fecha_contrato, a.fecha_formalizacion)) = ?
+            GROUP BY m.consejeria_id, c.contrato_id, c.titulo, c.fuente, c.procedimiento,
+                     o.nombre, c.url_origen
+            HAVING sum(coalesce(a.importe_sin_iva, a.importe_con_iva)) > 0
+        ),
+        ordenados AS (
+            SELECT *, row_number() OVER (
+                PARTITION BY consejeria_id ORDER BY importe DESC, contrato_id) AS puesto
+            FROM contratos
+        )
+        SELECT * FROM ordenados WHERE puesto <= ? ORDER BY consejeria_id, puesto
+        """,
+        [*parametros, anio, por_consejeria],
+    )
+    resultado: dict[str, list[dict]] = {}
+    for fila in filas:
+        resultado.setdefault(fila["consejeria_id"], []).append(fila)
+    return resultado
+
+
+def menores_y_subvenciones(con: duckdb.DuckDBPyConnection, anio: int) -> dict[str, dict]:
+    """Por consejería y año: contratos menores (n e importe con IVA) y subvenciones (n e
+    importe). Para los nodos agrupados del mapa."""
+    destino = datos_contexto._consejeria_de(con)
+    resultado: dict[str, dict] = {}
+
+    def anotar(organo_id: str, clave: str, n: int, importe: float | None) -> None:
+        fila = resultado.setdefault(destino.get(organo_id, organo_id), {})
+        previo = fila.get(clave, {"n": 0, "importe": 0.0})
+        fila[clave] = {"n": previo["n"] + n, "importe": previo["importe"] + (importe or 0.0)}
+
+    for organo_id, n, importe in con.execute(
+        """
+        SELECT c.organo_id, count(DISTINCT c.contrato_id), sum(a.importe_con_iva)
+        FROM contrato_unico AS c JOIN adjudicacion AS a USING (contrato_id)
+        WHERE c.es_menor AND year(coalesce(c.fecha_contrato, a.fecha_formalizacion)) = ?
+        GROUP BY 1
+        """,
+        [anio],
+    ).fetchall():
+        anotar(organo_id, "menores", n, importe)
+    if con.execute(
+        "SELECT count(*) FROM duckdb_tables() WHERE table_name = 'concesion'"
+    ).fetchone()[0]:
+        for organo_id, n, importe in con.execute(
+            "SELECT organo_id, count(*), sum(importe) FROM concesion "
+            "WHERE year(fecha_concesion) = ? GROUP BY 1",
+            [anio],
+        ).fetchall():
+            anotar(organo_id, "subvenciones", n, importe)
+    return resultado

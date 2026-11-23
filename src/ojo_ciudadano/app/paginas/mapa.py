@@ -112,20 +112,26 @@ nodos_red = [
         importe=organismo["importe"],
         centro=True,
         titulo=organismo["organo"],
+        x=0,
+        y=0,
     )
 ]
-for n, f in enumerate(filas):
+radio = 230
+orden = red.alternar_tamanos(list(enumerate(filas)))
+for (n, f), (x, y) in zip(orden, red.posiciones_radiales(len(orden), radio), strict=True):
     nodos_red.append(
         red.NodoRed(
             id=f"emp:{n}",
-            etiqueta=red.envolver(f["empresa"][:30], 18) + "\n" + textos.millones(f["importe"]),
+            etiqueta=red.envolver(f["empresa"][:30], 18) + chr(10) + textos.millones(f["importe"]),
             importe=f["importe"],
             titulo=f["empresa"],
             detalle=f"{textos.numero(f['n_contratos'])} "
             + ("concesiones" if es_subvencion else "contratos"),
+            x=x,
+            y=y,
         )
     )
-red.mapa(nodos_red, [("centro", n.id) for n in nodos_red[1:]], alto=620)
+red.mapa(nodos_red, [("centro", n.id, radio) for n in nodos_red[1:]], alto=700)
 quien = "entidades" if es_subvencion else "empresas"
 st.caption(
     f"Las 10 {quien} con más importe de {organismo['organo']}. El tamaño y el color de cada "

@@ -18,6 +18,7 @@ RUTA_ESQUEMA = Path("sql/esquema")
 CARPETA_PORTAL = Path("data/raw/portal_cm")
 CARPETA_PLACSP = Path("data/raw/placsp")
 CARPETA_BDNS = Path("data/raw/bdns")
+CARPETA_CM = Path("data/raw/cm_abiertos")  # contexto de la Comunidad (D-024)
 
 COLUMNAS_CONTRATO = {
     "contrato_id": pl.String,
@@ -269,8 +270,10 @@ def construir(
     carpeta_placsp: Path = CARPETA_PLACSP,
     carpeta_bdns: Path = CARPETA_BDNS,
     ruta_db: Path = RUTA_DB,
+    carpeta_cm: Path | None = None,
 ) -> dict[str, pl.DataFrame]:
-    """Lee los ficheros brutos de las dos fuentes y regenera la base analítica."""
+    """Lee los ficheros brutos y regenera la base analítica. Con `carpeta_cm` carga además el
+    contexto de la Comunidad de Madrid (presupuesto, convenios, registros; D-024)."""
     csv_portal = sorted(carpeta_portal.glob("*.csv"))
     if not csv_portal:
         raise FileNotFoundError(
@@ -289,10 +292,14 @@ def construir(
     )
     tablas = unificar(tablas_portal, tablas_placsp, tablas_bdns, tablas_encargos)
     escribir(tablas, ruta_db)
+    if carpeta_cm is not None and any(carpeta_cm.glob("*.csv")):
+        from ojo_ciudadano.modelo import contexto
+
+        contexto.cargar(ruta_db, carpeta_cm)
     return tablas
 
 
 if __name__ == "__main__":
-    for nombre, tabla in construir().items():
+    for nombre, tabla in construir(carpeta_cm=CARPETA_CM).items():
         if tabla is not None:
             print(f"{nombre}: {tabla.height} filas")

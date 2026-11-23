@@ -2,6 +2,8 @@
 
 Esta carpeta es la **memoria del proyecto**. Todo lo que sabemos, decidimos y hacemos queda aquí. Si no está en `docs/`, para el equipo (y para los agentes) no existe.
 
+**Pendiente para todo el equipo el 23-nov: [LO-PRIMERO.md](LO-PRIMERO.md).**
+
 Estado a 21 de noviembre de 2026: **fase 2 (construcción) casi cerrada.** Datos de contratos y subvenciones cargados, seis indicadores con puntuación, detección de anomalías, interfaz rediseñada para la ciudadanía (D-022, D-023) y asistente sin proveedor de LLM todavía (D-010). Resumen y siguientes pasos en [`bitacora/2026-11-21-cierre-del-dia.md`](bitacora/2026-11-21-cierre-del-dia.md).
 
 ## Índice
@@ -20,6 +22,8 @@ Estado a 21 de noviembre de 2026: **fase 2 (construcción) casi cerrada.** Datos
 | [09-preguntas-abiertas.md](09-preguntas-abiertas.md) | Lo que aún no sabemos y hay que confirmar | Al empezar cada sesión |
 | [10-glosario.md](10-glosario.md) | Jerga de contratación pública y siglas | Cuando dudes de un término |
 | [11-accesibilidad.md](11-accesibilidad.md) | **Accesibilidad y visualización**: principios, tareas A-xx por pantalla y estudios de visualización por indicador | Antes de tocar cualquier pantalla |
+| [12-datos-cm.md](12-datos-cm.md) | **Contexto de la Comunidad de Madrid**: presupuesto, convenios y registros; cómo cargarlos y qué se dejó fuera | Antes de tocar presupuesto, convenios o registros |
+| [LO-PRIMERO.md](LO-PRIMERO.md) | **Lo primero hoy**: bajar y cargar los datos nuevos, con contador de confirmaciones (se borra al llegar a 2) | **Antes que cualquier otra tarea**, mientras exista |
 | [13-fuentes-externas.md](13-fuentes-externas.md) | Fuentes externas candidatas (recursos del TACPCM, referencias de licitador único, DIR3, fondos europeos) y las descartadas, con recomendación priorizada | Antes de proponer una fuente nueva |
 | [marca.md](marca.md) | Logo, paleta, tipografía y reglas de estilo (sin emojis) | Antes de tocar la interfaz o la presentación |
 | [bitacora/](bitacora/) | Registro de lo hecho en cada sesión de trabajo | **Siempre**: al empezar (leer) y al terminar (escribir) |

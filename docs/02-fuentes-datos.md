@@ -13,6 +13,9 @@ El núcleo son los **contratos de la Comunidad de Madrid**; subvenciones, presup
 | F-05 | [Presupuestos Generales](https://comunidad.madrid/sites/default/files/gobierno_abierto/2024-presupuesto-libro-08-ejecucion-liquidacion.pdf) | Crédito y ejecución por sección, centro, programa y capítulo | Libros en PDF; posibles ficheros en el catálogo | Escala: qué parte del presupuesto de cada órgano pasa por contratos | Sin enlace directo partida → contrato |
 | F-06 | [Catálogo de Datos Abiertos de la Comunidad de Madrid](https://datos.comunidad.madrid) | **Base obligatoria del concurso** | CKAN (API en `/api/action/`) | Contexto y validación de totales: presupuestos por órgano, agregados de contratos, altos cargos, RPT | **No tiene contratos fila a fila** (P-01 resuelta); ver detalle |
 
+| F-07 | [Catálogo de datos abiertos: contexto presupuestario, personal y registros](https://datos.comunidad.madrid) | Presupuestos iniciales y liquidados (por capítulo, función, sección, centro y órgano), ingresos, ayudas de la UE, personal, RPT, registro de transparencia, fundaciones, cooperativas | CSV por la API CKAN | **Contexto** (D-024): escala y etiquetas de entidad por NIF | Sin enlace partida → contrato. **Incorporada el 23-nov** (ver [12-datos-cm.md](12-datos-cm.md)) |
+| F-08 | [Portal de Transparencia: convenios vigentes](https://www.comunidad.madrid/transparencia/convenios) | 4.914 convenios con consejería, fechas, firmantes y texto de financiación | Excel mensual | **Contexto** (D-024): tercer flujo de dinero | Firmantes por nombre, sin NIF; financiación en texto libre. **Incorporada el 23-nov** |
+
 Otras referencias útiles:
 - [Guía de publicación en el perfil de contratante e interconexión con PLACSP](https://gestiona3.madrid.org/bvirtual/BVCM015814.pdf): explica cómo el portal regional vuelca en PLACSP (clave para deduplicar F-01/F-02).
 
@@ -25,7 +28,7 @@ Otras referencias útiles:
   - `1914620`, `1914621`, `1933725`: contratos administrativos por tipo, forma y procedimiento de adjudicación (estadística).
   - `presupuestos_liquidados_gastos_consolidados_por_organo_y_fase_ejecucion` y otros de presupuestos iniciales y liquidados.
   - `1501018` (altos cargos), `relacion_puestos_trabajo`, `registro_transparencia`.
-- Uso previsto: escala presupuestaria por órgano y validación cruzada de nuestros totales de contratos. Pendiente de incorporar al pipeline.
+- Uso previsto: escala presupuestaria por órgano y validación cruzada de nuestros totales de contratos. **Incorporado el 23-nov** (D-024): 25 series en `serie_cm`, presupuesto por órgano y fase en `presupuesto_organo`, registros con NIF en `entidad_registro` y RPT en `plantilla_organismo`. Detalle, lo no incorporado y cómo cargarlo en [12-datos-cm.md](12-datos-cm.md).
 
 ### F-02 · PLACSP, plataformas agregadas
 

@@ -9,7 +9,7 @@ Una fuente cada vez: sus importes no se suman (P-10). Sin personas físicas con 
 
 import streamlit as st
 
-from ojo_ciudadano.app import datos, graficos, textos
+from ojo_ciudadano.app import datos, graficos, red, textos
 from ojo_ciudadano.app.conexion import conexion
 
 FUENTES = {
@@ -105,15 +105,33 @@ st.button(
     on_click=elegir,
     args=(TODOS,),
 )
-st.plotly_chart(
-    graficos.red_organismo(organismo["organo"], filas, organismo["importe"]),
-    config=graficos.CONFIG,
-)
+nodos_red = [
+    red.NodoRed(
+        id="centro",
+        etiqueta=red.envolver(organismo["organo"], 18),
+        importe=organismo["importe"],
+        centro=True,
+        titulo=organismo["organo"],
+    )
+]
+for n, f in enumerate(filas):
+    nodos_red.append(
+        red.NodoRed(
+            id=f"emp:{n}",
+            etiqueta=red.envolver(f["empresa"][:30], 18) + "\n" + textos.millones(f["importe"]),
+            importe=f["importe"],
+            titulo=f["empresa"],
+            detalle=f"{textos.numero(f['n_contratos'])} "
+            + ("concesiones" if es_subvencion else "contratos"),
+        )
+    )
+red.mapa(nodos_red, [("centro", n.id) for n in nodos_red[1:]], alto=620)
 quien = "entidades" if es_subvencion else "empresas"
 st.caption(
-    f"Las 10 {quien} con más importe de {organismo['organo']}. El tamaño de cada burbuja y el "
-    "grosor de cada línea son el dinero. Un flujo grande refleja el volumen de compras o "
-    "ayudas del organismo y no es una señal de riesgo por sí mismo."
+    f"Las 10 {quien} con más importe de {organismo['organo']}. El tamaño y el color de cada "
+    "círculo son el dinero; todas las líneas son iguales y puedes arrastrar los círculos. "
+    "Un flujo grande refleja el volumen de compras o ayudas del organismo y no es una señal de "
+    "riesgo por sí mismo."
     + (
         " Las personas físicas aparecen juntas y sin nombre."
         if es_subvencion

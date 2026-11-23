@@ -22,6 +22,9 @@ URL_BASE = "https://openrouter.ai/api/v1"
 RUTA_ENV = Path(__file__).resolve().parents[3] / ".env"
 VARIABLE = "OPENROUTER_API_KEY"
 MODELO_PRUEBA = "openai/gpt-4o-mini"
+# Elegidos con la batería de 20 preguntas (D-010, bitácora del 23-nov).
+MODELO_PRINCIPAL = "anthropic/claude-haiku-5.5"
+MODELOS_RESPALDO = ["deepseek/deepseek-v4.1-flash"]
 MAX_TOKENS_RESPUESTA = 2500
 REINTENTOS = 2  # ante límites de ritmo (429) o errores del proveedor (5xx)
 
@@ -58,6 +61,11 @@ def clave(ruta_env: Path = RUTA_ENV) -> str:
 
 def hay_clave(ruta_env: Path = RUTA_ENV) -> bool:
     return _leer_env(VARIABLE, ruta_env) is not None
+
+
+def modelo_elegido(ruta_env: Path = RUTA_ENV) -> str:
+    """Modelo principal: `LLM_MODEL` del entorno o de `.env`, o el elegido en D-010."""
+    return _leer_env("LLM_MODEL", ruta_env) or MODELO_PRINCIPAL
 
 
 def _cabeceras() -> dict[str, str]:

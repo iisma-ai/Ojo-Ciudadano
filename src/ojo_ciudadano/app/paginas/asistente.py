@@ -98,8 +98,21 @@ if pregunta := st.chat_input("Escribe tu pregunta"):
             {"rol": "modelo", "contenido": texto_visible(respuesta)},
         ]
     with st.chat_message("assistant"):
-        with st.spinner("Consultando los datos…"):
-            respuesta = agente.responder(conexion(), modelo, pregunta, historial)
+        try:
+            with st.spinner("Consultando los datos…"):
+                respuesta = agente.responder(conexion(), modelo, pregunta, historial)
+        except Exception:  # red, saldo o proveedor caído: no enseñar la traza
+            st.warning(
+                "El modelo de lenguaje no está disponible ahora mismo. Vuelve a intentarlo en "
+                "unos minutos o usa las preguntas guiadas.",
+                icon=":material/cloud_off:",
+            )
+            st.page_link(
+                "paginas/preguntas.py",
+                label="Ir a las preguntas guiadas",
+                icon=":material/arrow_forward:",
+            )
+            st.stop()
         mostrar_respuesta(respuesta)
     turnos.append((pregunta, respuesta))
 

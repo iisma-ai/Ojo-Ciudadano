@@ -356,5 +356,13 @@ def pasar_bateria(con: duckdb.DuckDBPyConnection, modelo: Modelo) -> list[dict]:
 
 
 def modelo_configurado() -> Modelo | None:
-    """El modelo de lenguaje conectado. Ninguno hasta cerrar D-010 (proveedor y modelo)."""
-    return None
+    """El modelo de lenguaje conectado (D-010): OpenRouter con el modelo principal y uno de
+    respaldo, o el de `LLM_MODEL` si está en el entorno o en `.env`. None si no hay clave, y
+    entonces la interfaz remite a las preguntas guiadas."""
+    from ojo_ciudadano.asistente import openrouter  # importa este módulo: evitar el ciclo
+
+    if not openrouter.hay_clave():
+        return None
+    principal = openrouter.modelo_elegido()
+    respaldo = [m for m in openrouter.MODELOS_RESPALDO if m != principal]
+    return openrouter.modelo_openrouter(principal, respaldo)

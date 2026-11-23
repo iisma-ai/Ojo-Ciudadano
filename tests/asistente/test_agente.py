@@ -159,5 +159,16 @@ def test_pasar_bateria_con_un_modelo_que_usa_las_referencias(con):
     assert all(e["datos_ok"] for e in de_datos), [e for e in de_datos if not e["datos_ok"]]
 
 
-def test_sin_proveedor_no_hay_modelo():
+def test_sin_clave_no_hay_modelo(monkeypatch):
+    from ojo_ciudadano.asistente import openrouter
+
+    monkeypatch.setattr(openrouter, "hay_clave", lambda: False)
     assert agente.modelo_configurado() is None
+
+
+def test_con_clave_usa_openrouter_sin_llamar_todavia(monkeypatch):
+    from ojo_ciudadano.asistente import openrouter
+
+    monkeypatch.setattr(openrouter, "hay_clave", lambda: True)
+    monkeypatch.setattr(openrouter, "modelo_elegido", lambda: "proveedor/modelo")
+    assert callable(agente.modelo_configurado())

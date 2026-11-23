@@ -1,8 +1,8 @@
 # 13 · Fuentes externas candidatas: empresas, recursos y referencias
 
-Investigación del 23-nov-2026, **en curso**. Complementa [12-datos-cm.md](12-datos-cm.md) (rama `feat/datos-cm-abiertos`, fuentes de la propia Comunidad: presupuesto, convenios, registros, RPT). Aquí se buscan fuentes **que no son del catálogo ni del Portal de Transparencia de la Comunidad** y que mejoran la calidad de las señales sobre los mismos contratos y empresas.
+Investigación del 23-nov-2026. Complementa [12-datos-cm.md](12-datos-cm.md) (rama `feat/datos-cm-abiertos`, fuentes de la propia Comunidad: presupuesto, convenios, registros, RPT). Aquí se buscan fuentes **que no son del catálogo ni del Portal de Transparencia de la Comunidad** y que mejoran la calidad de las señales sobre los mismos contratos y empresas.
 
-> **Estado:** solo investigación y documentación. Nada de esto está incorporado al pipeline ni al esquema. Incorporar cualquier fuente exige decisión registrada (amplía D-001) y avisar al equipo.
+> **Estado (23-nov, cerrado):** solo investigación y documentación. Nada de esto está incorporado al pipeline ni al esquema. Incorporar cualquier fuente exige decisión registrada (amplía D-001) y avisar al equipo.
 
 ## Reparto para no pisarnos
 
@@ -25,7 +25,7 @@ Investigación del 23-nov-2026, **en curso**. Complementa [12-datos-cm.md](12-da
 | --- | --- | --- | --- |
 | X-01 | Prohibiciones de contratar (Junta Consultiva de Contratación Pública del Estado, ROLECE) | Señal: adjudicataria con prohibición vigente | **Descartada**: no hay listado público |
 | X-02 | Resoluciones del Tribunal Administrativo de Contratación Pública de la Comunidad de Madrid | Señal y contexto: contratos recurridos y estimados | **Viable** (ver detalle) |
-| X-03 | Expedientes sancionadores de la CNMC por colusión en licitaciones | Contexto: empresas sancionadas por cárteles en contratación | En estudio |
+| X-03 | Expedientes sancionadores de la CNMC por colusión en licitaciones | Contexto: empresas sancionadas por cárteles en contratación | **Solo manual, prioridad baja** (ver detalle) |
 | X-04 | Indicadores europeos de contratación (Single Market Scoreboard) y OIReScon | Referencia para comparar R-01 y R-02 con España y la UE | **Viable y barata** (ver detalle) |
 | X-05 | DIR3 (directorio común de unidades orgánicas) | Normalizar órganos entre portal y PLACSP | **Viable, valor medio** (ver detalle) |
 | X-06 | Sistema de exclusión de la UE (EDES) y listas de inhabilitación | Señal: entidad excluida | **Descartada**: 5 entidades en toda la UE |
@@ -142,6 +142,29 @@ Recuento sobre los 47 zip ya descargados (ene-2023 a nov-2026), última versión
 - **Para qué sirve:** etiqueta «financiado con fondos europeos (PRTR)» en la ficha de contrato y filtro en el panel de alertas y en el mapa. Los contratos del PRTR tienen obligaciones reforzadas de control (Orden HFP/1030/2021: conflicto de intereses, doble financiación), así que es un contexto relevante para quien revisa. **No es una señal de riesgo.**
 - **Coste:** bajo. Es una columna nueva en `contrato` (esquema aditivo, D-017) y unas líneas en el lector del Atom. No hace falta descargar nada.
 - **Con esto, los listados de perceptores del PRTR y de FEDER/FSE+ pierden prioridad**: repetirían lo que ya sabemos del contrato. Quedan como línea futura para las subvenciones con fondos europeos.
+
+### X-03 · Expedientes sancionadores de la CNMC por colusión en licitaciones
+
+Explorado el 23-nov-2026.
+
+- **Acceso:** [buscador de expedientes de la CNMC](https://www.cnmc.es/expedientes) (HTML, con filtros de texto, ámbito y fechas) y una página por expediente con la resolución en PDF. **No hay fichero de datos**: una solicitud en datos.gob.es pidió un listado de «empresas condenadas por fraude en licitaciones públicas» y la respuesta fue que no existe una base sistemática ([solicitud](https://datos.gob.es/es/solicitud-de-datos/empresas-condenadas-por-fraude-en-licitaciones-publicas)).
+- **Casos de 2023–2026 vistos en la búsqueda:** ninguno sobre órganos de la Comunidad de Madrid. Los más cercanos son de compradores con sede en Madrid que no son de la Comunidad (agencias de viajes para el Banco de España y la Universidad Complutense, con prohibición de contratar de 3 a 6 meses; material militar del Ministerio de Defensa) y una incoación de 2026 sobre obra civil en Cantabria.
+- **Valoración:** solo se podría hacer como una **tabla pequeña hecha a mano** (expediente, fecha, mercado, empresas, enlace a la resolución), cruzada por nombre con `adjudicatario`. Riesgo legal alto: muchas sanciones están recurridas ante la Audiencia Nacional y nombrar empresas exige revisar la firmeza de cada una (D-002, `revisor-legal`). **No compensa antes del 26-nov.**
+
+## Recomendación (para decidir con el equipo)
+
+Ordenada por valor para el jurado y por coste. Ninguna cambia el esquema v1 ni los indicadores existentes; todas serían ampliaciones aditivas (D-017) que necesitan una decisión registrada.
+
+| Prioridad | Qué | Coste | Por qué |
+| --- | --- | --- | --- |
+| 1 | **X-04** · Texto y tabla de referencia de licitador único (OIReScon 2025, Scoreboard, TCE ES30) en la ayuda de R-01 | < 1 h, sin ingesta | Evita que el 39,4 % de R-01 se lea como anómalo: la media autonómica española es del 45,5 %. Da rigor ante el jurado |
+| 2 | **Filas de relleno** con el NIF de la Comunidad (`S7800001E` «33 EMPRESAS ADJUDICATARIAS», `Q7850065I` «VER ORDEN DE ADJUDICACIÓN») | < 1 h | Es una corrección de datos, no una función: 35,2 M€ atribuidos a una «empresa» que no existe (ver X-05) |
+| 3 | **X-07** · Columna de fondos europeos (PRTR, FEDER, FSE+) desde el Atom de PLACSP | 1–2 h | Dato oficial que ya tenemos descargado; 991 expedientes; filtro útil en la demo |
+| 4 | **X-02** · Recursos ante el TACPCM (metadatos del listado, sin PDF) cruzados por expediente | medio día | Hecho oficial nuevo en la ficha de contrato y órgano; posible señal futura (recursos estimados contra pliegos) |
+| 5 | **X-05** · DIR3 como lista canónica de órganos y para marcar adjudicatarios del sector público | medio día | Mejora la normalización; el cruce es por nombre |
+| — | X-01, X-03, X-06, X-08 | — | Descartadas o solo manuales (ver arriba) |
+
+Con el calendario (H3 el 24-nov, el 25 no se añaden funciones), lo razonable es **1 y 2 hoy**, **3 si da tiempo antes del H3**, y 4 y 5 como línea futura documentada en la presentación.
 
 ### Descartadas (23-nov)
 

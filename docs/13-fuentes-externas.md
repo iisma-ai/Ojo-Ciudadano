@@ -27,7 +27,7 @@ Investigación del 23-nov-2026, **en curso**. Complementa [12-datos-cm.md](12-da
 | X-02 | Resoluciones del Tribunal Administrativo de Contratación Pública de la Comunidad de Madrid | Señal y contexto: contratos recurridos y estimados | **Viable** (ver detalle) |
 | X-03 | Expedientes sancionadores de la CNMC por colusión en licitaciones | Contexto: empresas sancionadas por cárteles en contratación | En estudio |
 | X-04 | Indicadores europeos de contratación (Single Market Scoreboard) y OIReScon | Referencia para comparar R-01 y R-02 con España y la UE | **Viable y barata** (ver detalle) |
-| X-05 | DIR3 (directorio común de unidades orgánicas) | Normalizar órganos entre portal y PLACSP | En estudio |
+| X-05 | DIR3 (directorio común de unidades orgánicas) | Normalizar órganos entre portal y PLACSP | **Viable, valor medio** (ver detalle) |
 | X-06 | Sistema de exclusión de la UE (EDES) y listas de inhabilitación | Señal: entidad excluida | **Descartada**: 5 entidades en toda la UE |
 | X-07 | Fondos europeos (PRTR y FEDER/FSE+ de la Comunidad) | Contexto: contratos y beneficiarios con fondos europeos | En estudio |
 | X-08 | Listado de deudores con la Hacienda Pública (AEAT) | Señal posible | **Descartada**: la ley impide su reutilización |
@@ -102,6 +102,19 @@ España en conjunto (`avg_singleb_yearly_ted.csv`): 19,5 % (2016), 25,6 % (2019)
 Evolución del importe con un único licitador en el sector autonómico: 27,8 % (2021), 31,2 % (2022), **29,4 % (2023)**, **31,8 % (2024)**, **29,9 % (2025)**.
 
 **Conclusión para R-01:** el 39,4 % de la Comunidad está **por debajo** de la media del sector autonómico español en 2025 (45,5 % de los lotes) y por encima de la media europea en TED (28 %). El indicador funciona como señal por contrato, pero la tasa global no es anómala en el contexto español. Hay que decirlo en la ayuda de R-01 para no inducir a error. Diferencias de método: la OIReScon cuenta lotes y todos los procedimientos menos el negociado sin publicidad; R-01 cuenta contratos y solo abiertos, abiertos simplificados y restringidos.
+
+### X-05 · DIR3, directorio común de unidades orgánicas
+
+Explorado el 23-nov-2026. Directorio oficial de unidades de todas las administraciones (Ministerio para la Transformación Digital y de la Función Pública), actualizado más o menos cada mes.
+
+- **Acceso:** [página de descargas](https://administracionelectronica.gob.es/ctt/dir3/descargas), Excel por nivel de administración. El de comunidades autónomas es [`Listado Unidades CCAA.xlsx`](https://administracionelectronica.gob.es/ctt/resources/Soluciones/238/Descargas/Listado%20Unidades%20CCAA.xlsx) (1,3 MB, 18.825 filas, descarga directa sin clave). Licencia: la general de reutilización de la AGE (citar fuente).
+- **Campos:** código DIR3 (`C_ID_UD_ORGANICA`), nombre, nivel jerárquico, unidad superior y unidad raíz con sus nombres, estado, fecha de alta y **NIF de la unidad** (`NIF_CIF`).
+- **Comunidad de Madrid** (códigos `A13…`): **499 unidades vigentes** en 6 niveles (la Comunidad, 10 consejerías u órganos de nivel 2, 121 de nivel 3…); 496 con NIF. Las consejerías comparten el NIF de la Comunidad (`S7800001E`); los organismos y hospitales con personalidad propia tienen el suyo (por ejemplo, el Hospital Psiquiátrico Dr. Rodríguez Lafora, `A13013753`, depende del Servicio Madrileño de Salud).
+- **Lo que no resuelve:** las entradas de la Comunidad en PLACSP **no traen código DIR3 ni NIF del órgano** (0 de 3.423 entradas en octubre de 2026; otras plataformas sí lo traen). El cruce sería **por nombre**, igual que ahora entre portal y PLACSP. Además, el fichero solo tiene las unidades **vigentes**: no da los nombres antiguos de las consejerías renombradas, que es una de las causas de los fallos de cruce documentadas en [02-fuentes-datos.md](02-fuentes-datos.md).
+- **Para qué sí sirve:**
+  1. **Lista canónica de órganos** con su jerarquía oficial: mejora la ficha de órgano y la agrupación por consejería.
+  2. **Reconocer adjudicatarios que son sector público** por NIF (encargos a medios propios, convenios entre entes): hoy aparecen como «empresas» en la ficha y en R-04.
+- **Coste:** bajo para descargar y leer (necesita `fastexcel`, que entra con D-024); medio para el cruce por nombre. Prioridad: después de X-02 y X-04.
 
 ### Descartadas (23-nov)
 

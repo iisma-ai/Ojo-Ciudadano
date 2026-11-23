@@ -319,3 +319,16 @@ Plantilla:
   - El asistente puede consultarlos, diciendo que no son contratos.
 - **Alternativas consideradas:** Cargarlos en `contrato` con `tipo_publicacion = 'Encargos a medios propios'` y excluirlos en cada indicador (toca los seis SQL a un día del H3). Tomar la fecha de cada ficha (2.405 peticiones; la referencia da lo mismo con un recorrido de 95 páginas).
 - **Consecuencias:** Hay que regenerar la base. El CSV se exporta a mano (captcha): está en `data/raw/encargos/`, fuera de git. Si se exporta de nuevo en 2027, hay que añadir el tramo de referencias de ese año. Pendiente: mostrarlos en la ficha de órgano y en el mapa del dinero (lo coordina quien lleva la interfaz). Se actualizan 02, 06 y 13.
+
+## D-029 · Recursos especiales ante el TACPCM como contexto del contrato
+- **Fecha:** 2026-11-23
+- **Estado:** Aceptada
+- **Autor:** Claude (agente), a petición de una persona del equipo
+- **Contexto:** El Tribunal Administrativo de Contratación Pública de la Comunidad de Madrid publica sus resoluciones sobre recursos especiales (pliegos, exclusiones, adjudicaciones) en un buscador HTML. Es un hecho oficial sobre contratos concretos que no teníamos. De 2023 a 2026 hay unas 1.100 resoluciones de consejerías, hospitales, otros poderes adjudicadores y universidades ([13-fuentes-externas.md](13-fuentes-externas.md), X-02).
+- **Decisión:**
+  - Descarga reproducible del listado (`ingesta/tacp.py`), una petición cada vez con 2 s de pausa y caché en `data/raw/tacp/`. Se recorre por procedencia × tipo de resolución × acto recurrido: los filtros reparten las resoluciones sin huecos (comprobado con las 451 de consejerías), así que cada una sale una vez y ya etiquetada.
+  - Tabla aditiva `recurso_especial` (`sql/esquema/006_recursos_tacp.sql`). Se enlaza con `contrato` cuando el resumen cita un expediente que corresponde a **un único** contrato no menor y no duplicado; si no casa o es ambiguo, queda sin enlazar.
+  - **No se guarda el resumen** (nombra a empresas y puede nombrar a personas, D-007): solo los campos estructurados y los enlaces a la ficha y al PDF.
+  - Es **contexto, no señal**: no entra en la puntuación. Presentar un recurso no indica nada; una estimación solo dice que ese acto no se ajustaba a derecho según el Tribunal.
+- **Alternativas consideradas:** Abrir la ficha de cada resolución (1.100 peticiones frente a unas 340). Leer los PDF con IA para sacar el expediente (recorte n.º 3 del plan). Una señal «recursos estimados por órgano» (necesita definición y validación; queda como línea futura).
+- **Consecuencias:** Hay que bajar el listado (`uv run python -m ojo_ciudadano.ingesta.tacp`, unos 12 minutos) y regenerar la base. Pendiente: mostrarlo en la ficha de contrato y de órgano. Se actualizan 02, 06 y 13.

@@ -109,6 +109,8 @@ El ejecutor (`src/ojo_ciudadano/indicadores/ejecutor.py`) crea las funciones de 
 
 **Encargos a medios propios (23-nov, ampliación aditiva, D-028):** [`sql/esquema/005_encargos.sql`](../sql/esquema/005_encargos.sql) crea `encargo` (clave `encargo_id` + `orden`, con `organo_id`, `medio_propio_id` en `adjudicatario`, importe con IVA y `anio_publicacion`). `ingesta/encargos.py` lee `data/raw/encargos/encargos_todo_*.csv` si existe; el año sale de la referencia del portal (`LIMITES_REFERENCIA`, comprobado contra el buscador). No entran en `contrato`, ni en los indicadores, ni en la puntuación.
 
+**Recursos especiales (23-nov, ampliación aditiva, D-029):** [`sql/esquema/006_recursos_tacp.sql`](../sql/esquema/006_recursos_tacp.sql) crea `recurso_especial` (resolución del TACPCM con fecha, procedencia, tipo de resolución, acto recurrido, enlaces a la ficha y al PDF y, si casa con un único contrato, `contrato_id`). `ingesta/tacp.py` descarga el listado a `data/raw/tacp/`; `modelo.carga.cruzar_recursos` hace el enlace por expediente. No se guarda el resumen.
+
 ### Contratos atípicos (D-021)
 
 Tabla derivada `anomalia_resultado`, que se regenera entera (unos 45 segundos, después del ejecutor de indicadores) con:

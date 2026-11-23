@@ -16,6 +16,8 @@ El núcleo son los **contratos de la Comunidad de Madrid**; subvenciones, presup
 | F-07 | [Catálogo de datos abiertos: contexto presupuestario, personal y registros](https://datos.comunidad.madrid) | Presupuestos iniciales y liquidados (por capítulo, función, sección, centro y órgano), ingresos, ayudas de la UE, personal, RPT, registro de transparencia, fundaciones, cooperativas | CSV por la API CKAN | **Contexto** (D-024): escala y etiquetas de entidad por NIF | Sin enlace partida → contrato. **Incorporada el 23-nov** (ver [12-datos-cm.md](12-datos-cm.md)) |
 | F-08 | [Portal de Transparencia: convenios vigentes](https://www.comunidad.madrid/transparencia/convenios) | 4.914 convenios con consejería, fechas, firmantes y texto de financiación | Excel mensual | **Contexto** (D-024): tercer flujo de dinero | Firmantes por nombre, sin NIF; financiación en texto libre. **Incorporada el 23-nov** |
 
+| F-09 | [Tribunal Administrativo de Contratación Pública de la Comunidad de Madrid](https://www.comunidad.madrid/tacp/busquedaresoluciones) | Resoluciones de recursos especiales: fecha, procedencia, tipo de resolución, acto recurrido, PDF | Buscador HTML, 5 por página; descarga por código con pausa (`ingesta/tacp.py`) | **Contexto** del contrato (D-029): recurrido y con qué resultado | El expediente del contrato solo viene en el texto del resumen; el enlace con `contrato` es parcial. **Incorporada el 23-nov** (ver [13-fuentes-externas.md](13-fuentes-externas.md), X-02) |
+
 Otras referencias útiles:
 - [Guía de publicación en el perfil de contratante e interconexión con PLACSP](https://gestiona3.madrid.org/bvirtual/BVCM015814.pdf): explica cómo el portal regional vuelca en PLACSP (clave para deduplicar F-01/F-02).
 

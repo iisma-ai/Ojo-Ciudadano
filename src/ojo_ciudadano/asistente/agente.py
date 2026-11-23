@@ -85,6 +85,10 @@ DESCRIPCION_TABLAS = {
     "puntuacion_organo_anio": "Como puntuacion_organo, por año.",
     "puntuacion_empresa": "Por adjudicatario (sin personas físicas): igual que puntuacion_organo.",
     "puntuacion_empresa_anio": "Como puntuacion_empresa, por año.",
+    "contrato_financiacion": (
+        "Licitaciones de PLACSP con fondos europeos: financiado_ue (true/false) y programas_ue "
+        "(PRTR, FEDER, FSE+, FEADER, OFE). Solo las que traen el dato. Contexto, no una señal."
+    ),
     "anomalia_resultado": (
         "Contratos atípicos respecto a contratos similares (D-021, Isolation Forest por grupo "
         "de pares). atipico = está en el 1 % más alejado de su grupo; puntuacion = percentil; "

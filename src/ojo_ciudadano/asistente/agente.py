@@ -63,7 +63,7 @@ class LlamadaConsultarConjunto:
 @dataclass(frozen=True)
 class LlamadaBuscarTexto:
     consulta: str
-    en: str  # contrato | convenio | convocatoria
+    en: str  # contrato | convenio | convocatoria | encargo
 
 
 @dataclass(frozen=True)
@@ -129,7 +129,8 @@ HERRAMIENTA_BUSCAR_TEXTO = {
     "nombre": "buscar_texto",
     "descripcion": (
         "Busca por palabras (reconoce plurales y tildes) en los títulos de los contratos, los "
-        "convenios o las convocatorias de subvenciones de la base. Devuelve un resumen por "
+        "convenios, las convocatorias de subvenciones o los encargos a medios propios de la "
+        "base. Devuelve un resumen por "
         "fuente (número y, en contratos y convocatorias, importe; en contratos, separado por "
         "fuente: sin IVA en PLACSP y con IVA en el portal regional, que no se suman) y los 20 "
         "títulos más "
@@ -144,7 +145,7 @@ HERRAMIENTA_BUSCAR_TEXTO = {
             "consulta": {"type": "string", "description": "Palabras clave del tema."},
             "en": {
                 "type": "string",
-                "enum": ["contrato", "convenio", "convocatoria"],
+                "enum": ["contrato", "convenio", "convocatoria", "encargo"],
                 "description": "Dónde buscar.",
             },
         },
@@ -223,6 +224,18 @@ DESCRIPCION_TABLAS = {
         "de pares). atipico = está en el 1 % más alejado de su grupo; puntuacion = percentil; "
         "motivo = variables en las que más se aleja. Señal experimental, fuera de la puntuación."
     ),
+    "anomalia_encargo": (
+        "Encargos a medios propios atípicos respecto a otros encargos (D-031): mismas columnas "
+        "que anomalia_resultado, con encargo_id en vez de contrato_id (se une con encargo). "
+        "Variables: importe del encargo, modificaciones y cuota del medio propio en lo que "
+        "encarga el órgano. Los encargos no son contratos licitados. Señal experimental."
+    ),
+    "anomalia_validacion": (
+        "Comprobación de la detección de anomalías (D-031): proporción de atípicos y puntuación "
+        "de riesgo media en todos los contratos, en los que tienen algún recurso estimado ante "
+        "el TACPCM, en los que solo tienen recursos desestimados o inadmitidos, y en las "
+        "licitaciones de PLACSP con y sin fondos europeos. Es descriptiva: no prueba nada."
+    ),
 }
 
 CONTEXTO_DATOS = """\
@@ -285,6 +298,16 @@ puntuación es poco fiable.
 - Si te piden juzgar a una empresa, un órgano o una persona («¿es corrupta?», «¿quién es \
 culpable?»), explica que la plataforma no determina eso: calcula indicadores de riesgo, que \
 señalan contratos que merecen revisión y no prueban nada. Ofrece consultar sus indicadores.
+- Con anomalia_encargo, habla de encargos «atípicos respecto a otros encargos» y di que es una \
+señal experimental de aprendizaje automático, que no suma a la puntuación de riesgo y que \
+atípico no significa irregular; recuerda que un encargo no es un contrato licitado.
+- Con anomalia_validacion, presenta las proporciones como una comprobación descriptiva con muy \
+pocos casos (solo unas pocas resoluciones del TACPCM están enlazadas con un contrato), no como \
+prueba de que la señal funcione. Un recurso estimado significa que el Tribunal dio la razón al \
+recurrente sobre un acto del órgano; no es una sanción ni dice nada de la empresa \
+adjudicataria. Los fondos europeos no son una señal de riesgo. Cita como fuentes el Tribunal \
+Administrativo de Contratación Pública de la Comunidad de Madrid y PLACSP, con su fecha de \
+descarga (columna fecha_descarga).
 - Si usas anomalia_resultado, habla de contratos «atípicos respecto a contratos similares» y di \
 siempre en la respuesta estas tres cosas: que es una señal experimental de aprendizaje \
 automático, que no suma a la puntuación de riesgo y que atípico no significa irregular. Explica \

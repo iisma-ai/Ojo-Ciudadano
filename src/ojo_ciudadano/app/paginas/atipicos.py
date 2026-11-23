@@ -21,6 +21,86 @@ if not datos.hay_anomalias(con):
     )
     st.stop()
 
+# Encargos a medios propios y comprobación con datos oficiales (D-031).
+MIN_VALIDACION = 30  # con menos contratos, un porcentaje parece más preciso de lo que es
+encargos = datos.encargos_atipicos(con)
+if encargos:
+    with st.expander(
+        f"Encargos a medios propios atípicos ({textos.numero(len(encargos))})",
+        icon=":material/assignment:",
+    ):
+        st.caption(
+            "Encargos que se alejan de los demás encargos (importe, modificaciones y peso del "
+            "medio propio en lo que encarga el órgano). Un encargo no es un contrato licitado: "
+            "la ley permite asignar trabajos a entidades públicas que actúan como medio propio. "
+            "Atípico no significa irregular."
+        )
+        for e in encargos:
+            organo = e["organo"] or "Órgano sin nombre"
+            medio = e["medio_propio"] or "medio propio"
+            st.markdown(
+                f"**{e['titulo'] or e['encargo_id']}**  \n"
+                f":gray[{organo} → {medio} · {textos.euros(e['importe_con_iva'], 'con IVA')}"
+                f" · {e['anio']}]  \n"
+                f"Motivo de la señal: {e['motivo']}"
+            )
+            st.link_button(
+                "Ver el encargo en el portal", e["url_origen"], icon=":material/open_in_new:"
+            )
+        st.caption(
+            f"Fuente: {textos.NOMBRES_FUENTE['portal_cm']}, datos descargados el "
+            f"{encargos[0]['fecha_descarga']}."
+        )
+
+validacion = datos.validacion_anomalias(con)
+if validacion:
+    with st.expander(
+        "Comprobación con los recursos del Tribunal y los fondos europeos",
+        icon=":material/fact_check:",
+    ):
+        enlazados = next(
+            (v["contratos"] for v in validacion if "recurso estimado" in v["grupo_validacion"]),
+            0,
+        )
+        st.caption(
+            "Si la señal sirve, los contratos en los que el Tribunal Administrativo de "
+            "Contratación Pública estimó un recurso deberían ser atípicos más a menudo que el "
+            f"resto. Solo {textos.numero(enlazados)} contratos con recurso estimado están "
+            "enlazados con su resolución, así que esta tabla es orientativa: no prueba que la "
+            "señal funcione ni que falle. Que el Tribunal estime un recurso no dice nada de la "
+            "empresa adjudicataria. Los fondos europeos se muestran solo como comparación: no "
+            "son un indicador de riesgo. Ni los recursos ni los fondos se usan para calcular "
+            "la señal."
+        )
+        st.dataframe(
+            {
+                "Grupo": [v["grupo_validacion"] for v in validacion],
+                "Contratos": [v["contratos"] for v in validacion],
+                "Atípicos": [v["atipicos"] for v in validacion],
+                "% atípicos": [
+                    textos.porcentaje(v["proporcion_atipicos"], 1)
+                    if v["proporcion_atipicos"] is not None and v["contratos"] >= MIN_VALIDACION
+                    else "— (muy pocos casos)"
+                    for v in validacion
+                ],
+                "Puntuación de riesgo media (indicadores)": [
+                    f"{v['puntuacion_riesgo_media']:.3f}".replace(".", ",")
+                    if v["puntuacion_riesgo_media"] is not None
+                    else "—"
+                    for v in validacion
+                ],
+            },
+            hide_index=True,
+        )
+        fechas = {v["fuente"]: v["fecha_descarga"] for v in validacion}
+        st.caption(
+            "Fuentes: Tribunal Administrativo de Contratación Pública de la Comunidad de Madrid "
+            f"(resoluciones, descargadas el {fechas.get('recurso_especial', 'sin fecha')}), "
+            "Plataforma de Contratación del Sector Público (fondos europeos, descargados el "
+            f"{fechas.get('contrato_financiacion', 'sin fecha')}) y la detección de anomalías "
+            "de esta plataforma."
+        )
+
 LIMITE = 100
 con_errores = st.toggle(
     "Mostrar posibles errores de datos",

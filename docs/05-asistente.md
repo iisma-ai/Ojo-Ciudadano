@@ -149,3 +149,12 @@ Herramienta `buscar_texto(consulta, en)` (`texto.py`), con `en` = `contrato`, `c
   - `relevancia_busqueda`, con la aclaración de que no es un indicador de riesgo;
   - fuentes con su nombre oficial;
   - criterio de B-26 con búsquedas separadas, sin sumarlas, y con la cita.
+
+## Datos de D-027 a D-029 en el asistente (23-nov, D-031)
+
+- `contrato_financiacion`, `encargo` y `recurso_especial` ya estaban en la lista permitida. Ahora se añaden `anomalia_encargo` (encargos atípicos) y `anomalia_validacion` (comprobación con los recursos y los fondos UE), con sus reglas de lenguaje.
+- `buscar_texto` admite `en = "encargo"`: busca en los títulos de los encargos y resume su número y su importe con IVA.
+- **Batería:** de 27 a 30 preguntas.
+  - B-28: órganos con más contratos con fondos europeos.
+  - B-29: medios propios con más importe encargado.
+  - B-30: proporción de recursos estimados por acto recurrido.

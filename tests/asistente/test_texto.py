@@ -119,3 +119,20 @@ def test_funciona_en_la_conexion_de_solo_lectura(tmp_path, base):
     )
     with pytest.raises(duckdb.Error):
         lectura.execute("SET enable_external_access = true")
+
+
+def test_busca_en_encargos(base):
+    base.con.execute(
+        "INSERT INTO adjudicatario VALUES ('A28476208', 'A28476208', 'Tragsa', 'juridica')"
+    )
+    base.con.execute(
+        "INSERT INTO encargo (encargo_id, orden, fuente, organo_id, titulo, anio_publicacion, "
+        "medio_propio_id, importe_con_iva, url_origen, fecha_descarga) VALUES "
+        "('portal_cm:C1', 1, 'portal_cm', 'ORG', 'Prevención de incendios forestales', 2025, "
+        "'A28476208', 250000, 'https://x/C1', DATE '2026-11-23')"
+    )
+    texto.construir_en(base.con)
+    r = texto.buscar(base.con, "incendio forestal", "encargo")
+    assert r["filas"][0][0] == "Prevención de incendios forestales"
+    assert r["resumen"]["columnas"][:3] == ["fuente", "n_encargos", "importe_con_iva"]
+    assert r["resumen"]["filas"][0][1:3] == [1, 250000.0]

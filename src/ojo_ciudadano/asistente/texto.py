@@ -24,6 +24,7 @@ from ojo_ciudadano.indicadores.ejecutor import RUTA_DB
 TABLA = "busqueda_texto"
 ORIGENES = {
     "contrato": "contratos (título del contrato)",
+    "encargo": "encargos a medios propios (título del encargo)",
     "convenio": "convenios vigentes (título del convenio)",
     "convocatoria": "convocatorias de subvenciones (nombre de la convocatoria)",
 }
@@ -33,8 +34,12 @@ EJEMPLOS = 20  # filas de ejemplo que se devuelven, ordenadas por relevancia
 # (contrato con un autónomo, convenio con un particular). Esas filas cuentan en el resumen, pero
 # su título no se enseña. En convenios, hay persona física si algún firmante no se guardó por
 # no tener forma de entidad (D-024).
-_SQL_TABLA = f"""
-CREATE OR REPLACE TABLE {TABLA} AS
+# Una parte por origen, con la tabla de la que sale. Solo entran las que existen en la base
+# (una base antigua puede no tener encargos).
+_PARTES = [
+    (
+        "contrato_unico",
+        """
 SELECT c.contrato_id AS id, 'contrato' AS origen, c.titulo, c.organo_id, c.fuente, c.url_origen,
        c.fecha_descarga,
        EXISTS (
@@ -44,17 +49,42 @@ SELECT c.contrato_id AS id, 'contrato' AS origen, c.titulo, c.organo_id, c.fuent
              AND (d.tipo_persona = 'fisica' OR a.adjudicatario_id LIKE 'PF-%'
                   OR a.adjudicatario_id LIKE 'UTE:PF-%')
        ) AS persona_fisica
-FROM contrato_unico AS c WHERE c.titulo IS NOT NULL
-UNION ALL
+FROM contrato_unico AS c WHERE c.titulo IS NOT NULL""",
+    ),
+    (
+        "convenio",
+        """
 SELECT convenio_id, 'convenio', titulo, organo_id, fuente, url_origen, fecha_descarga,
        coalesce(n_firmantes, 0) > coalesce(len(string_split(entidades, ';')), 0)
-FROM convenio WHERE titulo IS NOT NULL
-UNION ALL
+FROM convenio WHERE titulo IS NOT NULL""",
+    ),
+    (
+        "encargo",
+        """
+SELECT encargo_id, 'encargo', any_value(titulo), any_value(organo_id), 'portal_cm',
+       any_value(url_origen), max(fecha_descarga), false
+FROM encargo WHERE titulo IS NOT NULL
+GROUP BY encargo_id""",
+    ),
+    (
+        "concesion",
+        """
 SELECT 'bdns:convocatoria:' || id_convocatoria, 'convocatoria', any_value(convocatoria),
        any_value(organo_id), 'bdns', any_value(url_origen), max(fecha_descarga), false
 FROM concesion WHERE convocatoria IS NOT NULL AND id_convocatoria IS NOT NULL
-GROUP BY id_convocatoria
-"""
+GROUP BY id_convocatoria""",
+    ),
+]
+
+
+def _sql_tabla(con: duckdb.DuckDBPyConnection) -> str:
+    existentes = {
+        f[0] for f in con.execute("SELECT table_name FROM information_schema.tables").fetchall()
+    }
+    partes = [sql for tabla, sql in _PARTES if tabla in existentes]
+    return f"CREATE OR REPLACE TABLE {TABLA} AS " + "\nUNION ALL".join(partes)
+
+
 TITULO_OCULTO = "Con una persona física: título no mostrado"
 NOMBRE_FUENTE = (
     "CASE {col} WHEN 'placsp' THEN 'Plataforma de Contratación del Sector Público' "
@@ -68,7 +98,7 @@ NOMBRE_FUENTE = (
 def construir_en(con: duckdb.DuckDBPyConnection) -> int:
     """Crea la tabla y su índice en una conexión con escritura. Devuelve las filas."""
     con.execute("INSTALL fts; LOAD fts")
-    con.execute(_SQL_TABLA)
+    con.execute(_sql_tabla(con))
     con.execute(
         f"PRAGMA create_fts_index('{TABLA}', 'id', 'titulo', stemmer='spanish', "
         "stopwords='none', strip_accents=1, lower=1, overwrite=1)"
@@ -108,6 +138,13 @@ def _resumen(con, origen: str, parametros: dict) -> tuple[list[str], list[list]]
                max(c.fecha_descarga) AS fecha_descarga
         FROM c LEFT JOIN adjudicacion AS a ON a.contrato_id = c.id
         GROUP BY 1 ORDER BY 1
+        """
+    elif origen == "encargo":
+        sql = f"""
+        WITH c AS ({_COINCIDENCIAS})
+        SELECT 'portal_cm' AS fuente, count(DISTINCT c.id) AS n_encargos,
+               sum(e.importe_con_iva) AS importe_con_iva, max(c.fecha_descarga) AS fecha_descarga
+        FROM c LEFT JOIN encargo AS e ON e.encargo_id = c.id
         """
     elif origen == "convocatoria":
         sql = f"""

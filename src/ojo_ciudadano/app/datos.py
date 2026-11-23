@@ -1224,3 +1224,49 @@ def pares_anomalia(
         [este[0]["grupo"], contrato_id],
     )
     return {"este": este[0], "pares": pares}
+
+
+def _hay_tabla(con: duckdb.DuckDBPyConnection, tabla: str) -> bool:
+    return bool(
+        con.execute(
+            "SELECT count(*) FROM duckdb_tables() WHERE table_name = ?", [tabla]
+        ).fetchall()[0][0]
+    )
+
+
+def encargos_atipicos(con: duckdb.DuckDBPyConnection, limite: int = 50) -> list[dict]:
+    """Encargos a medios propios atípicos frente a otros encargos (D-031), del más alejado al
+    menos. Los medios propios son entidades públicas: se muestran con su nombre."""
+    if not (_hay_tabla(con, "anomalia_encargo") and _hay_tabla(con, "encargo")):
+        return []
+    return _filas(
+        con,
+        """
+        WITH e AS (
+            SELECT encargo_id, any_value(titulo) AS titulo, any_value(organo_id) AS organo_id,
+                   arg_min(medio_propio_id, orden) AS medio_propio_id,
+                   sum(importe_con_iva) AS importe_con_iva, any_value(anio_publicacion) AS anio,
+                   max(fecha_descarga) AS fecha_descarga
+            FROM encargo GROUP BY encargo_id
+        )
+        SELECT r.encargo_id, e.titulo, o.nombre AS organo, m.nombre AS medio_propio,
+               e.importe_con_iva, e.anio, r.puntuacion, r.motivo, r.n_grupo, r.url_origen,
+               e.fecha_descarga
+        FROM anomalia_encargo AS r
+        JOIN e USING (encargo_id)
+        LEFT JOIN organo AS o USING (organo_id)
+        LEFT JOIN adjudicatario AS m ON m.adjudicatario_id = e.medio_propio_id
+        WHERE r.atipico
+        ORDER BY r.puntuacion DESC
+        LIMIT ?
+        """,
+        [limite],
+    )
+
+
+def validacion_anomalias(con: duckdb.DuckDBPyConnection) -> list[dict]:
+    """Proporción de atípicos con y sin recursos estimados ante el TACPCM y con y sin fondos
+    europeos (D-031). Descriptiva: con pocos casos no prueba nada."""
+    if not _hay_tabla(con, "anomalia_validacion"):
+        return []
+    return _filas(con, "SELECT * FROM anomalia_validacion")

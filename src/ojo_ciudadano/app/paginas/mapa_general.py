@@ -190,7 +190,7 @@ if elegida is None:
                 ),
             )
         )
-    seleccion = red.mapa(nodos, [(CENTRO, n.id) for n in nodos[1:]], alto=640)
+    seleccion = red.mapa(nodos, [(CENTRO, n.id) for n in nodos[1:]], alto=700)
     if seleccion and seleccion.startswith("ent:"):
         guardar("mg_entidad", entidades[int(seleccion.split(":")[1])]["entidad"])
         guardar("mg_contrato", None)
@@ -315,7 +315,7 @@ else:
                 color="#199E70",
             )
         )
-    seleccion = red.mapa(nodos, [(CENTRO, n.id) for n in nodos[1:]], alto=640)
+    seleccion = red.mapa(nodos, [(CENTRO, n.id) for n in nodos[1:]], alto=700)
     if seleccion and seleccion != CENTRO and seleccion != st.session_state.get("mg_contrato"):
         guardar("mg_contrato", seleccion)
         st.rerun()

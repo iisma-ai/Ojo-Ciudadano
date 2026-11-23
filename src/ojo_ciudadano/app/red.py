@@ -100,14 +100,14 @@ def configuracion(alto: int = 560) -> Config:
         "enabled": True,
         "solver": "forceAtlas2Based",
         "forceAtlas2Based": {
-            "gravitationalConstant": -70,
-            "centralGravity": 0.012,
+            "gravitationalConstant": -75,
+            "centralGravity": 0.02,
             "springLength": 150,
             "springConstant": 0.07,
             "damping": 0.55,
             "avoidOverlap": 0.9,
         },
-        "stabilization": {"enabled": True, "iterations": 160, "fit": True},
+        "stabilization": {"enabled": True, "iterations": 250, "fit": True},
     }
     cfg.interaction = {
         "zoomView": False,  # sin zoom: solo se mueven los nodos

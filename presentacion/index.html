@@ -7,21 +7,25 @@
   <link rel="icon" href="../src/ojo_ciudadano/app/static/logo.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="estilo.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+      }
+    }
+  </script>
 </head>
 <body>
-  <canvas id="fondo"></canvas>
-  <div id="escenario">
-    <div id="diapositivas"></div>
-    <div id="ojo"></div>
-  </div>
+  <canvas id="lienzo"></canvas>
+  <div id="capa"></div>
   <div id="progreso" aria-hidden="true"></div>
   <div id="ayuda">Flechas para avanzar · F pantalla completa</div>
+  <div id="cortina"></div>
 
   <script src="diapositivas.js"></script>
-  <script src="fondo.js"></script>
-  <script src="ojo.js"></script>
-  <script src="escena.js"></script>
+  <script type="module" src="escena3d.js"></script>
 </body>
 </html>

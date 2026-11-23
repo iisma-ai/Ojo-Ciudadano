@@ -47,7 +47,7 @@ const CONSEJERIAS = [
   ["educacion", "Educación", 1360, 380, 92, 0.74],
   ["transportes", "Vivienda y Transportes", 440, 760, 84, 0.58],
   ["familia", "Familia y Asuntos Sociales", 1480, 760, 78, 0.69],
-  ["cultura", "Cultura y Turismo", 960, 925, 66, 0.5],
+  ["cultura", "Cultura y Turismo", 960, 870, 58, 0.5],
 ];
 
 const DIAPOSITIVAS = [
@@ -87,7 +87,7 @@ const DIAPOSITIVAS = [
       })),
       { tipo: "burbuja", id: "cm", x: 960, y: 560, r: 190, llenado: 0.7, etiqueta: "Comunidad de Madrid", valor: `${DATOS.adjudicadoMillones.toLocaleString("es-ES")} M€`, tono: "azul", paso: 1 },
       ...CONSEJERIAS.map(([id]) => ({ tipo: "enlace", de: id, a: "cm", paso: 1 })),
-      { tipo: "texto", x: 960, y: 1020, texto: "Adjudicado en contratos, sin IVA. Datos de 2023 a 2026.", tam: 26, clase: "nota", paso: 2 },
+      { tipo: "texto", x: 960, y: 1040, texto: "Adjudicado en contratos, sin IVA. Datos de 2023 a 2026.", tam: 26, clase: "nota", paso: 2 },
     ],
   },
 

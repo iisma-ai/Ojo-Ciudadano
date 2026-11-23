@@ -16,9 +16,9 @@ from streamlit_agraph import Config, Edge, Node, agraph
 from ojo_ciudadano.app.graficos import TEXTO
 from ojo_ciudadano.app.textos import euros
 
-FONDO = "#0B1120"
+FONDO = "#041627"
 VACIO = "#33415C"  # parte sin gastar (gris azulado; contraste con el fondo)
-LINEA = "#5B6B86"
+LINEA = "#4F9CC0"  # líneas de agua
 BORDE = "#E7ECF3"
 COLOR_POCO = (0x1F, 0x5F, 0xBF)  # azul oscuro: poco dinero
 COLOR_MUCHO = (0x8C, 0xC2, 0xFF)  # azul claro: mucho dinero
@@ -55,27 +55,47 @@ def _mezcla(t: float) -> str:
 
 
 def svg_nodo(color: str, llenado: float | None, centro: bool = False) -> str:
-    """Círculo con el relleno de abajo arriba en `color` y el resto en gris (data URI)."""
+    """Burbuja de cristal (data URI): el líquido en `color` sube hasta lo gastado, con una ola
+    arriba, y el resto queda como cristal gris azulado. Reflejos y borde de luz encima."""
     lado = 100
-    if llenado is None:
-        relleno = lado  # sin dato de gasto: todo del color
-        parte = ""
-    else:
-        relleno = lado * (1 - min(max(llenado, 0.0), 1.0))
-        parte = ""
     base = VACIO if llenado is not None else color
-    borde = BORDE if centro else "#9FB0CC"
-    ancho = 5 if centro else 3
+    borde = 0.95 if centro else 0.7
+    parte = ""
     if llenado is not None:
+        nivel = lado * (1 - min(max(llenado, 0.0), 1.0))
+        ola = (
+            f'<path d="M0 {nivel:.1f} Q12.5 {nivel - 3:.1f} 25 {nivel:.1f} T50 {nivel:.1f} '
+            f'T75 {nivel:.1f} T100 {nivel:.1f} V{nivel + 4:.1f} H0 Z" fill="url(#l)"/>'
+        )
         parte = (
-            f'<rect x="0" y="{relleno:.1f}" width="{lado}" height="{lado - relleno:.1f}" '
-            f'fill="{color}" clip-path="url(#c)"/>'
+            f'<g clip-path="url(#c)"><rect x="0" y="{nivel + 2:.1f}" width="{lado}" '
+            f'height="{lado - nivel:.1f}" fill="url(#l)"/>{ola}'
+            f'<path d="M0 {nivel:.1f} Q12.5 {nivel - 3:.1f} 25 {nivel:.1f} T50 {nivel:.1f} '
+            f'T75 {nivel:.1f} T100 {nivel:.1f}" fill="none" stroke="#fff" stroke-opacity=".55" '
+            'stroke-width="1.5"/></g>'
         )
     svg = (
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{lado}" height="{lado}" '
-        f'viewBox="0 0 {lado} {lado}"><defs><clipPath id="c"><circle cx="50" cy="50" r="47"/>'
-        f'</clipPath></defs><circle cx="50" cy="50" r="47" fill="{base}"/>{parte}'
-        f'<circle cx="50" cy="50" r="47" fill="none" stroke="{borde}" stroke-width="{ancho}"/>'
+        f'viewBox="0 0 {lado} {lado}"><defs>'
+        '<clipPath id="c"><circle cx="50" cy="50" r="46"/></clipPath>'
+        f'<linearGradient id="l" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{color}" '
+        f'stop-opacity=".95"/><stop offset="1" stop-color="{color}" stop-opacity=".6"/>'
+        "</linearGradient>"
+        '<radialGradient id="v" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#fff" '
+        'stop-opacity=".1"/><stop offset=".72" stop-color="#bfe6ff" stop-opacity=".04"/>'
+        '<stop offset="1" stop-color="#e6f8ff" stop-opacity=".42"/></radialGradient>'
+        '<linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" '
+        f'stop-opacity="{borde}"/><stop offset=".5" stop-color="#fff" stop-opacity=".08"/>'
+        '<stop offset="1" stop-color="#9fe8ff" stop-opacity=".55"/></linearGradient>'
+        "</defs>"
+        f'<circle cx="50" cy="50" r="46" fill="{base}"/>{parte}'
+        '<circle cx="50" cy="50" r="46" fill="url(#v)"/>'
+        f'<circle cx="50" cy="50" r="46" fill="none" stroke="url(#b)" '
+        f'stroke-width="{3 if centro else 2}"/>'
+        '<ellipse cx="34" cy="22" rx="15" ry="6.5" fill="#fff" fill-opacity=".55" '
+        'transform="rotate(-30 34 22)"/>'
+        '<ellipse cx="70" cy="78" rx="6" ry="2.2" fill="#fff" fill-opacity=".3" '
+        'transform="rotate(-30 70 78)"/>'
         "</svg>"
     )
     return "data:image/svg+xml;base64," + base64.b64encode(svg.encode()).decode()

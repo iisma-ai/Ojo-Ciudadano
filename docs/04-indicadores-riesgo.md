@@ -86,3 +86,9 @@ Comprobar con casos ya fiscalizados por la Cámara de Cuentas o recogidos en pre
 | Anomalías | Implementado (señal aparte) | [`anomalias/deteccion.py`](../src/ojo_ciudadano/anomalias/deteccion.py) | D-021. 13.496 atípicos de 1.349.510 (1,0 %). Fuera de la puntuación hasta validarla |
 | R-07 | Pendiente | — | Recortable |
 | R-08 | Pendiente | — | Recortable |
+
+## Anomalías con los datos de D-027 a D-029 (23-nov, D-031)
+
+- **Encargos a medios propios:** forman su propio grupo de pares, con importe, modificaciones y cuota del medio propio en lo que encarga el órgano. Resultado en `anomalia_encargo`, aparte de los contratos, que no se mezclan.
+- **Validación** (`anomalia_validacion`): proporción de atípicos entre los contratos con algún recurso estimado ante el TACPCM, frente a los que solo tienen recursos desestimados o inadmitidos y frente al total (1 %). Se hace lo mismo con las licitaciones de PLACSP con y sin fondos europeos. Es descriptiva y con pocos casos: no valida la señal por sí sola.
+- Los recursos y los fondos europeos **no** son variables del modelo.

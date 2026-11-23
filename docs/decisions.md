@@ -386,3 +386,30 @@ Plantilla:
   - **RGPD (revisión legal del 23-nov):** no se ofrecen al asistente 57 conjuntos con listados que pueden nombrar a personas: registros, agenda de Gobierno, listas de interinos, ayudas con beneficiarios… Detalle en [14](14-rag-documental.md).
   - De 4 a 7 preguntas nuevas en la batería.
   - Si se acepta, se actualizan 05, 06 y 08.
+
+## D-031 · Datos de D-027 a D-029 en la detección de anomalías, el asistente y la búsqueda
+- **Fecha:** 2026-11-23
+- **Estado:** Propuesta. El Harrak pidió integrar los datos nuevos en la detección de anomalías, el RAG y las consultas en lenguaje natural; la forma de hacerlo la propone el agente y falta validarla.
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** D-027 (fondos europeos), D-028 (encargos a medios propios) y D-029 (recursos ante el TACPCM) ya estaban en la web y en la lista de tablas del asistente, pero no en la detección de anomalías (D-021) ni en la búsqueda por palabras (D-030). D-021 pedía validar los atípicos con etiquetas legítimas antes de pensar en usarlos para más cosas.
+- **Decisión propuesta:**
+  - **Recursos del TACPCM: para validar, no como variable.**
+    - Nueva tabla `anomalia_validacion`: proporción de atípicos y puntuación de riesgo media en todos los contratos, en los que tienen algún recurso estimado y en los que solo tienen recursos desestimados o inadmitidos.
+    - Usarlos como variable haría que el modelo solo aprendiera a marcar los contratos recurridos.
+  - **Fondos europeos: descriptivo, no como variable.** La misma tabla compara las licitaciones de PLACSP con y sin fondos UE. Tener fondos europeos no indica nada sobre el riesgo.
+  - **Encargos: grupo de pares propio** («portal_cm · encargo»), con importe, modificaciones y cuota del medio propio en lo que encarga el órgano.
+    - Resultado en `anomalia_encargo`, aparte de `anomalia_resultado`.
+    - No entran en indicadores ni en puntuación (D-028), y el motivo habla de «encargos similares».
+  - **Asistente:**
+    - `anomalia_encargo` y `anomalia_validacion` en la lista permitida, con sus reglas de lenguaje;
+    - `buscar_texto` busca también en los títulos de los encargos;
+    - preguntas B-28 a B-30 en la batería.
+  - **Web:** dos desplegables en «Contratos atípicos»: los encargos atípicos y la comprobación.
+- **Alternativas consideradas:**
+  - Recursos estimados como etiqueta de un modelo supervisado: hay muy pocos enlazados a un contrato.
+  - Fondos UE como variable.
+  - Encargos dentro de `anomalia_resultado`: mezclaría encargos y contratos, en contra de D-028.
+- **Consecuencias:**
+  - Hay que regenerar la detección de anomalías tras cargar los datos nuevos, con `anomalias.deteccion`.
+  - Sin el CSV de encargos, que se exporta a mano por el captcha, `anomalia_encargo` queda vacía.
+  - Se actualizan 04, 05, 06 y 08.

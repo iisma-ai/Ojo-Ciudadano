@@ -37,9 +37,9 @@ CAMPO_VISTA = {
 }
 NIVELES = {1: "Solo consejerías", 2: "Consejerías y sus contratos"}
 CENTRO = "centro"
-RADIO_ENTIDADES = {1: 235, 2: 170}  # distancia de las consejerías al centro, según los niveles
-RADIO_CONTRATOS = 105  # distancia de los contratos a su consejería (se añade al radio anterior)
-ALTO_MAPA = {1: 700, 2: 900}
+RADIO_ENTIDADES = {1: 250, 2: 205}  # distancia de las consejerías al centro, según los niveles
+RADIO_CONTRATOS = 108  # distancia de los contratos a su consejería (se añade al radio anterior)
+ALTO_MAPA = {1: 740, 2: 880}
 
 st.html("<style>.block-container { max-width: 1500px; }</style>")
 
@@ -75,7 +75,7 @@ def etiqueta_contrato(contrato: dict, ancho: int = 16) -> str:
     """Quién recibe el contrato y cuánto, para que se lea de un vistazo (el título completo
     sale al pasar el ratón y al pulsar)."""
     nombres = (contrato["adjudicatarios"] or "Sin adjudicataria").split(" ; ")
-    quien = nombres[0][:24] + (f" (+{len(nombres) - 1})" if len(nombres) > 1 else "")
+    quien = nombres[0][:20] + (f" (+{len(nombres) - 1})" if len(nombres) > 1 else "")
     return red.envolver(quien, ancho) + chr(10) + textos.millones(contrato["importe"])
 
 
@@ -166,7 +166,7 @@ def grafo_general(entidades, vista, datos_anio, niveles, principales, agregados,
             hijos.append(
                 red.NodoRed(
                     id=id_con,
-                    etiqueta=etiqueta_contrato(c, 14),
+                    etiqueta=etiqueta_contrato(c, 12),
                     importe=c["importe"],
                     titulo=c["adjudicatarios"] or "Sin adjudicataria",
                     detalle=f"{c['organo']} · {iva}",
@@ -210,7 +210,7 @@ def grafo_general(entidades, vista, datos_anio, niveles, principales, agregados,
             hijo.x = distancia * math.cos(angulo + desvio)
             hijo.y = distancia * math.sin(angulo + desvio)
             nodos.append(hijo)
-            enlaces.append((id_ent, hijo.id, RADIO_CONTRATOS))
+            enlaces.append((id_ent, hijo.id, math.hypot(hijo.x - x, hijo.y - y)))
     return nodos, enlaces, destinos
 
 
@@ -528,7 +528,7 @@ else:
         on_click=lambda: st.session_state.update(mg_ampliada=None, mg_sel=None),
     )
 
-izquierda, derecha = st.columns([5, 3])
+izquierda, derecha = st.columns([5, 2])
 with izquierda:
     if ampliada is None:
         principales = _principales(anio, por_consejeria) if niveles == 2 else {}

@@ -229,3 +229,56 @@ def test_recurso_se_enlaza_solo_con_un_contrato_inequivoco():
     cruce = carga.cruzar_recursos(recursos, contratos).sort("resolucion_id")
     assert cruce["contrato_id"].to_list() == ["placsp:1", None, None]
     assert cruce["expediente_citado"].to_list()[0] == "BAC01/2026"
+
+
+def test_pliegos_se_cargan_en_contrato_documento(tmp_path):
+    placsp = _placsp()
+    url = "https://contratos-publicos.comunidad.madrid/sites/default/files/PCON/pcap.pdf"
+    placsp["documentos"] = pl.DataFrame(
+        {
+            "contrato_id": ["placsp:100"],
+            "orden": pl.Series([1], dtype=pl.Int32),
+            "tipo": ["pcap"],
+            "nombre": ["pcap.pdf"],
+            "url_documento": [url],
+            "fuente": ["placsp"],
+            "url_origen": ["https://contratos-publicos.comunidad.madrid/contrato-publico/limpieza"],
+            "fecha_descarga": [HOY],
+        }
+    )
+    ruta = tmp_path / "prueba.duckdb"
+    carga.escribir(carga.unificar([_portal()], placsp), ruta, ESQUEMA)
+    con = duckdb.connect(str(ruta), read_only=True)
+    try:
+        filas = con.execute("SELECT contrato_id, tipo, url_documento FROM contrato_documento")
+        assert filas.fetchall() == [("placsp:100", "pcap", url)]
+    finally:
+        con.close()
+
+
+def test_recurso_se_enlaza_por_el_titulo_citado_en_el_pdf():
+    titulo = "Servicios de seguridad y vigilancia del parque científico tecnológico"
+    contratos = pl.DataFrame(
+        {
+            "contrato_id": ["placsp:1", "placsp:2", "placsp:3", "portal_cm:D"],
+            "expediente": ["E-1", "E-2", "E-3", "E-4"],
+            "titulo": [titulo.upper(), "Limpieza de edificios", "Limpieza de edificios", titulo],
+            "es_menor": [False, False, False, False],
+            "duplicado_de": [None, None, None, "placsp:1"],
+        },
+        schema_overrides={"duplicado_de": pl.String},
+    )
+    recursos = pl.DataFrame(
+        {
+            "resolucion_id": ["tacpcm:1/2024", "tacpcm:2/2024", "tacpcm:3/2024"],
+            "expedientes_citados": [[], [], ["E-2"]],
+            # Con tildes y comillas distintas casa igual; un título repetido no enlaza.
+            "titulos_citados": [[titulo], ["Limpieza de edificios"], [titulo]],
+        },
+        schema_overrides={"expedientes_citados": pl.List(pl.String)},
+    )
+    cruce = carga.cruzar_recursos(recursos, contratos).sort("resolucion_id")
+    # La 3 cita un expediente (E-2) y un título (placsp:1) distintos: ambigua, sin enlace.
+    assert cruce["contrato_id"].to_list() == ["placsp:1", None, None]
+    assert cruce["expediente_citado"].to_list() == [None, None, "E-2"]
+    assert "titulos_citados" not in cruce.columns

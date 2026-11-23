@@ -73,6 +73,9 @@ class PreguntaPrueba:
     otros_conjuntos: tuple[str, ...] = ()  # conjuntos igual de válidos
     # Preguntas que deben resolverse con la búsqueda por palabras (buscar_texto).
     busqueda_texto: bool = False
+    # Preguntas de pliegos o resoluciones (D-030, bloques B y C): el documento que hay que leer
+    # (contrato_id o resolucion_id) o «resoluciones» para la búsqueda en todas.
+    documento: str | None = None
 
 
 CITA_CATALOGO = " Termina con la cita del conjunto, su fecha de actualización y la de descarga."
@@ -740,6 +743,19 @@ def evaluar_respuesta(
             "avisos": avisos,
             "criterios": pregunta.criterios,
         }
+    if pregunta.documento is not None:
+        avisos = revisar_texto(texto)
+        leidos = [c.get("documento") for c in consultas if c.get("documento")]
+        if not leidos:
+            avisos.append("No leyó ningún pliego ni resolución")
+        if leidos and not re.search(r"p[áa]g(\.|ina)", texto, re.I):
+            avisos.append("No cita la página del documento")
+        return {
+            "id": pregunta.id,
+            "datos_ok": pregunta.documento in leidos,
+            "avisos": avisos,
+            "criterios": pregunta.criterios,
+        }
     if pregunta.conjunto is not None:
         usados = [c.get("conjunto") for c in consultas if c.get("conjunto")]
         avisos = revisar_texto(texto)
@@ -751,7 +767,11 @@ def evaluar_respuesta(
             "avisos": avisos,
             "criterios": pregunta.criterios,
         }
-    sqls = [c["sql"] for c in consultas if not c.get("conjunto") and not c.get("busqueda")]
+    sqls = [
+        c["sql"]
+        for c in consultas
+        if not c.get("conjunto") and not c.get("busqueda") and not c.get("documento")
+    ]
     return evaluar(con, pregunta, sqls, texto)
 
 

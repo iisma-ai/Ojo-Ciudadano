@@ -114,6 +114,13 @@ ESQUEMA_CONTRATOS = {
     "fecha_actualizacion": pl.String,
     "url_origen": pl.String,
     "fecha_descarga": pl.Date,
+    # Pliegos enlazados en la entrada (D-030, bloque B): [{tipo, nombre, url}].
+    "documentos": pl.List(pl.Struct({"tipo": pl.String, "nombre": pl.String, "url": pl.String})),
+}
+# Documentos de la licitación que enlaza el Atom (cac:*DocumentReference).
+DOCUMENTOS = {
+    "LegalDocumentReference": "pcap",  # pliego de cláusulas administrativas particulares
+    "TechnicalDocumentReference": "ppt",  # pliego de prescripciones técnicas
 }
 ESQUEMA_ADJUDICACIONES = {
     "contrato_id": pl.String,
@@ -176,6 +183,17 @@ def _jerarquia(entrada) -> list[str]:
     return [*nombres, organo] if organo else nombres
 
 
+def _documentos(entrada) -> list[dict]:
+    """Pliegos (PCAP y PPT) enlazados en la entrada, en el orden en que aparecen."""
+    documentos = []
+    for etiqueta, tipo in DOCUMENTOS.items():
+        for nodo in entrada.iterfind(f".//cac:{etiqueta}", NS):
+            enlace = _texto(nodo, "cac:Attachment/cac:ExternalReference/cbc:URI")
+            if enlace:
+                documentos.append({"tipo": tipo, "nombre": _texto(nodo, "cbc:ID"), "url": enlace})
+    return documentos
+
+
 def _leer_entrada(entrada, fecha_descarga: date, sal: bytes | None) -> tuple[dict, list[dict]]:
     """Convierte una entrada Atom en la fila del contrato y las filas de sus adjudicaciones."""
     url = entrada.find("a:link", NS).get("href")
@@ -226,6 +244,7 @@ def _leer_entrada(entrada, fecha_descarga: date, sal: bytes | None) -> tuple[dic
         "fecha_actualizacion": _texto(entrada, "a:updated"),
         "url_origen": url,
         "fecha_descarga": fecha_descarga,
+        "documentos": _documentos(entrada),
     }
 
     adjudicaciones = []
@@ -330,4 +349,32 @@ def leer_zips(
         adjudicaciones, schema={**ESQUEMA_ADJUDICACIONES, "fecha_actualizacion": pl.String}
     )
     df_c = df_c.filter(~pl.col("contrato_id").is_in(list(borrados)))
-    return ultima_version(df_c, df_a)
+    tablas = ultima_version(df_c, df_a)
+    tablas["documentos"] = documentos(tablas["contratos"])
+    tablas["contratos"] = tablas["contratos"].drop("documentos")
+    return tablas
+
+
+def documentos(contratos: pl.DataFrame) -> pl.DataFrame:
+    """Una fila por pliego enlazado en la versión conservada de cada licitación (D-030)."""
+    return (
+        contratos.select("contrato_id", "documentos", "fuente", "url_origen", "fecha_descarga")
+        .explode("documentos")
+        .filter(pl.col("documentos").is_not_null())
+        .unnest("documentos")
+        .filter(pl.col("url").is_not_null())
+        .unique(["contrato_id", "url"], keep="first", maintain_order=True)
+        .with_columns(
+            pl.col("contrato_id").cum_count().over("contrato_id").cast(pl.Int32).alias("orden")
+        )
+        .select(
+            "contrato_id",
+            "orden",
+            "tipo",
+            "nombre",
+            pl.col("url").alias("url_documento"),
+            "fuente",
+            "url_origen",
+            "fecha_descarga",
+        )
+    )

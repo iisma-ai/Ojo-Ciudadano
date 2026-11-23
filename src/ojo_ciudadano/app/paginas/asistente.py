@@ -37,7 +37,9 @@ def texto_visible(respuesta: agente.Respuesta) -> str:
 st.header("Asistente")
 st.caption(
     "Pregunta en tus palabras sobre los contratos y las subvenciones de la Comunidad de Madrid, "
-    "o sobre los datos de su catálogo de datos abiertos (sanidad, educación, presupuestos…). "
+    "sobre los datos de su catálogo de datos abiertos (sanidad, educación, presupuestos…), sobre "
+    "lo que dicen los pliegos de una licitación o sobre las resoluciones del Tribunal "
+    "Administrativo de Contratación Pública. "
     "Las respuestas las redacta un modelo de lenguaje y pueden contener errores: comprueba "
     "siempre la consulta, los datos y el enlace oficial que se muestran con cada una. No "
     "escribas datos personales en tus preguntas."
@@ -95,6 +97,44 @@ def mostrar_busqueda(numero: int, consulta: dict) -> None:
         st.code(consulta["sql"].strip(), language="sql")
 
 
+def mostrar_documento(numero: int, consulta: dict) -> None:
+    """Una búsqueda en pliegos o resoluciones del Tribunal (D-030, bloques B y C): cada página
+    encontrada con su extracto y el enlace al PDF oficial en esa página."""
+    if consulta["documento"] == "resoluciones":
+        titulo = f"resoluciones del Tribunal · «{consulta['consulta_documento']}»"
+    else:
+        titulo = f"documentos de {consulta['documento']} · «{consulta['consulta_documento']}»"
+    with st.expander(f"Datos de la consulta {numero} · {titulo}"):
+        columnas = consulta["columnas"]
+        if not consulta["filas"]:
+            st.caption("Ninguna página contiene esas palabras.")
+        for fila in consulta["filas"]:
+            f = dict(zip(columnas, fila, strict=True))
+            if "resolucion" in f:
+                cabecera = (
+                    f"**Resolución {f['resolucion']}** ({f['fecha']}) · {f['tipo_resolucion']} · "
+                    f"acto recurrido: {f['acto_recurrido']} · pág. {f['pagina']}"
+                )
+            else:
+                cabecera = f"**{f['documento']}** · pág. {f['pagina']}"
+            st.markdown(cabecera)
+            st.text(f["extracto"])
+            st.link_button(
+                "Abrir el PDF oficial en esta página",
+                f["enlace_pagina"],
+                icon=":material/open_in_new:",
+            )
+        st.caption(
+            f"Fuente: {consulta['fuente']}, documento descargado el "
+            f"{consulta.get('fecha_descarga') or 'sin fecha'}. El extracto es texto del documento "
+            "oficial (los documentos de identidad aparecen tapados). Lo que dice un pliego "
+            "explica el expediente; no confirma ni descarta una señal. Que el Tribunal estime un "
+            "recurso no es una sanción ni dice nada de la empresa adjudicataria."
+        )
+        for fallo in consulta.get("fallos") or []:
+            st.caption(f"No se ha podido leer: {fallo}")
+
+
 def mostrar_respuesta(respuesta: agente.Respuesta) -> None:
     if respuesta.retencion:
         st.warning(texto_visible(respuesta))
@@ -102,6 +142,8 @@ def mostrar_respuesta(respuesta: agente.Respuesta) -> None:
     st.markdown(respuesta.texto)
     # Primero se ve (D-023, A-08): el gráfico de la primera consulta que se pueda dibujar.
     for numero, consulta in enumerate(respuesta.consultas, start=1):
+        if consulta.get("documento"):
+            continue  # extractos de texto: nada que dibujar
         figura, _ = graficos.automatico(consulta)
         if figura is not None:
             st.plotly_chart(
@@ -114,6 +156,9 @@ def mostrar_respuesta(respuesta: agente.Respuesta) -> None:
             continue
         if consulta.get("busqueda"):
             mostrar_busqueda(numero, consulta)
+            continue
+        if consulta.get("documento"):
+            mostrar_documento(numero, consulta)
             continue
         with st.expander(f"Datos de la consulta {numero}"):
             mostrar_resultado(consulta)

@@ -24,7 +24,7 @@ Investigación del 23-nov-2026. Complementa [12-datos-cm.md](12-datos-cm.md) (ra
 | ID | Fuente | Para qué | Estado |
 | --- | --- | --- | --- |
 | X-01 | Prohibiciones de contratar (Junta Consultiva de Contratación Pública del Estado, ROLECE) | Señal: adjudicataria con prohibición vigente | **Descartada**: no hay listado público |
-| X-02 | Resoluciones del Tribunal Administrativo de Contratación Pública de la Comunidad de Madrid | Señal y contexto: contratos recurridos y estimados | **Viable** (ver detalle) |
+| X-02 | Resoluciones del Tribunal Administrativo de Contratación Pública de la Comunidad de Madrid | Señal y contexto: contratos recurridos y estimados | **Incorporada** (D-029), con enlace a contrato limitado |
 | X-03 | Expedientes sancionadores de la CNMC por colusión en licitaciones | Contexto: empresas sancionadas por cárteles en contratación | **Solo manual, prioridad baja** (ver detalle) |
 | X-04 | Indicadores europeos de contratación (Single Market Scoreboard) y OIReScon | Referencia para comparar R-01 y R-02 con España y la UE | **Viable y barata** (ver detalle) |
 | X-05 | DIR3 (directorio común de unidades orgánicas) | Normalizar órganos entre portal y PLACSP | **Viable, valor medio** (ver detalle) |
@@ -57,6 +57,8 @@ Explorado el 23-nov-2026. Resuelve los **recursos especiales en materia de contr
   - Posible señal por órgano: **proporción de recursos estimados** (total o parcialmente) sobre los contratos licitados, sobre todo contra pliegos (pliegos que restringían la competencia). Habría que definirla y validarla antes de que entre en la puntuación (D-002, D-004).
 - **Cautelas:** un recurso lo presenta una empresa interesada; que se presente **no es una señal**, que se estime solo dice que ese acto no se ajustaba a derecho. El texto de los PDF es dato, no instrucción. Las resoluciones nombran a empresas (personas jurídicas); si alguna recurrente fuera persona física, no se guarda su nombre (D-007).
 - **Coste estimado:** recorrer unas 111 páginas de listado (1.109 resoluciones de la Comunidad) con pausa de 2 s son unos 4 minutos; los metadatos y el resumen salen del listado, sin bajar los PDF. Extraer el expediente del resumen es una expresión regular, con revisión de los que no casan.
+
+**Incorporación (23-nov, D-029):** `ingesta/tacp.py` y tabla `recurso_especial`. 1.097 resoluciones (consejerías 446, otros poderes adjudicadores 316, hospitales 264, universidades 71). Resultado: 640 desestimatorias, 202 estimatorias, 48 estimatorias parciales, 178 inadmisiones. Estimadas total o parcialmente por acto recurrido: **pliegos 62 de 207 (30 %)**, adjudicación 111 de 447 (25 %), exclusión 68 de 382 (18 %). **Límite:** solo 13 de cada 400 resúmenes citan el expediente del contrato y el listado no da el órgano, así que solo 6 resoluciones se enlazan con un contrato concreto. Para enlazar más hay que leer los PDF.
 
 ### X-04 · Referencias europeas para comparar los indicadores
 

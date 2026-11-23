@@ -255,3 +255,14 @@ Plantilla:
   - Para la demo, las tareas de prioridad alta. El resto entra en la lista de recortes, detrás de la detección de anomalías.
   - Se actualizan 03 (reglas de interfaz), 08 (plan) y 11.
 
+
+## D-026 · Financiación con fondos europeos desde PLACSP y filas de relleno fuera de los adjudicatarios
+- **Fecha:** 2026-11-23
+- **Estado:** Aceptada
+- **Autor:** Claude (agente), a petición de una persona del equipo
+- **Contexto:** La investigación de fuentes externas ([13-fuentes-externas.md](13-fuentes-externas.md)) mostró dos cosas sobre datos que ya tenemos. 1) El Atom de PLACSP dice en cada licitación si se financia con fondos de la UE y con qué programa (`FundingProgramCode`: PRTR, FEDER, FSE+, FEADER, OFE), y la ingesta no lo leía: 991 expedientes de la Comunidad con fondos europeos, 548 del PRTR. 2) En `adjudicatario` había filas de relleno de las fuentes («Varios adjudicatarios», «33 EMPRESAS ADJUDICATARIAS» con el NIF de la Comunidad, «Ver resolución de adjudicación», NIF de ceros): 15 «adjudicatarios», 165 adjudicaciones y 156,6 M€ con IVA atribuidos a empresas que no existen.
+- **Decisión:**
+  - Tabla nueva `contrato_financiacion` en `sql/esquema/004_financiacion_ue.sql` (ampliación **aditiva**, D-017; no cambia `contrato`). Una fila por contrato de PLACSP que trae el campo. Es **contexto**, no señal de riesgo: no entra en la puntuación.
+  - `normalizacion.nif.es_relleno`: esas filas se guardan como adjudicatario desconocido (sin identificador ni nombre), igual que una adjudicación sin NIF. La adjudicación y su importe se conservan.
+- **Alternativas consideradas:** Columna nueva en `contrato` (cambia el esquema congelado). Bajar los listados de perceptores del PRTR (repiten lo que ya dice el contrato). Para el relleno, borrarlo a mano en la interfaz (no arregla indicadores ni puntuación).
+- **Consecuencias:** Hay que regenerar la base (`modelo.carga`, `indicadores.ejecutor`, `anomalias.deteccion`). R-04 y la puntuación de empresa dejan de contar esas filas como empresa. Se actualizan 02, 06 y 13.

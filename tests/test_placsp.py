@@ -21,6 +21,7 @@ def _entrada(
     estado,
     resultados="",
     dominio="contratos-publicos.comunidad.madrid",
+    fondos="",
 ):
     """Entrada Atom sintética con la misma estructura que las de PLACSP."""
     return f"""
@@ -59,6 +60,7 @@ def _entrada(
       <cbc:ProcedureCode>1</cbc:ProcedureCode>
       <cac:TenderSubmissionDeadlinePeriod><cbc:EndDate>2026-09-30</cbc:EndDate></cac:TenderSubmissionDeadlinePeriod>
     </cac:TenderingProcess>
+    {fondos}
     {resultados}
   </cac-place-ext:ContractFolderStatus>
 </entry>"""
@@ -79,6 +81,12 @@ def _resultado(lote, nif, nombre, ofertas, importe, codigo="9"):
         <cac:LegalMonetaryTotal><cbc:TaxExclusiveAmount currencyID="EUR">{importe}</cbc:TaxExclusiveAmount></cac:LegalMonetaryTotal>
       </cac:AwardedTenderedProject>
     </cac:TenderResult>"""
+
+
+FONDOS_PRTR = """<cac:TenderingTerms>
+      <cbc:FundingProgramCode name="Financiación con fondos de la UE">EU</cbc:FundingProgramCode>
+      <cbc:FundingProgramCode name="Asociado al Plan de Recuperacion">PRTR</cbc:FundingProgramCode>
+    </cac:TenderingTerms>"""
 
 
 def _zip(tmp_path, ficheros):
@@ -110,7 +118,7 @@ def _leer(tmp_path):
             # Versión posterior de EXP-1, ya resuelta, y un segundo expediente.
             "b_20261015.atom": [
                 _entrada(100, "EXP-1", "2026-10-15T12:00:00+02:00", "RES", adjudicada),
-                _entrada(300, "EXP-2", "2026-10-15T09:00:00+02:00", "PUB"),
+                _entrada(300, "EXP-2", "2026-10-15T09:00:00+02:00", "PUB", fondos=FONDOS_PRTR),
             ],
         },
     )
@@ -182,3 +190,11 @@ def test_entrada_borrada_se_descarta(tmp_path):
         {"a.atom": [_entrada(300, "EXP-2", "2026-10-15T09:00:00+02:00", "PUB"), borrado]},
     )
     assert placsp.leer_zips([ruta], date(2026, 11, 16), SAL)["contratos"].height == 0
+
+
+def test_financiacion_con_fondos_europeos(tmp_path):
+    contratos = _leer(tmp_path)["contratos"]
+    exp1, exp2 = contratos.row(0, named=True), contratos.row(1, named=True)
+    assert exp1["financiado_ue"] is None  # la entrada no trae el campo
+    assert exp2["financiado_ue"] is True
+    assert exp2["programas_ue"] == "PRTR"

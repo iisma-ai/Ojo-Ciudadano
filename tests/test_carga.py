@@ -148,3 +148,20 @@ def test_la_base_se_crea_con_el_esquema_y_la_vista_no_repite(tmp_path):
             assert sin_origen == 0
     finally:
         con.close()
+
+
+def test_financiacion_ue_se_carga_solo_si_la_entrada_la_trae(tmp_path):
+    placsp = _placsp()
+    placsp["contratos"] = placsp["contratos"].with_columns(
+        pl.lit(True).alias("financiado_ue"), pl.lit("PRTR,FEDER").alias("programas_ue")
+    )
+    ruta = tmp_path / "prueba.duckdb"
+    carga.escribir(carga.unificar([_portal()], placsp), ruta, ESQUEMA)
+    con = duckdb.connect(str(ruta), read_only=True)
+    try:
+        filas = con.execute(
+            "SELECT contrato_id, financiado_ue, programas_ue, fuente FROM contrato_financiacion"
+        ).fetchall()
+    finally:
+        con.close()
+    assert filas == [("placsp:100", True, "PRTR,FEDER", "placsp")]

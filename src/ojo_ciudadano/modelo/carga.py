@@ -166,6 +166,7 @@ def unificar(
     )
     concesiones = tablas_bdns["concesiones"] if tablas_bdns else None
     return {
+        "contrato_financiacion": _financiacion(tablas_placsp),
         "organo": organos,
         "adjudicatario": adjudicatarios,
         "concesion": concesiones,
@@ -174,6 +175,24 @@ def unificar(
             [_con_columnas(a, COLUMNAS_ADJUDICACION) for a in crudos_adjudicaciones]
         ),
     }
+
+
+def _financiacion(tablas_placsp: dict | None) -> pl.DataFrame | None:
+    """Contratos de PLACSP que dicen si tienen fondos europeos (004_financiacion_ue.sql)."""
+    if tablas_placsp is None or "financiado_ue" not in tablas_placsp["contratos"].columns:
+        return None
+    return (
+        tablas_placsp["contratos"]
+        .filter(pl.col("financiado_ue").is_not_null())
+        .select(
+            "contrato_id",
+            "financiado_ue",
+            "programas_ue",
+            "fuente",
+            "url_origen",
+            "fecha_descarga",
+        )
+    )
 
 
 def _organos_bdns(tablas_bdns: dict | None) -> list[pl.DataFrame]:
@@ -200,7 +219,14 @@ def escribir(
     try:
         for ddl in sorted(ruta_esquema.glob("*.sql")):
             con.execute(ddl.read_text(encoding="utf-8"))
-        for nombre in ("organo", "adjudicatario", "contrato", "adjudicacion", "concesion"):
+        for nombre in (
+            "organo",
+            "adjudicatario",
+            "contrato",
+            "adjudicacion",
+            "concesion",
+            "contrato_financiacion",
+        ):
             if tablas.get(nombre) is None:
                 continue
             df = tablas[nombre].to_arrow()  # noqa: F841 (DuckDB lo lee por su nombre)

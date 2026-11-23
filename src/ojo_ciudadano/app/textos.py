@@ -23,7 +23,10 @@ FUENTES = (
     "[Base de Datos Nacional de Subvenciones]"
     "(https://www.infosubvenciones.es/bdnstrans/GE/es/concesiones) "
     "(origen de los datos de subvenciones: Intervención General de la Administración del "
-    "Estado). Indicadores y puntuaciones: cálculo propio de Ojo Ciudadano."
+    "Estado). Contexto presupuestario y organizativo: [Catálogo de Datos Abiertos]"
+    "(https://datos.comunidad.madrid) y [Portal de Transparencia]"
+    "(https://www.comunidad.madrid/transparencia) de la Comunidad de Madrid. "
+    "Indicadores y puntuaciones: cálculo propio de Ojo Ciudadano."
 )
 
 PIE = (
@@ -93,6 +96,8 @@ NOMBRES_FUENTE = {
     "placsp": "Plataforma de Contratación del Sector Público",
     "portal_cm": "Portal de la Contratación Pública de la Comunidad de Madrid",
     "bdns": "Base de Datos Nacional de Subvenciones",
+    "ckan_cm": "Catálogo de Datos Abiertos de la Comunidad de Madrid",
+    "transparencia_cm": "Portal de Transparencia de la Comunidad de Madrid",
 }
 
 
@@ -258,3 +263,22 @@ GLOSARIO = {
     "senal": "Indicador calculado con una regla pública que señala un contrato que merece "
     "revisión. No demuestra nada irregular.",
 }
+
+
+# Contexto presupuestario y organizativo (D-024).
+AVISO_CONTEXTO = (
+    "Estas cifras vienen de fuentes distintas de las de los contratos y **no se pueden restar "
+    "ni cruzar partida a partida**: los datos oficiales no dicen qué parte del presupuesto "
+    "de una consejería acabó en cada contrato (docs/02-fuentes-datos.md). Sirven para dar "
+    "escala. No son indicadores de riesgo."
+)
+AVISO_REGISTROS = (
+    "Que una empresa figure en uno de estos registros **no es una señal de riesgo ni dice "
+    "nada sobre cómo contrata**: solo informa de en qué listados oficiales de la Comunidad "
+    "aparece su NIF."
+)
+AVISO_CONVENIOS = (
+    "Listado oficial de convenios vigentes. Los firmantes vienen por nombre, sin NIF, y solo "
+    "se muestran los que son entidades. El texto de financiación es el de la fuente: no se "
+    "suma porque mezcla importes anuales, máximos y de varios años."
+)

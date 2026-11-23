@@ -6,7 +6,7 @@ Primero se ve (cifras, mapa de áreas por organismo, contratos por año, señale
 
 import streamlit as st
 
-from ojo_ciudadano.app import datos, graficos, senales, textos
+from ojo_ciudadano.app import datos, datos_contexto, graficos, senales, textos
 from ojo_ciudadano.app.conexion import conexion
 
 FUENTES_REPARTO = {
@@ -65,6 +65,22 @@ cifras[3].metric(
     "Subvenciones",
     textos.euros(subvenciones[0]["importe_total"]) if subvenciones else "Ninguna",
 )
+
+# --- Registros de la Comunidad (D-024) ---
+registros = (
+    datos_contexto.registros_de_empresa(con, ficha["nif"])
+    if datos_contexto.hay_contexto(con)
+    else []
+)
+if registros:
+    st.subheader("En qué registros de la Comunidad figura")
+    for r in registros:
+        nombre = datos_contexto.NOMBRE_REGISTRO[r["registro"]]
+        detalle = f" ({r['detalle']})" if r["detalle"] else ""
+        st.markdown(
+            f"- [{nombre}]({r['url_origen']}){detalle} · descargado el {r['fecha_descarga']}"
+        )
+    st.caption(textos.AVISO_REGISTROS)
 
 # --- De quién recibe el dinero ---
 st.subheader("De qué organismos")

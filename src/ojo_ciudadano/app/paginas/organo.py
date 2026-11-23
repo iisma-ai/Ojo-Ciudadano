@@ -7,7 +7,7 @@ aparecen agregadas (D-007).
 
 import streamlit as st
 
-from ojo_ciudadano.app import datos, graficos, senales, textos
+from ojo_ciudadano.app import datos, datos_contexto, graficos, graficos_contexto, senales, textos
 from ojo_ciudadano.app.conexion import conexion
 
 FUENTES_REPARTO = {
@@ -102,6 +102,22 @@ if fuentes:
     st.caption(
         "Que una empresa reciba mucho de un organismo puede tener causas legítimas (mercado "
         "pequeño, proveedor único); no implica trato de favor."
+    )
+
+# --- Presupuesto (solo consejerías con datos liquidados, D-024) ---
+ejecucion = datos_contexto.ejecucion_organo(con, id_) if datos_contexto.hay_contexto(con) else []
+if ejecucion:
+    ultimo = ejecucion[-1]
+    st.subheader("Presupuesto de la consejería")
+    st.markdown(
+        f"En {ultimo['anio']}, esta consejería reconoció "
+        f"**{textos.euros(ultimo['obligaciones'])}** de gasto sobre un crédito de "
+        f"{textos.euros(ultimo['credito_actual'])}."
+    )
+    st.plotly_chart(graficos_contexto.ejecucion_organo(ejecucion), config=graficos.CONFIG)
+    st.caption(
+        f"Fuente: [Datos abiertos de la Comunidad de Madrid]({ultimo['url_origen']}). "
+        + textos.AVISO_CONTEXTO
     )
 
 # --- Comparación y vías ---

@@ -75,9 +75,9 @@ def sugerir_empresas(con: duckdb.DuckDBPyConnection, texto: str, limite: int = 1
         FROM adjudicatario AS a
         JOIN puntuacion_empresa AS p USING (adjudicatario_id)
         WHERE {_sin_personas("a")} AND a.nombre IS NOT NULL
-          AND (? = '' OR a.nombre ILIKE ? || '%' OR a.nif = upper(?)
-               OR (length(?) >= 3 AND a.nombre ILIKE '%' || ? || '%'))
-        ORDER BY (a.nombre ILIKE ? || '%') DESC, p.n_contratos DESC
+          AND (? = '' OR strip_accents(a.nombre) ILIKE strip_accents(?) || '%' OR a.nif = upper(?)
+               OR (length(?) >= 3 AND strip_accents(a.nombre) ILIKE '%' || strip_accents(?) || '%'))
+        ORDER BY (strip_accents(a.nombre) ILIKE strip_accents(?) || '%') DESC, p.n_contratos DESC
         LIMIT ?
         """,
         [texto, texto, texto, texto, texto, texto, limite],
@@ -94,8 +94,8 @@ def sugerir_organos(con: duckdb.DuckDBPyConnection, texto: str, limite: int = 15
         SELECT o.organo_id, o.nombre, p.n_contratos
         FROM organo AS o
         JOIN puntuacion_organo AS p USING (organo_id)
-        WHERE ? = '' OR o.nombre ILIKE ? || '%' OR o.nombre ILIKE '%' || ? || '%'
-        ORDER BY (o.nombre ILIKE ? || '%') DESC, p.n_contratos DESC
+        WHERE ? = '' OR strip_accents(o.nombre) ILIKE strip_accents(?) || '%' OR strip_accents(o.nombre) ILIKE '%' || strip_accents(?) || '%'
+        ORDER BY (strip_accents(o.nombre) ILIKE strip_accents(?) || '%') DESC, p.n_contratos DESC
         LIMIT ?
         """,
         [texto, texto, texto, texto, limite],

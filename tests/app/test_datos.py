@@ -334,3 +334,9 @@ def test_sugerencias_empiezan_por_lo_escrito(con):
     assert datos.sugerir_empresas(con, "zzzz") == []
     assert datos.sugerir_empresas(con, "")  # sin texto, las de más contratos
     assert datos.sugerir_organos(con, "")
+
+
+def test_sugerencias_sin_tildes(con):
+    """Quien escribe sin tildes («organo») encuentra «Órgano» y al revés."""
+    assert datos.sugerir_organos(con, "organo")
+    assert datos.sugerir_organos(con, "ÓRGANO")

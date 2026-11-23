@@ -90,7 +90,18 @@ España en conjunto (`avg_singleb_yearly_ted.csv`): 19,5 % (2016), 25,6 % (2019)
 
 **Uso propuesto:** una tabla pequeña `referencia_externa` (indicador, ámbito, año, valor, fuente, `url_origen`, `fecha_descarga`) o simplemente un texto en la ayuda de R-01 y R-02 con su enlace. Coste: menos de una hora. No cambia ningún indicador ni la puntuación.
 
-**Pendiente de mirar (sin coste de ingesta):** el [Informe Anual de Supervisión de la OIReScon](https://www.hacienda.gob.es/es-ES/Oirescon/Paginas/ias.aspx) (Hacienda) tiene un apartado de lotes con un único licitador por sector público, 2021–2025; si da el dato de las comunidades autónomas, es una referencia española con ventana parecida a la nuestra.
+**Fuente C · [OIReScon, Informe Anual de Supervisión 2026, módulo I](https://www.hacienda.gob.es/rsc/oirescon/informe-anual-supervision-2026/ias2026-modulo1.pdf)** (Hacienda, datos de adjudicaciones de 2025 en la PLACSP y las plataformas autonómicas, **sin negociados sin publicidad**; tablas 74 a 78, págs. 141–145; consulta del 23-nov). Es la referencia **española y con la misma ventana** que la nuestra:
+
+| Sector público (2025) | Lotes con un único licitador | Importe adjudicado con un único licitador |
+| --- | --- | --- |
+| **Autonómico** | **45,49 %** (31.374 de 68.973) | 29,87 % |
+| Estatal | 45,76 % | 20,78 % |
+| Local | 37,31 % | 24,77 % |
+| Total | 41,93 % | 25,00 % |
+
+Evolución del importe con un único licitador en el sector autonómico: 27,8 % (2021), 31,2 % (2022), **29,4 % (2023)**, **31,8 % (2024)**, **29,9 % (2025)**.
+
+**Conclusión para R-01:** el 39,4 % de la Comunidad está **por debajo** de la media del sector autonómico español en 2025 (45,5 % de los lotes) y por encima de la media europea en TED (28 %). El indicador funciona como señal por contrato, pero la tasa global no es anómala en el contexto español. Hay que decirlo en la ayuda de R-01 para no inducir a error. Diferencias de método: la OIReScon cuenta lotes y todos los procedimientos menos el negociado sin publicidad; R-01 cuenta contratos y solo abiertos, abiertos simplificados y restringidos.
 
 ### Descartadas (23-nov)
 

@@ -23,8 +23,10 @@ RUTA_ENV = Path(__file__).resolve().parents[3] / ".env"
 VARIABLE = "OPENROUTER_API_KEY"
 MODELO_PRUEBA = "openai/gpt-4o-mini"
 # Elegidos con la batería de 20 preguntas (D-010, bitácora del 23-nov).
-MODELO_PRINCIPAL = "anthropic/claude-haiku-5.5"
-MODELOS_RESPALDO = ["deepseek/deepseek-v4.1-flash"]
+# Principal: el que mejor se entiende y con datos correctos en las 16 preguntas de datos
+# (revisadas a mano); respaldo: otro proveedor, el mejor en la evaluación automática.
+MODELO_PRINCIPAL = "openai/gpt-6.1-terra"
+MODELOS_RESPALDO = ["anthropic/claude-haiku-5.5"]
 MAX_TOKENS_RESPUESTA = 2500
 REINTENTOS = 2  # ante límites de ritmo (429) o errores del proveedor (5xx)
 

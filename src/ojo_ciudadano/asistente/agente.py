@@ -288,11 +288,19 @@ class Respuesta:
 _PATRON_CIFRA = re.compile(r"\d[\d.,]*\s*(€|%|euros)|\d{1,3}(\.\d{3})+")
 
 
-def _cerrar(texto: str, consultas: list[dict], errores: list[str], completa: bool) -> Respuesta:
-    """Construye la respuesta con sus avisos y decide si se retiene."""
+def _cifras(texto: str) -> set[str]:
+    return {re.sub(r"\s+", "", m.group(0)) for m in _PATRON_CIFRA.finditer(texto)}
+
+
+def _cerrar(
+    texto: str, consultas: list[dict], errores: list[str], completa: bool, sistema: str = ""
+) -> Respuesta:
+    """Construye la respuesta con sus avisos y decide si se retiene. Sin consultas, solo se
+    admiten las cifras que ya están en las instrucciones (umbrales de los indicadores, como
+    «más del 50 %» de R-04): cualquier otra sería inventada."""
     avisos = bateria.revisar_texto(texto)
     datos = json.dumps([c["filas"] for c in consultas], ensure_ascii=False, default=str)
-    sin_cifras_respaldadas = not consultas and _PATRON_CIFRA.search(texto)
+    sin_cifras_respaldadas = not consultas and bool(_cifras(texto) - _cifras(sistema))
     if sin_cifras_respaldadas:
         avisos.append("Da cifras sin haber consultado la base")
     if bateria.PATRON_DNI.search(texto) or bateria.PATRON_DNI.search(datos):
@@ -352,7 +360,7 @@ def responder(
         salida = modelo(sistema, mensajes)
         if isinstance(salida, TextoFinal):
             texto = _sin_terminos_acusatorios(modelo, sistema, mensajes, salida.texto)
-            return _cerrar(texto, consultas, errores, completa=True)
+            return _cerrar(texto, consultas, errores, completa=True, sistema=sistema)
         mensajes.append({"rol": "llamada", "sql": salida.sql})
         try:
             resultado = sql_seguro.ejecutar(con, salida.sql)

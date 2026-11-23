@@ -90,6 +90,15 @@ def test_retiene_cifras_sin_consulta(con):
     assert r.avisos == [] and r.retencion is None
 
 
+def test_admite_sin_consulta_los_umbrales_de_las_instrucciones(con):
+    assert "50 %" in agente.instrucciones(con)  # umbral de R-04
+    texto = "R-04 se activa si un adjudicatario recibe más del 50 % del importe."
+    r = agente.responder(con, Guion(TextoFinal(texto)), "¿Qué es R-04?")
+    assert r.retencion is None
+    r = agente.responder(con, Guion(TextoFinal("Más del 50 % y un 37 % más.")), "¿?")
+    assert r.retencion == agente.RETENCION_CIFRAS
+
+
 @pytest.mark.parametrize(
     "texto",
     ["La empresa fue favorecida.", "Hay fraude en este órgano.", "Contratos dados a dedo."],

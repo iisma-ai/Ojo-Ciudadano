@@ -42,6 +42,8 @@ menores = st.toggle(
 )
 if elegida:
     st.caption(f"**{textos.SENAL_CORTA[elegida]}:** {textos.SENAL_FRASE[elegida]}")
+    if elegida in textos.CONTEXTO_SENAL:
+        st.caption(textos.CONTEXTO_SENAL[elegida])
 
 # Sin menores, solo contratos en los que se han podido comprobar al menos 3 señales.
 filas = datos.alertas(con, 1 if menores else 3, elegida, LIMITE, texto or None, anio_elegido)

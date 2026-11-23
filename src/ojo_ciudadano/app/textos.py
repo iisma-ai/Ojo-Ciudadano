@@ -89,6 +89,19 @@ AYUDA_INDICADOR = {
     "al menos dos ofertas. Incluye las adjudicaciones por encima del presupuesto.",
 }
 
+# Referencias externas para leer una señal frecuente sin tomarla por anómala
+# (docs/13-fuentes-externas.md, X-04). Se miden de forma algo distinta que aquí.
+CONTEXTO_SENAL = {
+    "R-01": "Para comparar: en 2025, el 45,5 % de los lotes que adjudicaron las comunidades "
+    "autónomas recibió una sola oferta ([OIReScon, Informe Anual de Supervisión 2026]"
+    "(https://www.hacienda.gob.es/rsc/oirescon/informe-anual-supervision-2026/"
+    "ias2026-modulo1.pdf), tabla 77), y en la Unión Europea la media fue del 28 % en 2024 "
+    "([Comisión Europea, Single Market Scoreboard]"
+    "(https://single-market-scoreboard.ec.europa.eu/countries/spain_en)). Esas cifras se "
+    "cuentan de otra manera (por lotes, o solo contratos grandes), así que sirven para "
+    "hacerse una idea, no para comparar al decimal.",
+}
+
 NOMBRES_FUENTE = {
     "placsp": "Plataforma de Contratación del Sector Público",
     "portal_cm": "Portal de la Contratación Pública de la Comunidad de Madrid",
@@ -99,7 +112,9 @@ NOMBRES_FUENTE = {
 def lista_indicadores() -> str:
     """Explicación de cada indicador en Markdown, para el apartado de metodología."""
     return "\n".join(
-        f"- **{i} · {NOMBRES_INDICADOR[i]}**: {AYUDA_INDICADOR[i]}" for i in NOMBRES_INDICADOR
+        f"- **{i} · {NOMBRES_INDICADOR[i]}**: "
+        + " ".join(filter(None, [AYUDA_INDICADOR[i], CONTEXTO_SENAL.get(i)]))
+        for i in NOMBRES_INDICADOR
     )
 
 

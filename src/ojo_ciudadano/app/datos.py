@@ -64,6 +64,23 @@ def buscar_empresas(con: duckdb.DuckDBPyConnection, texto: str, limite: int = 20
     )
 
 
+def _entidades_con_datos(con: duckdb.DuckDBPyConnection) -> str:
+    """Subconsulta con los identificadores que tienen ficha: contratos puntuados, subvenciones o
+    encargos como medio propio (las dos últimas tablas pueden no existir en una base antigua)."""
+    existentes = {
+        f[0]
+        for f in con.execute(
+            "SELECT table_name FROM duckdb_tables() WHERE table_name IN ('concesion', 'encargo')"
+        ).fetchall()
+    }
+    partes = ["SELECT adjudicatario_id FROM puntuacion_empresa"]
+    if "concesion" in existentes:
+        partes.append("SELECT beneficiario_id FROM concesion")
+    if "encargo" in existentes:
+        partes.append("SELECT medio_propio_id FROM encargo")
+    return "(" + " UNION ".join(partes) + ")"
+
+
 def sugerir_empresas(con: duckdb.DuckDBPyConnection, texto: str, limite: int = 15) -> list[dict]:
     """Empresas para el autocompletado: primero las que empiezan por lo escrito, luego (con tres
     letras o más) las que lo contienen. Sin texto, las de más contratos. Sin personas físicas."""
@@ -71,13 +88,15 @@ def sugerir_empresas(con: duckdb.DuckDBPyConnection, texto: str, limite: int = 1
     return _filas(
         con,
         f"""
-        SELECT a.adjudicatario_id, a.nombre, a.nif, p.n_contratos
+        SELECT a.adjudicatario_id, a.nombre, a.nif, coalesce(p.n_contratos, 0) AS n_contratos
         FROM adjudicatario AS a
-        JOIN puntuacion_empresa AS p USING (adjudicatario_id)
+        JOIN {_entidades_con_datos(con)} USING (adjudicatario_id)
+        LEFT JOIN puntuacion_empresa AS p USING (adjudicatario_id)
         WHERE {_sin_personas("a")} AND a.nombre IS NOT NULL
           AND (? = '' OR strip_accents(a.nombre) ILIKE strip_accents(?) || '%' OR a.nif = upper(?)
                OR (length(?) >= 3 AND strip_accents(a.nombre) ILIKE '%' || strip_accents(?) || '%'))
-        ORDER BY (strip_accents(a.nombre) ILIKE strip_accents(?) || '%') DESC, p.n_contratos DESC
+        ORDER BY (strip_accents(a.nombre) ILIKE strip_accents(?) || '%') DESC,
+                 n_contratos DESC
         LIMIT ?
         """,
         [texto, texto, texto, texto, texto, texto, limite],
@@ -109,13 +128,16 @@ def ficha_empresa(con: duckdb.DuckDBPyConnection, adjudicatario_id: str) -> dict
         con,
         f"""
         SELECT a.adjudicatario_id, a.nif, a.nombre, a.tipo_persona,
-               p.n_contratos, p.n_con_alertas, p.puntuacion_ponderada, p.puntuacion_media,
+               coalesce(p.n_contratos, 0) AS n_contratos,
+               coalesce(p.n_con_alertas, 0) AS n_con_alertas,
+               p.puntuacion_ponderada, p.puntuacion_media,
                (SELECT sum(importe_sin_iva) FROM adjudicacion
                  WHERE adjudicatario_id = a.adjudicatario_id) AS importe_sin_iva,
                (SELECT sum(importe_con_iva) FROM adjudicacion
                  WHERE adjudicatario_id = a.adjudicatario_id) AS importe_con_iva
         FROM adjudicatario AS a
-        JOIN puntuacion_empresa AS p USING (adjudicatario_id)
+        JOIN {_entidades_con_datos(con)} USING (adjudicatario_id)
+        LEFT JOIN puntuacion_empresa AS p USING (adjudicatario_id)
         WHERE a.adjudicatario_id = ? AND {_sin_personas("a")}
         """,
         [adjudicatario_id],

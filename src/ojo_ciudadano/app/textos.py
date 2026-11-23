@@ -338,3 +338,22 @@ def millones(valor: float | None) -> str:
     if abs(valor) >= 1_000_000:
         return f"{valor / 1_000_000:,.0f} M€".replace(",", ".")
     return f"{valor:,.0f} €".replace(",", ".")
+
+
+# --- Encargos, fondos europeos y recursos (D-027 a D-029) ---
+
+AVISO_ENCARGOS = (
+    "Un **encargo a medio propio** es un trabajo que un organismo asigna a una entidad pública "
+    "que actúa como su medio propio (como Tragsa o Canal de Isabel II). La ley lo permite sin "
+    "licitación cuando se cumplen los requisitos del art. 32 de la Ley 9/2017 de Contratos del "
+    "Sector Público; no comprobamos esos requisitos. No es un contrato "
+    "y no se le aplican las señales. Importes con IVA; el año es el de publicación en el portal."
+)
+
+AVISO_RECURSOS = (
+    "Cualquier empresa interesada puede recurrir los pliegos, su exclusión o la adjudicación de "
+    "un contrato ante el Tribunal Administrativo de Contratación Pública de la Comunidad de "
+    "Madrid. **Presentar un recurso no es una señal.** Que el Tribunal lo estime solo dice que "
+    "dio la razón al recurrente sobre ese acto; no es una señal sobre la empresa adjudicataria "
+    "ni sobre el organismo."
+)

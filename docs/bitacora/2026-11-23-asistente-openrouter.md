@@ -21,7 +21,7 @@
   - el código de la fuente equivale a su nombre, y el año como texto equivale al año como número;
   - no falla con columnas de tipo lista.
 - **Pantalla del asistente:** aviso, sin traza técnica, si el proveedor falla.
-- Tests: de 238 a 249, todos pasan; ruff limpio.
+- Tests: de 238 a 248, todos pasan; ruff limpio.
 
 ## Decisiones tomadas
 - **D-010 aceptada** para el proveedor y los modelos: OpenRouter, `openai/gpt-6.1-terra` de principal y `anthropic/claude-haiku-5.5` de respaldo. La tabla de resultados está en `docs/decisions.md`.

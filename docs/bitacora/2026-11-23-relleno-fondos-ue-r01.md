@@ -23,6 +23,13 @@
   - **`contrato_financiacion`:** 14.772 licitaciones con el dato; **965 con fondos de la UE** (PRTR 540, FEDER 200, otros fondos europeos 153, FSE+ 52, FEADER 20) y 13.807 sin ellos.
   - **Indicadores:** R-01 sin cambios (8.144 de 20.693); R-04 pasa de 84 a **83** activados; anomalías: 13.498 atípicos de 1.349.510.
 
+## Contratos menores de julio a septiembre de 2026 (P-12)
+
+- Con el navegador integrado se comprobó en el buscador del portal que jul–sep de 2026 tenían ya 10.993, 6.574 y 7.357 menores, frente a 3.565, 2.312 y 3.218 en la exportación del 16-nov. Abril, mayo y junio coinciden exactamente con la base, así que la medida es fiable. Octubre y noviembre siguen sin menores publicados.
+- Una persona del equipo exportó jul–sep (captcha) el 23-nov: `data/raw/portal_cm/menores_2026-07-01_2026-09-30.csv`, 24.924 filas. Los ficheros de agosto y septiembre del 16-nov están en `data/raw/portal_cm_respaldo_2026-11-16/` (no se leen).
+- Tras regenerar (9 min 17 s): **152.702 menores en 2026** (antes 136.873, +15.829); `contrato` 1.387.522 filas. R-03 pasa a 1.332.957 aplicables y **228.122 activados** (17,1 %; antes 1.317.145 y 222.122). Anomalías: 13.657 atípicos de 1.365.339. R-01, R-02, R-05 y R-06 no cambian (los menores no les aplican).
+- **Para el resto del equipo:** este CSV no se puede bajar por código. O se repite la exportación (contratos menores, «Fecha del contrato o encargo» del 01-07-2026 al 30-09-2026) o se pasa el fichero por un canal privado; `data/` no se sube a git.
+
 ## Qué falta
 
 1. **Regenerar la base** en cada máquina: `uv run python -m ojo_ciudadano.modelo.carga`, luego `indicadores.ejecutor` y `anomalias.deteccion`.

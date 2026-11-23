@@ -51,9 +51,10 @@ Otras referencias útiles:
 | `licitaciones_todo_2026-11-16.csv` | «Convocatoria anunciada a licitación», todos los años | 24.796 |
 | `sin_publicidad_todo_2026-11-16.csv` | «Contratos adjudicados por procedimientos sin publicidad», todos los años | 11.333 |
 | `menores_AAAA-MM-DD_AAAA-MM-DD.csv` (42 ficheros) | Contratos menores con fecha de contrato de 2023-01-01 a 2026-09-30 | 1.317.983 |
+| `menores_2026-07-01_2026-09-30.csv` (exportado el **23-nov**) | Contratos menores de jul–sep de 2026, que se publicaron con retraso (P-12). Sustituye a los de agosto y septiembre del 16-nov, guardados en `data/raw/portal_cm_respaldo_2026-11-16/`; el de junio–julio se conserva y los julios repetidos se descartan por referencia | 24.924 |
 | `muestras_por_texto/` | Dos búsquedas por palabra, solo para explorar el formato | — |
 
-- Menores por año: 443.460 (2023), 387.924 (2024), 349.726 (2025), 136.873 (2026). Sin referencias repetidas entre ficheros. **Julio–septiembre de 2026 están incompletos en origen** (3.565, 2.312 y 3.218 frente a unos 20.000 de un mes normal) y no hay menores con fecha posterior: parecen publicarse con retraso (P-12).
+- Menores por año: 443.460 (2023), 387.924 (2024), 349.726 (2025), **152.702 (2026, tras la exportación del 23-nov; antes 136.873)**. Sin referencias repetidas entre ficheros. **Julio–septiembre de 2026 estaban incompletos en la exportación del 16-nov** (resuelto el 23-nov con una nueva exportación: 10.993, 6.574 y 7.357) (3.565, 2.312 y 3.218 frente a unos 20.000 de un mes normal) y no hay menores con fecha posterior: parecen publicarse con retraso (P-12).
 - 36 contratos aparecen en el fichero del periodo anterior al de su fecha (un día de desfase en el filtro del portal); no hay duplicados dentro de la ventana.
 - Columnas (18): tipo de publicación, estado, entidad adjudicadora (nombre con jerarquía separada por `··>`), nº de expediente, referencia, título, tipo de contrato, procedimiento, presupuesto de licitación, nº de ofertas, resultado, NIF y nombre del adjudicatario, fecha del contrato, importe de adjudicación, importes de modificaciones, prórrogas y liquidación.
 - `https://contratos-publicos.comunidad.madrid/contrato/<Referencia>` devuelve la ficha oficial (comprobado con 5 referencias) → sirve de `url_origen`.

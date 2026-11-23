@@ -165,3 +165,46 @@ def test_financiacion_ue_se_carga_solo_si_la_entrada_la_trae(tmp_path):
     finally:
         con.close()
     assert filas == [("placsp:100", True, "PRTR,FEDER", "placsp")]
+
+
+def test_encargos_van_a_su_tabla_y_no_a_contrato(tmp_path):
+    encargos = pl.DataFrame(
+        {
+            "encargo_id": ["portal_cm:C8000"],
+            "orden": pl.Series([1], dtype=pl.Int32),
+            "fuente": ["portal_cm"],
+            "expediente": ["EG/2025/1"],
+            "referencia_portal": ["C8000"],
+            "organo_nombre": ["Consejería de Encargos"],
+            "organo_jerarquia": [None],
+            "consejeria": [None],
+            "titulo": ["Apoyo técnico"],
+            "tipo_contrato": ["servicios"],
+            "anio_publicacion": pl.Series([2025], dtype=pl.Int32),
+            "medio_propio_id": ["A28476208"],
+            "importe_con_iva": [1_000_000.0],
+            "importe_modificaciones_con_iva": [0.0],
+            "url_origen": ["https://contratos-publicos.comunidad.madrid/contrato/C8000"],
+            "fecha_descarga": [HOY],
+        },
+        schema_overrides={"organo_jerarquia": pl.String, "consejeria": pl.String},
+    )
+    medios = pl.DataFrame(
+        {
+            "adjudicatario_id": ["A28476208"],
+            "nif": ["A28476208"],
+            "nombre": ["TRAGSA"],
+            "tipo_persona": ["juridica"],
+        }
+    )
+    tablas = {"encargos": encargos, "medios_propios": medios}
+    ruta = tmp_path / "prueba.duckdb"
+    carga.escribir(carga.unificar([_portal()], _placsp(), None, tablas), ruta, ESQUEMA)
+    con = duckdb.connect(str(ruta), read_only=True)
+    try:
+        assert con.execute("SELECT count(*) FROM encargo").fetchone()[0] == 1
+        assert con.execute("SELECT count(*) FROM contrato").fetchone()[0] == 3
+        organo = con.execute("SELECT o.nombre FROM encargo e JOIN organo o USING (organo_id)")
+        assert organo.fetchone()[0] == "Consejería de Encargos"
+    finally:
+        con.close()

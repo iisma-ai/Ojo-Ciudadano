@@ -256,7 +256,7 @@ Plantilla:
   - Se actualizan 03 (reglas de interfaz), 08 (plan) y 11.
 
 
-## D-026 · Financiación con fondos europeos desde PLACSP y filas de relleno fuera de los adjudicatarios
+## D-027 · Financiación con fondos europeos desde PLACSP y filas de relleno fuera de los adjudicatarios
 - **Fecha:** 2026-11-23
 - **Estado:** Aceptada
 - **Autor:** Claude (agente), a petición de una persona del equipo
@@ -266,3 +266,15 @@ Plantilla:
   - `normalizacion.nif.es_relleno`: esas filas se guardan como adjudicatario desconocido (sin identificador ni nombre), igual que una adjudicación sin NIF. La adjudicación y su importe se conservan.
 - **Alternativas consideradas:** Columna nueva en `contrato` (cambia el esquema congelado). Bajar los listados de perceptores del PRTR (repiten lo que ya dice el contrato). Para el relleno, borrarlo a mano en la interfaz (no arregla indicadores ni puntuación).
 - **Consecuencias:** Hay que regenerar la base (`modelo.carga`, `indicadores.ejecutor`, `anomalias.deteccion`). R-04 y la puntuación de empresa dejan de contar esas filas como empresa. Se actualizan 02, 06 y 13.
+
+## D-028 · Encargos a medios propios en una tabla aparte, fuera de los indicadores
+- **Fecha:** 2026-11-23
+- **Estado:** Aceptada
+- **Autor:** Claude (agente), a petición de una persona del equipo
+- **Contexto:** El portal de contratación publica los **encargos a medios propios** (art. 32 de la Ley 9/2017): trabajos que un órgano asigna sin licitación a una entidad pública que actúa como su medio propio. Nunca se habían exportado. La exportación del 23-nov tiene 2.405 encargos, 740,2 M€ con IVA, sobre todo a Tragsa (513 M€) y Tragsatec (117 M€). El CSV no trae ninguna fecha; la referencia del portal (`C<número>`) crece con la fecha de publicación, y los tramos por año coinciden exactamente con el buscador (236, 226, 260 y 222 encargos de 2023 a 2026).
+- **Decisión:**
+  - Tabla aditiva `encargo` (`sql/esquema/005_encargos.sql`, D-017) con el órgano, el medio propio (en `adjudicatario`, con la misma identidad que en los contratos), el importe y el **año de publicación** deducido de la referencia (`ingesta/encargos.py`, `LIMITES_REFERENCIA`). Solo 2023–2026 (D-006).
+  - **No entran en `contrato` ni en los indicadores ni en la puntuación**: no son contratos licitados, y meterlos cambiaría R-02 (aplicables) y R-04 (cuotas de los medios propios). Son un tercer flujo de dinero, igual que las subvenciones.
+  - El asistente puede consultarlos, diciendo que no son contratos.
+- **Alternativas consideradas:** Cargarlos en `contrato` con `tipo_publicacion = 'Encargos a medios propios'` y excluirlos en cada indicador (toca los seis SQL a un día del H3). Tomar la fecha de cada ficha (2.405 peticiones; la referencia da lo mismo con un recorrido de 95 páginas).
+- **Consecuencias:** Hay que regenerar la base. El CSV se exporta a mano (captcha): está en `data/raw/encargos/`, fuera de git. Si se exporta de nuevo en 2027, hay que añadir el tramo de referencias de ese año. Pendiente: mostrarlos en la ficha de órgano y en el mapa del dinero (lo coordina quien lleva la interfaz). Se actualizan 02, 06 y 13.

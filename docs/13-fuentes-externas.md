@@ -2,7 +2,7 @@
 
 Investigación del 23-nov-2026. Complementa [12-datos-cm.md](12-datos-cm.md) (rama `feat/datos-cm-abiertos`, fuentes de la propia Comunidad: presupuesto, convenios, registros, RPT). Aquí se buscan fuentes **que no son del catálogo ni del Portal de Transparencia de la Comunidad** y que mejoran la calidad de las señales sobre los mismos contratos y empresas.
 
-> **Estado (23-nov):** incorporados X-04 (referencia en la ayuda de R-01), X-07 (fondos europeos, D-026) y el tratamiento de las filas de relleno (D-026), en la rama `fix/relleno-y-referencia-r01`. El resto es solo investigación: incorporarlo exige decisión registrada y avisar al equipo.
+> **Estado (23-nov):** incorporados X-04 (referencia en la ayuda de R-01), X-07 (fondos europeos, D-027) y el tratamiento de las filas de relleno (D-027), en la rama `fix/relleno-y-referencia-r01`. El resto es solo investigación: incorporarlo exige decisión registrada y avisar al equipo.
 
 ## Reparto para no pisarnos
 

@@ -1,4 +1,4 @@
--- Ampliación aditiva del esquema v1 (D-017, D-025): financiación con fondos europeos de cada
+-- Ampliación aditiva del esquema v1 (D-017, D-027): financiación con fondos europeos de cada
 -- licitación, tal como la publica PLACSP en `cac:TenderingTerms/cbc:FundingProgramCode`
 -- (lista FundingProgramCode-2.08). No cambia ninguna tabla existente.
 -- Es contexto, no una señal de riesgo. Solo hay fila si la entrada trae el campo.

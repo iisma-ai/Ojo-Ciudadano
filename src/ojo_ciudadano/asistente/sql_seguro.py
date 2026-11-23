@@ -25,8 +25,10 @@ TABLAS_PERMITIDAS = {
     "contrato_unico",
     "adjudicacion",
     "concesion",
-    # Fondos europeos de cada licitación de PLACSP (004, D-026): contexto, no señal.
+    # Fondos europeos de cada licitación de PLACSP (004, D-027): contexto, no señal.
     "contrato_financiacion",
+    # Encargos a medios propios (005, D-028): no son contratos licitados ni entran en señales.
+    "encargo",
     "indicador_resultado",
     "puntuacion_contrato",
     "puntuacion_empresa_contrato",

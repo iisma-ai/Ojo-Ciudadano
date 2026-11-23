@@ -89,6 +89,12 @@ DESCRIPCION_TABLAS = {
         "Licitaciones de PLACSP con fondos europeos: financiado_ue (true/false) y programas_ue "
         "(PRTR, FEDER, FSE+, FEADER, OFE). Solo las que traen el dato. Contexto, no una señal."
     ),
+    "encargo": (
+        "Encargos a medios propios (Tragsa, Canal de Isabel II…): trabajos asignados sin "
+        "licitación a una entidad pública (art. 32 Ley 9/2017). No son contratos: no se suman "
+        "con ellos sin decirlo y no tienen señales. anio_publicacion es el año de publicación en "
+        "el portal; importe_con_iva, con impuestos."
+    ),
     "anomalia_resultado": (
         "Contratos atípicos respecto a contratos similares (D-021, Isolation Forest por grupo "
         "de pares). atipico = está en el 1 % más alejado de su grupo; puntuacion = percentil; "

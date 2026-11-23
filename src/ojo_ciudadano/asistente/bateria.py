@@ -638,14 +638,20 @@ LIMIT 10
             "estimación solo dice que ese acto no se ajustaba a derecho."
         ),
         sql="""
+WITH actos AS (  -- 7 resoluciones traen dos actos o dos resultados unidos con «; »
+    SELECT unnest(string_split(acto_recurrido, '; ')) AS acto_recurrido, tipo_resolucion,
+           fecha_descarga
+    FROM recurso_especial
+)
 SELECT
     acto_recurrido,
     count(*) AS n_resoluciones,
-    count_if(tipo_resolucion IN ('Estimatoria', 'Estimatoria parcial')) AS n_estimadas,
+    count_if(list_has_any(string_split(tipo_resolucion, '; '),
+                          ['Estimatoria', 'Estimatoria parcial'])) AS n_estimadas,
     round(100.0 * n_estimadas / n_resoluciones, 1) AS porcentaje_estimadas,
     'Tribunal Administrativo de Contratación Pública de la Comunidad de Madrid' AS fuente,
     max(fecha_descarga) AS fecha_descarga
-FROM recurso_especial
+FROM actos
 GROUP BY 1
 ORDER BY n_resoluciones DESC
 """,

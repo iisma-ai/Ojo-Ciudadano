@@ -74,8 +74,10 @@ ESTILO = """
   height: 100%; padding: 1.5rem 1.5rem !important; }
 [class*="st-key-puerta_"]:hover { transform: translateY(-3px);
   border-color: rgba(170,225,255,.55) !important; }
+/* todo lo de dentro sin posición propia: así el enlace se estira sobre toda la tarjeta */
+[class*="st-key-puerta_"] * { position: static !important; }
 [class*="st-key-puerta_"] [data-testid="stPageLink"] a::after {
-  content: ""; position: absolute; inset: 0; }
+  content: ""; position: absolute; inset: 0; z-index: 3; border-radius: inherit; }
 [class*="st-key-puerta_"] [data-testid="stPageLink"] a { padding-left: 0; }
 [class*="st-key-puerta_"] [data-testid="stPageLink"] a p { font-size: 1.2rem;
   font-weight: 650; white-space: normal; line-height: 1.3; }

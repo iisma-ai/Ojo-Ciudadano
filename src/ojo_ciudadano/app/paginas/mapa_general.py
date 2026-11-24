@@ -438,6 +438,70 @@ def _ficha(con, marcado: tuple, entidades, datos_anio, ampliada: bool) -> None:
         ficha_entidad(entidad, datos_anio, datos_anio["anio"], ampliada)
 
 
+# ------------------------------------------------------------------------------ presupuesto
+def barra_presupuesto(datos_anio: dict, anio: int) -> str:
+    """El presupuesto del año en una sola barra (D-052): llena hasta lo gastado, con lo gastado,
+    lo que quedó sin gastar y el total debajo. Sin frases: las cifras hablan."""
+    credito, liquidado = datos_anio["credito"], datos_anio["liquidado"]
+    gastado = (datos_anio["gastado"] or 0) if liquidado else 0
+    parte = min(gastado / credito, 1) if credito and liquidado else 0
+    if liquidado:
+        pie = (
+            f'<div class="ocp-pie"><span><i class="g"></i>Gastado <b>{textos.millones(gastado)}'
+            f"</b> · {textos.porcentaje(parte)}</span><span><i></i>Sin gastar "
+            f"<b>{textos.millones(max(credito - gastado, 0))}</b></span></div>"
+        )
+    else:
+        pie = (
+            '<div class="ocp-pie"><span>Presupuesto inicial: el gasto se publica al cerrar '
+            "el año.</span></div>"
+        )
+    marca = (
+        f'<div class="marca" style="left:calc({100 * parte:.2f}% - 1px)"></div>'
+        if liquidado
+        else ""
+    )
+    return f"""
+<style>
+.ocp {{ font-family:Inter, sans-serif; color:#E7ECF3; margin: 6px 0 4px; }}
+.ocp-cab {{ display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+  margin-bottom:10px; }}
+.ocp-cab h3 {{ margin:0; padding:0; font-size:1.35rem; font-weight:700; color:#E7ECF3; }}
+.ocp-cab .total {{ font-size:1.9rem; font-weight:750; letter-spacing:-.02em;
+  background:linear-gradient(180deg,#fff,#9FCBFF); -webkit-background-clip:text;
+  background-clip:text; color:transparent; }}
+.ocp-cab .total small {{ font-size:.85rem; font-weight:500; color:#9FB6CC;
+  -webkit-text-fill-color:#9FB6CC; margin-left:6px; }}
+.ocp-barra {{ position:relative; height:30px; border-radius:16px; overflow:hidden;
+  background:linear-gradient(180deg, rgba(200,235,255,.14), rgba(170,225,255,.06));
+  border:1px solid rgba(170,225,255,.3);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 8px 24px rgba(0,8,22,.35); }}
+.ocp-barra .lleno {{ height:100%; border-radius:15px 0 0 15px;
+  background:linear-gradient(90deg,#2f7cf0,#38bdf8);
+  box-shadow:0 0 22px rgba(56,189,248,.5), inset 0 1px 0 rgba(255,255,255,.35);
+  transform-origin:left center; animation: ocp-crece 1.2s cubic-bezier(.25,.8,.25,1) both; }}
+.ocp-barra .marca {{ position:absolute; top:-2px; bottom:-2px; width:2px; background:#fff;
+  opacity:.85; box-shadow:0 0 8px #fff; }}
+@keyframes ocp-crece {{ from {{ transform:scaleX(0); }} to {{ transform:none; }} }}
+.ocp-pie {{ display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px 20px;
+  margin-top:10px; font-size:.95rem; color:#9FB6CC; }}
+.ocp-pie b {{ color:#E7ECF3; }}
+.ocp-pie i {{ display:inline-block; width:12px; height:12px; border-radius:4px; margin-right:7px;
+  vertical-align:-1px; background:rgba(170,225,255,.2); border:1px solid rgba(170,225,255,.4); }}
+.ocp-pie i.g {{ background:linear-gradient(90deg,#2f7cf0,#38bdf8); border:none; }}
+@media (prefers-reduced-motion: reduce) {{ .ocp-barra .lleno {{ animation:none; }} }}
+</style>
+<div class="ocp">
+  <div class="ocp-cab"><h3>Presupuesto {anio}</h3>
+    <span class="total">{textos.millones(credito)}<small>en total</small></span></div>
+  <div class="ocp-barra" role="img" aria-label="Gastado {textos.porcentaje(parte)} de
+    {textos.millones(credito)}"><div class="lleno" style="width:{100 * parte:.2f}%"></div>
+    {marca}
+  </div>
+  {pie}
+</div>"""
+
+
 # ------------------------------------------------------------------------------ tarjeta del año
 def _redondeo(valor: float, a: int = 10) -> str:
     return f"{round(valor / a) * a:,.0f}".replace(",", ".")
@@ -693,7 +757,8 @@ if not entidades:
 liquidado = datos_anio["liquidado"]
 poblacion = _poblacion()
 
-tarjeta_ciudadano(datos_anio, anio, poblacion)
+# lo primero, el presupuesto del año en una barra (D-052); lo de cada habitante, abajo
+billetes.pintar(barra_presupuesto(datos_anio, anio), clave=f"mg_presupuesto_{anio}")
 
 # --- Mapa de burbujas, con sus opciones al lado del título ---
 nombres = [e["entidad"] for e in entidades]
@@ -821,6 +886,9 @@ with st.expander("Todas las consejerías, en una tabla", icon=":material/table:"
         hide_index=True,
         width="stretch",
     )
+
+with st.expander("Si se repartiera entre todos los habitantes", icon=":material/groups:"):
+    tarjeta_ciudadano(datos_anio, anio, poblacion)
 
 # Fuentes, matices y datos que no tenemos, abajo del todo (D-043).
 with st.expander("Fuentes y qué datos no tenemos", icon=":material/info:"):

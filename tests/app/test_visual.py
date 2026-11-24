@@ -61,7 +61,12 @@ def test_r03_suma_doce_meses_y_limite(con):
     frase, _ = senales.frase_y_grafico(con, "R-03", "m1")
     assert "es uno de los **3 contratos menores**" in frase
     assert "dio a Empresa B2 en 12 meses" in frase
-    assert "**Juntos suman 21.000 €**" in frase
+    assert "Juntos pasan del máximo de un contrato menor" in frase
+    dibujo = senales.frase_y_grafico(con, "R-03", "m1")[1]
+    assert "Suma de los contratos menores: <b>21.000 €</b>" in dibujo
+    assert "Máximo de un contrato menor: 18.150 €" in dibujo
+    assert dibujo.count('class="oc-menor') == 3  # un icono por contrato menor
+    assert dibujo.count('class="oc-menor este"') == 1
     assert [c["importe"] for c in graficos.ventana_doce_meses(detalle["contratos"])] == [
         7000,
         7000,

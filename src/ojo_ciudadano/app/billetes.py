@@ -333,6 +333,88 @@ def svg_habitantes(millones_hab: float) -> str:
     )
 
 
+# --------------------------------------------------------------------------- contratos menores
+def _documento(ancho: int, color: str, trazo: str) -> str:
+    """Icono de un contrato: una hoja con la esquina doblada y unas líneas de texto."""
+    alto = round(ancho * 1.3)
+    return (
+        f'<svg viewBox="0 0 40 52" width="{ancho}" height="{alto}" aria-hidden="true">'
+        f'<path d="M3 3 h24 l10 10 v36 h-34 z" fill="{color}" stroke="{trazo}" '
+        'stroke-width="2" stroke-linejoin="round"/>'
+        f'<path d="M27 3 v10 h10" fill="none" stroke="{trazo}" stroke-width="2" '
+        'stroke-linejoin="round"/>'
+        + "".join(
+            f'<rect x="9" y="{y}" width="{w}" height="2.6" rx="1.3" fill="{trazo}" '
+            'fill-opacity=".7"/>'
+            for y, w in ((20, 20), (27, 22), (34, 16), (41, 19))
+        )
+        + "</svg>"
+    )
+
+
+def html_menores(detalle: dict, ventana: list[dict], contrato_id: str) -> str:
+    """E-03 (D-042): un contrato grande con la suma de los contratos menores y el máximo de un
+    contrato menor, y debajo un icono por cada contrato menor (este, en azul). Al pasar el ratón
+    por un icono se ve su precio, su fecha y su título."""
+    suma = sum(c["importe"] for c in ventana)
+    veces = suma / detalle["umbral"] if detalle["umbral"] else 0
+    iconos = []
+    for c in ventana:
+        es_este = c["contrato_id"] == contrato_id
+        pista = f"{textos.euros(c['importe'])} · {c['fecha'].strftime('%d/%m/%Y')}" + (
+            " · este contrato" if es_este else ""
+        )
+        titulo = html.escape((c["titulo"] or "")[:110])
+        iconos.append(
+            f'<div class="oc-menor{" este" if es_este else ""}" tabindex="0" '
+            f'title="{html.escape(pista)}">'
+            + _documento(
+                34, "#2F6FD6" if es_este else "#33415C", "#E7ECF3" if es_este else "#93A1B8"
+            )
+            + ('<span class="oc-este">este</span>' if es_este else "")
+            + f'<div class="oc-pista"><b>{html.escape(pista)}</b>'
+            + (f"<br>{titulo}" if titulo else "")
+            + "</div></div>"
+        )
+    return f"""
+<style>
+.oc-r03 {{ font-family: Inter, sans-serif; color: #E7ECF3; }}
+.oc-grande {{ display: flex; gap: 16px; align-items: center; padding: 12px 14px;
+  border-radius: 12px; background: rgba(125,179,255,.08); border: 1px solid rgba(125,179,255,.3); }}
+.oc-grande p {{ margin: 0; line-height: 1.45; }}
+.oc-suma {{ font-size: 1.05rem; }}
+.oc-suma b {{ font-size: 1.35rem; color: #fff; }}
+.oc-max {{ color: #B9C6D8; font-size: .95rem; }}
+.oc-veces {{ color: #7DB3FF; font-size: .9rem; font-weight: 600; }}
+.oc-titulo-menores {{ margin: 14px 0 8px; color: #B9C6D8; font-size: .95rem; }}
+.oc-iconos {{ display: flex; flex-wrap: wrap; gap: 10px; }}
+.oc-menor {{ position: relative; display: flex; flex-direction: column; align-items: center;
+  cursor: default; outline: none; transition: transform .15s; }}
+.oc-menor:hover, .oc-menor:focus-visible {{ transform: translateY(-3px); }}
+.oc-este {{ font-size: .72rem; color: #7DB3FF; font-weight: 600; margin-top: 2px; }}
+.oc-pista {{ visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 8px);
+  left: 50%; transform: translateX(-50%); width: max-content; max-width: 240px; z-index: 5;
+  background: #0B2236; border: 1px solid rgba(170,225,255,.35); border-radius: 8px;
+  padding: 7px 10px; font-size: .8rem; line-height: 1.35; color: #B9C6D8;
+  box-shadow: 0 8px 22px rgba(0,8,22,.55); transition: opacity .12s; pointer-events: none; }}
+.oc-pista b {{ color: #fff; }}
+.oc-menor:hover .oc-pista, .oc-menor:focus-visible .oc-pista {{ visibility: visible; opacity: 1; }}
+</style>
+<div class="oc-r03">
+  <div class="oc-grande">
+    {_documento(56, "#0B2236", "#7DB3FF")}
+    <div>
+      <p class="oc-suma">Suma de los contratos menores: <b>{textos.euros(suma)}</b></p>
+      <p class="oc-max">Máximo de un contrato menor: {textos.euros(detalle["umbral"])}</p>
+      <p class="oc-veces">{f"{veces:.1f}".replace(".", ",").removesuffix(",0")} veces el máximo</p>
+    </div>
+  </div>
+  <p class="oc-titulo-menores">Contratos menores ({len(ventana)}) · pasa el ratón por cada uno
+    para ver su precio</p>
+  <div class="oc-iconos">{"".join(iconos)}</div>
+</div>"""
+
+
 # --------------------------------------------------------------------------- componente
 CSS = """
 .oc-leyenda { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: center;

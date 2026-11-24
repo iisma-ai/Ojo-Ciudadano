@@ -107,3 +107,14 @@ Ignacio dijo que los gráficos de R-03 y R-05 eran poco intuitivos, feos o sosos
 **Comprobaciones:**
 - tests de los gráficos actualizados y uno nuevo;
 - comprobado en el navegador abriendo un contrato de cada señal, sin errores.
+
+## Integración de `main` y nueva vista de los contratos menores
+- **Pull de `main`** (a petición de Ismael, antes de seguir): traía el arreglo de `ingesta/cpv.py` y un cambio en la presentación.
+  - El único conflicto estaba en `docs/08-plan.md` (filas añadidas por las dos partes) y se conservaron las dos.
+  - 468 tests y las nueve pantallas sin errores.
+  - Con el arreglo, la descarga de CPV sigue rechazada por el portal, pero ya no guarda nada falso. Para tener los nombres de los sectores hay que copiar `data/raw/cpv/CPV2008-2.04.gc` de alguien del equipo.
+- **R-03 a petición de Ignacio:**
+  - un contrato grande con la suma de los contratos menores, el máximo de un contrato menor y cuántas veces el máximo;
+  - debajo, un icono por contrato menor (este en azul) con su precio, fecha y título al pasar el ratón;
+  - `billetes.html_menores`; se quita el gráfico de bloques.
+  - Comprobado en el navegador: 9 iconos, etiqueta al pasar el ratón y sin errores.

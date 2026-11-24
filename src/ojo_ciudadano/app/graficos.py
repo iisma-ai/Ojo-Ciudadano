@@ -146,57 +146,6 @@ def ventana_doce_meses(contratos: list[dict]) -> list[dict]:
     return [c for c in contratos if desde <= c["fecha"] <= fin]
 
 
-def menores(detalle: dict, contrato_id: str) -> go.Figure:
-    """E-03 (D-042): los contratos menores de los 12 meses en que más suman, como bloques
-    apilados uno tras otro (este en azul), frente a la línea del máximo de un contrato menor."""
-    ventana = ventana_doce_meses(detalle["contratos"])
-    total = sum(c["importe"] for c in ventana)
-    figura = go.Figure()
-    for k, c in enumerate(ventana):
-        es_este = c["contrato_id"] == contrato_id
-        figura.add_bar(
-            y=[""],
-            x=[c["importe"]],
-            orientation="h",
-            marker={
-                "color": AZUL if es_este else (GRIS if k % 2 else "#73839F"),
-                "line": {"color": "#041627", "width": 2},
-                "cornerradius": 3,
-            },
-            text=["este"] if es_este else None,
-            textposition="inside",
-            insidetextanchor="middle",
-            textfont={"color": TEXTO, "size": 12},
-            customdata=[[c["fecha"].strftime("%d/%m/%Y"), (c["titulo"] or "")[:90]]],
-            hovertemplate=(
-                "%{customdata[0]}: contrato menor de %{x:,.0f} €"
-                + (" (este)" if es_este else "")
-                + "<br>%{customdata[1]}<extra></extra>"
-            ),
-        )
-    figura.add_vline(
-        x=detalle["umbral"],
-        line={"color": GRIS_CLARO, "dash": "dot", "width": 2},
-        annotation_text=f"Máximo de un contrato menor: {euros(detalle['umbral'])}",
-        annotation_font_color=GRIS_CLARO,
-        annotation_position="bottom right",
-        annotation_yshift=-6,
-    )
-    figura.add_annotation(
-        x=total,
-        y=0,
-        text=f"<b>{euros(total)}</b>",
-        showarrow=False,
-        xanchor="left",
-        xshift=8,
-        font={"size": 15, "color": TEXTO},
-    )
-    figura.update_layout(barmode="stack", showlegend=False, bargap=0.2)
-    figura.update_xaxes(range=[0, max(total, detalle["umbral"]) * 1.32], visible=False)
-    figura.update_yaxes(visible=False)
-    return _tema(figura, alto=170)
-
-
 def reparto(detalle: dict) -> go.Figure:
     """E-04 (D-042): de cada 100 € que el organismo adjudica en este tipo de contrato, cuántos
     se lleva cada empresa. Ranking de barras con la empresa de este contrato en azul y una línea

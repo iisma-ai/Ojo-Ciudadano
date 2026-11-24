@@ -9,7 +9,7 @@ import hashlib
 import duckdb
 import streamlit as st
 
-from ojo_ciudadano.app import datos, datos_flujos, graficos, textos
+from ojo_ciudadano.app import billetes, datos, datos_flujos, graficos, textos
 
 
 def _porcentaje(parte: float, total: float) -> str:
@@ -54,17 +54,15 @@ def frase_y_grafico(con: duckdb.DuckDBPyConnection, indicador: str, contrato_id:
         if not d:
             return None, None
         ventana = graficos.ventana_doce_meses(d["contratos"])
-        suma = sum(c["importe"] for c in ventana)
         quien = d["empresa"] or "la misma adjudicataria"
         frase = (
             f"**En este contrato:** es uno de los **{len(ventana)} contratos menores** del mismo "
             f"tipo que este organismo dio a {quien} en 12 meses (de más de "
-            f"{textos.euros(d['umbral'] / 3)} cada uno).  \n"
-            f"**Juntos suman {textos.euros(suma)}**, más que el máximo de un contrato menor "
-            f"({textos.euros(d['umbral'])}, con IVA). Pueden ser compras distintas: el "
-            "expediente lo aclara."
+            f"{textos.euros(d['umbral'] / 3)} cada uno). Juntos pasan del máximo de un contrato "
+            "menor. Pueden ser compras distintas: el expediente lo aclara."
         )
-        return frase, graficos.menores(d, contrato_id)
+        # En vez de un gráfico, un contrato grande con la suma y un icono por contrato menor.
+        return frase, billetes.html_menores(d, ventana, contrato_id)
     if indicador == "R-04":
         d = datos.detalle_r04(con, contrato_id)
         if not d or d["cuota"] is None:
@@ -145,7 +143,9 @@ def mostrar(
         if en_caja and not frase.startswith("**En este contrato"):
             st.caption("En este contrato")
         st.markdown(frase)
-    if figura is not None:
+    if isinstance(figura, str):  # dibujo propio en HTML (contratos menores, D-042)
+        billetes.pintar(figura, clave=f"{indicador}-{contrato_id}")
+    elif figura is not None:
         st.plotly_chart(figura, config=graficos.CONFIG, key=f"{indicador}-{contrato_id}")
     with st.popover("¿Qué significa?", icon=":material/help:"):
         st.markdown(textos.SENAL_FRASE[indicador])

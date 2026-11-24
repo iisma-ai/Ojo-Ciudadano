@@ -710,3 +710,8 @@ Plantilla:
       - el de R-06 explica cómo funciona un concurso (precio de salida, ofertas, a quién se adjudica) en lugar de «la empresa ganó rebajando…»;
       - el de R-05 explica qué es una modificación.
     - Las líneas de referencia de estos gráficos pasan del ámbar a un gris claro de puntos.
+  - **R-03, segunda versión (Ignacio):**
+    - en lugar del gráfico de bloques, un contrato grande con «Suma de los contratos menores: X», «Máximo de un contrato menor: Y» y cuántas veces el máximo;
+    - debajo, un icono de contrato por cada contrato menor de la ventana de 12 meses, el de este en azul con «este». Al pasar el ratón (o con el teclado) se ve su precio, su fecha y su título;
+    - HTML propio (`billetes.html_menores`, con el componente de `billetes.pintar`); se quita `graficos.menores`;
+    - la frase ya no repite la suma.

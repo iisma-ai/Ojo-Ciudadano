@@ -50,3 +50,33 @@ Todo va en una rama propia.
 - Que el equipo vea la rama y decida si se fusiona (`https://github.com/iisma-ai/Ojo-Ciudadano/compare/main...feat/mapa-billetes`). Si no gusta, basta con no fusionarla.
 - Seguir el repaso con el **Inicio** y después Contratos a revisar, Contratos atípicos, Mapa del dinero, Presupuesto y contexto, fichas de empresa y de órgano, y Asistente.
 - Recordatorio del plan: el 25 no se añaden funciones.
+
+## Segunda ronda: frascos y ojo con manos
+Ignacio revisó la primera versión y pidió:
+- las opciones junto al mapa;
+- las fuentes en un botón de información;
+- el gasto por consejería ordenado, solo con el porcentaje y sin la frase explicativa;
+- quitar la tabla si no aportaba nada;
+- volver al grafo con **frascos de dinero** de 100 billetes;
+- cambiar el muñeco por **un ojo con manos**, como el logo;
+- decir si lo de cada habitante es al año o al mes.
+
+**Qué se hizo:**
+- Fuera el treemap.
+- `billetes.py` dibuja el frasco: tapa, cristal con fondo oscuro para que no se vean las líneas detrás, 100 huecos en 5 columnas, trozo de billete para la parte que falta y grises para lo no gastado.
+- `red.NodoRed` acepta `imagen` y `tamano` opcionales, así que el «Mapa del dinero» no cambia.
+- Frascos de consejería iguales y repartidos en una elipse, porque en círculo las etiquetas chocaban.
+- Rótulo corto bajo cada frasco («Sanidad 39 €»).
+- Botón «Opciones» al lado del título del mapa y botón «Fuentes» junto al título de la página.
+- Gasto ordenado por porcentaje.
+- Tabla eliminada.
+- Lo que toca a cada habitante, «al año» y «al mes» (unos 390 € en 2025).
+- La mascota es el trazo y la pupila del logo, con un brazo que levanta billetes y otro que saluda, y la pupila que mira a los lados.
+
+**Comprobado en el navegador:**
+- vista por defecto: 14 frascos sin solaparse;
+- botón de fuentes;
+- nivel con contratos (se satura un poco, pero es opcional);
+- clic en el frasco de Sanidad, que abre su ficha con 39 de cada 100 € y el 99 % gastado.
+
+**Tests:** 453, todos bien (los del treemap se cambiaron por los del frasco y la mascota).

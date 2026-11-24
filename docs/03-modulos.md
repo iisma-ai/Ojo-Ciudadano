@@ -14,18 +14,17 @@ Cinco módulos; los cinco entran en la demo, dos de ellos en versión simplifica
 
 Segunda pantalla, después del Inicio, pensada para un ciudadano cualquiera.
 
-- **Año** arriba (el que aún no tiene gasto publicado sale como «previsto»).
+- **Año** arriba (el que aún no tiene gasto publicado sale como «previsto») y botón **«Fuentes»**. El botón recoge fuentes, matices y «Qué datos no tenemos», para no llenar la pantalla.
 - **Tarjeta del año:**
-  - la frase «En 2025 la Comunidad de Madrid tuvo X y gastó N de cada 100 €», con una barra de lo gastado;
-  - lo que tocaría a cada habitante si se repartiera (habitantes del INE, F-12), con una figura que sujeta billetes y una figurita por cada millón de habitantes.
-- **«¿A dónde van cada 100 €?»:** treemap de billetes (`app/billetes.py`).
-  - Cada bloque es una consejería y cada billete vale lo mismo en todo el gráfico; la leyenda dice cuánto.
-  - Los billetes grises son lo que quedó sin gastar.
-  - Al pulsar un bloque se ven los 15 contratos más grandes de esa consejería en billetes, con la ficha del bloque pulsado al lado, y los menores y las subvenciones en una línea.
-- **«¿Cuánto ha gastado cada consejería?»:** una línea por consejería con su barra, el porcentaje gastado, lo que queda y el gasto medio diario.
-- **«Más opciones»:** qué dinero ver (presupuesto, contratos de la Plataforma o del portal, subvenciones) y la **red de contratos** de D-033 como vista avanzada (`app/red.py`). Esta conserva los niveles, los contratos por consejería y la ficha lateral.
-- **Desplegables:** «Ver los datos en tabla» y «Qué datos no tenemos».
-- El «Mapa del dinero» sigue usando el diseño de nodos.
+  - la frase «En 2025 la Comunidad de Madrid tuvo X y gastó N de cada 100 €», con una barra;
+  - lo que tocaría a cada habitante al año y al mes (habitantes del INE, F-12), con una figurita por millón de habitantes;
+  - la mascota: el ojo del logo con manos que sujetan billetes.
+- **«¿A dónde van cada 100 €?»:** el mapa de nodos (`app/red.py`) con **frascos de 100 billetes** (`app/billetes.py`).
+  - La Comunidad, en el centro, tiene su frasco lleno; cada consejería lleva un billete por cada euro que recibe de cada 100, y los billetes grises son lo que quedó sin gastar.
+  - El botón **«Opciones»**, junto al título, deja elegir qué dinero ver, si se ven los contratos más grandes de cada consejería y cuántos.
+  - Al pulsar un frasco, su ficha sale a la derecha. Desde la de una consejería se abren sus 15 contratos más grandes, también en frascos, con los menores y las subvenciones resumidos en una línea.
+- **«¿Cuánto ha gastado cada consejería?»:** barra y porcentaje, de mayor a menor.
+- El «Mapa del dinero» sigue usando las burbujas de D-033.
 
 ## Búsqueda y filtros (D-025)
 

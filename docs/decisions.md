@@ -561,25 +561,35 @@ Plantilla:
   - **Riesgo:** reconocer mal una pregunta da una respuesta correcta a otra pregunta. Por eso se enseña siempre la pregunta reconocida y se puede pedir el modelo.
   - Los textos preparados pasan los mismos filtros de lenguaje que los del modelo (tests).
 
-## D-038 · Mapa general para el ciudadano: treemap de billetes, presupuesto por habitante y entrada por el Inicio
+## D-038 · Mapa general para el ciudadano: frascos de 100 billetes, presupuesto por habitante y entrada por el Inicio
 - **Fecha:** 2026-11-24
-- **Estado:** Aceptada por Ignacio («me gusta la idea del treemap […] que se represente con billetes»; «añádelo y de manera también gráfica: añade un muñequito»; «Lo apruebo»). Está en la rama propia `feat/mapa-billetes` para poder deshacerlo sin tocar el trabajo de nadie; falta que el equipo lo vea antes de fusionarlo.
+- **Estado:** Aceptada por Ignacio en dos rondas. Primero eligió un treemap de billetes y una figura; después lo cambió: «Vuelve al grafo pero cada nodo debe ser un frasco de dinero, cada frasco debe tener un número de billetes proporcional a 100 con lo que recibe»; «Cambia el muñeco por un ojo con manos, replicando nuestra identidad de marca». Está en la rama propia `feat/mapa-billetes` para poder deshacerlo sin tocar el trabajo de nadie; falta que el equipo lo vea antes de fusionarlo.
 - **Autor:** Claude (agente), a petición de Ignacio, dentro del repaso «dashboard a dashboard» pensando en un ciudadano medio
 - **Contexto:** La web se abría con el mapa de nodos de D-033: seis controles, palabras como «crédito» o «gasto reconocido», cifras como «33.296 M€» sin referencia y etiquetas que se pisaban. Era la pantalla más difícil y la primera que se veía.
 - **Decisión:**
   - **Se entra por el Inicio.** El mapa pasa a llamarse «A dónde va el dinero» y es la segunda página (su dirección sigue siendo `/mapa_general`).
-  - **Una frase y una figura en lugar de cuatro cifras:** «En 2025 la Comunidad de Madrid tuvo 33.296 M€ y gastó 95 de cada 100 €», con una barra de lo gastado. Debajo, lo que tocaría a cada habitante si se repartiera (**unos 4.680 €** en 2025), con una persona que sujeta billetes y una figurita por cada millón de habitantes.
-  - **Habitantes del INE**, Estadística Continua de Población (serie ECP115490), a 1 de enero de cada año: es la fuente F-12, en `ingesta/ine.py`, con caché en `data/raw/ine/`. No entra en la base ni en ningún indicador, y la pantalla dice que es una forma de dar escala, no un pago.
-  - **Treemap de billetes** (`app/billetes.py`) como gráfico principal: cada bloque es una consejería y su área es el dinero.
-    - Dentro van billetes que **valen lo mismo en todo el gráfico** (100 M€ en el presupuesto), así que más dinero son más billetes.
-    - Lo que no llega a un billete se pinta como trozo de billete, y **los billetes grises son lo que quedó sin gastar**.
-    - Al pulsar una consejería se ven sus 15 contratos más grandes, también en billetes y con su ficha al lado. Los menores y las subvenciones van en una línea aparte, porque juntos aplastarían a los contratos.
-    - Es un componente de `st.components.v2`, sin dependencias nuevas.
-  - **Gasto de cada consejería en una línea:** barra de lo gastado, porcentaje, lo que queda y el gasto medio diario («unos 35 M€ al día»), ordenadas por dinero.
-  - **Lo técnico va plegado:**
-    - en «Más opciones», qué dinero ver (presupuesto, contratos o subvenciones) y la **red de contratos de D-033, que se conserva como vista avanzada**;
-    - la tabla, en «Ver los datos en tabla»;
-    - las advertencias de fuentes, en «Qué datos no tenemos».
-  - La ficha del contrato pasa sus cifras a líneas de texto, porque en la columna estrecha se cortaban; esto también afecta a la vista de red.
-- **Alternativas:** waffle de 100 cuadraditos (descartado: no permite entrar en cada consejería); arreglar solo el grafo (seguía sin responder «¿en qué se gasta?»); quitar el grafo (descartado: se conserva como vista avanzada para no deshacer D-033).
-- **Consecuencias:** nueva fuente F-12 (INE): cada instalación la baja sola la primera vez que se abre el mapa, o con `uv run python -m ojo_ciudadano.ingesta.ine`. Si no hay red ni caché, la cifra por habitante no se muestra y el resto funciona. Docs: 02, 03 y 08.
+  - **Tarjeta del año:**
+    - la frase «En 2025 la Comunidad de Madrid tuvo 33.296 M€ y gastó 95 de cada 100 €», con una barra de lo gastado;
+    - lo que tocaría a cada habitante si se repartiera el dinero de todo el año, **al año y al mes** (unos 4.680 € al año y 390 € al mes en 2025), con una figurita por cada millón de habitantes;
+    - la mascota: **el ojo del logo, con su mismo trazo y su pupila azul, con dos manos**. Una levanta un abanico de billetes y la otra saluda; la pupila mira a los lados, y todo se queda quieto con «reducir movimiento».
+  - **Habitantes del INE**, Estadística Continua de Población (serie ECP115490), a 1 de enero: es la fuente F-12, en `ingesta/ine.py`, con caché en `data/raw/ine/`. No entra en la base ni en ningún indicador.
+  - **El mapa de nodos de D-033 se queda, con frascos** (`app/billetes.py`, campos `imagen` y `tamano` opcionales en `red.NodoRed`):
+    - cada nodo es un frasco de cristal en el que **caben 100 billetes**;
+    - el frasco de la Comunidad está lleno, y el de cada consejería lleva **un billete por cada euro que recibe de cada 100**; bajo el frasco va, por ejemplo, «Sanidad 39 €»;
+    - lo que no llega a un billete es un trozo de billete y **los billetes grises son lo que quedó sin gastar**;
+    - todos los frascos de consejería tienen el mismo tamaño, para que se compare lo llenos que están;
+    - en el nivel con contratos, el frasco de un contrato lleva los euros que recibió de cada 100 que su consejería adjudicó en la misma fuente (Plataforma sin IVA o portal con IVA, sin mezclarlas);
+    - por defecto se ven solo las consejerías.
+  - **Opciones junto al mapa** (botón «Opciones»): qué dinero ver, si se muestran los contratos y cuántos por consejería. Se quitan los menores y las subvenciones como nodos; al abrir una consejería se resumen en una línea.
+  - **Fuentes en un botón de información** («Fuentes», arriba a la derecha): presupuesto, habitantes, contratos, el aviso de que no se cruzan partida a partida y «Qué datos no tenemos». Desaparecen esas notas de la pantalla y de las fichas.
+  - **«¿Cuánto ha gastado cada consejería?»:** barra y porcentaje, de mayor a menor porcentaje, sin más texto.
+  - **Sin la tabla de datos:** repetía lo que ya está en la pantalla.
+  - Las fichas de consejería y de contrato pasan sus cifras a líneas de texto, porque en la columna estrecha se cortaban.
+- **Alternativas:**
+  - treemap de billetes: se probó y se descartó porque no era lo bastante explicativo;
+  - waffle de 100 cuadraditos: no permite entrar en cada consejería;
+  - frascos de tamaño proporcional al dinero: doble codificación, y los frascos pequeños no dejaban ver los billetes.
+- **Consecuencias:**
+  - nueva fuente F-12 (INE): cada instalación la baja sola la primera vez que se abre el mapa, o con `uv run python -m ojo_ciudadano.ingesta.ine`; si no hay red ni caché, la cifra por habitante no se muestra y el resto funciona;
+  - el «Mapa del dinero» no cambia;
+  - docs: 02, 03 y 08.

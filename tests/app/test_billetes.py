@@ -1,57 +1,50 @@
-"""Treemap de billetes del mapa general (D-038), con datos sintéticos."""
+"""Frascos de billetes del mapa general (D-038), con datos sintéticos."""
 
-import math
-
-import pytest
+import base64
 
 from ojo_ciudadano.app import billetes
 
 
-def test_treemap_reparte_el_area_en_proporcion_y_sin_salirse():
-    valores = [60.0, 25.0, 10.0, 5.0]
-    rects = billetes.treemap(valores, 0, 0, 1000, 500)
-    assert len(rects) == len(valores)
-    area_total = 1000 * 500
-    for valor, (x, y, ancho, alto) in zip(valores, rects, strict=True):
-        assert ancho * alto == pytest.approx(area_total * valor / sum(valores))
-        assert x >= -1e-6 and y >= -1e-6
-        assert x + ancho <= 1000 + 1e-6 and y + alto <= 500 + 1e-6
+def _billetes(svg: str) -> list[str]:
+    """Colores de los billetes del frasco (rectángulos con color de billete)."""
+    colores = (*billetes.VERDES, billetes.GRIS)
+    return [c for c in colores for _ in range(svg.count(f'fill="{c}"/>'))]
 
 
-def test_treemap_vacio():
-    assert billetes.treemap([], 0, 0, 100, 100) == []
+def test_billetes_de_cada_100():
+    assert billetes.billetes_de_cada_100(39, 100) == 39
+    assert billetes.billetes_de_cada_100(150, 100) == 100  # nunca se sale del frasco
+    assert billetes.billetes_de_cada_100(5, 0) == 0
+    assert billetes.texto_de_cada_100(38.6) == "39 de cada 100 €"
+    assert billetes.texto_de_cada_100(0.2) == "menos de 1 de cada 100 €"
 
 
-def test_valor_billete_es_redondo_y_da_unos_cientos_de_billetes():
-    valor = billetes.valor_billete(33_296e6)
-    assert valor == 100e6
-    assert billetes.valor_billete(160e6, objetivo=160) == 1e6
-    assert billetes.texto_valor(100e6) == "100 millones de €"
-    assert billetes.texto_valor(1e6) == "1 millón de €"
+def test_frasco_lleva_un_billete_por_cada_euro_de_cada_100():
+    assert len(_billetes(billetes.svg_frasco(39))) == 39
+    assert len(_billetes(billetes.svg_frasco(100))) == 100
+    assert len(_billetes(billetes.svg_frasco(0))) == 0
 
 
-def test_rejilla_caben_todos_los_billetes():
-    columnas, filas, alto = billetes.rejilla(12.4, 400, 200)
-    assert columnas * filas >= 13
-    assert columnas * alto * billetes.PROPORCION <= 400 + 1e-6
-    assert filas * alto <= 200 + 1e-6
+def test_frasco_grises_segun_lo_gastado():
+    colores = _billetes(billetes.svg_frasco(10, gastado=0.7))
+    assert colores.count(billetes.GRIS) == 3
+    assert len(colores) == 10
 
 
-def test_svg_cuenta_billetes_y_grises_segun_lo_gastado():
-    bloques = [billetes.Bloque(id="a", nombre="A", importe=10e6, gastado=0.7)]
-    svg = billetes.svg_treemap(bloques, valor=1e6)
-    assert svg.count('href="#billete"') == 10
-    assert svg.count("b vacio") == 3
+def test_trozo_de_billete():
+    svg = billetes.svg_frasco(2.5)
+    assert len(_billetes(svg)) == 3  # dos enteros y medio
+    anchos = [float(t.split('"')[0]) for t in svg.split('width="')[1:]]
+    assert min(anchos) < max(a for a in anchos if a < 20)  # el último es más estrecho
 
 
-def test_svg_trozo_de_billete_y_textos_escapados():
-    bloques = [billetes.Bloque(id="x", nombre="<Empresa & Cía>", importe=2.5e6)]
-    svg = billetes.svg_treemap(bloques, valor=1e6)
-    assert svg.count('href="#billete"') == math.ceil(2.5)
-    assert 'overflow="hidden"' in svg  # el medio billete se recorta
-    assert "<Empresa" not in svg and "&lt;Empresa &amp; Cía&gt;" in svg
+def test_imagen_es_data_uri_de_svg():
+    imagen = billetes.imagen_frasco(12, 0.5, centro=True)
+    assert imagen.startswith("data:image/svg+xml;base64,")
+    assert base64.b64decode(imagen.split(",", 1)[1]).startswith(b"<svg")
 
 
-def test_cuota_de_cada_100():
-    assert billetes.de_cada_100(39, 100) == "39 € de cada 100"
-    assert billetes.de_cada_100(0.2, 100) == "menos de 1 € de cada 100"
+def test_mascota_es_el_ojo_del_logo():
+    svg = billetes.svg_ojo()
+    assert "M102 72 C98 38 80 15 46 15" in svg  # mismo trazo que static/logo.svg
+    assert billetes.PUPILA in svg

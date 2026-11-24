@@ -89,9 +89,9 @@ def test_nodos_svg_y_texto():
     uri = red.svg_nodo("#3D8BFD", 0.5)
     assert uri.startswith("data:image/svg+xml;base64,")
     svg = base64.b64decode(uri.split(",", 1)[1]).decode()
-    assert "<rect" in svg  # la parte gastada va rellena
+    assert 'clip-path="url(#c)"' in svg  # la parte gastada va rellena hasta su nivel
     sin_dato = base64.b64decode(red.svg_nodo("#3D8BFD", None).split(",", 1)[1]).decode()
-    assert "<rect" not in sin_dato  # sin dato de gasto, todo del color
+    assert "clip-path" not in sin_dato  # sin dato de gasto, toda del color
     assert red.envolver("Familia, Juventud y Asuntos Sociales", 18) == (
         "Familia, Juventud\ny Asuntos Sociales"
     )

@@ -11,6 +11,7 @@ import math
 import textwrap
 from dataclasses import dataclass, field
 
+import streamlit as st
 from streamlit_agraph import Config, Edge, Node, agraph
 
 from ojo_ciudadano.app.graficos import TEXTO
@@ -57,41 +58,58 @@ def _mezcla(t: float) -> str:
 
 
 def svg_nodo(color: str, llenado: float | None, centro: bool = False) -> str:
-    """Burbuja de cristal (data URI): el líquido en `color` sube hasta lo gastado y el resto queda
-    como cristal gris azulado. Sin manchas de brillo: solo un velo de luz muy suave arriba, el borde
-    algo más claro (efecto Fresnel) y una línea fina en la superficie del líquido."""
+    """Burbuja de cristal como las de la presentación (data URI): el líquido en `color` sube hasta
+    lo gastado, con la superficie algo ondulada y más claro arriba que en el fondo; lo de encima
+    es cristal casi transparente. Sin manchas de brillo de dibujo animado: el borde se aclara
+    poco a poco (efecto Fresnel), un velo de luz muy suave arriba y la línea fina de la
+    superficie del líquido."""
     lado = 100
-    base = VACIO if llenado is not None else color
     parte = ""
-    if llenado is not None:
-        nivel = lado * (1 - min(max(llenado, 0.0), 1.0))
+    if llenado is None:
+        # sin dato de gasto: toda la burbuja es líquido
+        parte = '<circle cx="50" cy="50" r="47" fill="url(#l)"/>'
+    else:
+        nivel = 3 + 94 * (1 - min(max(llenado, 0.0), 1.0))
+        ola = (
+            f"M0 {nivel:.1f} C 18 {nivel - 2.4:.1f}, 32 {nivel + 2.4:.1f}, 50 {nivel:.1f} "
+            f"S 82 {nivel - 2.4:.1f}, 100 {nivel:.1f}"
+        )
         parte = (
-            f'<g clip-path="url(#c)"><rect x="0" y="{nivel:.1f}" width="{lado}" '
-            f'height="{lado - nivel:.1f}" fill="url(#l)"/>'
-            f'<rect x="0" y="{nivel:.1f}" width="{lado}" height="1.2" fill="#fff" '
-            'fill-opacity=".35"/></g>'
+            f'<g clip-path="url(#c)"><path d="{ola} L100 100 L0 100 Z" fill="url(#l)"/>'
+            f'<path d="{ola}" fill="none" stroke="#fff" stroke-opacity=".45" '
+            'stroke-width="1.2"/></g>'
         )
     svg = (
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{lado}" height="{lado}" '
         f'viewBox="0 0 {lado} {lado}"><defs>'
         '<clipPath id="c"><circle cx="50" cy="50" r="47"/></clipPath>'
+        # líquido: más claro cerca de la superficie y más hondo abajo
         '<linearGradient id="l" x1="0" y1="0" x2="0" y2="1">'
-        f'<stop offset="0" stop-color="{color}"/>'
-        f'<stop offset="1" stop-color="{color}" stop-opacity=".75"/></linearGradient>'
+        f'<stop offset="0" stop-color="{color}" stop-opacity=".95"/>'
+        f'<stop offset="1" stop-color="{color}" stop-opacity=".55"/></linearGradient>'
+        # cristal vacío: azul muy oscuro y translúcido
+        '<radialGradient id="v" cx="50%" cy="42%" r="60%"><stop offset="0" stop-color="#1c3550" '
+        'stop-opacity=".55"/><stop offset="1" stop-color="#33415C" stop-opacity=".85"/>'
+        "</radialGradient>"
         # borde más claro que el centro, como un cristal de verdad
-        '<radialGradient id="f" cx="50%" cy="50%" r="50%"><stop offset=".72" stop-color="#dff4ff" '
-        'stop-opacity="0"/><stop offset="1" stop-color="#dff4ff" stop-opacity=".32"/>'
+        '<radialGradient id="f" cx="50%" cy="50%" r="50%"><stop offset=".7" stop-color="#dff4ff" '
+        'stop-opacity="0"/><stop offset=".97" stop-color="#dff4ff" stop-opacity=".38"/>'
+        '<stop offset="1" stop-color="#dff4ff" stop-opacity=".1"/></radialGradient>'
+        # luz que atraviesa la burbuja y sale por abajo
+        '<radialGradient id="b" cx="50%" cy="92%" r="45%"><stop offset="0" stop-color="#bfe6ff" '
+        'stop-opacity=".22"/><stop offset="1" stop-color="#bfe6ff" stop-opacity="0"/>'
         "</radialGradient>"
         # velo de luz que entra desde arriba
         '<linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" '
-        'stop-opacity=".16"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/>'
+        'stop-opacity=".14"/><stop offset=".4" stop-color="#fff" stop-opacity="0"/>'
         "</linearGradient>"
         "</defs>"
-        f'<circle cx="50" cy="50" r="47" fill="{base}"/>{parte}'
+        f'<circle cx="50" cy="50" r="47" fill="url(#v)"/>{parte}'
+        '<circle cx="50" cy="50" r="47" fill="url(#b)"/>'
         '<circle cx="50" cy="50" r="47" fill="url(#f)"/>'
         '<circle cx="50" cy="50" r="47" fill="url(#s)"/>'
-        f'<circle cx="50" cy="50" r="46.5" fill="none" stroke="#e6f6ff" '
-        f'stroke-opacity="{0.55 if centro else 0.3}" stroke-width="{1.6 if centro else 1}"/>'
+        f'<circle cx="50" cy="50" r="46.6" fill="none" stroke="#e6f6ff" '
+        f'stroke-opacity="{0.5 if centro else 0.26}" stroke-width="{1.4 if centro else 0.9}"/>'
         "</svg>"
     )
     return "data:image/svg+xml;base64," + base64.b64encode(svg.encode()).decode()
@@ -239,7 +257,34 @@ def mapa(
     for e in enlaces:
         largo = {"length": e[2]} if len(e) > 2 else {}
         lineas.append(Edge(source=e[0], target=e[1], color=LINEA, width=2, **largo))
+    _sin_doble_clic(key="oc_mapa_sin_doble_clic")
     return agraph(nodes=elementos, edges=lineas, config=configuracion(alto))
+
+
+# streamlit-agraph abre en una pestaña nueva el texto del cuadro del nodo al hacer doble clic
+# (`window.open(título)`): con nuestros títulos abría una dirección rota y la página parecía
+# romperse. Este componente (corre en la página, sin iframe) anula `window.open` dentro de los
+# iframes del mapa, que son del mismo origen. Se repite porque Streamlit vuelve a crearlos.
+JS_SIN_DOBLE_CLIC = """
+export default function () {
+  if (globalThis.__ocMapaSinVentanas) return;
+  globalThis.__ocMapaSinVentanas = true;
+  const anular = () => {
+    for (const f of document.querySelectorAll('iframe[title^="streamlit_agraph"]')) {
+      try {
+        if (f.contentWindow && !f.contentWindow.__ocSinVentanas) {
+          f.contentWindow.open = () => null;
+          f.contentWindow.__ocSinVentanas = true;
+        }
+      } catch (e) { /* otro origen: nada */ }
+    }
+  };
+  anular();
+  new MutationObserver(anular).observe(document.body, { childList: true, subtree: true });
+  setInterval(anular, 1000);
+}
+"""
+_sin_doble_clic = st.components.v2.component("oc_mapa_sin_doble_clic", js=JS_SIN_DOBLE_CLIC)
 
 
 def leyenda_texto() -> str:

@@ -59,49 +59,92 @@ def _piezas(n: float, gastado: float | None) -> list[tuple[float, str]]:
     return piezas
 
 
+# Silueta del frasco: hombros redondeados que bajan del cuello a un cuerpo ancho de fondo curvo.
+SILUETA = (
+    "M36 20 C36 24 33 25 27 26 C19 27.5 15 32 15 40 L15 84 C15 92 21 97 29 97 L71 97 "
+    "C79 97 85 92 85 84 L85 40 C85 32 81 27.5 73 26 C67 25 64 24 64 20 Z"
+)
+DEFS_FRASCO = (
+    "<defs>"
+    # cristal: bordes más claros (como un vidrio de verdad) y el centro oscuro y transparente
+    '<linearGradient id="frV" x1="0" x2="1"><stop offset="0" stop-color="#cfeeff" '
+    'stop-opacity=".34"/><stop offset=".14" stop-color="#cfeeff" stop-opacity=".06"/>'
+    '<stop offset=".8" stop-color="#cfeeff" stop-opacity=".04"/><stop offset="1" '
+    'stop-color="#cfeeff" stop-opacity=".26"/></linearGradient>'
+    # tapa azul de la marca, con volumen
+    '<linearGradient id="frT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8CC2FF"/>'
+    '<stop offset=".45" stop-color="#3D8BFD"/><stop offset="1" stop-color="#1F5FBF"/>'
+    "</linearGradient>"
+    # reflejo largo del lado izquierdo
+    '<linearGradient id="frR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" '
+    'stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>'
+    # brillo de cada billete (más claro arriba)
+    '<linearGradient id="frB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" '
+    'stop-opacity=".28"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient>'
+    '<clipPath id="frC"><path d="' + SILUETA + '"/></clipPath>'
+    "</defs>"
+)
+
+
 def svg_frasco(
     n: float, gastado: float | None = None, centro: bool = False, etiqueta: str | None = None
 ) -> str:
     """SVG de un frasco de cristal con `n` billetes apilados (como mucho 100) y, si se da, una
-    etiqueta de papel pegada arriba con los euros que recibe."""
+    etiqueta pegada arriba con los euros que recibe. Con la estética de la presentación: cristal
+    con los bordes claros y reflejos suaves, tapa azul de la marca y billetes con brillo."""
     n = min(max(n, 0.0), float(CAPACIDAD))
     filas = CAPACIDAD // COLUMNAS
-    x0, ancho = 21.0, 58.0  # interior del frasco
-    abajo, alto = 91.0, 47.0  # los billetes se apilan por debajo de la etiqueta
+    x0, ancho = 19.0, 62.0  # interior del frasco
+    abajo, alto = 93.0, 46.0  # los billetes se apilan por debajo de la etiqueta
     paso_x, paso_y = ancho / COLUMNAS, alto / filas
     billetes = []
     for k, (fraccion, color) in enumerate(_piezas(n, gastado)):
         fila, columna = divmod(k, COLUMNAS)
-        x = x0 + columna * paso_x + 0.5
-        y = abajo - (fila + 1) * paso_y + 0.35
+        x = x0 + columna * paso_x + 0.45
+        y = abajo - (fila + 1) * paso_y + 0.3
+        w = (paso_x - 0.9) * fraccion
+        h = paso_y - 0.6
         billetes.append(
-            f'<rect x="{x:.2f}" y="{y:.2f}" width="{(paso_x - 1) * fraccion:.2f}" '
-            f'height="{paso_y - 0.7:.2f}" rx=".6" fill="{color}"/>'
+            f'<rect x="{x:.2f}" y="{y:.2f}" width="{w:.2f}" height="{h:.2f}" rx=".8" '
+            f'fill="{color}"/><rect x="{x:.2f}" y="{y:.2f}" width="{w:.2f}" height="{h:.2f}" '
+            'rx=".8" fill="url(#frB)"/>'
         )
-    borde = 0.75 if centro else 0.5
     papel = ""
     if etiqueta:
         papel = (
-            '<rect x="22" y="22" width="56" height="20" rx="4" fill="#F4EBD0" '
-            'stroke="#C9B98F" stroke-width="1"/>'
-            f'<text x="50" y="37" text-anchor="middle" font-family="Inter, Arial, sans-serif" '
-            f'font-size="15" font-weight="700" fill="#0B2236">{html.escape(etiqueta)}</text>'
+            '<rect x="24" y="31" width="52" height="19" rx="5" fill="#0B2236" fill-opacity=".35"/>'
+            '<rect x="24" y="30" width="52" height="19" rx="5" fill="#F7F1DF"/>'
+            '<rect x="24" y="30" width="52" height="5" rx="2.5" fill="#fff" fill-opacity=".5"/>'
+            f'<text x="50" y="44.5" text-anchor="middle" font-family="Inter, Arial, sans-serif" '
+            f'font-size="14" font-weight="700" fill="#0B2236">{html.escape(etiqueta)}</text>'
         )
+    borde = 0.7 if centro else 0.5
     return (
         '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">'
-        # tapa metálica y cuello
-        '<rect x="31" y="3" width="38" height="10" rx="3" fill="#9FB4CC"/>'
-        '<rect x="31" y="3" width="38" height="4" rx="2" fill="#fff" fill-opacity=".35"/>'
-        '<rect x="35" y="12" width="30" height="7" rx="2" fill="#dff4ff" fill-opacity=".10" '
-        'stroke="#e6f6ff" stroke-opacity=".45" stroke-width="1.5"/>'
-        # cuerpo de cristal
-        # fondo oscuro para que las líneas del mapa no se vean a través del cristal
-        '<rect x="14" y="18" width="72" height="79" rx="17" fill="#0A1E33" fill-opacity=".94"/>'
-        '<rect x="14" y="18" width="72" height="79" rx="17" fill="#dff4ff" fill-opacity=".07"/>'
+        + DEFS_FRASCO
+        # sombra suave en el suelo
+        + '<ellipse cx="50" cy="97.5" rx="30" ry="2.2" fill="#000814" fill-opacity=".45"/>'
+        # cuerpo: fondo oscuro para que las líneas del mapa no se vean a través del cristal
+        + f'<path d="{SILUETA}" fill="#071A2D" fill-opacity=".92"/>'
+        + '<g clip-path="url(#frC)">'
         + "".join(billetes)
-        + '<rect x="19" y="25" width="5" height="62" rx="2.5" fill="#fff" fill-opacity=".13"/>'
-        f'<rect x="14" y="18" width="72" height="79" rx="17" fill="none" stroke="#e6f6ff" '
-        f'stroke-opacity="{borde}" stroke-width="{2.4 if centro else 2}"/>' + papel + "</svg>"
+        # luz que entra por el cristal y reflejos: uno largo a la izquierda y otro corto
+        + '<rect x="0" y="0" width="100" height="100" fill="url(#frV)"/>'
+        + '<path d="M20.5 40 C20.5 34 23 31 27 30 L27 86 C23 85 20.5 82 20.5 78 Z" '
+        'fill="url(#frR)" fill-opacity=".75"/>'
+        + '<rect x="76" y="38" width="3" height="14" rx="1.5" fill="#fff" fill-opacity=".22"/>'
+        + "</g>"
+        # borde del cristal, fino y claro
+        + f'<path d="{SILUETA}" fill="none" stroke="#e6f6ff" stroke-opacity="{borde}" '
+        f'stroke-width="{2 if centro else 1.6}"/>'
+        # cuello y tapa de rosca
+         + '<rect x="35" y="15" width="30" height="7" rx="2" fill="#cfeeff" fill-opacity=".12" '
+        'stroke="#e6f6ff" stroke-opacity=".45" stroke-width="1.2"/>'
+        + '<rect x="31" y="4" width="38" height="12" rx="4" fill="url(#frT)"/>'
+        + '<rect x="31" y="11" width="38" height="1.4" fill="#16418A" fill-opacity=".55"/>'
+        + '<rect x="34" y="5.5" width="20" height="2.4" rx="1.2" fill="#fff" fill-opacity=".5"/>'
+        + papel
+        + "</svg>"
     )
 
 

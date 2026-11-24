@@ -510,6 +510,7 @@ div[class*="st-key-cajasenal_"][class*="st-key-cajasenal_"] {
 }
 
 /* el componente que deja transparente el buscador (buscador.py) no ocupa sitio */
-[data-testid="stElementContainer"]:has(.st-key-oc_buscador_transparente) {
+[data-testid="stElementContainer"]:has(.st-key-oc_buscador_transparente),
+[data-testid="stElementContainer"]:has(.st-key-oc_mapa_sin_doble_clic) {
   display: none;
 }

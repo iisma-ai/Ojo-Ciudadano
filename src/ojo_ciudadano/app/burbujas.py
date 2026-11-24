@@ -74,14 +74,10 @@ function crear(raiz) {
   // escala el diseño (coordenadas de Python) para que quepa con sus etiquetas
   function colocar() {
     if (!s.datos) return;
-    const pres = s.datos.estilo === 'presentacion';
-    // en la portada, la burbuja central y las consejerías algo más grandes (como en la
-    // presentación) y sin la línea de la cifra debajo
-    const esc = (n) => (pres ? (n.centro ? 1.5 : n.grupo === 'ent' ? 1.2 : 1) : 1);
-    const ns = s.datos.nodos.map((n) => ({ ...n, r: n.r * esc(n) }));
+    const ns = s.datos.nodos;
     let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
     for (const n of ns) {
-      const lineas = pres ? n.lineas.filter((l) => !/€$/.test(l)).length : n.lineas.length;
+      const lineas = n.lineas.length;
       x0 = Math.min(x0, n.x - n.r - 40); x1 = Math.max(x1, n.x + n.r + 40);
       y0 = Math.min(y0, n.y - n.r - 6); y1 = Math.max(y1, n.y + n.r + 16 + 15 * lineas);
     }
@@ -136,8 +132,8 @@ function crear(raiz) {
       }
       g.lineTo(x + r, y + r); g.lineTo(x - r, y + r); g.closePath();
       h = g.createLinearGradient(0, ny, 0, y + r);
-      h.addColorStop(0, mezcla(c, '#ffffff', 0.06));
-      h.addColorStop(0.45, mezcla(c, '#1f5fbf', 0.35));
+      h.addColorStop(0, mezcla(c, '#5a9dff', 0.3));
+      h.addColorStop(0.45, mezcla(c, '#2f74f0', 0.45));
       h.addColorStop(1, mezcla(c, '#041627', 0.62));
       g.fillStyle = h;
       g.globalAlpha = 0.92;
@@ -191,160 +187,6 @@ function crear(raiz) {
     }
   }
 
-  // ---------- estilo de la presentación (portada, D-053) ----------
-  // perla de luz ya dibujada una vez, para pintarla muchas veces sin coste
-  const perla = document.createElement('canvas');
-  perla.width = perla.height = 32;
-  (() => {
-    const p = perla.getContext('2d');
-    const h = p.createRadialGradient(16, 16, 0, 16, 16, 16);
-    h.addColorStop(0, 'rgba(255,255,255,1)');
-    h.addColorStop(0.22, 'rgba(235,246,255,0.95)');
-    h.addColorStop(0.45, 'rgba(170,215,255,0.35)');
-    h.addColorStop(1, 'rgba(120,180,255,0)');
-    p.fillStyle = h;
-    p.fillRect(0, 0, 32, 32);
-  })();
-
-  function collar(ax, ay, mx, my, bx, by, t, mueve, fase) {
-    // línea fina y, encima, perlas de luz seguidas que avanzan de la burbuja grande a la pequeña
-    g.strokeStyle = 'rgba(190, 220, 255, 0.35)';
-    g.lineWidth = 1.6;
-    g.beginPath(); g.moveTo(ax, ay); g.quadraticCurveTo(mx, my, bx, by); g.stroke();
-    const largo = Math.hypot(mx - ax, my - ay) + Math.hypot(bx - mx, by - my);
-    const n = Math.max(3, Math.floor(largo / 15));
-    const avance = mueve ? ((t * 0.0011 + fase) % 1) : 0.5;
-    for (let i = 0; i < n; i++) {
-      const u = (i + avance) / n;
-      const px = (1 - u) * (1 - u) * ax + 2 * (1 - u) * u * mx + u * u * bx;
-      const py = (1 - u) * (1 - u) * ay + 2 * (1 - u) * u * my + u * u * by;
-      const tam = 9 + 3 * Math.sin(u * Math.PI);
-      g.globalAlpha = 0.55 + 0.45 * Math.sin(u * Math.PI);
-      g.drawImage(perla, px - tam / 2, py - tam / 2, tam, tam);
-    }
-    g.globalAlpha = 1;
-  }
-
-  function burbujaPres(n, x, y, r, nivel, t, mueve) {
-    // halo azul alrededor (el brillo de la presentación)
-    let h = g.createRadialGradient(x, y, r * 0.8, x, y, r * 1.6);
-    h.addColorStop(0, 'rgba(61, 139, 253, 0.32)');
-    h.addColorStop(1, 'rgba(61, 139, 253, 0)');
-    g.fillStyle = h;
-    g.beginPath(); g.arc(x, y, r * 1.6, 0, TAU); g.fill();
-
-    g.save();
-    g.beginPath(); g.arc(x, y, r, 0, TAU); g.clip();
-    // cristal: azul translúcido, más claro arriba
-    h = g.createRadialGradient(x, y - r * 0.4, r * 0.1, x, y, r);
-    h.addColorStop(0, 'rgba(110, 165, 255, 0.55)');
-    h.addColorStop(1, 'rgba(30, 80, 190, 0.55)');
-    g.fillStyle = h;
-    g.fillRect(x - r, y - r, 2 * r, 2 * r);
-    // líquido azul intenso hasta lo gastado, con la superficie que ondula
-    const ny = y + r - 2 * r * Math.min(nivel, 0.995);
-    const fase = mueve ? t * 0.0022 + n.fase : n.fase;
-    const amp = r * 0.03;
-    g.beginPath();
-    g.moveTo(x - r, ny);
-    for (let i = 0; i <= 24; i++) {
-      const px = x - r + (2 * r * i) / 24;
-      g.lineTo(px, ny + Math.sin(i / 3.2 + fase) * amp + Math.sin(i / 1.7 - fase) * amp * 0.4);
-    }
-    g.lineTo(x + r, y + r); g.lineTo(x - r, y + r); g.closePath();
-    h = g.createLinearGradient(0, y - r, 0, y + r);
-    h.addColorStop(0, '#5a9dff');
-    h.addColorStop(0.5, '#2f74f0');
-    h.addColorStop(1, '#1a4fc4');
-    g.fillStyle = h;
-    g.fill();
-    // ondas de luz dentro (las cáusticas de la presentación), que se mueven despacio
-    g.lineWidth = Math.max(r * 0.018, 0.8);
-    for (let k = 0; k < 6; k++) {
-      const base = y - r + ((k + 0.7) * 2 * r) / 6.4;
-      g.strokeStyle = `rgba(210, 235, 255, ${0.10 + 0.05 * (k % 2)})`;
-      g.beginPath();
-      for (let i = 0; i <= 20; i++) {
-        const px = x - r + (2 * r * i) / 20;
-        const py = base + Math.sin(i / 2.6 + fase * (k % 2 ? 1 : -1) + k) * r * 0.06
-          + Math.sin(i / 5 + k * 1.7) * r * 0.04;
-        if (i === 0) g.moveTo(px, py); else g.lineTo(px, py);
-      }
-      g.stroke();
-    }
-    // la superficie del líquido vista desde arriba (si no está llena)
-    const media = Math.sqrt(Math.max(r * r - (ny - y) * (ny - y), 0));
-    if (nivel < 0.97 && media > r * 0.18) {
-      g.beginPath();
-      g.ellipse(x, ny, media, media * 0.15, 0, 0, TAU);
-      g.fillStyle = 'rgba(150, 200, 255, 0.45)';
-      g.fill();
-      g.strokeStyle = 'rgba(235, 248, 255, 0.6)';
-      g.lineWidth = 1;
-      g.stroke();
-    }
-    // sombra del volumen hacia el borde y luz que entra por arriba
-    h = g.createRadialGradient(x, y, r * 0.55, x, y, r);
-    h.addColorStop(0, 'rgba(5, 20, 60, 0)');
-    h.addColorStop(1, 'rgba(5, 20, 60, 0.35)');
-    g.fillStyle = h;
-    g.fillRect(x - r, y - r, 2 * r, 2 * r);
-    h = g.createRadialGradient(x, y - r * 0.6, 0, x, y - r * 0.6, r * 0.7);
-    h.addColorStop(0, 'rgba(255, 255, 255, 0.28)');
-    h.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    g.fillStyle = h;
-    g.fillRect(x - r, y - r, 2 * r, 2 * r);
-    g.restore();
-
-    // borde claro y reflejos de las ventanas de luz arriba
-    g.strokeStyle = 'rgba(190, 220, 255, 0.55)';
-    g.lineWidth = Math.max(r * 0.025, 1);
-    g.beginPath(); g.arc(x, y, r - 0.5, 0, TAU); g.stroke();
-    if (r > 9) {
-      g.shadowColor = 'rgba(255, 255, 255, 0.9)';
-      g.shadowBlur = r * 0.25;
-      g.fillStyle = 'rgba(255, 255, 255, 0.92)';
-      const a = Math.max(r * 0.1, 2.2), b = Math.max(r * 0.07, 1.6);
-      g.fillRect(x - r * 0.08 - a / 2, y - r * 0.68 - a / 2, a, a);
-      g.fillRect(x + r * 0.12 - b / 2, y - r * 0.6 - b / 2, b, b);
-      g.shadowBlur = 0;
-    }
-    if (n.id === s.sel) {
-      g.beginPath(); g.arc(x, y, r + 5, 0, TAU);
-      g.strokeStyle = 'rgba(125, 211, 252, 0.9)'; g.lineWidth = 2; g.stroke();
-    }
-  }
-
-  function etiquetaPres(n, x, y, r) {
-    g.textAlign = 'center';
-    g.textBaseline = 'top';
-    g.shadowColor = 'rgba(2, 12, 24, 0.9)';
-    g.shadowBlur = 6;
-    if (n.centro && n.cifra) {
-      // la cifra grande dentro de la burbuja central, como en la presentación
-      g.textBaseline = 'middle';
-      g.font = `300 ${Math.round(r * 0.36)}px Inter, sans-serif`;
-      g.fillStyle = '#ffffff';
-      g.fillText(n.cifra, x, y - r * 0.04);
-      if ('letterSpacing' in g) g.letterSpacing = '2px';
-      g.font = `600 ${Math.max(Math.round(r * 0.085), 9)}px Inter, sans-serif`;
-      g.fillStyle = 'rgba(225, 238, 255, 0.85)';
-      g.fillText((n.rotulo || '').toUpperCase(), x, y + r * 0.26);
-    } else if (n.grupo === 'ent') {
-      if ('letterSpacing' in g) g.letterSpacing = '2px';
-      g.font = '600 11px Inter, sans-serif';
-      g.fillStyle = 'rgba(220, 234, 252, 0.85)';
-      let yy = y + r + 10;
-      for (const l of n.lineas) {
-        if (/€$/.test(l)) continue;  // en la portada, solo el nombre (la cifra, al pasar el ratón)
-        g.fillText(l.toUpperCase(), x, yy);
-        yy += 14;
-      }
-    }
-    if ('letterSpacing' in g) g.letterSpacing = '0px';
-    g.shadowBlur = 0;
-  }
-
   function etiqueta(n, x, y, r) {
     g.textAlign = 'center';
     g.textBaseline = 'top';
@@ -369,19 +211,10 @@ function crear(raiz) {
     const crecer = 1 - Math.pow(1 - sube, 3);
     const pos = new Map(s.nodos.map((n) => [n.id, posicion(n, t, mueve)]));
 
-    const pres = s.datos.estilo === 'presentacion';
     // líneas: curvas suaves y motas de luz que van del centro hacia fuera
     for (const [a, b] of s.enlaces) {
       const [ax, ay] = pos.get(a.id), [bx, by] = pos.get(b.id);
       const mx = (ax + bx) / 2 + (by - ay) * 0.08, my = (ay + by) / 2 - (bx - ax) * 0.08;
-      if (pres) {
-        // del borde de una burbuja al de la otra, sin entrar en ellas
-        const d1 = Math.hypot(mx - ax, my - ay) || 1, d2 = Math.hypot(bx - mx, by - my) || 1;
-        const ra = a.pr * 0.98, rb = b.pr * 0.98;
-        collar(ax + ((mx - ax) / d1) * ra, ay + ((my - ay) / d1) * ra, mx, my,
-               bx - ((bx - mx) / d2) * rb, by - ((by - my) / d2) * rb, t, mueve, b.fase * 0.1);
-        continue;
-      }
       const lg = g.createLinearGradient(ax, ay, bx, by);
       lg.addColorStop(0, 'rgba(125, 190, 235, 0.45)');
       lg.addColorStop(1, 'rgba(125, 190, 235, 0.18)');
@@ -410,11 +243,11 @@ function crear(raiz) {
       const [x, y] = pos.get(n.id);
       const r = n.pr * n.zoom * (0.6 + 0.4 * crecer);
       const nivel = (n.llenado == null ? 0.93 : n.llenado) * crecer;
-      (pres ? burbujaPres : burbuja)(n, x, y, r, nivel, t, mueve);
+      burbuja(n, x, y, r, nivel, t, mueve);
     }
     for (const n of orden) {
       const [x, y] = pos.get(n.id);
-      (pres ? etiquetaPres : etiqueta)(n, x, y, n.pr * n.zoom);
+      etiqueta(n, x, y, n.pr * n.zoom);
     }
   }
 
@@ -526,14 +359,12 @@ def mapa(
     alto: int,
     clave: str,
     seleccionado: str | None = None,
-    estilo: str = "mapa",
 ) -> str | None:
     """Dibuja el mapa de burbujas y devuelve el `id` de la burbuja pulsada en esta ejecución
     (None si no se ha pulsado ninguna). Los nodos deben traer su posición (`x`, `y`)."""
     if not nodos:
         return None
     datos = {
-        "estilo": estilo,  # «mapa» o «presentacion» (portada, D-053)
         "alto": alto,
         "seleccionado": seleccionado,
         "nodos": [
@@ -547,8 +378,6 @@ def mapa(
                 "centro": n.centro,
                 "grupo": n.grupo,
                 "lineas": [linea for linea in n.etiqueta.split("\n") if linea],
-                "cifra": n.extra.get("cifra"),
-                "rotulo": n.extra.get("rotulo"),
                 "titulo": red._titulo(n).split("\n"),
             }
             for n, (radio, color) in zip(nodos, _medidas(nodos), strict=True)
@@ -563,7 +392,6 @@ def vista_previa(
     entidades: list[dict],
     principales: dict,
     textos_millones,
-    anio: int | None = None,
     n_entidades: int = 9,
     con_contratos: int = 4,
     por_consejeria: int = 2,
@@ -584,10 +412,6 @@ def vista_previa(
             llenado=(gastado / total) if total and gastado else None,
             centro=True,
             detalle="Todo el dinero del año",
-            extra={
-                "cifra": textos_millones(total),
-                "rotulo": f"Comunidad de Madrid · {anio}" if anio else "Comunidad de Madrid",
-            },
             x=0,
             y=0,
         )

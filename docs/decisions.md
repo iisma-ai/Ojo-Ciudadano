@@ -995,7 +995,7 @@ Plantilla:
 ## D-053 · Portada: el mapa de burbujas con la animación de la presentación
 
 - **Fecha:** 2026-11-25
-- **Estado:** Aceptada (Lucas: «darles la misma animación con esas ondas y que las líneas que los unan tengan la misma dirección de puntos blancos»).
+- **Estado:** Retirada el mismo día (Lucas: «no me terminó de convencer… vamos a volver a lo de antes»). Se vuelve al estilo del lienzo de D-047 con el líquido algo más azulado (mezclado con el azul de la marca), y se borra el código del estilo «presentacion». Se deja aquí como registro.
 - **Autor:** Claude (agente), a petición de Lucas
 - **Decisión:** el lienzo de `app/burbujas.py` tiene un segundo estilo, `estilo="presentacion"`, que solo usa la portada:
   - burbujas de azul intenso con ondas de luz (cáusticas) que se mueven dentro, reflejos arriba y halo;

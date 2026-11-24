@@ -85,3 +85,11 @@
 - Tarjetas de «Qué ofrecemos» pulsables enteras (comprobado: un clic en una zona vacía de la tarjeta lleva a «Contratos a revisar»).
 - Mapa del dinero: «Presupuesto 2025» en una barra (total, gastado y sin gastar). Lo de cada habitante, en un desplegable al final.
 - Portada: el mapa de burbujas con la animación de la presentación (ondas dentro, perlas de luz en las líneas y la cifra en el centro), comparado en Chrome con la escena 4 de la presentación.
+
+## Séptima tanda, 25-nov: vuelta atrás de D-053 e integración en `main`
+
+- El estilo «presentación» de la portada no convenció. Las razones:
+  - los reflejos cuadrados quedaban mal;
+  - todas las burbujas tenían el mismo tono.
+- Se vuelve al lienzo de D-047 con el líquido algo más azulado y se borra ese código.
+- Lucas pide subir y juntar ramas: `feat/web-retoques` se integra en `main`.

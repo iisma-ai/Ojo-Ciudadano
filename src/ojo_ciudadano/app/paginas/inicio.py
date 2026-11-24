@@ -190,14 +190,10 @@ def que_hace() -> None:
             mapa["entidades"],
             mapa["principales"],
             textos.millones,
-            anio=mapa["anio"],
             n_entidades=8,
             con_contratos=3,
         )
-        # con la animación de la presentación: ondas dentro y perlas de luz en las líneas (D-053)
-        pulsado = burbujas.mapa(
-            nodos, enlaces, alto=640, clave="inicio_mapa", estilo="presentacion"
-        )
+        pulsado = burbujas.mapa(nodos, enlaces, alto=600, clave="inicio_mapa")
         if pulsado and pulsado in destinos:
             tipo, referencia = destinos[pulsado]
             st.session_state["mg_sel"] = None if tipo == "todo" else (tipo, referencia)

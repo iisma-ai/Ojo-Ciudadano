@@ -385,3 +385,80 @@ def mapa(
     }
     resultado = _componente(data=datos, key=clave, on_clic_change=lambda: None)
     return getattr(resultado, "clic", None)
+
+
+def vista_previa(
+    entidades: list[dict],
+    principales: dict,
+    textos_millones,
+    n_entidades: int = 9,
+    con_contratos: int = 4,
+    por_consejeria: int = 2,
+) -> tuple[list[red.NodoRed], list[tuple], dict[str, tuple]]:
+    """Mapa pequeño para la portada (D-048): la Comunidad, sus consejerías con más dinero y los
+    contratos más grandes de las primeras, en dos niveles. Devuelve nodos, enlaces y a qué
+    lleva cada nodo al pulsarlo (`("ent", nombre)` o `("con", contrato_id)`)."""
+    grandes = sorted([e for e in entidades if e["credito"]], key=lambda e: -e["credito"])[
+        :n_entidades
+    ]
+    total = sum(e["credito"] for e in entidades if e["credito"])
+    gastado = sum(e["gastado"] or 0 for e in entidades)
+    nodos = [
+        red.NodoRed(
+            id="centro",
+            etiqueta="Comunidad\nde Madrid",
+            importe=total,
+            llenado=(gastado / total) if total and gastado else None,
+            centro=True,
+            detalle="Todo el dinero del año",
+            x=0,
+            y=0,
+        )
+    ]
+    enlaces: list[tuple] = []
+    destinos: dict[str, tuple] = {"centro": ("todo", "")}
+    radio = 240
+    orden = red.alternar_tamanos(list(enumerate(grandes)))
+    for (i, e), (x, y) in zip(orden, red.posiciones_radiales(len(orden), radio), strict=True):
+        nombre = e["entidad"].replace("Consejería de ", "").replace("Consejería ", "")
+        id_ent = f"ent:{i}"
+        destinos[id_ent] = ("ent", e["entidad"])
+        nodos.append(
+            red.NodoRed(
+                id=id_ent,
+                etiqueta=red.envolver(nombre.split(",")[0], 14)
+                + "\n"
+                + textos_millones(e["credito"]),
+                importe=e["credito"],
+                llenado=e["llenado"],
+                titulo=e["entidad"],
+                x=x,
+                y=y,
+            )
+        )
+        enlaces.append(("centro", id_ent))
+        if i >= con_contratos or not e["organo_id"]:
+            continue
+        hijos = principales.get(e["organo_id"], [])[:por_consejeria]
+        angulo = math.atan2(y, x)
+        for j, c in enumerate(hijos):
+            desvio = (j - (len(hijos) - 1) / 2) * 0.32
+            hx = (radio + 135) * math.cos(angulo + desvio)
+            hy = (radio + 135) * math.sin(angulo + desvio)
+            id_con = f"con:{c['contrato_id']}"
+            destinos[id_con] = ("con", c["contrato_id"])
+            # los contratos, solo con su importe: el nombre sale al pasar el ratón
+            nodos.append(
+                red.NodoRed(
+                    id=id_con,
+                    etiqueta=textos_millones(c["importe"]),
+                    importe=c["importe"],
+                    titulo=c["adjudicatarios"] or "Sin adjudicataria",
+                    detalle=(c["titulo"] or "")[:110],
+                    grupo="con",
+                    x=hx,
+                    y=hy,
+                )
+            )
+            enlaces.append((id_ent, id_con))
+    return nodos, enlaces, destinos

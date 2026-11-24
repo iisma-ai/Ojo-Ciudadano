@@ -41,3 +41,18 @@
 - Buscadores de las fichas como barra.
 - Arreglado: volver al Inicio después de buscar llevaba otra vez a la ficha.
 - Comprobado en Chrome: el mapa con burbujas, el clic en Sanidad (sale su ficha), la barra, el pie, la cabecera y la vuelta al Inicio después de buscar «hospital».
+
+## Tercera tanda, 25-nov (D-048 y D-049)
+
+- **Portada nueva:**
+  - título centrado y buscador más estrecho;
+  - «Siempre fueron públicos. Ahora, por fin, accesibles.» con un mapa de burbujas vivo que lleva a cada ficha;
+  - tres puertas (sale «Busca una empresa»);
+  - el asistente de IA con el ojo de cristal;
+  - «Contratos que destacan» con tres señales en dinero, cada una con su dibujo y sus fuentes enlazadas.
+- **Mapa del dinero:** sin frascos y en dos niveles por defecto. Las cifras de la ficha ya no se cortan.
+- **Comprobado en Chrome:** la portada completa y el clic en Sanidad desde la vista previa (abre el mapa con Sanidad marcada y su ficha). `pytest`: 476 en verde.
+- **Datos de la portada** (base local, 25-nov):
+  - 5.999 M€ con una sola oferta, de 26.488 M€ comprobados;
+  - +226 M€ por modificaciones en 396 contratos;
+  - Metro de Madrid, 96 %.

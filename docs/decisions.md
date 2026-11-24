@@ -899,3 +899,44 @@ Plantilla:
 - **Consecuencias:**
   - El mapa de burbujas ya no depende de `streamlit-agraph`.
   - Las etiquetas se dibujan en el lienzo. Lo accesible sigue estando en la tabla de todas las consejerías.
+
+## D-048 · Portada como página de bienvenida, no como panel
+
+- **Fecha:** 2026-11-25
+- **Estado:** Aceptada (Lucas: «parece demasiado como un panel informativo en vez de una web accesible y amable»). En la rama `feat/web-retoques`. Es el 25-nov, día sin funciones nuevas según el plan: es un rediseño de la portada pedido expresamente y no añade cálculos nuevos, solo dos consultas de lectura sobre los indicadores existentes.
+- **Autor:** Claude (agente), a petición de Lucas
+- **Contexto:** Lo que había en el Inicio:
+  - el título alineado a la izquierda y un buscador de borde a borde;
+  - cuatro puertas;
+  - seis cuadrículas iguales de «de cada 100 contratos», que no transmitían el peso de cada señal.
+- **Decisión** (`paginas/inicio.py`), de arriba abajo:
+  1. **Cabecera:** el logo y la frase, centrados, y el buscador más estrecho (760 px como máximo).
+  2. **Qué hace Ojo Ciudadano:**
+     - a la izquierda, «Siempre fueron públicos. Ahora, por fin, accesibles.» y tres frases cortas;
+     - a la derecha, un mapa de burbujas vivo (`burbujas.vista_previa`, el lienzo de D-047) con la Comunidad, sus 8 consejerías con más dinero y los dos contratos más grandes de las tres primeras;
+     - cada burbuja lleva a su ficha en el Mapa del dinero.
+  3. **«Qué ofrecemos»:** tres puertas, Mapa del dinero, Contratos a revisar y Asistente de IA. Desaparece «Busca una empresa», porque ya está el buscador.
+  4. **Asistente de IA:** el ojo de cristal de la presentación, con el iris girando, y un ejemplo de pregunta y respuesta con su fuente.
+  5. **«Contratos que destacan»:** tres señales contadas en dinero, cada una con su propio dibujo (`datos.destacados_portada`):
+     - **una sola oferta:** dinero adjudicado así, con una barra sobre el total comprobado;
+     - **modificaciones de más del 20 %:** cuánto subieron, comparado con la consejería de presupuesto más parecido, en dos burbujas;
+     - **concentración:** el caso con más dinero, en un anillo. Solo se nombra el organismo, no la empresa.
+
+     El aviso de que una señal no prueba nada y los enlaces a las fuentes van debajo.
+- **Alternativas consideradas:**
+  - Mantener las seis señales: demasiado para una portada; siguen explicadas en «Contratos a revisar».
+  - El ojo en 3D: el de la entrada ya usa WebGL; aquí basta el SVG del ojo de cristal.
+- **Consecuencias:** las cifras de la portada salen de la base en cada carga (en caché una hora), con sus fuentes enlazadas.
+
+## D-049 · Fuera los frascos: el Mapa del dinero solo con burbujas y en dos niveles
+
+- **Fecha:** 2026-11-25
+- **Estado:** Aceptada (Lucas: «hemos quedado en que vamos a quitar los frascos con mis compañeros… vamos con las burbujas a tope»). Sustituye a la parte de mapa de D-038 y al interruptor de D-046.
+- **Autor:** Claude (agente), a petición de Lucas
+- **Decisión:**
+  - El Mapa del dinero solo tiene burbujas (D-047): se quita el interruptor y el código de los frascos de la pantalla.
+  - Por defecto se ven dos niveles: las consejerías y sus dos contratos más grandes.
+  - La tarjeta del año con la mascota sigue igual.
+- **Consecuencias:**
+  - `billetes.svg_frasco` queda solo para su test y para el icono antiguo de la puerta, que ya no se usa en el Inicio. Se puede borrar más adelante.
+  - Las cifras de la ficha lateral se achican para que no se corten.

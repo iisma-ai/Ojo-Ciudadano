@@ -1310,3 +1310,68 @@ def validacion_anomalias(con: duckdb.DuckDBPyConnection) -> list[dict]:
     if not _hay_tabla(con, "anomalia_validacion"):
         return []
     return _filas(con, "SELECT * FROM anomalia_validacion")
+
+
+def destacados_portada(con: duckdb.DuckDBPyConnection) -> dict:
+    """Tres señales contadas en dinero para la portada (D-048), con datos reales:
+
+    - `una_oferta`: cuánto dinero se adjudicó en contratos con una sola oferta (R-01) frente a
+      todo el dinero de los contratos en los que se pudo comprobar, y cuántos contratos son;
+    - `modificaciones`: cuánto subieron con modificaciones los contratos que se modificaron más
+      del 20 % (R-05), sobre cuánto se adjudicaron (portal regional, con IVA);
+    - `concentracion`: el caso de R-04 con más dinero (organismo y parte que se lleva una sola
+      empresa). Sin personas físicas (D-007): solo se da el organismo, no la empresa.
+    """
+    una = _filas(
+        con,
+        """
+        WITH r AS (SELECT contrato_id, activado FROM indicador_resultado WHERE indicador = 'R-01'),
+        imp AS (
+            SELECT contrato_id, sum(coalesce(importe_sin_iva, importe_con_iva)) AS importe
+            FROM adjudicacion GROUP BY contrato_id
+        )
+        SELECT count_if(r.activado) AS contratos, count(*) AS comprobados,
+               coalesce(sum(imp.importe) FILTER (WHERE r.activado), 0) AS importe,
+               coalesce(sum(imp.importe), 0) AS total
+        FROM r JOIN imp USING (contrato_id)
+        """,
+    )[0]
+    mod = _filas(
+        con,
+        """
+        WITH act AS (
+            SELECT contrato_id FROM indicador_resultado WHERE indicador = 'R-05' AND activado
+        ),
+        portal AS (
+            SELECT contrato_id FROM contrato_unico
+            WHERE fuente <> 'placsp'
+              AND (contrato_id IN (SELECT contrato_id FROM act)
+                   OR duplicado_de IN (SELECT contrato_id FROM act))
+        )
+        SELECT count(DISTINCT contrato_id) AS contratos,
+               coalesce(sum(importe_modificaciones_con_iva), 0) AS subida,
+               coalesce(sum(importe_con_iva), 0) AS adjudicado
+        FROM adjudicacion WHERE contrato_id IN (SELECT contrato_id FROM portal)
+        """,
+    )[0]
+    caso = _filas(
+        con,
+        """
+        SELECT o.nombre AS organo, max(r.valor) AS parte,
+               sum(coalesce(a.importe_sin_iva, a.importe_con_iva)) AS importe
+        FROM indicador_resultado AS r
+        JOIN contrato_unico AS c USING (contrato_id)
+        JOIN organo AS o USING (organo_id)
+        JOIN adjudicacion AS a USING (contrato_id)
+        JOIN adjudicatario AS d USING (adjudicatario_id)
+        WHERE r.indicador = 'R-04' AND r.activado AND d.tipo_persona <> 'fisica'
+        GROUP BY o.nombre, d.adjudicatario_id
+        ORDER BY importe DESC
+        LIMIT 1
+        """,
+    )
+    return {
+        "una_oferta": una,
+        "modificaciones": mod,
+        "concentracion": caso[0] if caso else None,
+    }

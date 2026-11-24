@@ -3,12 +3,10 @@
 Pensado para un ciudadano cualquiera:
 - una tarjeta con el dinero del año, lo gastado y lo que tocaría a cada habitante al año y al
   mes, con la mascota (el ojo del logo con manos);
-- el mapa de nodos de D-033, con dos formas de verlo (interruptor junto al mapa):
-  · **burbujas** (D-033): tamaño y color = dinero y la burbuja se llena hasta lo gastado (el
-    resto, en gris); con los contratos menores y las subvenciones agrupados si se quiere;
-  · **frascos de 100 billetes** (D-038): el de la Comunidad está lleno y el de cada consejería
-    lleva tantos billetes como euros recibe de cada 100 (los grises, sin gastar).
-  Las opciones del mapa van junto al mapa;
+- el mapa de burbujas (D-033, D-047, D-049): tamaño y color = dinero y cada burbuja se llena
+  hasta lo gastado; por defecto con dos niveles, las consejerías y sus contratos más grandes,
+  y, si se quiere, los contratos menores y las subvenciones agrupados (los frascos de D-038
+  se quitaron, D-049). Las opciones del mapa van junto al mapa;
 - el porcentaje gastado por cada consejería, de mayor a menor.
 Las fuentes y lo que no tenemos van en un botón de información para no llenar la pantalla.
 Presupuesto y contratos son fuentes distintas: se comparan por consejería y año, no partida a
@@ -51,8 +49,6 @@ RADIO_ENTIDADES = {1: 300, 2: 230}  # distancia de las consejerías al centro, s
 RADIO_CONTRATOS = 125  # distancia de los contratos a su consejería (se añade al radio anterior)
 ALTO_MAPA = {1: 920, 2: 960}
 ESTIRAR_Y = {1: 1.22, 2: 1.0}  # el mapa es más alto que ancho
-FRASCO = {"centro": 78, "ent": 50, "con": 28}  # radio de cada frasco en el mapa
-FORMAS = {"burbujas": "Burbujas", "frascos": "Frascos de 100 €"}
 
 # el ancho de la página lo fija estilo.css (D-045)
 
@@ -90,7 +86,7 @@ def nombre_corto(nombre: str) -> str:
 
 
 def etiqueta_contrato(contrato: dict, ancho: int = 14) -> str:
-    """Quién recibe el contrato (los euros van en la etiqueta del frasco; el importe y el título,
+    """Quién recibe el contrato (el importe va en otra línea; el título completo,
     al pasar el ratón y al pulsar)."""
     nombres = (contrato["adjudicatarios"] or "Sin adjudicataria").split(" ; ")
     quien = nombres[0][:24] + (f" (+{len(nombres) - 1})" if len(nombres) > 1 else "")
@@ -125,29 +121,7 @@ def total_fuente(entidad: dict, fuente: str) -> float:
     return entidad.get(campo) or 0.0
 
 
-# ------------------------------------------------------------------------------ mapa de frascos
-def leyenda_mapa(vista: str, liquidado: bool, niveles: int) -> str:
-    if vista == "presupuesto":
-        texto = (
-            "El frasco del centro es todo el dinero de la Comunidad: **100 billetes**. Cada "
-            "consejería se lleva **los billetes que recibe de cada 100 €**, y su etiqueta dice "
-            "cuántos euros son. "
-        )
-        if not liquidado:
-            texto += "Este año todavía no hay gasto publicado. "
-    else:
-        texto = (
-            f"Frascos de **{VISTAS[vista].lower()}**: cada consejería lleva los billetes que le "
-            "tocan de cada 100 € del total. "
-        )
-    if niveles == 2:
-        texto += (
-            "Los frascos pequeños son sus contratos más grandes: de cada 100 € que esa "
-            "consejería adjudicó en contratos, cuántos fueron a ese contrato. "
-        )
-    return texto + "Pulsa un frasco para ver su ficha."
-
-
+# ------------------------------------------------------------------------------ mapa
 def leyenda_burbujas(vista: str, liquidado: bool, niveles: int) -> str:
     if vista == "presupuesto":
         texto = "Cada burbuja es una consejería u órgano: cuanto **más grande y más clara**, más "
@@ -198,10 +172,9 @@ def _hijos_agrupados(indice: int, entidad: dict, agregados: dict, destinos: dict
     return hijos
 
 
-def grafo_general(entidades, vista, datos_anio, niveles, principales, forma, agregados):
+def grafo_general(entidades, vista, datos_anio, niveles, principales, agregados):
     """Nodos y enlaces del mapa, con el diseño radial calculado (la Comunidad en el centro, las
-    consejerías en círculo y sus contratos en un anillo exterior). `forma`: burbujas o frascos."""
-    burbujas = forma == "burbujas"
+    consejerías en círculo y sus contratos en un anillo exterior)."""
     liquidado = datos_anio["liquidado"] and vista == "presupuesto"
     total = sum(importe_vista(e, vista) for e in entidades)
     nodos = [
@@ -210,16 +183,8 @@ def grafo_general(entidades, vista, datos_anio, niveles, principales, forma, agr
             etiqueta="Comunidad\nde Madrid",
             importe=total,
             centro=True,
-            detalle="Total de la Comunidad" if burbujas else "Todo el dinero: 100 de cada 100 €",
-            llenado=(
-                datos_anio["gastado"] / datos_anio["credito"] if burbujas and liquidado else None
-            ),
-            imagen=None
-            if burbujas
-            else billetes.imagen_frasco(
-                100, datos_anio["gastado"] / datos_anio["credito"] if liquidado else None, True
-            ),
-            tamano=None if burbujas else FRASCO["centro"],
+            detalle="Total de la Comunidad",
+            llenado=datos_anio["gastado"] / datos_anio["credito"] if liquidado else None,
             x=0,
             y=0,
         )
@@ -233,9 +198,8 @@ def grafo_general(entidades, vista, datos_anio, niveles, principales, forma, agr
         y *= ESTIRAR_Y[niveles]  # elipse algo más alta que ancha: las etiquetas no se pisan
         id_ent = f"ent:{indice}"
         destinos[id_ent] = ("ent", e["entidad"])
-        n = billetes.billetes_de_cada_100(importe_vista(e, vista), total)
-        if burbujas:
-            nodo = red.NodoRed(
+        nodos.append(
+            red.NodoRed(
                 id=id_ent,
                 etiqueta=etiqueta_burbuja(nombre_corto(e["entidad"]), importe_vista(e, vista)),
                 importe=importe_vista(e, vista),
@@ -247,25 +211,13 @@ def grafo_general(entidades, vista, datos_anio, niveles, principales, forma, agr
                 x=x,
                 y=y,
             )
-        else:
-            nodo = red.NodoRed(
-                id=id_ent,
-                etiqueta=red.envolver(nombre_corto(e["entidad"]), 24),
-                importe=importe_vista(e, vista),
-                titulo=e["entidad"],
-                detalle=f"Recibe {billetes.texto_de_cada_100(n)} de la Comunidad",
-                imagen=billetes.imagen_frasco(n, e["llenado"] if liquidado else None),
-                tamano=FRASCO["ent"] if niveles == 1 else 38,
-                x=x,
-                y=y,
-            )
-        nodos.append(nodo)
+        )
         enlaces.append((CENTRO, id_ent, math.hypot(x, y)))
         if niveles != 2 or not e["organo_id"]:
             continue
         hijos = principales.get(e["organo_id"], [])
         angulo = math.atan2(y, x)
-        agrupados = _hijos_agrupados(indice, e, agregados, destinos) if burbujas else []
+        agrupados = _hijos_agrupados(indice, e, agregados, destinos)
         total_hijos = len(hijos) + len(agrupados)
         for j, nodo_agr in enumerate(agrupados, start=len(hijos)):
             desvio = (j - (total_hijos - 1) / 2) * 0.17
@@ -277,7 +229,6 @@ def grafo_general(entidades, vista, datos_anio, niveles, principales, forma, agr
         for j, c in enumerate(hijos):
             id_con = f"con:{c['contrato_id']}"
             destinos[id_con] = ("con", c["contrato_id"])
-            n_c = billetes.billetes_de_cada_100(c["importe"], total_fuente(e, c["fuente"]))
             # Anillo exterior en zigzag (dos radios) para que los de consejerías vecinas no se
             # pisen.
             desvio = (j - (total_hijos - 1) / 2) * 0.17
@@ -287,20 +238,11 @@ def grafo_general(entidades, vista, datos_anio, niveles, principales, forma, agr
             nodos.append(
                 red.NodoRed(
                     id=id_con,
-                    etiqueta=etiqueta_burbuja(etiqueta_contrato(c), c["importe"], 14)
-                    if burbujas
-                    else etiqueta_contrato(c),
+                    etiqueta=etiqueta_burbuja(etiqueta_contrato(c), c["importe"], 14),
                     importe=c["importe"],
                     titulo=c["adjudicatarios"] or "Sin adjudicataria",
-                    detalle=(
-                        f"{c['organo']} · {textos.iva_fuente(c['fuente'])}"
-                        if burbujas
-                        else f"{billetes.texto_de_cada_100(n_c)} de lo que adjudicó la "
-                        f"consejería ({textos.iva_fuente(c['fuente'])})"
-                    ),
+                    detalle=f"{c['organo']} · {textos.iva_fuente(c['fuente'])}",
                     grupo="con",
-                    imagen=None if burbujas else billetes.imagen_frasco(n_c),
-                    tamano=None if burbujas else FRASCO["con"],
                     x=hx,
                     y=hy,
                 )
@@ -309,51 +251,8 @@ def grafo_general(entidades, vista, datos_anio, niveles, principales, forma, agr
     return nodos, enlaces, destinos
 
 
-def grafo_ampliado(entidad: dict, cuerpo: dict, datos_anio: dict, forma: str):
-    """Una consejería en el centro y sus contratos más grandes alrededor (en burbujas, también
-    sus menores y sus subvenciones agrupados)."""
-    if forma == "burbujas":
-        return _ampliado_burbujas(entidad, cuerpo)
-    liquidado = datos_anio["liquidado"]
-    nodos = [
-        red.NodoRed(
-            id=CENTRO,
-            etiqueta=red.envolver(nombre_corto(entidad["entidad"]), 18),
-            importe=entidad["credito"],
-            centro=True,
-            detalle="Consejería",
-            imagen=billetes.imagen_frasco(100, entidad["llenado"] if liquidado else None, True),
-            tamano=FRASCO["centro"],
-            x=0,
-            y=0,
-        )
-    ]
-    destinos: dict[str, tuple] = {}
-    enlaces = []
-    contratos = cuerpo["contratos"]
-    for c, (x, y) in zip(contratos, red.posiciones_radiales(len(contratos), 270), strict=True):
-        id_con = f"con:{c['contrato_id']}"
-        destinos[id_con] = ("con", c["contrato_id"])
-        n_c = billetes.billetes_de_cada_100(c["importe"], total_fuente(entidad, c["fuente"]))
-        nodos.append(
-            red.NodoRed(
-                id=id_con,
-                etiqueta=etiqueta_contrato(c, 16),
-                importe=c["importe"],
-                titulo=c["adjudicatarios"] or "Sin adjudicataria",
-                detalle=f"{(c['titulo'] or '')[:120]} ({textos.iva_fuente(c['fuente'])})",
-                grupo="con",
-                imagen=billetes.imagen_frasco(n_c),
-                tamano=30,
-                x=x,
-                y=y,
-            )
-        )
-        enlaces.append((CENTRO, id_con, 270))
-    return nodos, enlaces, destinos
-
-
-def _ampliado_burbujas(entidad: dict, cuerpo: dict):
+def grafo_ampliado(entidad: dict, cuerpo: dict):
+    """Una consejería en el centro y sus contratos más grandes, menores y subvenciones."""
     nodos = [
         red.NodoRed(
             id=CENTRO,
@@ -396,8 +295,8 @@ def _ampliado_burbujas(entidad: dict, cuerpo: dict):
 
 
 # ------------------------------------------------------------------------------ fichas
-def ficha_entidad_burbujas(entidad: dict, datos_anio: dict, anio: int, ampliada: bool) -> None:
-    """Ficha de la consejería en la vista de burbujas: sus cifras y sus contratos más grandes."""
+def ficha_entidad(entidad: dict, datos_anio: dict, anio: int, ampliada: bool) -> None:
+    """Ficha de la consejería: sus cifras y sus contratos más grandes."""
     st.subheader(entidad["entidad"])
     k = st.columns(2)
     k[0].metric("Disponible", textos.millones(entidad["credito"]))
@@ -477,36 +376,6 @@ def ficha_agrupado(tipo: str, entidad: dict, anio: int) -> None:
         )
 
 
-def ficha_entidad(entidad: dict, datos_anio: dict, ampliada: bool) -> None:
-    st.subheader(entidad["entidad"])
-    n = billetes.billetes_de_cada_100(entidad["credito"], datos_anio["credito"])
-    lineas = [
-        f"- **Dinero del año:** {textos.millones(entidad['credito'])}",
-        f"- **Recibe:** {billetes.texto_de_cada_100(n)} de la Comunidad",
-    ]
-    if datos_anio["liquidado"]:
-        lineas += [
-            f"- **Gastado:** {textos.millones(entidad['gastado'])} "
-            f"({textos.porcentaje(entidad['llenado'])})",
-            f"- **Sin gastar:** {textos.millones(entidad['sin_gastar'])}",
-        ]
-    else:
-        lineas.append("- **Gastado:** se publica al cerrar el año")
-    st.markdown("\n".join(lineas))
-    if not entidad["organo_id"]:
-        st.info(
-            "De este órgano no tenemos contratos ni subvenciones en nuestras fuentes.",
-            icon=":material/info:",
-        )
-        return
-    if not ampliada:
-        st.button(
-            "Ver sus contratos más grandes",
-            icon=":material/zoom_out_map:",
-            on_click=lambda: st.session_state.update(mg_ampliada=entidad["entidad"], mg_sel=None),
-        )
-
-
 def ficha_contrato(con, contrato_id: str, entidades: list[dict]) -> None:
     detalle = datos_mapa.detalle_contrato(con, contrato_id)
     if not detalle:
@@ -552,7 +421,7 @@ def ficha_contrato(con, contrato_id: str, entidades: list[dict]) -> None:
         )
 
 
-def _ficha(con, marcado: tuple, entidades, datos_anio, ampliada: bool, forma: str) -> None:
+def _ficha(con, marcado: tuple, entidades, datos_anio, ampliada: bool) -> None:
     tipo, referencia = marcado
     if tipo == "con":
         ficha_contrato(con, referencia, entidades)
@@ -562,10 +431,8 @@ def _ficha(con, marcado: tuple, entidades, datos_anio, ampliada: bool, forma: st
         st.info("Esa consejería no está en este periodo.")
     elif tipo in ("men", "sub"):
         ficha_agrupado(tipo, entidad, datos_anio["anio"])
-    elif forma == "burbujas":
-        ficha_entidad_burbujas(entidad, datos_anio, datos_anio["anio"], ampliada)
     else:
-        ficha_entidad(entidad, datos_anio, ampliada)
+        ficha_entidad(entidad, datos_anio, datos_anio["anio"], ampliada)
 
 
 # ------------------------------------------------------------------------------ tarjeta del año
@@ -825,71 +692,55 @@ poblacion = _poblacion()
 
 tarjeta_ciudadano(datos_anio, anio, poblacion)
 
-# --- Mapa de frascos, con sus opciones al lado del título ---
+# --- Mapa de burbujas, con sus opciones al lado del título ---
 nombres = [e["entidad"] for e in entidades]
 ampliada = st.session_state.get("mg_ampliada")
 if ampliada not in nombres:
     ampliada = None
     st.session_state["mg_ampliada"] = None
 
-titulo, interruptor, opciones = st.columns([4, 2, 1], vertical_alignment="bottom")
-forma = (
-    interruptor.segmented_control(
-        "Ver como", list(FORMAS), default="burbujas", format_func=FORMAS.get, key="mg_forma"
-    )
-    or "burbujas"
-)
-burbujas = forma == "burbujas"
-titulo.subheader(
-    "Cuánto tiene y cuánto ha gastado cada consejería" if burbujas else "¿A dónde van cada 100 €?"
-)
-vista, niveles, por_consejeria, con_agrupados = "presupuesto", 1, 3, False
+titulo, opciones = st.columns([6, 1], vertical_alignment="bottom")
+titulo.subheader("Cuánto tiene y cuánto ha gastado cada consejería")
+vista, niveles, por_consejeria, con_agrupados = "presupuesto", 2, 2, False
 if ampliada is None:
     with opciones.popover("Opciones", icon=":material/tune:", width="stretch"):
         vista = (
             st.radio("Qué dinero ver", list(VISTAS), format_func=VISTAS.get, key="mg_vista")
             or "presupuesto"
         )
+        # por defecto, dos niveles: las consejerías y sus contratos más grandes (D-049)
         niveles = (
             st.segmented_control(
-                "Qué mostrar", list(NIVELES), default=1, format_func=NIVELES.get, key="mg_niveles"
+                "Qué mostrar", list(NIVELES), default=2, format_func=NIVELES.get, key="mg_niveles"
             )
-            or 1
+            or 2
         )
         por_consejeria = st.slider(
             "Contratos por consejería",
             1,
             5,
-            3,
+            2,
             disabled=niveles == 1,
             key="mg_contratos",
             help="Cuántos de los contratos más grandes del año se dibujan junto a cada consejería.",
         )
         con_agrupados = st.toggle(
             "Añadir menores y subvenciones",
-            disabled=niveles == 1 or not burbujas,
+            disabled=niveles == 1,
             key="mg_agrupados",
-            help="En las burbujas: una por consejería con sus contratos menores y otra con sus "
+            help="Una burbuja por consejería con sus contratos menores y otra con sus "
             "subvenciones.",
         )
 
-if not burbujas:
-    billetes.pintar(
-        billetes.leyenda_frascos(vista == "presupuesto" and liquidado), clave="mg_leyenda"
-    )
 izquierda, derecha = st.columns([5, 2])
 with izquierda:
     if ampliada is None:
         principales = _principales(anio, por_consejeria) if niveles == 2 else {}
-        agregados = _agregados(anio) if (burbujas and niveles == 2 and con_agrupados) else {}
+        agregados = _agregados(anio) if (niveles == 2 and con_agrupados) else {}
         nodos, enlaces, destinos = grafo_general(
-            entidades, vista, datos_anio, niveles, principales, forma, agregados
+            entidades, vista, datos_anio, niveles, principales, agregados
         )
-        st.markdown(
-            leyenda_burbujas(vista, liquidado, niveles)
-            if burbujas
-            else leyenda_mapa(vista, liquidado, niveles)
-        )
+        st.markdown(leyenda_burbujas(vista, liquidado, niveles))
         alto = ALTO_MAPA[niveles]
     else:
         st.button(
@@ -900,60 +751,34 @@ with izquierda:
         )
         entidad_amp = next(e for e in entidades if e["entidad"] == ampliada)
         cuerpo = _de_la_consejeria(entidad_amp["organo_id"] or "", anio)
-        nodos, enlaces, destinos = grafo_ampliado(entidad_amp, cuerpo, datos_anio, forma)
+        nodos, enlaces, destinos = grafo_ampliado(entidad_amp, cuerpo)
         st.markdown(
-            f"Los **{len(cuerpo['contratos'])} contratos más grandes** de {anio} de {ampliada}"
-            + (
-                ", más los menores y las subvenciones agrupados. **Tamaño y color = importe.**"
-                if burbujas
-                else ". Cada frasco lleva los billetes que recibió de cada 100 € que adjudicó "
-                "la consejería."
-            )
+            f"Los **{len(cuerpo['contratos'])} contratos más grandes** de {anio} de {ampliada}, "
+            "más los menores y las subvenciones agrupados. **Tamaño y color = importe.**"
         )
         alto = 760
-    if burbujas:
-        # burbujas con la estética de la presentación (D-047), dibujadas en un lienzo propio
-        marcada = st.session_state.get("mg_sel")
-        sel_id = next((k for k, v in destinos.items() if v == marcada), None)
-        seleccion = mapa_burbujas.mapa(
-            nodos, enlaces, alto, clave=f"mg_burbujas_{ampliada or 'todas'}", seleccionado=sel_id
-        )
-    else:
-        seleccion = red.mapa(nodos, enlaces, alto=alto)
+    # burbujas con la estética de la presentación (D-047), dibujadas en un lienzo propio
+    marcada = st.session_state.get("mg_sel")
+    sel_id = next((k for k, v in destinos.items() if v == marcada), None)
+    seleccion = mapa_burbujas.mapa(
+        nodos, enlaces, alto, clave=f"mg_burbujas_{ampliada or 'todas'}", seleccionado=sel_id
+    )
     if seleccion and seleccion in destinos:
         st.session_state["mg_sel"] = destinos[seleccion]
-    if ampliada is not None and not burbujas:
-        aparte = []
-        if cuerpo["menores"] and cuerpo["menores"]["importe"]:
-            m = cuerpo["menores"]
-            aparte.append(
-                f"**{textos.numero(m['n'])} contratos menores** por "
-                f"{textos.euros(m['importe'], 'con IVA')}"
-            )
-        if cuerpo["subvenciones"] and cuerpo["subvenciones"]["importe"]:
-            s = cuerpo["subvenciones"]
-            aparte.append(
-                f"**{textos.numero(s['n'])} subvenciones** por {textos.euros(s['importe'])}"
-            )
-        if aparte:
-            st.markdown(
-                f"Además, en {anio}: " + " y ".join(aparte) + ". Son tantos que no caben uno a "
-                "uno: míralos en **Contratos a revisar** o en la **Ficha de órgano**."
-            )
 
 with derecha:
+    st.html('<span class="oc-ficha-mapa"></span>')  # marca la columna de la ficha (CSS)
     marcado = st.session_state.get("mg_sel")
     if not marcado and ampliada is not None:
         marcado = ("ent", ampliada)
     if not marcado:
         st.info(
-            f"Pulsa {'una burbuja' if burbujas else 'un frasco'} del mapa y aquí verás su "
-            "ficha: cuánto dinero tiene, cuánto ha gastado y, si es un contrato, cómo se "
-            "contrató y cuántas ofertas hubo.",
+            "Pulsa una burbuja del mapa y aquí verás su ficha: cuánto dinero tiene, cuánto ha "
+            "gastado y, si es un contrato, cómo se contrató y cuántas ofertas hubo.",
             icon=":material/touch_app:",
         )
     else:
-        _ficha(con, marcado, entidades, datos_anio, ampliada is not None, forma)
+        _ficha(con, marcado, entidades, datos_anio, ampliada is not None)
 
 if liquidado:
     st.subheader("Dinero de cada consejería y cuánto ha gastado")

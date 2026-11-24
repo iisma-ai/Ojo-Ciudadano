@@ -516,3 +516,8 @@ div[class*="st-key-cajasenal_"][class*="st-key-cajasenal_"] {
 [data-testid="stElementContainer"]:has(.st-key-oc_mapa_sin_doble_clic) {
   display: none;
 }
+
+/* fichas laterales del Mapa del dinero: las cifras caben en la columna estrecha */
+[data-testid="stColumn"]:has(.oc-ficha-mapa) [data-testid="stMetricValue"] {
+  font-size: clamp(1.35rem, 1.7vw, 1.9rem);
+}

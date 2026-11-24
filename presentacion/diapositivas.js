@@ -152,7 +152,7 @@ const DIAPOSITIVAS = [
       ...ORBITA.map(([x, y, r, llenado], i) => ({
         tipo: "burbuja", id: `l${i}`, x, y, r, llenado, tono: i % 3 === 0 ? "azul" : "agua", paso: 0,
       })),
-      { tipo: "texto", x: 960, y: 770, texto: "Ojo Ciudadano", tam: 128, clase: "titulo", paso: 0 },
+      { tipo: "imagen", x: 620, y: 770, ancho: 680, src: LOGO_OJO, paso: 0 },
       { tipo: "texto", x: 960, y: 880, texto: "El gasto público de Madrid, a la vista", tam: 40, clase: "subtitulo", paso: 1 },
       { tipo: "luz", paso: 2 },
     ],

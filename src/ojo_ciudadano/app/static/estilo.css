@@ -77,15 +77,25 @@
   z-index: -1;
   pointer-events: none;
   will-change: transform;
+  /* burbujas: cada una es un cuerpo con borde plateado (más claro abajo, como en el agua) y
+     un reflejo arriba a la izquierda, en otra capa con la misma baldosa algo desplazada */
   background-image:
     radial-gradient(circle, rgba(220, 245, 255, 0.5) 0 1px, transparent 1.5px),
-    radial-gradient(circle, transparent 0 3px, rgba(205, 240, 255, 0.4) 3.5px 4.5px, transparent 5px),
-    radial-gradient(circle, transparent 0 5px, rgba(205, 240, 255, 0.3) 5.5px 6.5px, transparent 7px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.95) 0 1px, transparent 1.6px),
+    radial-gradient(circle, rgba(170, 225, 255, 0.07) 0 3px, rgba(215, 242, 255, 0.55) 3.6px 4.5px,
+      transparent 5.1px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.9) 0 1.4px, transparent 2.1px),
+    radial-gradient(circle, rgba(170, 225, 255, 0.06) 0 5.2px, rgba(215, 242, 255, 0.45) 5.8px 6.8px,
+      transparent 7.4px),
     radial-gradient(circle, rgba(220, 245, 255, 0.35) 0 1.5px, transparent 2px),
-    radial-gradient(circle, transparent 0 8px, rgba(205, 240, 255, 0.22) 8.5px 9.5px, transparent 10px);
+    radial-gradient(circle, rgba(255, 255, 255, 0.8) 0 1.8px, transparent 2.6px),
+    radial-gradient(circle, rgba(170, 225, 255, 0.05) 0 8px, rgba(215, 242, 255, 0.34) 8.6px 9.8px,
+      transparent 10.4px);
   /* alturas que dividen 2.400 px: al subir 2.400 px el dibujo vuelve a coincidir sin salto */
-  background-size: 190px 480px, 330px 800px, 470px 1200px, 260px 600px, 610px 1200px;
-  background-position: 20px 0, 140px 0, 260px 0, 60px 0, 400px 0;
+  background-size: 190px 480px, 330px 800px, 330px 800px, 470px 1200px, 470px 1200px, 260px 600px,
+    610px 1200px, 610px 1200px;
+  background-position: 20px 0, 138.4px -1.6px, 140px 0, 257.6px -2.4px, 260px 0, 60px 0,
+    396.4px -3.6px, 400px 0;
   animation: oc-burbujas 120s linear infinite;
   opacity: 0.85;
 }

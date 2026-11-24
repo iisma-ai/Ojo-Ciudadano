@@ -134,6 +134,23 @@ Pedido: el ojo se veía agresivo, pixelado y oscuro.
   - en la ampliación, las fibras del iris y el borde salen finos y sin dientes;
   - la animación va a 240 fotogramas por segundo de media y el más lento tarda 37 ms, uno solo.
 
+## Novena ronda: un fondo que parezca el mar
+Pedido: el fondo no daba la impresión de estar bajo el mar. Tenía que verse de principio a fin de la entrada, con burbujas que se reconozcan como burbujas y un fondo que se vea mejor al aclararse.
+
+- **Entrada (`intro3d.py`):** añade de `agua.js` la superficie vista desde abajo (y 8,5), los rayos de sol y las burbujas que suben.
+  - Su intensidad va de 0,2 (oscuro) a 1 mientras la página se desvela, y se funde de 2,6 a 3,0 s con el fondo de la web.
+  - La nieve marina CSS dura ahora toda la entrada.
+- **Cuadrados blancos o amarillentos:** costó encontrarlos; los fallos, en orden:
+  1. **Nieve 3D.** Usa puntos de WebGL; en este equipo (Windows, ANGLE, con suavizado) salían cuadrados llenos. Ni el tamaño máximo, ni el borde recortado, ni cambiar los `smoothstep` con los extremos al revés lo arreglaron. Se quita: la nieve es la capa CSS.
+  2. **Burbujas.** Apagándolas una a una, y con un color fijo (discos redondos sin cuadrados), se vio que el fallo estaba en su sombreador. Usa `pow()` y producía valores no válidos que el brillo convertía en bloques. Se reescribe sin `pow()` (potencias por multiplicación), con la normal normalizada, todo acotado y el reflejo por debajo del umbral del brillo (0,85).
+- **Fondo de la web (`estilo.css`):** cada burbuja es ahora un cuerpo casi transparente con borde plateado y un reflejo arriba a la izquierda: dos capas con la misma baldosa, una desplazada. Siguen subiendo solo con `transform`.
+- **Comprobado en el navegador:**
+  - no queda ningún cuadrado;
+  - la superficie ondula y las burbujas son anillos plateados;
+  - los rayos de sol y la página se aclaran;
+  - las burbujas de la web tienen reflejo;
+  - scroll a 240 fotogramas por segundo y el más lento de 4,4 ms.
+
 ## Siguiente paso
 - Que el equipo compare con `feat/mapa-billetes`: https://github.com/iisma-ai/Ojo-Ciudadano/compare/main...feat/web-ligera
 - Pasar `revisor-legal` por el aviso en el pie, que antes estaba siempre a la vista.

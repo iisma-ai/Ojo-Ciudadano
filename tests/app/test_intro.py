@@ -49,3 +49,5 @@ def test_el_ojo_3d_es_el_de_la_presentacion():
     # se pixelan al estirarlas) y el mismo posproceso de brillo
     assert "crearCono" in intro3d.JS and "crearHaces" in intro3d.JS
     assert "CanvasTexture" not in intro3d.JS and "UnrealBloomPass" in intro3d.JS
+    # el mar de la presentación de principio a fin (superficie, rayos de sol y burbujas)
+    assert all(f in intro3d.JS for f in ("crearSuperficie", "crearRayos", "crearBurbujitas"))

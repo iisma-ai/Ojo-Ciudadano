@@ -39,9 +39,10 @@
   background-size: 140px 160px, 230px 260px; background-position: 30px 10px, 110px 80px;
   opacity: 0; }
 .en-marcha .oc-intro-nieve { animation: oc-intro-nieve 3s ease-out forwards; }
+/* de principio a fin: aparece enseguida y se mantiene hasta que el fondo de la web toma el relevo */
 @keyframes oc-intro-nieve {
   0% { opacity: 0; transform: translateY(40px); }
-  30% { opacity: .8; }
+  12%, 88% { opacity: .85; }
   100% { opacity: 0; transform: translateY(-90px); } }
 
 /* luz alrededor del ojo cuando se acerca (en el centro) */

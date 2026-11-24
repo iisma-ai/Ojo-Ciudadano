@@ -211,6 +211,39 @@ async function arrancar(data, capa, empezar) {
   luz.add(cono.cono, haces.grupo);
   escena.add(luz);
 
+  // el mar de la presentación (presentacion/agua.js), de principio a fin: superficie vista desde
+  // abajo, rayos de sol y burbujas que suben; se ven más al aclararse. La nieve marina es la capa
+  // CSS de static/intro.html: la de la presentación usa puntos de WebGL, que en algunas tarjetas
+  // gráficas (comprobado en Windows) salen como cuadrados llenos.
+  const mar = Agua ? {
+    superficie: Agua.crearSuperficie(8.5),
+    rayosSol: Agua.crearRayos(),
+    burbujas: Agua.crearBurbujitas(),
+  } : null;
+  if (mar) {
+    mar.rayosSol.grupo.position.set(0, 6, 0);
+    mar.burbujas.malla.position.z = -8;  // que no pasen pegadas a la cámara
+    mar.superficie.uniforms.uCam.value.copy(camara.position);
+    // Burbujas: el sombreador de la presentación usa pow() y, en Windows (ANGLE), daba valores no
+    // válidos que el brillo convertía en bloques cuadrados. El mismo dibujo (borde plateado y
+    // reflejo arriba a la izquierda) sin pow(), con la normal normalizada y todo acotado; el
+    // reflejo queda por debajo del umbral del brillo.
+    const materialBurbujas = mar.burbujas.malla.material;
+    materialBurbujas.fragmentShader = `varying vec3 vN; varying vec3 vV; uniform float uI;
+      void main(){
+        vec3 n = normalize(vN), v = normalize(vV);
+        float f = clamp(1. - dot(n, v), 0., 1.);
+        float borde = f * f * mix(1., f, .4);              // ~ f^2,4
+        float d = clamp(dot(n, normalize(vec3(-.4, .65, .65))), 0., 1.);
+        float d2 = d * d, d4 = d2 * d2, d8 = d4 * d4, d16 = d8 * d8, d32 = d16 * d16;
+        float brillo = d32 * d16 * d2;                     // d^50
+        float a = clamp(borde * .9 + brillo, 0., 1.) * uI;
+        gl_FragColor = vec4(mix(vec3(.55, .75, 1.), vec3(.85), brillo), a);
+      }`;
+    materialBurbujas.needsUpdate = true;
+    escena.add(mar.rayosSol.grupo, mar.superficie.malla, mar.burbujas.malla);
+  }
+
   let dibujar = () => render.render(escena, camara);
   if (efectos) {
     const [{ EffectComposer }, { RenderPass }, { UnrealBloomPass }, { OutputPass }] = efectos;
@@ -281,6 +314,17 @@ async function arrancar(data, capa, empezar) {
       const { angulo, ancho, largo } = h.userData;
       h.rotation.z = angulo * abre;
       h.scale.set(ancho * (0.4 + 0.6 * abre), largo * (0.3 + 0.7 * enciende), 1);
+    }
+    if (mar) {
+      // de oscuro (0,2) a claro (1) mientras la página se desvela; se funde al final con el
+      // fondo de la web, que tiene sus propios rayos y burbujas
+      const claridad = (0.2 + 0.8 * tramo(t, 1.2, 2.8)) * (1 - tramo(t, 2.6, 3.0));
+      mar.superficie.uniforms.uT.value = t;
+      mar.superficie.uniforms.uI.value = claridad;
+      mar.rayosSol.uniforms.uT.value = t;
+      mar.rayosSol.uniforms.uI.value = 0.05 + 0.13 * claridad;
+      mar.burbujas.uniforms.uI.value = (0.55 + 0.45 * claridad) * (1 - tramo(t, 2.6, 3.0));
+      mar.burbujas.actualizar(dt, t, 0);
     }
     ojo.actualizar(dt, mirada);
     dibujar();

@@ -721,6 +721,76 @@ ORDER BY n_resoluciones DESC
             "empresa recurrente."
         ),
     ),
+    # Nombres de los CPV y entes del sector público (D-035, D-036).
+    PreguntaPrueba(
+        id="B-35",
+        pregunta=(
+            "¿En qué tipos de objeto, por división CPV, adjudicó más importe la Plataforma de "
+            "Contratación en 2025?"
+        ),
+        tipo="datos",
+        criterios=(
+            "Une contrato.cpv con la tabla cpv por la división (dos primeras cifras) y da el "
+            "nombre de la división junto al código, con el importe sin IVA de PLACSP. Avisa de "
+            "que el portal regional no publica CPV, así que no entran sus contratos."
+        ),
+        sql=f"""
+SELECT
+    substr(c.cpv, 1, 2) AS division,
+    any_value(v.nombre_division) AS nombre_division,
+    count(DISTINCT c.contrato_id) AS n_contratos,
+    sum(a.importe_sin_iva) AS importe_sin_iva,
+    '{PLACSP}' AS fuente,
+    max(c.fecha_descarga) AS fecha_descarga
+FROM contrato_unico AS c
+JOIN adjudicacion AS a USING (contrato_id)
+LEFT JOIN (SELECT DISTINCT division, nombre_division FROM cpv) AS v
+  ON v.division = substr(c.cpv, 1, 2)
+WHERE c.fuente = 'placsp' AND c.cpv IS NOT NULL
+  AND year(coalesce(c.fecha_contrato, a.fecha_formalizacion)) = 2025
+GROUP BY 1
+ORDER BY importe_sin_iva DESC NULLS LAST
+LIMIT 10
+""",
+        claves=("division",),
+    ),
+    PreguntaPrueba(
+        id="B-36",
+        pregunta=(
+            "¿Cuántos adjudicatarios son entes del sector público y de qué administración "
+            "dependen?"
+        ),
+        tipo="datos",
+        criterios=(
+            "Cruza adjudicatario.nif con entidad_sector_publico y cuenta adjudicatarios por "
+            "administración (Comunidad de Madrid, Estado…), sin sumar importes con y sin IVA. "
+            "Cita INVENTE con su fecha de descarga y avisa de que un nombre que no cuadra puede "
+            "ser un error de NIF de la fuente."
+        ),
+        sql="""
+SELECT
+    e.administracion,
+    count(DISTINCT d.adjudicatario_id) AS n_adjudicatarios,
+    'INVENTE (IGAE)' AS fuente,
+    max(e.fecha_descarga) AS fecha_descarga
+FROM adjudicatario AS d
+JOIN entidad_sector_publico AS e ON e.nif = d.nif
+WHERE d.adjudicatario_id IN (SELECT adjudicatario_id FROM adjudicacion)
+GROUP BY 1
+ORDER BY n_adjudicatarios DESC
+""",
+        claves=("administracion", "n_adjudicatarios"),
+    ),
+    PreguntaPrueba(
+        id="B-37",
+        pregunta="¿Qué puntuación de riesgo tiene el Canal de Isabel II como empresa?",
+        tipo="limites",
+        criterios=(
+            "Explica que es un ente del sector público (INVENTE) y no una empresa privada, por "
+            "lo que no tiene puntuación de empresa (D-036); puede ofrecer sus contratos y las "
+            "señales de esos contratos, sin hablar de irregularidades."
+        ),
+    ),
 ]
 
 # Contratos cuyos pliegos se dejan en caché para la demo (`documentos --precargar`).

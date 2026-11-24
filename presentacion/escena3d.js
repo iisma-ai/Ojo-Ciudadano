@@ -18,7 +18,7 @@ const Z_OJO = 2.5;
 const TONOS = {
   azul: ["#6fb0ff", "#1b6fe0", "#041c4a"],
   ambar: ["#ffd27a", "#e0a032", "#4a2a02"],
-  agua: ["#7fe9f5", "#139fbb", "#023244"],
+  agua: ["#8fdcff", "#1a8fd0", "#042a52"],
 };
 
 // ---------- Render ----------
@@ -267,7 +267,8 @@ function crearBurbuja(e, i) {
       (e.valor ? `<b>${e.valor}</b>` : "") + (e.etiqueta ? `<span>${e.etiqueta}</span>` : ""),
       dentro ? "etiqueta dentro" : "etiqueta",
     );
-    it.ancla = dentro ? aMundo(i, e.x, e.y, z) : aMundo(i, e.x, e.y + e.r + 30, z);
+    it.ancla = aMundo(i, e.x, e.y, z);
+    it.bajo = !dentro; // la etiqueta va debajo, a una distancia fija en pantalla
     it.tam = dentro ? Math.min(e.r * 0.2, 34) : 19;
   }
   return it;
@@ -291,7 +292,8 @@ function crearCaptura(e, i) {
   const it = { tipo: "captura", e, i, grupo, cont, R };
   if (e.etiqueta) {
     it.dom = etiquetaHtml(`<span>${e.etiqueta}</span>`, "etiqueta");
-    it.ancla = aMundo(i, e.x, e.y + e.r + 34);
+    it.ancla = aMundo(i, e.x, e.y);
+    it.bajo = true;
     it.tam = 24;
   }
   return it;
@@ -355,6 +357,82 @@ function crearLuz(i, cfgOjo) {
   return { tipo: "luz", i, cono, foco, uniforms, int: 0 };
 }
 
+// ---------- Paneles de cristal con datos y chat del asistente (HTML fijo en pantalla) ----------
+function bloque(b) {
+  if (b.kpis)
+    return `<div class="kpis">${b.kpis.map(([v, t]) => `<div class="kpi"><b>${v}</b><span>${t}</span></div>`).join("")}</div>`;
+  if (b.medidor) {
+    const m = b.medidor;
+    return `<div class="sub">${m.titulo}</div><div class="medidor"><i style="--v:${m.valor * 100}%"></i></div>` +
+      `<div class="medidor-pie"><span>${m.izq || ""}</span><span>${m.der || ""}</span></div>`;
+  }
+  if (b.barras) {
+    const max = b.barras.max ?? Math.max(...b.barras.filas.map((f) => f[1]));
+    return `<div class="sub">${b.barras.titulo}</div>` + b.barras.filas
+      .map(([et, v, txt], j) =>
+        `<div class="barra"><span class="b-et">${et}</span><span class="b-pista"><i style="--v:${(v / max) * 100}%;--j:${j}"></i></span><span class="b-val">${txt}</span></div>`)
+      .join("");
+  }
+  if (b.puntos) {
+    let puntos = "";
+    for (let j = 0; j < 100; j++) puntos += `<i class="${j < b.puntos.valor ? "lleno" : ""}" style="--j:${j}"></i>`;
+    return `<div class="puntos-fila"><div class="puntos">${puntos}</div><div class="puntos-txt"><b>${b.puntos.valor}</b><span>${b.puntos.texto}</span></div></div>`;
+  }
+  if (b.senales)
+    return `<div class="sub">${b.titulo || "Señales"}</div>` + b.senales
+      .map(([nombre, activa, txt]) => `<div class="senal ${activa ? "activa" : ""}"><i></i><div><b>${nombre}</b>${txt ? `<span>${txt}</span>` : ""}</div></div>`)
+      .join("");
+  if (b.filas) return b.filas.map(([a, c]) => `<div class="fila"><span>${a}</span><b>${c}</b></div>`).join("");
+  if (b.chips) return `<div class="chips">${b.chips.map((c) => `<span>${c}</span>`).join("")}</div>`;
+  if (b.texto) return `<p>${b.texto}</p>`;
+  return "";
+}
+
+function crearPanel(e, i) {
+  let h = (e.etiqueta ? `<div class="p-etiqueta">${e.etiqueta}</div>` : "") + (e.titulo ? `<div class="p-titulo">${e.titulo}</div>` : "");
+  let k = 0;
+  for (const b of e.bloques || []) h += `<div class="bloque" style="--i:${k++}">${bloque(b)}</div>`;
+  if (e.fuente) h += `<div class="bloque p-fuente" style="--i:${k}">${e.fuente}</div>`;
+  return { tipo: "panel", i, dom: etiquetaHtml(h, "panel"), fijo: { x: e.x, y: e.y, ancho: e.ancho || 560 }, tam: 18 };
+}
+
+function crearChat(e, i) {
+  const respuesta = e.respuesta.map((b, k) => `<div class="bloque" style="--i:${k}">${bloque(b)}</div>`).join("");
+  const dom = etiquetaHtml(
+    `<div class="chat-cab"><i></i>Asistente de Ojo Ciudadano</div>` +
+      `<div class="pregunta"><span class="escrito"></span><span class="cursor"></span></div>` +
+      `<div class="pensando"><i></i><i></i><i></i><span>Consultando los datos oficiales</span></div>` +
+      `<div class="respuesta">${respuesta}</div>`,
+    "panel chat",
+  );
+  return { tipo: "chat", i, dom, fijo: { x: e.x, y: e.y, ancho: e.ancho || 760 }, tam: 19, pregunta: e.pregunta };
+}
+
+// El chat escribe la pregunta, piensa y contesta; se reinicia si se vuelve atras
+function animarChat(it, mostrar) {
+  clearInterval(it.reloj1);
+  clearTimeout(it.reloj2);
+  const dom = it.dom;
+  const escrito = dom.querySelector(".escrito");
+  dom.classList.remove("pensando-on", "respondido");
+  escrito.textContent = "";
+  if (!mostrar) return;
+  let k = 0;
+  it.reloj2 = setTimeout(() => {
+    it.reloj1 = setInterval(() => {
+      escrito.textContent = it.pregunta.slice(0, ++k);
+      if (k >= it.pregunta.length) {
+        clearInterval(it.reloj1);
+        dom.classList.add("pensando-on");
+        it.reloj2 = setTimeout(() => {
+          dom.classList.remove("pensando-on");
+          dom.classList.add("respondido");
+        }, 1400);
+      }
+    }, 32);
+  }, 700);
+}
+
 const diapositivas = DIAPOSITIVAS.map((d, i) => {
   const porId = {};
   for (const e of d.elementos) if (e.id) porId[e.id] = e;
@@ -368,6 +446,9 @@ const diapositivas = DIAPOSITIVAS.map((d, i) => {
     else if (e.tipo === "enlace") it = crearEnlace(e, i, porId);
     else if (e.tipo === "luz") it = crearLuz(i, d.ojo);
     else if (e.tipo === "niebla") it = { tipo: "niebla", i };
+    else if (e.tipo === "foco") it = { tipo: "foco", i, de: porId[e.de], zoom: e.zoom || 1.6, sx: e.x ?? 600, sy: e.y ?? 540 };
+    else if (e.tipo === "panel") it = crearPanel(e, i);
+    else if (e.tipo === "chat") it = crearChat(e, i);
     else if (e.tipo === "texto") {
       it = { tipo: "texto", i, dom: etiquetaHtml(e.texto, e.clase || ""), ancla: aMundo(i, e.x, e.y), tam: e.tam || 40 };
       if (e.clase === "nota") it.tam *= 0.62;
@@ -383,6 +464,7 @@ const diapositivas = DIAPOSITIVAS.map((d, i) => {
     }
     if (!it) continue;
     it.paso = e.paso || 0;
+    it.hasta = e.hasta ?? null; // ultimo paso en que se ve (paneles y focos que se relevan)
     it.p = 0;
     it.objetivo = 0;
     it.espera = 0;
@@ -414,13 +496,16 @@ let luz = 1;
 
 function estado() {
   for (const it of items) {
-    const visible = it.i < actual || (it.i === actual && it.paso <= paso);
+    const enRango = it.i === actual && it.paso <= paso && (it.hasta === null || paso <= it.hasta);
+    const visible = (it.i < actual && it.hasta === null) || enRango;
     if (visible && !it.objetivo) it.espera = it.retardo || 0;
     it.objetivo = visible ? 1 : 0;
+    it.activo = enRango;
     if (it.dom) {
-      const enPantalla = it.i === actual && it.paso <= paso;
-      it.dom.classList.toggle("on", enPantalla);
-      if (enPantalla && it.tipo === "cifra") contar(it);
+      const antes = it.dom.classList.contains("on");
+      it.dom.classList.toggle("on", enRango);
+      if (enRango && it.tipo === "cifra") contar(it);
+      if (it.tipo === "chat" && antes !== enRango) animarChat(it, enRango);
     }
   }
   progreso.querySelectorAll("i").forEach((p, i) => p.classList.toggle("on", i === actual));
@@ -502,15 +587,28 @@ function ajustar() {
   final.uniforms.uRes.value.set(W, H);
   nieve.uniforms.uPx.value = H * 0.045;
   escalaTexto = (H / 1080) * (D0 / D);
-  for (const it of items) if (it.dom) it.dom.style.fontSize = `${it.tam * escalaTexto}px`;
+  for (const it of items) {
+    if (!it.dom) continue;
+    it.dom.style.fontSize = `${it.tam * escalaTexto}px`;
+    if (it.fijo) {
+      // paneles: posicion del escenario 1920 x 1080 llevada a la pantalla (centrados en vertical)
+      it.dom.style.left = `${W / 2 + (it.fijo.x - 960) * escalaTexto}px`;
+      it.dom.style.top = `${H / 2 + (it.fijo.y - 540) * escalaTexto}px`;
+      it.dom.style.width = `${it.fijo.ancho * escalaTexto}px`;
+    }
+  }
 }
 window.addEventListener("resize", ajustar);
 ajustar();
 
 // ---------- Bucle ----------
+let camX = 0;
 let camY = yDiapo(actual);
+let camZ = D;
+let velX = 0;
 let velY = 0;
-const ojoPos = new THREE.Vector3();
+let velZ = 0;
+const ojoPant = { x: null, y: null };
 let ojoEscala = 1;
 const mirada = new THREE.Vector3();
 const proyeccion = new THREE.Vector3();
@@ -527,11 +625,26 @@ function cuadro() {
   const d = diapositivas[actual];
 
   // camara: muelle hacia la diapositiva actual y un leve balanceo
-  const objetivoY = yDiapo(actual);
-  velY += ((objetivoY - camY) * 7 - velY * 5.2) * dt;
+  // con un foco activo, la camara se acerca a esa burbuja y la deja en (sx, sy) de la pantalla
+  let objX = 0;
+  let objY = yDiapo(actual);
+  let objZ = D;
+  const foco = d.items.filter((it) => it.tipo === "foco" && it.activo).pop();
+  if (foco && foco.de) {
+    const B = aMundo(actual, foco.de.x, foco.de.y, foco.de.z || 0);
+    objZ = D / foco.zoom;
+    const k = objZ / (K * D0);
+    objX = B.x - (foco.sx - 960) * k;
+    objY = B.y + (foco.sy - 540) * k;
+  }
+  velX += ((objX - camX) * 6 - velX * 4.9) * dt;
+  velY += ((objY - camY) * 7 - velY * 5.2) * dt;
+  velZ += ((objZ - camZ) * 6 - velZ * 4.9) * dt;
+  camX += velX * dt;
   camY += velY * dt;
-  camara.position.set(Math.sin(t * 0.21) * 0.12, camY + Math.sin(t * 0.17) * 0.08, D);
-  camara.lookAt(Math.sin(t * 0.21) * 0.08, camY, 0);
+  camZ += velZ * dt;
+  camara.position.set(camX + Math.sin(t * 0.21) * 0.12, camY + Math.sin(t * 0.17) * 0.08, camZ);
+  camara.lookAt(camX + Math.sin(t * 0.21) * 0.08, camY, camZ - D);
   camara.rotation.z = Math.sin(t * 0.13) * 0.006;
 
   // agua, niebla y luz segun la diapositiva y el paso
@@ -555,7 +668,7 @@ function cuadro() {
   final.uniforms.uNiebla.value = niebla;
 
   rayos.uniforms.uT.value = t;
-  rayos.uniforms.uI.value = (0.03 + 0.2 * Math.pow(1 - profundidad, 1.5)) * luz;
+  rayos.uniforms.uI.value = (0.02 + 0.11 * Math.pow(1 - profundidad, 1.5)) * luz;
   rayos.grupo.position.set(0, camY + 6, 0);
   superficie.uniforms.uT.value = t;
   superficie.uniforms.uCam.value.copy(camara.position);
@@ -597,28 +710,43 @@ function cuadro() {
     if (it.dom && it.ancla) {
       proyeccion.copy(it.ancla);
       if (it.cont) proyeccion.y += it.cont.position.y;
+      const centro = proyeccion.clone();
       proyeccion.project(camara);
       const x = (proyeccion.x * 0.5 + 0.5) * window.innerWidth;
-      const y = (-proyeccion.y * 0.5 + 0.5) * window.innerHeight;
+      let y = (-proyeccion.y * 0.5 + 0.5) * window.innerHeight;
+      if (it.bajo && it.R) {
+        // radio de la burbuja en pantalla, para poner la etiqueta justo debajo
+        const borde = centro.add(new THREE.Vector3(0, -it.R * it.cont.scale.x, 0)).project(camara);
+        y = (-borde.y * 0.5 + 0.5) * window.innerHeight + it.tam * escalaTexto * 1.3;
+      }
+      if (it.tipo === "burbuja" || it.tipo === "captura") {
+        it.dom.classList.toggle("tenue", Boolean(foco && foco.de && foco.de !== it.e));
+      }
       it.dom.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
     }
   }
 
   // el ojo viaja con la camara y mira a donde dice la diapositiva (o al cursor)
   const o = d.cfg.ojo;
-  const destino = aMundo(actual, o.x, o.y, Z_OJO);
-  const radio = o.escala * 0.8 * ((D0 - Z_OJO) / D0);
-  if (ojoPos.lengthSq() === 0) ojoPos.copy(destino);
-  ojoPos.lerp(destino, suave(dt, 2.4));
+  // el ojo va a una distancia fija delante de la camara: siempre en su sitio de la pantalla
+  const dist = D0 - Z_OJO;
+  const radio = o.escala * 0.8 * (dist / D0);
+  if (ojoPant.x === null) Object.assign(ojoPant, { x: o.x, y: o.y });
+  ojoPant.x += (o.x - ojoPant.x) * suave(dt, 2.4);
+  ojoPant.y += (o.y - ojoPant.y) * suave(dt, 2.4);
   ojoEscala += (radio - ojoEscala) * suave(dt, 2.4);
-  ojo.grupo.position.copy(ojoPos);
-  ojo.grupo.position.y += Math.sin(t * 0.8) * 0.06;
+  const u = dist / (D0 * K);
+  ojo.grupo.position.set(
+    camX + (ojoPant.x - 960) * u,
+    camY - (ojoPant.y - 540) * u + Math.sin(t * 0.8) * 0.06,
+    camZ - dist,
+  );
   ojo.grupo.scale.setScalar(ojoEscala);
   if (performance.now() - ultimoRaton < 2800) {
     mirada.set(raton.x, raton.y, 0.5).unproject(camara).sub(camara.position).normalize();
-    mirada.multiplyScalar((D - D0 * 0.55) / -mirada.z).add(camara.position);
+    mirada.multiplyScalar((dist * 0.6) / -mirada.z).add(camara.position);
   } else {
-    mirada.copy(aMundo(actual, o.mira.x, o.mira.y, D0 * 0.85)).lerp(camara.position, 0.45);
+    mirada.set(camX + (o.mira.x - 960) * u * 2, camY - (o.mira.y - 540) * u * 2, camZ - dist * 0.2).lerp(camara.position, 0.35);
   }
   ojo.dilatar(niebla > 0.5 ? 1.35 : tieneLuz && tieneLuz.objetivo ? 0.75 : 1);
   ojo.actualizar(dt, mirada);
@@ -631,6 +759,7 @@ function cuadro() {
 const inicial = Number(location.hash.slice(1)) - 1;
 actual = Number.isInteger(inicial) && inicial >= 0 && inicial < diapositivas.length ? inicial : 0;
 camY = yDiapo(actual);
+camZ = D;
 estado();
 requestAnimationFrame(cuadro);
 setTimeout(() => document.getElementById("cortina").classList.add("fuera"), 400);

@@ -6,8 +6,8 @@ quien presenta.
 
 ## La idea
 
-Un viaje bajo el mar. El gasto público es público, pero está escondido en el fondo: datos dispersos,
-formatos técnicos, APIs. El ojo (Ojo Ciudadano) acompaña todo el recorrido y es el que ilumina lo que está
+Un viaje bajo el mar, en azul marino que se oscurece al bajar. El gasto público es público, pero está escondido en el fondo: datos dispersos,
+formatos técnicos, APIs. El ojo de cristal (Ojo Ciudadano) acompaña todo el recorrido y es el que ilumina lo que está
 oculto. Las burbujas son el dinero: cada contrato es una burbuja de cristal llena de líquido hasta lo que
 se ha gastado, y se unen en consejerías y en la Comunidad de Madrid. Poco texto: se enseña, no se lee.
 
@@ -18,9 +18,11 @@ se ha gastado, y se unen en consejerías y en la Comunidad de Madrid. Poco texto
 | 3 | Las burbujas se unen a consejerías y a la Comunidad | 22.857 M€ adjudicados (Plataforma de Contratación, sin IVA, 2023-2026) |
 | 4 | Una cifra enorme y la niebla lo tapa todo | 1,35 millones de contratos públicos, pero no accesibles |
 | 5 | El ojo enciende un haz de luz | Ojo Ciudadano lo hace transparente |
-| 6 | Burbujas con la aplicación dentro | Mapa del dinero, ficha de empresa, ficha de organismo |
-| 7 | Más burbujas | Señales, no acusaciones; asistente con citas |
-| 8 | Cierre, el ojo de nuevo grande | Lo público, a la vista de todos |
+| 6 | El reparto real de 2025; la cámara entra en Sanidad y luego en un contrato | Ficha de la consejería (gasto, a quién adjudica, cómo contrata) y ficha del contrato con sus señales |
+| 7 | Señales de cada 100 | 39 de cada 100 licitaciones con una sola oferta, 31 sin anuncio público, 17 menores con posible fraccionamiento |
+| 8 | El asistente | Escribe dos preguntas reales y contesta con gráfica y fuentes |
+| 9 | Burbujas con la aplicación dentro | Mapa del dinero, ficha de empresa, ficha de organismo (faltan capturas) |
+| 10 | Cierre, el ojo de nuevo grande | Lo público, a la vista de todos |
 
 Estado: prueba de concepto completa. Faltan las capturas o vídeos de la aplicación (burbujas de las
 escenas 6 y 7), revisar los textos con `revisor-legal` y probarla en el ordenador y el proyector de la demo.

@@ -18,6 +18,16 @@
  *   {tipo:"captura", id, x, y, r, src, etiqueta, paso}           burbuja con una imagen o video dentro
  *   {tipo:"niebla",  paso}                                        capa turbia (lo que no se ve)
  *   {tipo:"luz",     paso}                                        el ojo ilumina la escena
+ *   {tipo:"foco",    de, zoom, x, y, paso, hasta}                 la camara se acerca a la burbuja `de`
+ *                    y la deja en (x, y) de la pantalla; `hasta` = ultimo paso en que dura
+ *   {tipo:"panel",   x, y, ancho, etiqueta, titulo, bloques, fuente, paso, hasta}
+ *                    panel de cristal fijo en pantalla (x = borde izquierdo, y = centro). Bloques:
+ *                    {kpis:[[valor, texto]]} {barras:{titulo, filas:[[nombre, valor, texto]], max}}
+ *                    {medidor:{titulo, valor 0..1, izq, der}} {puntos:{valor, texto}} (de cada 100)
+ *                    {senales:[[nombre, activa, texto]], titulo} {filas:[[nombre, valor]]}
+ *                    {chips:[...]} {texto}
+ *   {tipo:"chat",    x, y, ancho, pregunta, respuesta:[bloques], paso, hasta}
+ *                    el asistente escribe la pregunta, piensa y contesta con esos bloques
  */
 
 // Cifras reales de la base de datos (23-nov-2026). Cambialas aqui si se regenera.
@@ -48,6 +58,27 @@ const CONSEJERIAS = [
   ["transportes", "Vivienda y Transportes", 440, 760, 84, 0.58],
   ["familia", "Familia y Asuntos Sociales", 1480, 760, 78, 0.69],
   ["cultura", "Cultura y Turismo", 960, 870, 58, 0.5],
+];
+
+// Reparto real de 2025 (presupuesto liquidado): id, nombre, x, y, radio (por el dinero), gastado
+const REPARTO_2025 = [
+  ["san", "Sanidad", 520, 330, 125, 0.992],
+  ["edu", "Educación", 1400, 330, 92, 0.992],
+  ["deu", "Deuda pública", 1580, 640, 68, 1],
+  ["viv", "Vivienda y Transportes", 1250, 860, 67, 0.844],
+  ["fam", "Familia y Asuntos Sociales", 660, 860, 58, 0.954],
+  ["emp", "Políticas de Empleo", 300, 660, 34, 0.616],
+  ["dig", "Digitalización", 960, 900, 29, 0.85],
+];
+
+// Los mayores contratos de Sanidad en 2025 en la Plataforma (id, etiqueta, x, y, radio)
+const CONTRATOS_SANIDAD = [
+  ["ter", "", 310, 330, 30], // terapias respiratorias, 107,4 M€
+  ["gri", "", 335, 240, 15], // vacunas de la gripe, 17,2 M€
+  ["cli", "", 390, 170, 15], // obras del Hospital Clínico San Carlos, 17,1 M€
+  ["vph", "Vacuna VPH", 330, 425, 14], // vacuna del papiloma humano, 14,4 M€
+  ["pro", "", 468, 132, 14], // protonterapia en La Paz, 13,7 M€
+  ["vrs", "", 395, 490, 13], // vacuna del virus respiratorio sincitial, 12,0 M€
 ];
 
 const DIAPOSITIVAS = [
@@ -122,7 +153,141 @@ const DIAPOSITIVAS = [
     ],
   },
 
-  // 6. Los modulos
+  // 6. Sanidad de cerca: el reparto real de 2025, la camara entra en una consejeria y en un contrato
+  {
+    id: "sanidad",
+    profundidad: 0.6,
+    ojo: { x: 150, y: 140, escala: 0.7, mira: { x: 700, y: 540 } },
+    elementos: [
+      ...REPARTO_2025.map(([id, etiqueta, x, y, r, llenado]) => ({
+        tipo: "burbuja", id, x, y, r, llenado, etiqueta, tono: "azul", paso: 0,
+      })),
+      { tipo: "burbuja", id: "cm25", x: 960, y: 540, r: 150, llenado: 0.954, etiqueta: "Comunidad de Madrid · 2025", valor: "33.296 M€", tono: "azul", paso: 0 },
+      ...REPARTO_2025.map(([id]) => ({ tipo: "enlace", de: id, a: "cm25", paso: 0 })),
+      { tipo: "texto", x: 960, y: 1040, texto: "Presupuesto de 2025 de cada consejería. El líquido es lo gastado.", tam: 26, clase: "nota", paso: 0, hasta: 0 },
+
+      // paso 1: la camara se acerca a Sanidad y sale su ficha
+      { tipo: "foco", de: "san", zoom: 1.7, x: 560, y: 540, paso: 1, hasta: 1 },
+      {
+        tipo: "panel", x: 1130, y: 540, ancho: 680, paso: 1, hasta: 2,
+        etiqueta: "Consejería de Sanidad · 2025",
+        titulo: "40 de cada 100 € que gastó la Comunidad",
+        bloques: [
+          { kpis: [["12.935 M€", "disponible"], ["12.833 M€", "gastado"], ["99,2 %", "del disponible"]] },
+          { barras: { titulo: "A quién adjudica · Plataforma, sin IVA", filas: [
+            ["OXIMESA, S.L.", 66.1, "66,1 M€"],
+            ["Air Liquide Healthcare", 41.9, "41,9 M€"],
+            ["UTE Clínico San Carlos", 17.1, "17,1 M€"],
+            ["Sanofi Aventis", 15.1, "15,1 M€"],
+            ["Merck Sharp & Dohme", 14.5, "14,5 M€"],
+          ] } },
+          { barras: { titulo: "Cómo contrata · 1.290 contratos", filas: [
+            ["Abierto simplificado", 482, "482"],
+            ["Abierto", 375, "375"],
+            ["Negociado sin publicidad", 246, "246"],
+            ["Otros", 186, "186"],
+          ] } },
+        ],
+        fuente: "Presupuesto liquidado: Datos abiertos de la Comunidad de Madrid (23-nov-2026). Contratos: Plataforma de Contratación del Sector Público (16-nov-2026), 54 órganos de la consejería.",
+      },
+
+      // paso 2: aparecen sus contratos mayores
+      { tipo: "foco", de: "san", zoom: 1.45, x: 560, y: 560, paso: 2, hasta: 2 },
+      ...CONTRATOS_SANIDAD.map(([id, etiqueta, x, y, r]) => ({
+        tipo: "burbuja", id, x, y, r, llenado: 1, etiqueta, tono: "agua", paso: 2,
+      })),
+      ...CONTRATOS_SANIDAD.map(([id]) => ({ tipo: "enlace", de: "san", a: id, paso: 2 })),
+
+      // paso 3: la camara entra en un contrato y sale su ficha con sus señales
+      { tipo: "foco", de: "vph", zoom: 3.4, x: 600, y: 540, paso: 3 },
+      {
+        tipo: "panel", x: 1080, y: 540, ancho: 700, paso: 3,
+        etiqueta: "Contrato · Consejería de Sanidad",
+        titulo: "Vacuna del papiloma humano (VPH), 2025-2026",
+        bloques: [
+          { filas: [
+            ["Adjudicado", "14,4 M€ sin IVA"],
+            ["Presupuesto de licitación", "14,4 M€ sin IVA"],
+            ["Empresa", "Merck Sharp & Dohme de España"],
+            ["Cómo se contrató", "Negociado sin publicidad"],
+            ["Ofertas recibidas", "1"],
+          ] },
+          { titulo: "Indicadores de riesgo", senales: [
+            ["Sin anuncio público", true, "Adjudicado por procedimiento negociado sin publicidad. La ley lo permite en supuestos concretos; los datos publicados no indican cuál se alegó."],
+            ["Una empresa concentra el gasto", false],
+            ["Modificaciones de más del 20 %", false],
+          ] },
+          { texto: "Una señal no demuestra nada irregular: indica dónde merece la pena mirar, y cada una enlaza al expediente oficial." },
+        ],
+        fuente: "Plataforma de Contratación del Sector Público, expediente placsp:17910499 (16-nov-2026).",
+      },
+    ],
+  },
+
+  // 7. Señales de cada 100
+  {
+    id: "senales",
+    profundidad: 0.7,
+    ojo: { x: 150, y: 140, escala: 0.7, mira: { x: 960, y: 560 } },
+    elementos: [
+      ...CONTRATOS.map(([x, y, r, llenado], i) => ({
+        tipo: "burbuja", id: `s${i}`, x, y: y + 40, r: r * 0.8, llenado, tono: i % 3 ? "agua" : "ambar", paso: 0,
+      })),
+      { tipo: "texto", x: 960, y: 140, texto: "Señales, no acusaciones", tam: 64, clase: "titulo", paso: 0 },
+      {
+        tipo: "panel", x: 560, y: 590, ancho: 800, paso: 1,
+        etiqueta: "Indicadores de riesgo · 2023 a 2026",
+        bloques: [
+          { puntos: { valor: 39, texto: "de cada 100 licitaciones recibieron una sola oferta" } },
+          { puntos: { valor: 31, texto: "de cada 100 contratos se adjudicaron sin anuncio público" } },
+          { puntos: { valor: 17, texto: "de cada 100 contratos menores, con posible fraccionamiento" } },
+          { texto: "Cada contrato con señal explica por qué la tiene y enlaza a su expediente. Puede haber razones legítimas: mercados con pocas empresas, urgencias o requisitos técnicos." },
+        ],
+        fuente: "Indicadores R-01, R-02 y R-03 sobre la Plataforma de Contratación y el portal de la Comunidad de Madrid (noviembre de 2026).",
+      },
+    ],
+  },
+
+  // 8. El asistente: preguntar, relacionar y comparar, con fuentes
+  {
+    id: "asistente",
+    profundidad: 0.78,
+    ojo: { x: 360, y: 540, escala: 1.25, mira: { x: 1100, y: 500 } },
+    elementos: [
+      ...ORBITA.map(([x, y, r, llenado], i) => ({
+        tipo: "burbuja", id: `a${i}`, x, y, r: r * 0.7, llenado, tono: "azul", paso: 0,
+      })),
+      {
+        tipo: "chat", x: 700, y: 540, ancho: 960, paso: 1, hasta: 1,
+        pregunta: "¿Qué porcentaje de licitaciones tuvo un único licitador cada año?",
+        respuesta: [
+          { texto: "Licitaciones que recibieron una sola oferta (señal R-01):" },
+          { barras: { titulo: "Por año", max: 100, filas: [
+            ["2023", 43.3, "43,3 %"], ["2024", 44.0, "44,0 %"], ["2025", 42.2, "42,2 %"], ["2026", 41.5, "41,5 %"],
+          ] } },
+          { texto: "Como referencia, en 2025 el 45,5 % de los lotes de las comunidades autónomas recibió una sola oferta. Se cuentan de otra manera: sirve como orden de magnitud." },
+          { chips: ["Indicador R-01 · Plataforma y portal regional", "OIReScon · Informe Anual de Supervisión 2026", "Comisión Europea · Single Market Scoreboard"] },
+        ],
+      },
+      {
+        tipo: "chat", x: 700, y: 540, ancho: 960, paso: 2,
+        pregunta: "¿Qué organismos adjudicaron más importe en la Plataforma de Contratación en 2025?",
+        respuesta: [
+          { barras: { titulo: "Millones de euros sin IVA · 2025", filas: [
+            ["Consejería de Familia, Juventud y Asuntos Sociales", 594.3, "594,3"],
+            ["Metro de Madrid", 451.8, "451,8"],
+            ["Canal de Isabel II", 432.6, "432,6"],
+            ["Consejería de Presidencia, Justicia y Adm. Local", 234.0, "234,0"],
+            ["Agencia de Contratación Sanitaria", 203.3, "203,3"],
+          ] } },
+          { texto: "El año es el de formalización. Solo incluye la Plataforma, con importes sin IVA." },
+          { chips: ["Plataforma de Contratación del Sector Público · 16-nov-2026"] },
+        ],
+      },
+    ],
+  },
+
+  // 9. Los modulos (capturas de la aplicacion)
   {
     id: "modulos",
     profundidad: 0.6,
@@ -135,20 +300,7 @@ const DIAPOSITIVAS = [
     ],
   },
 
-  // 7. Senales y asistente
-  {
-    id: "senales",
-    profundidad: 0.75,
-    ojo: { x: 170, y: 160, escala: 0.8, mira: { x: 960, y: 560 } },
-    elementos: [
-      { tipo: "captura", id: "s1", x: 600, y: 580, r: 230, src: "", etiqueta: "Contratos a revisar", paso: 1 },
-      { tipo: "captura", id: "s2", x: 1320, y: 580, r: 230, src: "", etiqueta: "Asistente con citas", paso: 2 },
-      { tipo: "texto", x: 960, y: 170, texto: "Señales, no acusaciones", tam: 60, clase: "titulo", paso: 0 },
-      { tipo: "texto", x: 960, y: 1000, texto: `${DATOS.indicadores} indicadores de riesgo. Cada cifra enlaza a su fuente oficial.`, tam: 30, clase: "nota", paso: 3 },
-    ],
-  },
-
-  // 8. Cierre
+  // 10. Cierre
   {
     id: "cierre",
     profundidad: 0.15,

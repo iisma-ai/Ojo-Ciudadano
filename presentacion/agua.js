@@ -3,7 +3,8 @@
 import * as THREE from "three";
 
 // Color del agua de la superficie al fondo
-const PALETA = ["#2b9bb0", "#15728f", "#0b4b6b", "#06304d", "#021526"].map((c) => new THREE.Color(c));
+// Azul marino desde la superficie; al bajar se oscurece sin llegar a negro
+const PALETA = ["#13406b", "#0f345c", "#0b2a4d", "#092241", "#071b36"].map((c) => new THREE.Color(c));
 
 export function colorProfundidad(p, destino) {
   const t = THREE.MathUtils.clamp(p, 0, 1) * (PALETA.length - 1);
@@ -23,7 +24,7 @@ export function entorno(renderer) {
         fragmentShader: `varying vec3 vP;
           void main(){
             float y = vP.y;
-            vec3 hondo = vec3(.004,.025,.05), medio = vec3(.03,.2,.3), alto = vec3(.55,.9,1.);
+            vec3 hondo = vec3(.004,.015,.04), medio = vec3(.02,.07,.17), alto = vec3(.42,.62,.95);
             vec3 c = y < 0. ? mix(medio, hondo, -y) : mix(medio, alto, pow(y, 1.6));
             float celdas = pow(abs(sin(vP.x * 18.) * sin(vP.z * 18.)), 6.) * smoothstep(.35, .95, y);
             c += celdas * .15;
@@ -36,7 +37,7 @@ export function entorno(renderer) {
   const brillo = new THREE.ShaderMaterial({
     side: THREE.DoubleSide,
     vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`,
-    fragmentShader: `varying vec2 vUv; void main(){ float d = length(vUv - .5) * 2.; gl_FragColor = vec4(vec3(2.6, 3., 3.2) * pow(clamp(1. - d, 0., 1.), 2.), 1.); }`,
+    fragmentShader: `varying vec2 vUv; void main(){ float d = length(vUv - .5) * 2.; gl_FragColor = vec4(vec3(2.2, 2.6, 3.2) * pow(clamp(1. - d, 0., 1.), 2.), 1.); }`,
   });
   for (const [x, y, z, w] of [[-14, 30, 14, 26], [18, 18, 8, 12], [0, 40, -10, 34]]) {
     const mancha = new THREE.Mesh(new THREE.PlaneGeometry(w, w * 0.6), brillo);
@@ -69,7 +70,7 @@ export function crearRayos() {
             float alto = pow(smoothstep(0., 1., vUv.y), 1.8);
             float parpadeo = .55 + .45 * sin(uT * (.4 + uS * .5) + uS * 30. + vUv.x * 5.);
             float a = borde * alto * parpadeo * uI;
-            gl_FragColor = vec4(vec3(.7, .95, 1.) * a, a);
+            gl_FragColor = vec4(vec3(.55, .75, 1.) * a, a);
           }`,
         transparent: true,
         depthWrite: false,
@@ -103,7 +104,7 @@ export function crearSuperficie(altura) {
           vec2 p = vW.xz;
           float n = ola(p) + ola(p * 2.7 + 7.) * .45 + ola(p * 6.1 - 3.) * .2;
           float d = length(vW.xz - uCam.xz);
-          vec3 c = mix(vec3(1.5, 1.9, 1.95), vec3(.12, .5, .6), smoothstep(3., 60., d));
+          vec3 c = mix(vec3(.42, .66, 1.1), vec3(.03, .1, .24), smoothstep(3., 50., d));
           c *= .6 + .22 * n;
           c += pow(max(n, 0.), 6.) * .25 * (1. - smoothstep(5., 40., d));
           float a = (1. - smoothstep(30., 160., d)) * uI;
@@ -153,7 +154,7 @@ export function crearNieve() {
       fragmentShader: `varying float vA; uniform float uI;
         void main(){
           float a = smoothstep(.5, 0., length(gl_PointCoord - .5)) * vA * uI;
-          gl_FragColor = vec4(vec3(.78, .92, 1.) * a, a);
+          gl_FragColor = vec4(vec3(.7, .84, 1.) * a, a);
         }`,
       transparent: true,
       depthWrite: false,
@@ -185,7 +186,7 @@ export function crearBurbujitas() {
           float borde = pow(f, 2.4);
           float brillo = pow(max(dot(vN, normalize(vec3(-.4, .65, .65))), 0.), 50.);
           float a = clamp(borde * .9 + brillo, 0., 1.) * uI;
-          gl_FragColor = vec4(mix(vec3(.62, .86, 1.), vec3(1.6), brillo), a);
+          gl_FragColor = vec4(mix(vec3(.55, .75, 1.), vec3(1.5), brillo), a);
         }`,
       transparent: true,
       depthWrite: false,

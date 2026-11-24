@@ -17,7 +17,7 @@ Una web más fácil y agradable:
   - `barra_superior()`, con el logo, Inicio, A dónde va el dinero, Contratos a revisar, Asistente y «Menú», que abre todas las pantallas por secciones;
   - `pie()` con el aviso, la metodología, las fuentes y las fechas. Se dibuja antes que la pantalla y el CSS (`order`) lo manda al final, porque varias pantallas se paran con `st.stop()` esperando una elección.
   - `intro()` solo la primera vez en la sesión.
-- **`static/intro.html`:** la entrada de 1,5 s.
+- **`static/intro.html`:** la entrada, primero de 1,5 s (ver la segunda ronda).
   - mar oscuro, nieve marina y el ojo de cristal, al que se le enciende la pupila;
   - después, la luz que se abre y la capa que se desvanece;
   - solo `opacity` y `transform`, sin bloquear clics y sin salir con «reducir movimiento».
@@ -42,6 +42,21 @@ Una web más fácil y agradable:
   - la barra se queda fija al bajar;
   - scroll a 240 fotogramas por segundo, sin tareas largas.
 - **Tests:** 471, todos bien (3 nuevos en `tests/app/test_intro.py`). `ruff` sin avisos.
+
+## Segunda ronda: el ojo de la presentación y 3 s
+El Harrak pidió tres cambios en la entrada:
+- el ojo de la presentación en vez del logo;
+- que ilumine más sin ser agresiva;
+- 3 s en vez de 1,5 s.
+
+Cambios:
+- **`app/ojo_cristal.py`** dibuja el ojo de `presentacion/ojo3d.js` en dos capas SVG.
+  - **Iris:** halo azul, 240 fibras de luz, anillos, escala de lente y pupila oscura. Lleva una semilla fija para que salga siempre igual y gira 50° durante la entrada.
+  - **Cristal:** borde luminoso, brillo arriba a la izquierda, reflejo abajo y destello en la pupila.
+- **Luz:** ahora es un halo alrededor del ojo, más una luz redonda de caída suave en `vmax`. La primera versión dejaba un óvalo con el borde marcado en pantallas anchas.
+- **Duración:** pasa a 3 s, con los tiempos repartidos.
+- **Comprobado en el navegador:** el ojo aparece, se ilumina y la página se ve a través mientras la capa se desvanece.
+- **Tests:** uno nuevo para el ojo.
 
 ## Siguiente paso
 - Que el equipo compare con `feat/mapa-billetes`: https://github.com/iisma-ai/Ojo-Ciudadano/compare/main...feat/web-ligera

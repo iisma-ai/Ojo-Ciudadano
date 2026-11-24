@@ -11,7 +11,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from ojo_ciudadano.app import datos, datos_contexto, textos
+from ojo_ciudadano.app import datos, datos_contexto, ojo_cristal, textos
 from ojo_ciudadano.app.conexion import conexion
 
 ESTATICOS = Path(__file__).parent / "static"
@@ -28,7 +28,9 @@ st.html(f"<style>{(ESTATICOS / 'estilo.css').read_text(encoding='utf-8')}</style
 LOGO = (
     "data:image/svg+xml;base64," + base64.b64encode((ESTATICOS / "logo.svg").read_bytes()).decode()
 )
-INTRO = (ESTATICOS / "intro.html").read_text(encoding="utf-8").replace("{logo}", LOGO)
+INTRO = (ESTATICOS / "intro.html").read_text(encoding="utf-8")
+for marca, imagen in ojo_cristal.imagenes().items():  # el ojo de cristal de la presentación
+    INTRO = INTRO.replace(marca, imagen)
 
 # Web ligera (D-043): sin barra lateral. Arriba, una barra con el logo, los botones de las
 # partes principales y «Menú» con todas las pantallas; abajo del todo, el pie con el aviso, la
@@ -64,7 +66,7 @@ PRINCIPALES = [INICIO, DINERO, REVISAR, ASISTENTE]  # los botones de la barra
 
 
 def intro() -> None:
-    """Animación de entrada (1,5 s), solo la primera vez que se abre la web en la sesión."""
+    """Animación de entrada (3 s), solo la primera vez que se abre la web en la sesión."""
     if not st.session_state.get("intro_vista"):
         st.session_state["intro_vista"] = True
         st.html(INTRO)

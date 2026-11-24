@@ -739,11 +739,12 @@ Plantilla:
     - Siguen donde estaban los iconos de ayuda («una señal no prueba nada») de los títulos y los avisos ligados a una cifra concreta.
   - **Inicio con solo el logo.** La mascota con billetes queda en «A dónde va el dinero».
   - **Desplegables opacos.** Desplegables, ventanas emergentes, listas de opciones y ayudas tienen fondo azul marino opaco.
-  - **Entrada animada de 1,5 s**, la primera vez que se abre la web en la sesión (`static/intro.html`):
+  - **Entrada animada de 3 s**, la primera vez que se abre la web en la sesión (`static/intro.html`):
     - mar muy oscuro con nieve marina;
-    - aparece el ojo de cristal y se le enciende la pupila;
-    - su luz aclara el mar y desvela la página, como en las escenas 2 y 3 de la presentación;
+    - aparece el **ojo de cristal de la presentación**, dibujado en `app/ojo_cristal.py`: iris de luz con fibras, anillos y escala de lente que gira despacio, pupila oscura y bola de vidrio con brillos;
+    - se le enciende la pupila y su luz, redonda y de caída suave, aclara el mar y desvela la página, como en las escenas 2 y 3 de la presentación;
     - solo anima opacidad y transformaciones, no bloquea los clics y no sale con «reducir movimiento».
+    - La primera versión duraba 1,5 s y usaba el logo. El Harrak pidió el ojo de la presentación, más luz sin ser agresiva y 3 s.
 - **Alternativas consideradas:**
   - Barra lateral plegada por defecto: seguía ahí y el aviso no se veía.
   - Navegación nativa arriba (`position="top"`): con diez entradas se desborda.

@@ -7,13 +7,13 @@ import numpy as np
 from ojo_ciudadano.anomalias import deteccion
 
 
-def _licitaciones(base, n=120, semilla=0):
+def _licitaciones(base, n=120, semilla=0, cpv=None, prefijo=""):
     """n licitaciones de servicios parecidas: ~100.000 €, 4–6 ofertas, baja del 10–20 %."""
     rng = np.random.default_rng(semilla)
     for i in range(n):
         presupuesto = float(rng.uniform(90_000, 110_000))
         base.contrato(
-            f"placsp:{i}",
+            f"placsp:{prefijo}{i}",
             [
                 {
                     "adjudicatario_id": f"B{i % 30}",
@@ -25,6 +25,7 @@ def _licitaciones(base, n=120, semilla=0):
             procedimiento="Abierto",
             tipo_contrato="Servicios",
             presupuesto_sin_iva=presupuesto,
+            cpv=cpv,
         )
 
 
@@ -204,3 +205,35 @@ def test_validacion_con_recursos_y_fondos_europeos(base):
     assert tabla["Licitaciones de PLACSP con fondos europeos"]["fecha_descarga"] is not None
     guardada = base.con.execute("SELECT count(*) FROM anomalia_validacion").fetchall()[0][0]
     assert guardada == len(deteccion.VALIDACION)
+
+
+def test_en_placsp_los_pares_se_separan_por_division_cpv(base):
+    _licitaciones(base, n=60, cpv="79000000", prefijo="a")
+    _licitaciones(base, n=30, cpv="72000000", prefijo="b", semilla=1)
+    _licitaciones(base, n=30, cpv="90000000", prefijo="c", semilla=2)
+    grupos = dict(deteccion.leer_variables(base.con).group_by("grupo").len().iter_rows())
+    assert grupos == {
+        "placsp · licitación · servicios · CPV 79": 60,
+        "placsp · licitación · servicios · otras divisiones CPV": 60,
+    }
+
+
+def test_resto_pequeno_no_divide_el_tipo(base):
+    _licitaciones(base, n=60, cpv="79000000", prefijo="a")
+    _licitaciones(base, n=10, cpv="90000000", prefijo="c", semilla=2)
+    grupos = dict(deteccion.leer_variables(base.con).group_by("grupo").len().iter_rows())
+    assert grupos == {"placsp · licitación · servicios": 70}
+
+
+def test_validacion_con_entes_del_sector_publico(base):
+    _licitaciones(base)
+    deteccion.calcular(base.con)
+    base.con.execute("UPDATE adjudicatario SET nif = 'Q2818014I' WHERE adjudicatario_id = 'B1'")
+    base.con.execute(
+        "INSERT INTO entidad_sector_publico (nif, codigo_invente, nombre, fuente, url_origen, "
+        "fecha_descarga) VALUES ('Q2818014I', 'INV1', 'Ente', 'invente', 'https://x.test', "
+        "DATE '2026-11-23')"
+    )
+    tabla = {f["grupo_validacion"]: f for f in deteccion.validar(base.con).to_dicts()}
+    # B1 gana uno de cada 30 contratos: 4 de 120.
+    assert tabla["Adjudicados a entes del sector público (INVENTE)"]["contratos"] == 4

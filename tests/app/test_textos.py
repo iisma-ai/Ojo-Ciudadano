@@ -28,6 +28,9 @@ def test_nombre_grupo_de_anomalias():
     assert textos.nombre_grupo("portal_cm · licitación · servicios").endswith(
         "· licitación · servicios"
     )
+    assert textos.nombre_grupo("placsp · licitación · suministros · CPV 33").endswith(
+        "· licitación · suministros · división CPV 33"
+    )
 
 
 def test_pie_cumple_las_condiciones_de_reutilizacion():

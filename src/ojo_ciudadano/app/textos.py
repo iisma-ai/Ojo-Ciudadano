@@ -150,9 +150,9 @@ AVISO_ATIPICOS = (
 
 def nombre_grupo(grupo: str) -> str:
     """«placsp · menor · obras» → «Plataforma de Contratación del Sector Público · contrato
-    menor · obras»."""
+    menor · obras»; «… · CPV 33» → «… · división CPV 33» (D-036)."""
     fuente, _, resto = grupo.partition(" · ")
-    resto = resto.replace("menor", "contrato menor", 1)
+    resto = resto.replace("menor", "contrato menor", 1).replace("· CPV ", "· división CPV ")
     return f"{NOMBRES_FUENTE.get(fuente, fuente)} · {resto}"
 
 

@@ -726,7 +726,10 @@ Plantilla:
   - **Dos mascotas:** el ojo con billetes salía en el Inicio y en el mapa.
   - **Desplegables translúcidos:** su fondo se mezclaba con el mar y costaba leerlos.
 - **Decisión:**
-  - **Sin barra lateral.** Arriba hay una barra fija con el logo, cuatro botones (Inicio, A dónde va el dinero, Contratos a revisar y Asistente) y «Menú», que abre todas las pantallas por secciones (`st.navigation(position="hidden")` y `st.page_link`).
+  - **Sin barra lateral.** Arriba hay una barra fija con el logo, cuatro botones (Inicio, A dónde va el dinero, Contratos a revisar y Asistente) y «Explorar», que abre el resto de pantallas (`st.navigation(position="hidden")` y `st.page_link`).
+    - «Explorar» lleva Mapa del dinero, Presupuesto y contexto, Ficha de empresa y Ficha de órgano.
+    - También lleva Contratos atípicos, que no tiene botón arriba y si no quedaría sin enlace.
+    - Primero se llamaba «Menú» y repetía todas las pantallas.
   - **Pie en todas las pantallas**, abajo del todo:
     - el aviso corto;
     - el desplegable «Aviso legal, metodología y fuentes», con el aviso, la nota de las señales, qué mide cada indicador, las fuentes y el pie legal;
@@ -739,12 +742,15 @@ Plantilla:
     - Siguen donde estaban los iconos de ayuda («una señal no prueba nada») de los títulos y los avisos ligados a una cifra concreta.
   - **Inicio con solo el logo.** La mascota con billetes queda en «A dónde va el dinero».
   - **Desplegables opacos.** Desplegables, ventanas emergentes, listas de opciones y ayudas tienen fondo azul marino opaco.
-  - **Entrada animada de 3 s**, la primera vez que se abre la web en la sesión (`static/intro.html`):
+  - **Entrada animada de 3 s**, la primera vez que se abre la web en la sesión (`static/intro.html` y `app/intro3d.py`):
     - mar muy oscuro con nieve marina;
-    - aparece el **ojo de cristal de la presentación**, dibujado en `app/ojo_cristal.py`: iris de luz con fibras, anillos y escala de lente que gira despacio, pupila oscura y bola de vidrio con brillos;
-    - se le enciende la pupila y su luz, redonda y de caída suave, aclara el mar y desvela la página, como en las escenas 2 y 3 de la presentación;
-    - solo anima opacidad y transformaciones, no bloquea los clics y no sale con «reducir movimiento».
-    - La primera versión duraba 1,5 s y usaba el logo. El Harrak pidió el ojo de la presentación, más luz sin ser agresiva y 3 s.
+    - aparece el **ojo 3D de la presentación**, con el mismo código (`presentacion/ojo3d.js`) y Three.js 0.169.0 de jsDelivr;
+    - se acerca un poco y se va a la izquierda alejándose, mirando hacia la derecha;
+    - un haz de luz sale de él y se abre sobre los datos mientras el mar se aclara.
+    - Al terminar se libera WebGL y se quita el lienzo.
+    - **Reserva:** si Three.js no carga en 1,2 s (sin red o sin WebGL), sale el ojo plano de `app/ojo_cristal.py` con el mismo recorrido. Si nada arranca, la capa se quita sola a los 2,5 s.
+    - Las capas CSS solo animan opacidad y transformaciones, no bloquean los clics y no salen con «reducir movimiento».
+    - **Versiones anteriores** (a petición de El Harrak): 1,5 s con el logo; después, 3 s con el ojo de la presentación en plano.
 - **Alternativas consideradas:**
   - Barra lateral plegada por defecto: seguía ahí y el aviso no se veía.
   - Navegación nativa arriba (`position="top"`): con diez entradas se desborda.

@@ -11,7 +11,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from ojo_ciudadano.app import datos, datos_contexto, ojo_cristal, textos
+from ojo_ciudadano.app import datos, datos_contexto, intro3d, ojo_cristal, textos
 from ojo_ciudadano.app.conexion import conexion
 
 ESTATICOS = Path(__file__).parent / "static"
@@ -33,7 +33,7 @@ for marca, imagen in ojo_cristal.imagenes().items():  # el ojo de cristal de la 
     INTRO = INTRO.replace(marca, imagen)
 
 # Web ligera (D-043): sin barra lateral. Arriba, una barra con el logo, los botones de las
-# partes principales y «Menú» con todas las pantallas; abajo del todo, el pie con el aviso, la
+# partes principales y «Explorar» con el resto de pantallas; abajo del todo, el pie con el aviso, la
 # metodología, las fuentes y las fechas de descarga.
 INICIO = st.Page("paginas/inicio.py", title="Inicio", icon=":material/home:", default=True)
 DINERO = st.Page(
@@ -63,6 +63,9 @@ SECCIONES = {
     "Preguntar": [ASISTENTE],
 }
 PRINCIPALES = [INICIO, DINERO, REVISAR, ASISTENTE]  # los botones de la barra
+# «Explorar» solo lleva lo que no está en la barra. Atípicos no tiene botón arriba: va aquí para
+# que se pueda llegar a ella.
+EXPLORAR = [*SECCIONES["Explorar"], ATIPICOS]
 
 
 def intro() -> None:
@@ -70,10 +73,11 @@ def intro() -> None:
     if not st.session_state.get("intro_vista"):
         st.session_state["intro_vista"] = True
         st.html(INTRO)
+        intro3d.pintar()
 
 
 def barra_superior() -> None:
-    """Logo, botones de las partes principales y el menú con todas las pantallas."""
+    """Logo, botones de las partes principales y «Explorar» con el resto de pantallas."""
     with st.container(key="barra", horizontal=True, vertical_alignment="center", gap="small"):
         st.html(
             f'<div class="oc-marca"><img src="{LOGO}" alt="" width="30" height="30">'
@@ -81,12 +85,9 @@ def barra_superior() -> None:
         )
         for pagina in PRINCIPALES:
             st.page_link(pagina, label=pagina.title, icon=pagina.icon)
-        with st.popover("Menú", icon=":material/menu:"):
-            for seccion, lista in SECCIONES.items():
-                if seccion:
-                    st.caption(seccion)
-                for pagina in lista:
-                    st.page_link(pagina, label=pagina.title, icon=pagina.icon)
+        with st.popover("Explorar", icon=":material/explore:"):
+            for pagina in EXPLORAR:
+                st.page_link(pagina, label=pagina.title, icon=pagina.icon)
 
 
 # Notas de una pantalla concreta que también van al pie.

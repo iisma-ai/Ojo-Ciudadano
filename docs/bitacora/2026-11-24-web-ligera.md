@@ -58,7 +58,26 @@ Cambios:
 - **Comprobado en el navegador:** el ojo aparece, se ilumina y la página se ve a través mientras la capa se desvanece.
 - **Tests:** uno nuevo para el ojo.
 
+## Tercera ronda: «Explorar» y el ojo en 3D
+- **«Menú» pasa a «Explorar»** y solo lleva lo que no está en la barra: Mapa del dinero, Presupuesto y contexto, Ficha de empresa y Ficha de órgano. También Contratos atípicos, que no tiene botón arriba.
+- **El ojo de la entrada es el 3D de la presentación.** `app/intro3d.py` es un componente de Streamlit:
+  - carga Three.js 0.169.0, la misma versión que la presentación;
+  - importa `presentacion/ojo3d.js` tal cual, cambiando solo la importación de `three`;
+  - mueve el ojo en 3 s: aparece hasta 0,9 s, se acerca de 0,9 a 1,5 s y se va a la izquierda y al fondo de 1,5 a 2,7 s, pasando la mirada del espectador a los datos;
+  - al terminar libera WebGL y quita el lienzo.
+- **La capa CSS espera quieta** hasta que el ojo está listo (`en-marcha`). Añade un haz de luz que sale del ojo y se abre sobre los datos.
+- **Reservas:**
+  - si el 3D no llega en 1,2 s, sale el ojo plano con el mismo recorrido (`sin3d`);
+  - si nada arranca, la capa se quita sola a los 2,5 s.
+- **Comprobado en el navegador:**
+  - el ojo 3D aparece, se acerca, se va a la izquierda y la página se ve debajo;
+  - al final no queda lienzo y la capa está oculta;
+  - la reserva plana, simulada, se ve y se oculta;
+  - «Explorar» se abre con las cinco pantallas.
+- **Tests:** dos nuevos.
+
 ## Siguiente paso
 - Que el equipo compare con `feat/mapa-billetes`: https://github.com/iisma-ai/Ojo-Ciudadano/compare/main...feat/web-ligera
 - Pasar `revisor-legal` por el aviso en el pie, que antes estaba siempre a la vista.
+- La entrada 3D necesita internet la primera vez (Three.js de jsDelivr). Sin red sale el ojo plano.
 - El desplegable del buscador de empresas va dentro de su propio marco, así que el CSS de la web no le llega.

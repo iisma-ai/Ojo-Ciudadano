@@ -9,8 +9,11 @@ INTRO = (
 
 
 def test_dura_tres_segundos_y_no_se_repite():
-    duraciones = {float(d) for d in re.findall(r"animation:\s*[\w-]+\s+([\d.]+)s", INTRO)}
-    assert duraciones == {3.0}
+    duraciones = {
+        nombre: float(d) for nombre, d in re.findall(r"animation:\s*([\w-]+)\s+([\d.]+)s", INTRO)
+    }
+    assert duraciones.pop("oc-intro-seguridad") == 0.5  # se quita sola si nada arranca
+    assert set(duraciones.values()) == {3.0}
     assert "infinite" not in INTRO
 
 
@@ -33,3 +36,12 @@ def test_el_ojo_de_cristal_son_dos_imagenes_svg():
     assert set(imagenes) == {"{iris}", "{cristal}"}
     assert all(i.startswith("data:image/svg+xml;base64,") for i in imagenes.values())
     assert ojo_cristal.svg_iris() == ojo_cristal.svg_iris()  # siempre el mismo dibujo
+
+
+def test_el_ojo_3d_es_el_de_la_presentacion():
+    from ojo_ciudadano.app import intro3d
+
+    assert intro3d.OJO.name == "ojo3d.js" and intro3d.OJO.exists()
+    assert "export function crearOjo" in intro3d.OJO.read_text(encoding="utf-8")
+    assert "three@0.169.0" in intro3d.THREE  # versión fija, la misma de la presentación
+    assert "forceContextLoss" in intro3d.JS  # libera WebGL al terminar

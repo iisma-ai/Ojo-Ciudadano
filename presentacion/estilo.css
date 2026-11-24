@@ -234,3 +234,8 @@ body.quieto { cursor: none; }
 .qr-caja img { display: block; width: 100%; image-rendering: pixelated; }
 .qr-vacio { aspect-ratio: 1; display: grid; place-items: center; color: #8aa0c0; font-size: 3em; font-weight: 200; border: 2px dashed #b8c8e0; border-radius: 0.5em; }
 .qr-texto { margin-top: 0.8em; font-size: 1.3em; font-weight: 300; letter-spacing: 0.02em; }
+
+/* imagenes fijas y logo del panel del QR */
+.t.imagen { white-space: normal; translate: 0 -50%; text-shadow: none; }
+.t.imagen img { display: block; width: 100%; filter: drop-shadow(0 6px 24px rgba(0, 10, 30, 0.6)); }
+.qr-logo { display: block; width: 72%; margin: 0 auto 1em; }

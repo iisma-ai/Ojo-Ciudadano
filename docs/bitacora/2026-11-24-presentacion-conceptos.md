@@ -20,6 +20,10 @@
 - Arreglo: la niebla de Three.js guarda una copia del color; ahora se actualiza cada fotograma (las rocas salían blancas).
 - El guion cita tecnologías que no usamos (Node, Vercel, PostgreSQL) y datos «desde 2016»; la escena de tecnologías usa las reales (Python, DuckDB, Polars, Streamlit, Plotly, scikit-learn, OpenRouter).
 
+## Logos
+- Las tecnologías llevan su logo real dentro de la burbuja (`logo` y `color` en una burbuja): Devicon a color (Python, Streamlit, Plotly, scikit-learn, Three.js) y Simple Icons teñidos con su color (DuckDB, Polars, OpenAI, Anthropic), servidos por jsDelivr en versiones fijas. OpenRouter no tiene logo en esas colecciones: la IA se muestra con los dos modelos que usamos (GPT y Claude) y «OpenRouter» en la etiqueta.
+- Logo de Ojo Ciudadano (`app/static/logo-horizontal.svg`) en el panel del QR y en el cierre (tipo `imagen`).
+
 ## Pendiente
 - Guion definitivo (lo da Lucas) para ordenar las escenas.
 - Capturas o vídeos de la web en la escena 9.

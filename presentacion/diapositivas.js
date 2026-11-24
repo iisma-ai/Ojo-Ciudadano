@@ -30,6 +30,8 @@
  *                    el asistente escribe la pregunta, piensa y contesta con esos bloques
  *   {tipo:"vista",   pos:[x,y,z], mira:[x,y,z], paso, hasta}       camara libre (escena fuera del agua)
  *   {tipo:"qr",      x, y, ancho, url, texto, paso}                codigo QR en un panel de cristal
+ *   {tipo:"imagen",  x, y, ancho, src, paso}                       imagen fija en pantalla
+ *   En una burbuja, `logo` (url de un svg) y `color` ponen un logo dentro.
  *
  * En la diapositiva: `arriba: true` = fuera del agua (cielo, mar visto desde arriba y rocas);
  * `ojo: null` = sin ojo.
@@ -52,16 +54,27 @@ const ENJAMBRE = (() => {
   return Array.from({ length: 70 }, () => [80 + azar() * 1760, 80 + azar() * 920, 8 + azar() * 22, azar()]);
 })();
 
-// Tecnologias de Ojo Ciudadano (nombre, x, y, radio)
+// Logo de Ojo Ciudadano (el de la web)
+const LOGO_OJO = "../src/ojo_ciudadano/app/static/logo-horizontal.svg";
+
+// Tecnologias de Ojo Ciudadano con su logo real: nombre, logo y color para teñir los de un color.
+// Devicon (a color) y Simple Icons (de un color), servidos por jsDelivr en versiones fijas.
+const DEVICON = "https://cdn.jsdelivr.net/gh/devicons/devicon@v2.16.0/icons";
+const SIMPLE = "https://cdn.jsdelivr.net/npm/simple-icons@13.0.0/icons";
 const TECNOLOGIAS = [
-  ["Python", 960, 170, 70],
-  ["DuckDB", 1340, 300, 62],
-  ["Polars", 1440, 640, 54],
-  ["Streamlit", 1160, 900, 64],
-  ["Plotly", 760, 900, 50],
-  ["scikit-learn", 480, 640, 58],
-  ["OpenRouter · IA", 580, 300, 66],
-];
+  ["Python", `${DEVICON}/python/python-original.svg`, null],
+  ["DuckDB", `${SIMPLE}/duckdb.svg`, "#FFF000"],
+  ["Polars", `${SIMPLE}/polars.svg`, "#7FB3FF"],
+  ["Streamlit", `${DEVICON}/streamlit/streamlit-original.svg`, null],
+  ["Plotly", `${DEVICON}/plotly/plotly-original.svg`, null],
+  ["scikit-learn", `${DEVICON}/scikitlearn/scikitlearn-original.svg`, null],
+  ["GPT · OpenRouter", `${SIMPLE}/openai.svg`, "#FFFFFF"],
+  ["Claude · OpenRouter", `${SIMPLE}/anthropic.svg`, "#E3A57E"],
+  ["Three.js", `${DEVICON}/threejs/threejs-original.svg`, "#FFFFFF"],
+].map(([nombre, logo, color], i, todas) => {
+  const a = -Math.PI / 2 + (2 * Math.PI * i) / todas.length;
+  return { nombre, logo, color, x: 960 + Math.cos(a) * 560, y: 545 + Math.sin(a) * 360 };
+});
 
 // Tamano y llenado de las burbujas de contratos de la escena 2 (x, y, r, llenado)
 const CONTRATOS = [
@@ -329,8 +342,8 @@ const DIAPOSITIVAS = [
     id: "tecnologias",
     profundidad: 0.45,
     ojo: { x: 960, y: 540, escala: 1.2, mira: { x: 960, y: 600 } },
-    elementos: TECNOLOGIAS.map(([nombre, x, y, r], i) => ({
-      tipo: "burbuja", id: `t${i}`, x, y, r, llenado: 0.6 + (i % 3) * 0.12, etiqueta: nombre, tono: i % 2 ? "agua" : "azul", paso: 0,
+    elementos: TECNOLOGIAS.map(({ nombre, logo, color, x, y }, i) => ({
+      tipo: "burbuja", id: `t${i}`, x, y, r: 68, llenado: 0.18, etiqueta: nombre, logo, color, tono: "azul", paso: 0,
     })),
   },
 
@@ -341,7 +354,7 @@ const DIAPOSITIVAS = [
     ojo: { x: 960, y: 400, escala: 2, mira: { x: 960, y: 560 } },
     elementos: [
       { tipo: "texto", x: 960, y: 740, texto: "Lo público, a la vista de todos", tam: 84, clase: "titulo", paso: 0 },
-      { tipo: "texto", x: 960, y: 850, texto: "Ojo Ciudadano", tam: 44, clase: "subtitulo", paso: 1 },
+      { tipo: "imagen", x: 790, y: 870, ancho: 340, src: LOGO_OJO, paso: 1 },
     ],
   },
 ];

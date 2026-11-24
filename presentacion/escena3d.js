@@ -265,6 +265,29 @@ function etiquetaHtml(html, clase) {
   return el;
 }
 
+// Logo dentro de una burbuja. Los logos de un color (Simple Icons) se tiñen con `color`;
+// los de Devicon ya vienen a color. Se dibujan cuadrados (sus viewBox lo son).
+function texturaLogo(src, color) {
+  const c = document.createElement("canvas");
+  c.width = c.height = 512;
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.onload = () => {
+    const g = c.getContext("2d");
+    g.drawImage(img, 64, 64, 384, 384);
+    if (color) {
+      g.globalCompositeOperation = "source-in";
+      g.fillStyle = color;
+      g.fillRect(0, 0, 512, 512);
+    }
+    tex.needsUpdate = true;
+  };
+  img.src = src;
+  return tex;
+}
+
 function crearBurbuja(e, i) {
   const z = e.z || 0;
   const R = radioMundo(e.r, z);
@@ -279,8 +302,17 @@ function crearBurbuja(e, i) {
   const vidrio = new THREE.Mesh(GEO, VIDRIO);
   vidrio.scale.setScalar(R);
   cont.add(liquido, tapa, vidrio);
+  if (e.logo) {
+    const disco = new THREE.Mesh(
+      new THREE.CircleGeometry(R * 0.8, 64),
+      new THREE.MeshBasicMaterial({ map: texturaLogo(e.logo, e.color), color: 0xd8d8d8, transparent: true, depthWrite: false, fog: false }),
+    );
+    disco.position.z = R * 0.2;
+    disco.renderOrder = 5;
+    cont.add(disco);
+  }
   escena.add(grupo);
-  const it = { tipo: "burbuja", e, i, grupo, cont, R, mLiq, tapa, nivel: -1.05, llenado: e.llenado ?? 0 };
+  const it = { tipo: "burbuja", e, i, grupo, cont, R, mLiq, tapa, nivel: -1.05, llenado: e.llenado ?? 0, logo: Boolean(e.logo) };
   if (e.etiqueta || e.valor) {
     const dentro = Boolean(e.valor);
     it.dom = etiquetaHtml(
@@ -456,7 +488,7 @@ function crearQR(e, i) {
     q.make();
     dentro = `<img src="${q.createDataURL(10, 1)}" alt="QR">`;
   }
-  const dom = etiquetaHtml(`<div class="qr-caja">${dentro}</div>${e.texto ? `<div class="qr-texto">${e.texto}</div>` : ""}`, "panel qr");
+  const dom = etiquetaHtml(`<img class="qr-logo" src="${LOGO_OJO}" alt="Ojo Ciudadano"><div class="qr-caja">${dentro}</div>${e.texto ? `<div class="qr-texto">${e.texto}</div>` : ""}`, "panel qr");
   return { tipo: "qr", i, dom, fijo: { x: e.x, y: e.y, ancho: e.ancho || 420 }, tam: 18 };
 }
 
@@ -503,6 +535,8 @@ const diapositivas = DIAPOSITIVAS.map((d, i) => {
     else if (e.tipo === "chat") it = crearChat(e, i);
     else if (e.tipo === "vista") it = { tipo: "vista", i, pos: new THREE.Vector3(...e.pos), mira: new THREE.Vector3(...e.mira) };
     else if (e.tipo === "qr") it = crearQR(e, i);
+    else if (e.tipo === "imagen")
+      it = { tipo: "imagen", i, dom: etiquetaHtml(`<img src="${e.src}" alt="">`, "imagen"), fijo: { x: e.x, y: e.y, ancho: e.ancho || 400 }, tam: 16 };
     else if (e.tipo === "texto") {
       it = { tipo: "texto", i, dom: etiquetaHtml(e.texto, e.clase || ""), ancla: aMundo(i, e.x, e.y), tam: e.tam || 40 };
       if (e.clase === "nota") it.tam *= 0.62;
@@ -761,7 +795,7 @@ function cuadro() {
       it.grupo.visible = cerca && it.p > 0.001;
       it.cont.scale.setScalar(Math.max(s, 0.0001));
       it.cont.position.y = Math.sin(t * 0.6 + it.R * 7 + it.i) * 0.07;
-      if (it.tipo === "burbuja") it.cont.rotation.y = t * 0.05; // las capturas siempre de frente
+      if (it.tipo === "burbuja" && !it.logo) it.cont.rotation.y = t * 0.05; // capturas y logos, de frente
     }
     if (it.tipo === "burbuja") {
       const meta = it.objetivo ? -1 + 2 * it.llenado : -1.05;

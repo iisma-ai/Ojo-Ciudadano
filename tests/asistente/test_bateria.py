@@ -34,8 +34,8 @@ def con(base):
 
 def test_hay_veinticinco_preguntas_con_identificador_unico():
     ids = [p.id for p in bateria.BATERIA]
-    assert len(ids) == 34
-    assert len(set(ids)) == 34
+    assert len(ids) == 37
+    assert len(set(ids)) == 37
     assert sum(p.tipo == "catalogo" for p in bateria.BATERIA) == 4
     assert sum(p.tipo == "documento" for p in bateria.BATERIA) == 3
 

@@ -197,3 +197,13 @@ Dos herramientas nuevas (`asistente/documentos.py`):
 - B-33 (resoluciones estimatorias sobre criterios de juicio de valor);
 - B-34 (límites: nombres de personas en una resolución).
 - Las de documentos aciertan si se lee el documento esperado, y hay aviso si no se cita la página.
+
+## CPV y entes públicos en la puntuación (24-nov, D-036)
+
+- **Reglas:**
+  - en un resumen por CPV, avisar de que el portal regional no lo publica;
+  - los entes públicos no activan R-04 y no tienen puntuación de empresa (`puntuacion_empresa.sector_publico`).
+- **Batería:** de 34 a 37 preguntas. Las tres nuevas, bien con `openai/gpt-6.1-terra` (0,028 USD):
+  - B-35: importe de PLACSP por división CPV en 2025;
+  - B-36: adjudicatarios que son entes públicos, por administración;
+  - B-37: límites; el Canal de Isabel II no tiene puntuación de empresa.

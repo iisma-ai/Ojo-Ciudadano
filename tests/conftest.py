@@ -70,6 +70,7 @@ class Base:
 
     def resultado(self, nombre_sql):
         """Resultado del indicador como {contrato_id: fila}."""
+        ejecutor.asegurar_contexto(self.con)  # entes públicos insertados por el test
         relacion = ejecutor.ejecutar(self.con, RAIZ / "sql" / "indicadores" / nombre_sql)
         filas = relacion.fetchall()
         return {f[0]: dict(zip(ejecutor.COLUMNAS, f, strict=True)) for f in filas}

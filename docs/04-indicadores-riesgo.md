@@ -9,7 +9,7 @@
 | R-01 | Licitador único | Procedimiento abierto o restringido con una sola oferta | Indicador básico del índice de riesgo de corrupción de [Fazekas y Kocsis (2020)](https://doi.org/10.1017/S0007123417000461); indica competencia nula | Nº de ofertas, procedimiento | Alta |
 | R-02 | Procedimiento sin publicidad | Peso de negociados sin publicidad y emergencias en el gasto de cada órgano | Evita la concurrencia abierta | Tipo de procedimiento, importe | Alta |
 | R-03 | Posible fraccionamiento | Dos o más contratos menores al mismo adjudicatario, mismo órgano y mismo tipo de contrato en una ventana móvil de 12 meses cuya suma **con IVA** supera **18.150 €** (servicios y suministros) o **48.400 €** (obras), es decir, el umbral legal de 15.000 € / 40.000 € × 1,21 (D-014). Solo suman los menores de al menos un tercio del umbral: 6.050 € / 16.133,33 € con IVA (D-015). Se excluyen las suscripciones a publicaciones y bases de datos (LCSP, disposición adicional novena) | Dividir un contrato evita la licitación | Menores con NIF, órgano, tipo, fecha e importe con IVA | Alta |
-| R-04 | Concentración de proveedor | Una empresa con más del **50 %** del importe adjudicado por un órgano en un mismo tipo de contrato (mercado de al menos 10 contratos y 3 empresas); se muestra también el índice HHI (D-018) | Dependencia o captura de un mercado | Adjudicaciones por NIF | Alta |
+| R-04 | Concentración de proveedor | Una empresa con más del **50 %** del importe adjudicado por un órgano en un mismo tipo de contrato y, en PLACSP, la misma división CPV (mercado de al menos 10 contratos y 3 adjudicatarios); los entes del sector público cuentan en el mercado pero no la activan; se muestra también el índice HHI (D-018, D-036) | Dependencia o captura de un mercado | Adjudicaciones por NIF | Alta |
 | R-05 | Sobrecoste por modificaciones | Modificaciones / importe adjudicado > **20 %**, el límite de las modificaciones previstas (art. 204 LCSP). Las prórrogas no cuentan: suelen ser anualidades previstas en el pliego (D-016) | Ganar barato y recuperar después | Importes adjudicado y de modificaciones | Media |
 | R-06 | Baja anormal o nula | Baja = 1 − adjudicado / presupuesto base. Se activa con baja **≤ 0,5 %** (sin baja o por encima del presupuesto) o **≥ 50 %**, en abierto, abierto simplificado y restringido con al menos dos ofertas (D-019) | Sin baja sugiere poca competencia; baja extrema, riesgo de ejecución | Presupuesto base, importe adjudicado | Media |
 | R-07 | Plazo de presentación corto | Días entre anuncio y fin de plazo frente a la mediana del tipo de contrato | Reduce el número de licitadores posibles | Fechas de anuncio y cierre | Baja |
@@ -34,7 +34,7 @@
 Además de los indicadores con reglas, un modelo de aprendizaje automático marca los contratos **atípicos respecto a contratos similares**. Por defecto se usa un método no supervisado: clustering por tipo de contrato y distancia a su grupo, o Isolation Forest. Solo se usaría uno supervisado si hubiera etiquetas legítimas (p. ej. casos de la Cámara de Cuentas), nunca etiquetas de «corrupción» (D-002). Cada contrato atípico se muestra con las variables que más lo alejan de sus pares y el enlace al expediente. **No entra en la puntuación** hasta validarlo. Es el primer recorte si vamos tarde.
 
 **Implementación (21-nov, `src/ojo_ciudadano/anomalias/deteccion.py`):**
-- **Grupo de pares:** fuente + licitación o menor + tipo de contrato (14 grupos con 50 contratos o más; los más pequeños no se analizan). Se separa por fuente porque los importes de PLACSP van sin IVA y los del portal con IVA.
+- **Grupo de pares:** fuente + licitación o menor + tipo de contrato y, en las licitaciones de PLACSP, división CPV (D-036; 48 grupos con 50 contratos o más, antes 14; los más pequeños no se analizan). Se separa por fuente porque los importes de PLACSP van sin IVA y los del portal con IVA.
 - **Variables** (las que tienen datos y variación en cada grupo):
   - importe adjudicado, en logaritmo;
   - número de ofertas;
@@ -92,3 +92,18 @@ Comprobar con casos ya fiscalizados por la Cámara de Cuentas o recogidos en pre
 - **Encargos a medios propios:** forman su propio grupo de pares, con importe, modificaciones y cuota del medio propio en lo que encarga el órgano. Resultado en `anomalia_encargo`, aparte de los contratos, que no se mezclan.
 - **Validación** (`anomalia_validacion`): proporción de atípicos entre los contratos con algún recurso estimado ante el TACPCM, frente a los que solo tienen recursos desestimados o inadmitidos y frente al total (1 %). Se hace lo mismo con las licitaciones de PLACSP con y sin fondos europeos. Es descriptiva y con pocos casos: no valida la señal por sí sola.
 - Los recursos y los fondos europeos **no** son variables del modelo.
+
+## CPV y entes del sector público en los indicadores y los atípicos (24-nov, D-036)
+
+- **R-04:**
+  - en PLACSP, el mercado se divide por división CPV (dos primeras cifras). El portal regional no publica CPV;
+  - ente público = NIF en INVENTE y nombre compatible (`adjudicatario_ente_publico`). Cuenta en el mercado, pero no activa la señal;
+  - recalculado sobre los datos del 16-nov: en PLACSP, 92 activados de 11.686 aplicables (antes 29 de 14.537). En el portal regional, los mismos 54.
+- **Puntuación de empresa:** los entes públicos conservan ficha y contratos, pero `puntuacion_empresa[_anio]` les deja la puntuación vacía (`sector_publico`). Sus contratos cuentan en el órgano.
+- **Atípicos:**
+  - grupos de pares por división CPV en las licitaciones de PLACSP;
+  - las divisiones con menos de 50 contratos van a «otras divisiones CPV». Si ese resto no llega a 50, o no hay ninguna división grande, el tipo no se divide.
+- **Validación:** grupo nuevo de entes públicos (5 atípicos de 3.961, el 0,13 %). Con el CPV, los recursos estimados siguen sin ningún atípico (0 de 55).
+- **No son variables:**
+  - las resoluciones del Tribunal, que son la única referencia para validar;
+  - tener o no pliego, que depende del portal y no del contrato.

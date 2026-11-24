@@ -271,13 +271,18 @@ DESCRIPCION_TABLAS = {
         "el año del contrato; importe es solo un peso (mezcla bases con y sin IVA)."
     ),
     "puntuacion_empresa_contrato": (
-        "Puntuación de cada contrato por adjudicatario (sin personas físicas)."
+        "Puntuación de cada contrato por adjudicatario (sin personas físicas). sector_publico "
+        "marca los entes del sector público de INVENTE."
     ),
     "puntuacion_organo": (
         "Por órgano: contratos, contratos con alertas, puntuación media y ponderada por importe."
     ),
     "puntuacion_organo_anio": "Como puntuacion_organo, por año.",
-    "puntuacion_empresa": "Por adjudicatario (sin personas físicas): igual que puntuacion_organo.",
+    "puntuacion_empresa": (
+        "Por adjudicatario (sin personas físicas): igual que puntuacion_organo. Los entes del "
+        "sector público (sector_publico) tienen la puntuación vacía: no se comparan con empresas "
+        "(D-036)."
+    ),
     "puntuacion_empresa_anio": "Como puntuacion_empresa, por año.",
     "contrato_financiacion": (
         "Licitaciones de PLACSP con fondos europeos: financiado_ue (true/false) y programas_ue "
@@ -343,11 +348,14 @@ nombre ni NIF en la base y solo se muestran agregadas. Muestra nombres solo si t
 - Objeto del contrato: contrato_unico.cpv (código de 8 cifras del Vocabulario Común de Contratos \
 Públicos) solo viene en las licitaciones de PLACSP; el portal regional no lo trae. Para su nombre, \
 JOIN cpv ON cpv.codigo = c.cpv; para agrupar por sector, usa cpv.division y cpv.nombre_division \
-(p. ej. 33 = equipamiento médico). Da el nombre junto al código.
+(p. ej. 33 = equipamiento médico). Da el nombre junto al código y, en un resumen por CPV, avisa \
+de que los contratos del portal regional no entran porque no lo publican. R-04 y los grupos de \
+pares de los atípicos usan la división del CPV en PLACSP (D-036).
 - Adjudicatarios que son entes públicos (universidades, fundaciones del sector público, \
 sociedades mercantiles públicas, organismos autónomos): JOIN entidad_sector_publico s ON s.nif = \
 d.nif (inventario INVENTE de la Intervención General del Estado). No son empresas privadas: dilo \
-si aparecen en un ranking de empresas. Si el nombre del adjudicatario no se parece al del \
+si aparecen en un ranking de empresas. No activan R-04 y no tienen puntuación de empresa \
+(puntuacion_empresa.sector_publico, D-036). Si el nombre del adjudicatario no se parece al del \
 inventario, puede ser un error de NIF de la fuente: dilo y no lo afirmes. Cita «Inventario de \
 Entes del Sector Público (INVENTE), Intervención General de la Administración del Estado».
 """

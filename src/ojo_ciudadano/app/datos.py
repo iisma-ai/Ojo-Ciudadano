@@ -967,16 +967,23 @@ def detalle_r03(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | None
 
 
 def detalle_r04(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | None:
-    """E-04: reparto del importe del organismo en este tipo de contrato (misma fuente): la
+    """E-04: reparto del importe del organismo en el mercado del contrato, el mismo que usa
+    R-04 (misma fuente y tipo de contrato y, en PLACSP, la misma división CPV, D-036): la
     empresa de este contrato frente a las 4 siguientes y el resto. Personas físicas y
-    adjudicatarios sin ficha, sin nombre (D-007)."""
+    adjudicatarios sin ficha, sin nombre (D-007). Los entes del sector público no se toman
+    como la empresa de este contrato, porque no activan R-04."""
     filas = _filas(
         con,
         f"""
         WITH este AS (
-            SELECT c.fuente, c.organo_id, c.tipo_contrato, a.adjudicatario_id
+            SELECT c.fuente, c.organo_id, c.tipo_contrato, a.adjudicatario_id,
+                   CASE WHEN c.fuente = 'placsp' THEN coalesce(substr(c.cpv, 1, 2), '')
+                        ELSE '' END AS division
             FROM contrato_unico AS c JOIN adjudicacion AS a USING (contrato_id)
+            JOIN adjudicatario AS d USING (adjudicatario_id)
             WHERE c.contrato_id = ? AND a.adjudicatario_id IS NOT NULL
+              AND a.adjudicatario_id NOT IN
+                  (SELECT adjudicatario_id FROM adjudicatario_ente_publico)
             ORDER BY coalesce(a.importe_sin_iva, a.importe_con_iva) DESC NULLS LAST
             LIMIT 1
         ),
@@ -987,6 +994,8 @@ def detalle_r04(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | None
             JOIN contrato_unico AS c
               ON c.fuente = e.fuente AND c.organo_id = e.organo_id
              AND c.tipo_contrato = e.tipo_contrato
+             AND CASE WHEN c.fuente = 'placsp' THEN coalesce(substr(c.cpv, 1, 2), '')
+                      ELSE '' END = e.division
             JOIN adjudicacion AS a USING (contrato_id)
             WHERE a.adjudicatario_id IS NOT NULL
               AND (a.resultado IS NULL OR a.resultado IN ('Adjudicado', 'Formalizado'))
@@ -995,11 +1004,14 @@ def detalle_r04(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | None
         )
         SELECT m.importe, m.adjudicatario_id = e.adjudicatario_id AS es_este,
                CASE WHEN {_beneficiario_visible("d")} THEN d.nombre END AS empresa,
-               e.fuente, e.tipo_contrato, o.nombre AS organo
+               e.fuente, e.tipo_contrato, e.division, v.nombre_division,
+               o.nombre AS organo
         FROM mercado AS m
         CROSS JOIN este AS e
         JOIN adjudicatario AS d ON d.adjudicatario_id = m.adjudicatario_id
         JOIN organo AS o ON o.organo_id = e.organo_id
+        LEFT JOIN (SELECT DISTINCT division, nombre_division FROM cpv) AS v
+          ON v.division = e.division
         ORDER BY m.importe DESC
         """,
         [contrato_id],
@@ -1034,6 +1046,8 @@ def detalle_r04(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | None
     return {
         "organo": filas[0]["organo"],
         "tipo": filas[0]["tipo_contrato"],
+        "division": filas[0]["division"] or None,
+        "nombre_division": filas[0]["nombre_division"],
         "fuente": filas[0]["fuente"],
         "total": total,
         "cuota": este["importe"] / total if este and total else None,

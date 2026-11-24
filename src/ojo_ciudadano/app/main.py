@@ -77,7 +77,6 @@ paginas = st.navigation(
             ),
         ],
         "Preguntar": [
-            st.Page("paginas/preguntas.py", title="Preguntas guiadas", icon=":material/quiz:"),
             st.Page("paginas/asistente.py", title="Asistente", icon=":material/forum:"),
         ],
     }

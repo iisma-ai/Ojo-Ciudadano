@@ -262,3 +262,19 @@ def test_con_clave_usa_openrouter_sin_llamar_todavia(monkeypatch):
     monkeypatch.setattr(openrouter, "hay_clave", lambda: True)
     monkeypatch.setattr(openrouter, "modelo_elegido", lambda: "proveedor/modelo")
     assert callable(agente.modelo_configurado())
+
+
+def test_avisa_de_cada_herramienta_antes_de_usarla(con):
+    vistas = []
+
+    def al_usar(llamada):
+        vistas.append(llamada)
+        raise RuntimeError("la animación falla")  # no debe romper la respuesta
+
+    modelo = Guion(
+        LlamadaSQL("SELECT count(*) AS n, 'Portal' AS fuente FROM contrato_unico"),
+        TextoFinal("Hay 2 contratos (fuente: portales oficiales)."),
+    )
+    r = agente.responder(con, modelo, "¿Cuántos contratos hay?", al_usar=al_usar)
+    assert [type(v) for v in vistas] == [LlamadaSQL]
+    assert r.completa and len(r.consultas) == 1

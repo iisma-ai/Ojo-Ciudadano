@@ -964,3 +964,20 @@ Plantilla:
 
     El diagrama de flujos sigue en la vista avanzada.
 - **Consecuencias:** `streamlit-agraph` ya no se usa en ninguna pantalla. `graficos.burbujas_organismos` y `red.mapa` quedan solo para sus tests; se pueden borrar más adelante.
+
+## D-051 · Logo junto al título del Inicio y buscador debajo del mapa
+
+- **Fecha:** 2026-11-25
+- **Estado:** En prueba (Lucas: «a ver cómo queda»). En la rama `feat/web-retoques`, sobre D-050.
+- **Autor:** Claude (agente), a petición de Lucas
+- **Decisión:**
+  - **Logo:** en el Inicio va a la izquierda del título, de tamaño medio; arriba solo el nombre. En las demás pantallas, el logo arriba con el nombre.
+  - **Orden del Inicio:**
+    1. el título;
+    2. el mapa de burbujas con el texto;
+    3. el buscador;
+    4. «Qué ofrecemos»;
+    5. el asistente;
+    6. los contratos que destacan.
+  - **Aviso y fuentes:** el aviso de que una señal no prueba nada y las fuentes de los contratos salen de la portada y pasan a la cabecera de «Contratos a revisar».
+- **Consecuencias:** las cifras de los destacados de la portada ya no llevan su enlace a la fuente en la misma pantalla; lo llevan «Contratos a revisar» y el pie de las demás pantallas. Hay que revisarlo con el equipo frente a la regla de «cada cifra enlaza a su fuente».

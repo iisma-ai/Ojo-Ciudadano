@@ -13,6 +13,7 @@ De arriba abajo, con poco texto:
 """
 
 import html
+from pathlib import Path
 
 import streamlit as st
 
@@ -20,6 +21,7 @@ from ojo_ciudadano.app import billetes, burbujas, buscador, datos, datos_mapa, o
 from ojo_ciudadano.app.conexion import conexion
 
 OJO = ojo_cristal.imagenes()
+LOGO = (Path(__file__).parents[1] / "static" / "logo.svg").read_text(encoding="utf-8")
 
 # Iconos de las puertas (SVG propios, sin emojis, D-022)
 ICONO_MAPA = (
@@ -122,16 +124,20 @@ def _mapa() -> dict | None:
 def bienvenida() -> None:
     contenido = """
 <style>
-.oc-bienvenida { display:flex; flex-direction:column; align-items:center; text-align:center;
-  gap:18px; font-family:Inter, sans-serif; padding: 28px 0 22px; }
+.oc-bienvenida { display:flex; align-items:center; justify-content:center; gap:28px;
+  font-family:Inter, sans-serif; padding: 28px 0 22px; }
+.oc-bienvenida .oc-logo { width:clamp(84px, 9vw, 132px); height:auto; flex:none;
+  filter:drop-shadow(0 0 26px rgba(56,189,248,.4)); }
 .oc-bienvenida h1 { font-size:clamp(2.3rem, 4.2vw, 3.9rem); line-height:1.08; margin:0;
   font-weight:750; letter-spacing:-.03em; max-width: 16ch;
   background:linear-gradient(180deg,#fff 20%,#9FCBFF); -webkit-background-clip:text;
   background-clip:text; color:transparent; }
 </style>
 <div class="oc-bienvenida">
+  LOGO_AQUI
   <h1>Mira en qué se gasta tu dinero la Comunidad de Madrid</h1>
 </div>"""
+    contenido = contenido.replace("LOGO_AQUI", LOGO.replace("<svg ", '<svg class="oc-logo" ', 1))
     billetes.pintar(contenido, clave="inicio_bienvenida")
 
 
@@ -402,13 +408,6 @@ def destacados() -> None:
     for columna, (clave, contenido) in zip(columnas, tarjetas, strict=True):
         with columna.container(border=True, key=f"destaca_{clave}"):
             billetes.pintar(contenido, clave=f"destacado_{clave}")
-    st.caption(
-        "Una señal no prueba nada irregular: indica dónde merece la pena mirar con más detalle. "
-        "Cada contrato, con su explicación y su enlace al expediente oficial. Fuentes: "
-        "[Plataforma de Contratación del Sector Público](https://contrataciondelestado.es) "
-        "(sin IVA) y [Portal de la Contratación Pública de la Comunidad de Madrid]"
-        "(https://contratos-publicos.comunidad.madrid/contratos) (con IVA)."
-    )
     with st.container(key="ver_revisar"):
         st.page_link(
             "paginas/alertas.py", label="Ver los contratos a revisar", icon=":material/flag:"
@@ -420,7 +419,11 @@ con = conexion()
 st.html(ESTILO)
 
 bienvenida()
+st.html('<div style="height:2rem"></div>')
+que_hace()
 
+# el buscador, debajo del mapa y antes de «Qué ofrecemos» (D-051)
+st.html('<div style="height:2.5rem"></div>')
 with st.container(key="inicio_busqueda"):
     elegido = buscador.todo("inicio_buscar")
 if elegido:
@@ -430,8 +433,6 @@ if elegido:
     destino = "paginas/empresa.py" if tipo == "empresa" else "paginas/organo.py"
     st.switch_page(destino, query_params={tipo: ident})
 
-st.html('<div style="height:3rem"></div>')
-que_hace()
 puertas()
 asistente()
 destacados()

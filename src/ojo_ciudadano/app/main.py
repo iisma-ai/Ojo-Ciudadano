@@ -104,11 +104,13 @@ def marcar_seccion(pagina) -> None:
 def barra_superior(pagina) -> None:
     """Logo, botones de las partes principales y «Explorar» con el resto de pantallas."""
     with st.container(key="barra", horizontal=True, vertical_alignment="center", gap="small"):
-        # el logo con el nombre, en todas las pantallas (también en el Inicio, D-050)
-        st.html(
-            f'<div class="oc-marca"><img src="{LOGO}" alt="" width="32" height="32">'
-            "<span>Ojo <b>Ciudadano</b></span></div>"
+        # En el Inicio, solo el nombre: el logo va junto al título (D-051). En las demás, con él.
+        icono = (
+            ""
+            if pagina.url_path == INICIO.url_path
+            else f'<img src="{LOGO}" alt="" width="32" height="32">'
         )
+        st.html(f'<div class="oc-marca">{icono}<span>Ojo <b>Ciudadano</b></span></div>')
         # los botones, juntos en una cápsula a la derecha (D-045)
         with st.container(
             key="nav", horizontal=True, vertical_alignment="center", gap=None, width="content"

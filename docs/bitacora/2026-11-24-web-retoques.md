@@ -73,3 +73,9 @@
   - Metro de Madrid en la Red del dinero.
 
   `pytest`: 476 en verde.
+
+## Quinta tanda, 25-nov (D-051)
+
+- Logo a la izquierda del título del Inicio; arriba solo el nombre en el Inicio.
+- Buscador entre el mapa y «Qué ofrecemos».
+- El aviso de las señales y las fuentes pasan de la portada a «Contratos a revisar».

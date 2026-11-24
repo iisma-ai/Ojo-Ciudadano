@@ -26,6 +26,14 @@ def _conteo() -> dict:
 con = conexion()
 st.header("Contratos a revisar", help=textos.NOTA_SENAL, anchor=False)
 st.caption("Contratos en los que hemos visto alguna señal. Pulsa uno para ver por qué.")
+# el aviso y las fuentes, aquí y no en la portada (D-051)
+st.caption(
+    "Una señal no prueba nada irregular: indica dónde merece la pena mirar con más detalle. "
+    "Cada contrato, con su explicación y su enlace al expediente oficial. Fuentes: "
+    "[Plataforma de Contratación del Sector Público](https://contrataciondelestado.es) "
+    "(sin IVA) y [Portal de la Contratación Pública de la Comunidad de Madrid]"
+    "(https://contratos-publicos.comunidad.madrid/contratos) (con IVA)."
+)
 
 conteo = _conteo()
 busqueda, mas = st.columns([5, 1], vertical_alignment="bottom")

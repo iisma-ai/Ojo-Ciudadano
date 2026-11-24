@@ -167,6 +167,12 @@ Pedido: el ojo se veía raro por la luz de dentro. Debe dar luz, pero no tener t
 - La luz que sale (cono y haces) no cambia.
 - **Comprobado en el navegador:** el iris azul, la pupila oscura y los brillos del cristal se ven como en la presentación, con la luz saliendo hacia abajo.
 
+## Duodécima ronda: el halo se enciende poco a poco
+Pedido: el círculo de luz alrededor del ojo aparecía de golpe y muy intenso. Tenía que iluminarse al ritmo de la página.
+- **Halo CSS (`oc-intro-luz`):** antes llegaba a 1 a los 1,35 s y se apagaba a los 1,9 s. Ahora va de 0 (hasta el 10 %) a 0,3 (42 %, cuando empieza a desvelarse la página) y a 0,75 (80 %), y se apaga al final.
+- **Halo 3D:** `0,24 · tramo(0,3 s, 2,4 s)`, sin escalón inicial.
+- **Comprobado en el navegador con capturas seguidas:** el ojo aparece sin halo, el brillo se forma suave y crece con la página.
+
 ## Siguiente paso
 - Que el equipo compare con `feat/mapa-billetes`: https://github.com/iisma-ai/Ojo-Ciudadano/compare/main...feat/web-ligera
 - Pasar `revisor-legal` por el aviso en el pie, que antes estaba siempre a la vista.

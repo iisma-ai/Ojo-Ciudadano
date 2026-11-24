@@ -303,7 +303,8 @@ async function arrancar(data, capa, empezar) {
     ojo.grupo.position.set(0, 1.75 * sube, 1.1 * acerca - 3.1 * sube);  // visible sobre el título
     mirada.copy(alEspectador).lerp(alaPagina, tramo(t, 1.3, 2.3));  // mira hacia la página
     ojo.dilatar(1 + 0.35 * enciende);
-    aura.uniforms.uI.value = (0.12 + 0.12 * enciende) * aparece;  // halo discreto, alrededor
+    // el halo crece poco a poco con la luz de la página, sin encenderse de golpe
+    aura.uniforms.uI.value = 0.24 * tramo(t, 0.3, 2.4);
     // la luz hacia abajo: empieza estrecha, recta hacia la página, y se abre a los lados
     luz.position.copy(ojo.grupo.position);
     luz.position.z -= 0.05;  // un poco detrás: el cristal tapa la raíz y parece salir del ojo

@@ -1,7 +1,7 @@
 <!-- Entrada de la web (D-043): 3 s, solo la primera vez en la sesión.
      Mar muy oscuro. El ojo 3D de la presentación (app/intro3d.py), que es la fuente de luz,
-     aparece, se acerca un poco y sube alejándose; al apartarse enciende la luz de su núcleo, que
-     baja sobre la página mientras la capa se desvanece. Esta capa espera quieta hasta que el ojo está listo (clase «en-marcha»);
+     aparece, se acerca un poco y sube alejándose hasta salir por arriba; al apartarse enciende la
+     luz de su núcleo y despliega rayos que bajan sobre la página mientras el mar se aclara. Esta capa espera quieta hasta que el ojo está listo (clase «en-marcha»);
      si el 3D no carga, sale el ojo plano de app/ojo_cristal.py (clase «sin3d»). Si nada arranca,
      la capa se quita sola a los 2,5 s.
      Solo se animan opacity y transform (los mueve la tarjeta gráfica, sin repintar) y no
@@ -12,9 +12,9 @@
   animation: oc-intro-seguridad .5s ease 2.5s forwards; }
 .oc-intro.en-marcha { animation: oc-intro-fuera 3s cubic-bezier(.4, 0, .2, 1) forwards; }
 @keyframes oc-intro-seguridad { to { opacity: 0; visibility: hidden; } }
+/* la capa no se desvanece entera: el ojo sale solo por arriba y el mar se aclara aparte */
 @keyframes oc-intro-fuera {
-  0%, 50% { opacity: 1; }
-  88% { opacity: 1; }
+  0%, 99% { opacity: 1; }
   100% { opacity: 0; visibility: hidden; } }
 
 /* el mar oscuro: se aclara a partir de 1,5 s, cuando el ojo enciende la luz sobre los datos */
@@ -22,7 +22,7 @@
   background: radial-gradient(90% 70% at 50% 42%, #04192b 0%, #020b16 55%, #01050b 100%); }
 .en-marcha .oc-intro-mar { animation: oc-intro-mar 3s ease-in-out forwards; }
 @keyframes oc-intro-mar {
-  0%, 50% { opacity: 1; }
+  0%, 45% { opacity: 1; }
   100% { opacity: 0; } }
 
 /* nieve marina */
@@ -54,9 +54,9 @@
 /* luz del núcleo: el ojo, ya arriba, la enciende y baja sobre la página (como los rayos del
    fondo, que también vienen de arriba) */
 .oc-intro-haz { position: absolute; inset: 0; will-change: transform, opacity;
-  transform-origin: 50% 12%;
+  transform-origin: 50% 2%;
   background:
-    radial-gradient(ellipse 55% 95% at 50% 12%, rgba(200, 238, 255, .6) 0,
+    radial-gradient(ellipse 60% 100% at 50% 2%, rgba(200, 238, 255, .6) 0,
       rgba(130, 198, 255, .32) 28%, rgba(85, 165, 245, .13) 55%, transparent 82%),
     linear-gradient(180deg, rgba(170, 228, 255, .14), transparent 70%);
   opacity: 0; transform: scaleY(.25); }
@@ -72,8 +72,7 @@
 .en-marcha .oc-intro-3d { animation: oc-intro-lienzo 3s ease forwards; }
 @keyframes oc-intro-lienzo {
   0% { opacity: 0; }
-  12%, 82% { opacity: 1; }
-  100% { opacity: 0; } }
+  12%, 100% { opacity: 1; } }
 
 /* ojo plano de reserva: solo si el 3D no carga */
 .oc-intro-ojo { display: none; position: relative; width: 190px; height: 190px;
@@ -89,8 +88,7 @@
   0% { opacity: 0; transform: translate(0, 12px) scale(.8); }
   30% { opacity: 1; transform: translate(0, 0) scale(1); }
   50% { opacity: 1; transform: translate(0, 0) scale(1.12); }
-  90% { opacity: 1; transform: translate(0, -36vh) scale(.5); }
-  100% { opacity: 0; transform: translate(0, -36vh) scale(.45); } }
+  100% { opacity: 1; transform: translate(0, -70vh) scale(.5); } }
 @keyframes oc-intro-gira {
   from { transform: rotate(0deg); }
   to { transform: rotate(50deg); } }

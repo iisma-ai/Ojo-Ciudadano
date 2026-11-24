@@ -3,9 +3,10 @@
 Usa el mismo código que la presentación (`presentacion/ojo3d.js`, bola de cristal con refracción,
 iris de luz y pupila, y `presentacion/agua.js` para el entorno de reflejos y el color del agua)
 con Three.js y la misma iluminación y tono de imagen que la presentación. El ojo es la fuente de
-luz: lleva un núcleo blanco. En 3 s aparece, se acerca un poco y sube alejándose hacia arriba
-(así también se ve en el móvil); al apartarse, su núcleo se enciende y la luz baja sobre la
-página, como los rayos que vienen de arriba.
+luz: lleva un núcleo blanco. En 3 s aparece, se acerca un poco y sube alejándose hasta salir
+por arriba de la pantalla (así también se ve en el móvil); al apartarse, su núcleo se enciende y
+despliega rayos de luz que bajan sobre la página y la aclaran poco a poco, como los rayos del
+fondo, que vienen de arriba.
 
 La capa oscura, la luz y el nombre son CSS (`static/intro.html`); este componente pone el lienzo
 3D dentro de esa capa y da la salida a sus animaciones cuando el ojo está listo. Si Three.js no
@@ -72,6 +73,36 @@ function luzRedonda(THREE) {
   return t;
 }
 
+// Rayos de luz que salen del ojo: cuñas finas desde el centro que se apagan hacia fuera
+function luzRayos(THREE) {
+  const c = document.createElement('canvas');
+  c.width = c.height = 512;
+  const g = c.getContext('2d');
+  const C = 256;
+  const caida = g.createRadialGradient(C, C, 0, C, C, C);
+  caida.addColorStop(0, 'rgba(235,248,255,.9)');
+  caida.addColorStop(0.25, 'rgba(170,220,255,.45)');
+  caida.addColorStop(0.6, 'rgba(110,180,255,.14)');
+  caida.addColorStop(1, 'rgba(0,0,0,0)');
+  g.globalCompositeOperation = 'lighter';
+  let semilla = 11;
+  const azar = () => { semilla = (semilla * 16807) % 2147483647; return semilla / 2147483647; };
+  for (let i = 0; i < 46; i++) {
+    const a = (i / 46) * Math.PI * 2 + azar() * 0.12;
+    const ancho = 0.012 + azar() * 0.035;
+    g.globalAlpha = 0.25 + azar() * 0.55;
+    g.fillStyle = caida;
+    g.beginPath();
+    g.moveTo(C, C);
+    g.arc(C, C, C * (0.6 + azar() * 0.4), a - ancho, a + ancho);
+    g.closePath();
+    g.fill();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
 async function arrancar(data, capa, empezar) {
   const THREE = await import(data.three);
   globalThis.__ocThree = THREE;
@@ -102,18 +133,21 @@ async function arrancar(data, capa, empezar) {
   escena.add(ojo.grupo);
 
   // el ojo es la fuente de luz: núcleo blanco siempre y destello que se abre al apartarse
-  const textura = luzRedonda(THREE);
-  const foco = (opacidad) => {
-    const m = new THREE.SpriteMaterial({ map: textura, transparent: true, opacity: opacidad,
+  const textura = luzRedonda(THREE), texturaRayos = luzRayos(THREE);
+  const foco = (opacidad, mapa = textura, orden = 30) => {
+    const m = new THREE.SpriteMaterial({ map: mapa, transparent: true, opacity: opacidad,
       blending: THREE.AdditiveBlending, depthTest: false, depthWrite: false, toneMapped: false });
     const s = new THREE.Sprite(m);
-    s.renderOrder = 30;
+    s.renderOrder = orden;
     s.position.z = 0.6;
     ojo.grupo.add(s);
     return s;
   };
-  const nucleo = foco(0.6), destello = foco(0), aura = foco(0.35);
-  aura.scale.setScalar(3.4);
+  const nucleo = foco(0.6), destello = foco(0), aura = foco(0.4);
+  aura.scale.setScalar(3.6);
+  // dos coronas de rayos detrás del cristal, girando en sentidos contrarios
+  const rayos = foco(0, texturaRayos, -1), rayos2 = foco(0, texturaRayos, -1);
+  rayos.position.z = rayos2.position.z = -0.3;
   render.render(escena, camara);  // compila los sombreadores antes de enseñarlo
 
   if (!empezar(false)) { render.dispose(); render.forceContextLoss(); return; }
@@ -131,22 +165,32 @@ async function arrancar(data, capa, empezar) {
       render.dispose();
       render.forceContextLoss();
       textura.dispose();
+      texturaRayos.dispose();
       lienzo.remove();
       return;
     }
-    // aparece (0-0,9 s), se acerca (0,9-1,5 s) y sube alejándose (1,5-2,7 s)
-    const aparece = tramo(t, 0, 0.9), acerca = tramo(t, 0.9, 1.5), sube = tramo(t, 1.5, 2.7);
-    const enciende = tramo(t, 1.35, 2.1), apaga = tramo(t, 2.45, 3.0);
+    // aparece (0-0,9 s), se acerca (0,9-1,5 s) y sube alejándose, cada vez más deprisa, hasta
+    // salir por arriba de la pantalla (hacia 2,85 s)
+    const aparece = tramo(t, 0, 0.9), acerca = tramo(t, 0.9, 1.5);
+    const lineal = Math.min(Math.max((t - 1.4) / 1.6, 0), 1), sube = lineal * lineal;
+    const enciende = tramo(t, 1.3, 2.3), apaga = tramo(t, 2.55, 3.0);
     ojo.grupo.scale.setScalar(0.55 * (0.75 + 0.25 * aparece));
-    ojo.grupo.position.set(0, 2.3 * sube, 1.1 * acerca - 4.6 * sube);
+    ojo.grupo.position.set(0, 3.9 * sube, 1.1 * acerca - 3.1 * sube);
     mirada.copy(alEspectador).lerp(alaPagina, tramo(t, 1.3, 2.3));  // mira hacia la página
     ojo.dilatar(1 + 0.35 * enciende);
-    // la luz del núcleo: presente desde que aparece; al apartarse se enciende y se abre
-    nucleo.scale.setScalar(1.1 + 0.7 * enciende);
-    nucleo.material.opacity = (0.45 + 0.3 * enciende) * aparece * (1 - 0.6 * apaga);
-    aura.material.opacity = (0.3 + 0.25 * enciende) * aparece * (1 - apaga);
+    // el ojo es la fuente de luz: núcleo y aura desde que aparece; al apartarse se enciende y
+    // despliega los rayos, que crecen y bajan sobre la página
+    nucleo.scale.setScalar(1.2 + 0.8 * enciende);
+    nucleo.material.opacity = (0.55 + 0.35 * enciende) * aparece;
+    aura.material.opacity = (0.35 + 0.3 * enciende) * aparece;
     destello.scale.setScalar(1 + 7 * enciende);
     destello.material.opacity = 0.42 * enciende * (1 - apaga);  // suave: ilumina sin deslumbrar
+    rayos.scale.setScalar(2 + 20 * enciende);
+    rayos2.scale.setScalar(1.6 + 15 * enciende);
+    rayos.material.opacity = 0.75 * enciende * (1 - apaga);  // se apagan del todo al final
+    rayos2.material.opacity = 0.5 * enciende * (1 - apaga);
+    rayos.material.rotation += dt * 0.12;
+    rayos2.material.rotation -= dt * 0.2;
     ojo.actualizar(dt, mirada);
     render.render(escena, camara);
     requestAnimationFrame(cuadro);

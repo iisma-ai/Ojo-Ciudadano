@@ -90,6 +90,14 @@ Cambios en `app/intro3d.py`:
 - **Primera prueba en el navegador:** el destello deslumbraba. Se bajó a 0,42 de opacidad y 8 veces su tamaño.
 - **Comprobado en el navegador:** el ojo se ve claro, sube, y su luz baja sobre la página mientras se desvela.
 
+## Quinta ronda: el ojo sale por arriba y despliega rayos
+El Harrak pidió que el ojo subiera mucho más, hasta salir de la página, y que desplegara más luz, con rayos que aclaren la página poco a poco.
+- **Recorrido:** sube de 1,4 a 3,0 s, acelerando (curva cuadrática), hasta y 3,9 y z -2. Sale por arriba hacia 2,85 s.
+- **Sin desvanecerse:** el lienzo ya no baja la opacidad y la capa tampoco se desvanece entera; solo el mar se aclara, desde el 45 %.
+- **Rayos:** una textura de 46 cuñas de luz con caída radial, en dos coronas detrás del cristal que giran en sentidos contrarios. Crecen hasta 22 veces el ojo con el encendido (1,3-2,3 s) y se apagan del todo de 2,55 a 3,0 s, para que no se corten de golpe al quitar el lienzo.
+- El haz de CSS sale ahora del borde de arriba. El ojo plano de reserva sube un 70 % de la altura de la pantalla.
+- **Comprobado en el navegador:** los rayos salen del ojo y aclaran la página mientras sube; el ojo sale por arriba de la barra.
+
 ## Siguiente paso
 - Que el equipo compare con `feat/mapa-billetes`: https://github.com/iisma-ai/Ojo-Ciudadano/compare/main...feat/web-ligera
 - Pasar `revisor-legal` por el aviso en el pie, que antes estaba siempre a la vista.

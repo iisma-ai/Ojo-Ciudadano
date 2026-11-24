@@ -45,3 +45,7 @@ def test_el_ojo_3d_es_el_de_la_presentacion():
     assert "export function crearOjo" in intro3d.OJO.read_text(encoding="utf-8")
     assert "three@0.169.0" in intro3d.THREE  # versión fija, la misma de la presentación
     assert "forceContextLoss" in intro3d.JS  # libera WebGL al terminar
+    # la luz como en la presentación: cono y haces calculados en sombreadores (sin texturas, que
+    # se pixelan al estirarlas) y el mismo posproceso de brillo
+    assert "crearCono" in intro3d.JS and "crearHaces" in intro3d.JS
+    assert "CanvasTexture" not in intro3d.JS and "UnrealBloomPass" in intro3d.JS

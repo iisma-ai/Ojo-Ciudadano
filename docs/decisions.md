@@ -745,10 +745,10 @@ Plantilla:
   - **Entrada animada de 3 s**, la primera vez que se abre la web en la sesión (`static/intro.html` y `app/intro3d.py`):
     - mar muy oscuro con nieve marina;
     - aparece el **ojo 3D de la presentación**, con el mismo código (`presentacion/ojo3d.js`) y Three.js 0.169.0 de jsDelivr;
-    - se ilumina como en la presentación: entorno de reflejos y color del agua de `presentacion/agua.js`, el mismo tono de imagen (`NeutralToneMapping`), cielo y sol;
+    - se ilumina como en la presentación: entorno de reflejos y color del agua de `presentacion/agua.js`, el mismo tono de imagen (`NeutralToneMapping`), cielo y sol, y el **mismo posproceso** (brillo `UnrealBloomPass` 0,55 / 0,7 / 0,82 y `OutputPass`). Al brillo se le corrige la opacidad para que no tape la página;
     - **el ojo es la fuente de luz**: lleva un núcleo blanco y se ve claro, no oscuro;
     - se acerca un poco y **sube alejándose, cada vez más deprisa, hasta salir por arriba de la pantalla** sin desvanecerse; así también se ve en el móvil. Mientras, mira hacia la página;
-    - al apartarse, su núcleo se enciende y **despliega rayos de luz** (dos coronas que giran en sentidos contrarios) que bajan desde arriba sobre la página y la aclaran poco a poco, como los rayos del fondo. Los rayos se apagan antes de terminar.
+    - al apartarse, su núcleo se enciende y **despliega la luz de la presentación**: el cono de luz del ojo (`crearLuz`) y los haces de los rayos de sol (`crearRayos`), con la raíz en el ojo. Empiezan rectos hacia abajo y se abren poco a poco a los lados, como mucho a 66° de la vertical, sin apuntar nunca hacia arriba; aclaran la página mientras el ojo sube. Toda la luz se calcula en sombreadores, sin texturas, así que no se pixela. Se apaga antes de terminar.
     - Al terminar se libera WebGL y se quita el lienzo.
     - **Reserva:** si Three.js no carga en 1,2 s (sin red o sin WebGL), sale el ojo plano de `app/ojo_cristal.py`, que también sube. Si nada arranca, la capa se quita sola a los 2,5 s.
     - Las capas CSS solo animan opacidad y transformaciones, no bloquean los clics y no salen con «reducir movimiento».
@@ -756,7 +756,8 @@ Plantilla:
       - 1,5 s con el logo;
       - 3 s con el ojo de la presentación en plano;
       - el ojo 3D yéndose a la izquierda, más oscuro y con la luz hacia la derecha;
-      - el ojo subiendo solo hasta arriba de la pantalla, sin rayos.
+      - el ojo subiendo solo hasta arriba de la pantalla, sin rayos;
+      - rayos en todas direcciones con una textura que se pixelaba.
 - **Alternativas consideradas:**
   - Barra lateral plegada por defecto: seguía ahí y el aviso no se veía.
   - Navegación nativa arriba (`position="top"`): con diez entradas se desborda.

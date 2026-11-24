@@ -98,6 +98,24 @@ El Harrak pidió que el ojo subiera mucho más, hasta salir de la página, y que
 - El haz de CSS sale ahora del borde de arriba. El ojo plano de reserva sube un 70 % de la altura de la pantalla.
 - **Comprobado en el navegador:** los rayos salen del ojo y aclaran la página mientras sube; el ojo sale por arriba de la barra.
 
+## Sexta ronda: la luz de la presentación, sin píxeles y solo hacia abajo
+Pedido: los rayos se veían pixelados. Tenían que ser exactamente los de la presentación, empezar abajo y abrirse poco a poco a los lados, sin apuntar nunca hacia arriba, y había que seguir hasta que el resultado fuera agradable.
+- **Causa de los píxeles:** los rayos (y el núcleo) eran texturas de 256 a 512 px dibujadas en un lienzo y estiradas hasta 22 veces.
+- **Ahora toda la luz se calcula en sombreadores**, sin texturas:
+  - el **cono de luz del ojo** de la presentación (`crearLuz` de `escena3d.js`, mismo sombreador), con el vértice en el ojo y apuntando abajo; se ensancha de 0,15 a 1,4 veces;
+  - los **haces de los rayos de sol** (`crearRayos` de `agua.js`, mismo sombreador): 11, con la raíz en el ojo. Se abren de recto hacia abajo hasta ±66° (`abre`, de 1,45 a 2,75 s);
+  - el núcleo, el aura y el destello del ojo, como brillos redondos calculados.
+- **El ojo salía más oscuro que en la presentación** porque faltaba su posproceso. Se añade el mismo: `EffectComposer`, `RenderPass`, `UnrealBloomPass` (0,55 / 0,7 / 0,82) y `OutputPass`. Se cargan como «+esm» de jsDelivr para que usen la misma copia de Three.js.
+- **El brillo tapaba la página** con un fondo negro opaco: su desenfoque escribe opacidad 1. Se cambia esa línea del sombreador (`vec4(diffuseSum/weightSum, 1.0)` en Three.js 0.169.0) para que la opacidad sea la de la propia luz.
+- **Primera prueba con el posproceso:** el núcleo salía demasiado blanco y tapaba el iris. Se bajó (0,4-0,7) y también el aura.
+- **Comprobado en el navegador, con capturas seguidas y ampliadas:**
+  - el ojo se ve claro;
+  - el cono y los haces salen hacia abajo y se abren a los lados;
+  - la página se aclara;
+  - el ojo sale por arriba;
+  - no se ven píxeles;
+  - al final no queda lienzo y la capa está oculta.
+
 ## Siguiente paso
 - Que el equipo compare con `feat/mapa-billetes`: https://github.com/iisma-ai/Ojo-Ciudadano/compare/main...feat/web-ligera
 - Pasar `revisor-legal` por el aviso en el pie, que antes estaba siempre a la vista.

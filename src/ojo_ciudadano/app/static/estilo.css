@@ -107,6 +107,13 @@
 @media (prefers-reduced-motion: reduce) {
   .stApp::before, .stApp::after { animation: none; }
 }
+/* Sin tarjeta gráfica (D-044, app/rendimiento.py) el navegador lo dibuja todo con el procesador:
+   el fondo de rayos y burbujas se queda quieto para que la página no vaya a tirones. */
+html.oc-sin-gpu .stApp::before,
+html.oc-sin-gpu .stApp::after {
+  animation: none !important;
+  will-change: auto;
+}
 
 /* ---------- Estructura y textos ---------- */
 .block-container {

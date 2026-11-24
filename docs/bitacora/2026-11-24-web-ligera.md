@@ -173,8 +173,20 @@ Pedido: el círculo de luz alrededor del ojo aparecía de golpe y muy intenso. T
 - **Halo 3D:** `0,24 · tramo(0,3 s, 2,4 s)`, sin escalón inicial.
 - **Comprobado en el navegador con capturas seguidas:** el ojo aparece sin halo, el brillo se forma suave y crece con la página.
 
+## Decimotercera ronda: sin tarjeta gráfica (D-044)
+- **Problema:** en Edge la web iba lenta. La causa más probable es que dibuje sin tarjeta gráfica (aceleración desactivada). Entonces la entrada 3D y el fondo animado van con el procesador. La reserva de la entrada solo saltaba si el 3D no cargaba.
+- **`app/rendimiento.py`:** prueba al abrir la página, con WebGL y `failIfMajorPerformanceCaveat` más el nombre del dibujador; el resultado se guarda en `sessionStorage` (`oc-gpu`). La entrada hace la misma prueba antes de cargar Three.js.
+- **Sin tarjeta gráfica:**
+  - la clase `oc-sin-gpu` deja quietos los rayos y las burbujas del fondo (`estilo.css`);
+  - la entrada usa el ojo plano.
+- **Comprobado en el navegador:**
+  - con tarjeta gráfica, `oc-gpu = si`, entrada 3D y fondo en movimiento;
+  - con `oc-gpu = no` (simulado), clase `oc-sin-gpu`, ojo plano, sin Three.js y el fondo quieto.
+- **Tests:** 3 nuevos (`tests/app/test_rendimiento.py`).
+
 ## Siguiente paso
 - Que el equipo compare con `feat/mapa-billetes`: https://github.com/iisma-ai/Ojo-Ciudadano/compare/main...feat/web-ligera
 - Pasar `revisor-legal` por el aviso en el pie, que antes estaba siempre a la vista.
-- La entrada 3D necesita internet la primera vez (Three.js de jsDelivr). Sin red sale el ojo plano.
+- La entrada 3D necesita internet la primera vez (Three.js de jsDelivr). Sin red, o sin tarjeta gráfica (D-044), sale el ojo plano.
+- Si Edge sigue lento con tarjeta gráfica, mirar «Mejorar la seguridad en la web» (desactiva el optimizador de JavaScript) y poner una excepción para el sitio.
 - El desplegable del buscador de empresas va dentro de su propio marco, así que el CSS de la web no le llega.

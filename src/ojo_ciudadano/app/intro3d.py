@@ -11,13 +11,16 @@ fondo, que vienen de arriba.
 
 La capa oscura, la luz y el nombre son CSS (`static/intro.html`); este componente pone el lienzo
 3D dentro de esa capa y da la salida a sus animaciones cuando el ojo está listo. Si Three.js no
-carga en 1,2 s (sin red, sin WebGL), se usa el ojo plano de `ojo_cristal.py`. Al terminar se
+carga en 1,2 s (sin red, sin WebGL), o si el navegador dibuja sin tarjeta gráfica
+(`rendimiento.py`, D-044), se usa el ojo plano de `ojo_cristal.py`. Al terminar se
 libera WebGL y se quita el lienzo: después no queda nada en marcha.
 """
 
 from pathlib import Path
 
 import streamlit as st
+
+from ojo_ciudadano.app import rendimiento
 
 # La versión de la presentación. Se carga en su forma «+esm» de jsDelivr, que resuelve las
 # importaciones de «three» de los complementos de posproceso a esta misma copia.
@@ -41,6 +44,12 @@ export default function (component) {
     return true;
   };
   if (!data || !data.ojo || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    empezar(true);
+    return;
+  }
+  // Sin tarjeta gráfica (D-044), el 3D se dibujaría con el procesador y a tirones: ojo plano.
+  if (!ocHayGpu()) {
+    ocMarcarSinGpu();
     empezar(true);
     return;
   }
@@ -335,6 +344,8 @@ async function arrancar(data, capa, empezar) {
 }
 """
 
+# la prueba de tarjeta gráfica (rendimiento.py) va delante, en el mismo módulo de JavaScript
+JS = rendimiento.PRUEBA + JS
 _componente = st.components.v2.component("ojo_intro_3d", js=JS)
 
 

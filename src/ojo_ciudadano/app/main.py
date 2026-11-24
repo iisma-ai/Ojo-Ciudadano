@@ -11,7 +11,14 @@ from pathlib import Path
 
 import streamlit as st
 
-from ojo_ciudadano.app import datos, datos_contexto, intro3d, ojo_cristal, textos
+from ojo_ciudadano.app import (
+    datos,
+    datos_contexto,
+    intro3d,
+    ojo_cristal,
+    rendimiento,
+    textos,
+)
 from ojo_ciudadano.app.conexion import conexion
 
 ESTATICOS = Path(__file__).parent / "static"
@@ -97,6 +104,7 @@ NOTAS_PIE = {ATIPICOS.url_path: ("Cómo se calculan los contratos atípicos", te
 def pie(pagina) -> None:
     """Aviso, metodología, fuentes y fechas, abajo del todo en todas las pantallas."""
     with st.container(key="pie"):
+        rendimiento.detectar()  # sin tarjeta gráfica, fondo quieto (D-044); no dibuja nada
         st.divider()
         st.caption(textos.AVISO_CORTO)
         if pagina.url_path in NOTAS_PIE:

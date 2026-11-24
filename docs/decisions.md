@@ -769,3 +769,31 @@ Plantilla:
   - El aviso legal deja de estar siempre a la vista en la barra lateral: queda abajo, más los iconos de ayuda de los títulos. Conviene que `revisor-legal` lo valide antes de la entrega.
   - Medido: scroll a 240 fotogramas por segundo, sin tareas largas; las nueve pantallas cargan sin errores y todas tienen pie.
   - Tests en `tests/app/test_intro.py`.
+
+## D-044 · Sin tarjeta gráfica, entrada con el ojo plano y fondo quieto
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada (El Harrak: «Vale, pues haz eso», sobre detectar el dibujo sin tarjeta gráfica). En la rama `feat/web-ligera`, junto a D-043.
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** En Microsoft Edge la web iba lenta. Casi todos los equipos tienen tarjeta gráfica, aunque sea la integrada, pero hay navegadores que no pueden usarla y lo dibujan todo con el procesador:
+  - aceleración por hardware desactivada;
+  - controlador antiguo y bloqueado;
+  - escritorio remoto o máquina virtual;
+  - equipos con restricciones.
+
+  En esos casos, la entrada 3D de D-043 (doble resolución y brillo) y el fondo animado iban a tirones. La reserva de la entrada solo saltaba si el 3D no cargaba, no si cargaba pero se dibujaba por software.
+- **Decisión:** `app/rendimiento.py` comprueba al abrir la página si el navegador dibuja con tarjeta gráfica:
+  - pide a WebGL un contexto con `failIfMajorPerformanceCaveat` y mira el nombre del dibujador (SwiftShader, llvmpipe, Microsoft Basic Render…);
+  - guarda el resultado para la pestaña (`sessionStorage`, `oc-gpu`).
+  - Sin tarjeta gráfica:
+    - la página lleva la clase `oc-sin-gpu`;
+    - la entrada usa el ojo plano (CSS) en vez del 3D, sin descargar Three.js;
+    - los rayos y las burbujas del fondo se quedan quietos.
+  - Con tarjeta gráfica no cambia nada.
+- **Alternativas consideradas:**
+  - Medir los primeros fotogramas y bajar la calidad sobre la marcha: es más complejo y la entrada ya habría empezado a tirones.
+  - Quitar la entrada 3D para todos.
+  - Avisar al usuario de que active la aceleración.
+- **Consecuencias:**
+  - Comprobado en el navegador en los dos casos: con tarjeta gráfica, entrada 3D y fondo en movimiento; simulando que no la hay (`oc-gpu` = `no`), ojo plano, sin Three.js y el fondo quieto.
+  - Si Edge u otro navegador va lento por desactivar el optimizador de JavaScript («Mejorar la seguridad en la web»), esto no lo arregla: hay que añadir una excepción para el sitio.
+  - Tests en `tests/app/test_rendimiento.py`.

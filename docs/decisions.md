@@ -530,3 +530,33 @@ Plantilla:
   - **Batería:** B-35 a B-37 con `openai/gpt-6.1-terra` (0,028 USD). Las tres bien, B-35 tras corregir su referencia para que use la misma definición de año que B-06.
   - **Riesgo:** la comparación de nombres puede fallar en los dos sentidos. Por un lado, una sigla puede no cuadrar con el nombre completo: un ente público, como ASERPINTO o CEDEX, se tratará como empresa. Por otro, una empresa con una palabra en común con el ente se tratará como ente. El primer error es el más prudente, porque conserva las señales.
   - **Instalaciones:** `ingesta.cpv` e `ingesta.invente` antes de `indicadores.ejecutor` y `anomalias.deteccion`. Sin esas tablas, el ejecutor las crea vacías y todo funciona como antes de D-036.
+
+## D-037 · Un solo asistente: respuestas preparadas primero y el modelo como respaldo
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada (El Harrak: «que el asistente RAG y SQL sean el mismo […] es mejor si es hardcodeado […] y si no, deberíamos dejarlo al modelo que hemos elegido»).
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** Había dos pantallas para preguntar. «Preguntas guiadas» tenía 4 consultas verificadas en un desplegable. «Asistente» era el modelo de lenguaje con SQL, catálogo, pliegos y resoluciones. Para la demo se quería una sola pantalla, que respondiera sin modelo todo lo que la base permite responder de antemano y que enseñara qué hace mientras consulta.
+- **Decisión:**
+  - **Una sola pantalla, «Asistente».** «Preguntas guiadas» desaparece del menú y su contenido pasa a la lista «Preguntas con respuesta preparada».
+  - **Primero, las respuestas preparadas** (`asistente/respuestas_fijas.py`), con 43 preguntas:
+    - 26 de datos. Usan el SQL verificado de la batería y de las antiguas preguntas guiadas, más 5 consultas nuevas: importe por fuente y año, empresas con más importe, señales por indicador, atípicos por grupo y organismos con más menores. El texto está escrito de antemano y se rellena con las cifras del resultado y la cita de su fuente.
+    - 17 sin consulta: conceptos (contrato menor, señal, puntuación, atípico, fuentes, IVA y cada indicador) y límites (calificar de irregular, personas físicas, otras administraciones, instrucciones al asistente).
+  - **Cómo se reconocen:** palabras clave, sin modelo. Hacen falta todas las de la pregunta y ninguna de sus exclusiones.
+    - El año, la consejería o la empresa (por NIF o por el principio de su nombre) se leen de la pregunta.
+    - Un año fuera de 2023–2026, o una consejería o empresa que no está en la base, pasan al modelo.
+    - Ante la duda, contesta el modelo. La pantalla dice qué pregunta preparada se reconoció y ofrece «que responda el modelo».
+  - **Después, el modelo** (D-010), con las mismas herramientas y filtros de retención.
+  - **Animaciones** (`app/animacion.py`, `asistente/plano.py`), solo con CSS y quietas con «reducir movimiento»:
+    - mientras corre una consulta, las tablas que lee, sus uniones con la clave y los pasos (filtrar, agrupar, ordenar), sacados del árbol del SQL;
+    - mientras se buscan documentos, páginas que se recorren;
+    - la respuesta aparece palabra a palabra, también cuando no hay consulta.
+  - El agente avisa a la interfaz antes de usar cada herramienta (`al_usar`) para cambiar la animación.
+- **Alternativas consideradas:**
+  - Clasificar la pregunta con el modelo antes de decidir. Cuesta una llamada por pregunta y depende de la red.
+  - Parecido por vectores con las preguntas preparadas. Sin vectores en el proyecto, y menos explicable.
+  - Dejar dos pantallas.
+- **Consecuencias:**
+  - **Coste:** las preguntas frecuentes no gastan saldo, responden en unos 2 segundos y funcionan sin clave del modelo.
+  - **Mantenimiento:** una pregunta preparada nueva necesita su SQL, su texto y sus palabras clave, con test.
+  - **Riesgo:** reconocer mal una pregunta da una respuesta correcta a otra pregunta. Por eso se enseña siempre la pregunta reconocida y se puede pedir el modelo.
+  - Los textos preparados pasan los mismos filtros de lenguaje que los del modelo (tests).

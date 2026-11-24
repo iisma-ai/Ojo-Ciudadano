@@ -20,7 +20,7 @@ se ha gastado, y se unen en consejerías y en la Comunidad de Madrid. Poco texto
 | 5 | El ojo enciende un haz de luz | Ojo Ciudadano lo hace transparente |
 | 6 | El reparto real de 2025; la cámara entra en Sanidad y luego en un contrato | Ficha de la consejería (gasto, a quién adjudica, cómo contrata) y ficha del contrato con sus señales |
 | 7 | Señales de cada 100 | 39 de cada 100 licitaciones con una sola oferta, 31 sin anuncio público, 17 menores con posible fraccionamiento |
-| 8 | El asistente | Escribe dos preguntas reales y contesta con gráfica y fuentes |
+| 8 | El asistente | Escribe tres preguntas reales de la app y contesta con gráficas (barras y una tarta de los recursos ante el Tribunal) y fuentes |
 | 9 | Burbujas con la aplicación dentro | Mapa del dinero, ficha de empresa, ficha de organismo (faltan capturas) |
 | 10 | Cierre, el ojo de nuevo grande | Lo público, a la vista de todos |
 
@@ -43,7 +43,7 @@ ficheros a la carpeta antes.
 - Flechas, espacio o clic: siguiente paso. Flecha izquierda o clic en el borde izquierdo: atrás.
 - `F`: pantalla completa. `#3` al final de la dirección abre directamente la diapositiva 3.
 - Cada diapositiva tiene varios pasos (una pulsación cada uno), así que el ritmo lo marcas tú.
-- El ojo mira al cursor si lo mueves; a los tres segundos vuelve a mirar donde toca.
+- El ojo no sigue el ratón: mira al centro y de vez en cuando echa un vistazo a los lados.
 
 ## Cómo cambiarla
 

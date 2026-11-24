@@ -10,6 +10,11 @@
 - El primer ojo de cristal parecía de plástico (capas mates y reflejos con forma de ventana). Ahora es una bola de cristal maciza con un sombreado propio: el rayo entra, cruza la esfera y sale (refracción con un índice por color: dispersión), y lo que se ve a través es el mar alrededor (la superficie luminosa invertida abajo). Brillos nítidos, borde fino de luz y el iris y la pupila pintados dentro.
 - Se descartó `transmission` de Three.js: solo refracta objetos opacos y casi todo el mar es transparente, así que se veía lechoso.
 
+## Tercera pregunta del asistente y mirada propia del ojo
+- Nueva pregunta preparada de la app en el chat: la proporción de recursos ante el Tribunal que se estiman según el acto recurrido (1.104 resoluciones), con una tarta animada (bloque `tarta`) y el texto legal de la respuesta de la app. «Otros actos» suma Otros, Admisión y Anuncio (54 resoluciones, 8 estimadas).
+- La pregunta de tipos de objeto (CPV) necesitaba la tabla `cpv` (D-035), pero el portal rechazó la descarga automática («Request Rejected»); no se forzó y se borró de la caché la respuesta vacía.
+- El ojo ya no sigue el ratón (en la presentación nadie lo mueve): mira al centro y echa vistazos a los lados cada pocos segundos.
+
 ## Pendiente
 - Guion definitivo (lo da Lucas) para ordenar las escenas.
 - Capturas o vídeos de la web en la escena 9.

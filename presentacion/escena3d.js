@@ -383,6 +383,25 @@ function bloque(b) {
       .map(([nombre, activa, txt]) => `<div class="senal ${activa ? "activa" : ""}"><i></i><div><b>${nombre}</b>${txt ? `<span>${txt}</span>` : ""}</div></div>`)
       .join("");
   if (b.filas) return b.filas.map(([a, c]) => `<div class="fila"><span>${a}</span><b>${c}</b></div>`).join("");
+  if (b.tarta) {
+    // anillo: cada sector se dibuja creciendo, con su leyenda al lado
+    const total = b.tarta.filas.reduce((s, f) => s + f[1], 0);
+    const C = 2 * Math.PI * 40;
+    let inicio = 0;
+    const sectores = b.tarta.filas.map(([, v, , color], j) => {
+      const largo = (v / total) * C;
+      const s = `<circle class="seg" cx="50" cy="50" r="40" stroke="${color}" style="--l:${Math.max(largo - 1.2, 0.5)};--c:${C};--j:${j};stroke-dashoffset:${-inicio}"/>`;
+      inicio += largo;
+      return s;
+    });
+    const leyenda = b.tarta.filas
+      .map(([nombre, , txt, color], j) => `<div class="ley" style="--j:${j}"><i style="background:${color}"></i><b>${nombre}</b><span>${txt}</span></div>`)
+      .join("");
+    const centro = b.tarta.centro || [];
+    return `<div class="sub">${b.tarta.titulo || ""}</div><div class="tarta"><div class="anillo"><svg viewBox="0 0 100 100">` +
+      `<circle cx="50" cy="50" r="40" class="pista"/>${sectores.join("")}</svg>` +
+      `<div class="centro"><b>${centro[0] || ""}</b><span>${centro[1] || ""}</span></div></div><div class="leyenda">${leyenda}</div></div>`;
+  }
   if (b.chips) return `<div class="chips">${b.chips.map((c) => `<span>${c}</span>`).join("")}</div>`;
   if (b.texto) return `<p>${b.texto}</p>`;
   return "";
@@ -560,13 +579,9 @@ window.addEventListener("touchend", (ev) => {
   toqueX = null;
 });
 
-// raton: el ojo mira al cursor un rato
-const raton = new THREE.Vector2();
-let ultimoRaton = -1e9;
+// raton: solo para ocultar el cursor cuando no se mueve (el ojo ya no lo sigue)
 let temporizador;
-window.addEventListener("mousemove", (ev) => {
-  raton.set((ev.clientX / window.innerWidth) * 2 - 1, -(ev.clientY / window.innerHeight) * 2 + 1);
-  ultimoRaton = performance.now();
+window.addEventListener("mousemove", () => {
   document.body.classList.remove("quieto");
   clearTimeout(temporizador);
   temporizador = setTimeout(() => document.body.classList.add("quieto"), 2500);
@@ -609,6 +624,9 @@ let velX = 0;
 let velY = 0;
 let velZ = 0;
 const ojoPant = { x: null, y: null };
+const vistazo = new THREE.Vector2(); // desvio de la mirada, en pixeles del escenario
+const vistazoObj = new THREE.Vector2();
+let proximoVistazo = 3;
 let ojoEscala = 1;
 const mirada = new THREE.Vector3();
 const proyeccion = new THREE.Vector3();
@@ -742,12 +760,16 @@ function cuadro() {
     camZ - dist,
   );
   ojo.grupo.scale.setScalar(ojoEscala);
-  if (performance.now() - ultimoRaton < 2800) {
-    mirada.set(raton.x, raton.y, 0.5).unproject(camara).sub(camara.position).normalize();
-    mirada.multiplyScalar((dist * 0.6) / -mirada.z).add(camara.position);
-  } else {
-    mirada.set(camX + (o.mira.x - 960) * u * 2, camY - (o.mira.y - 540) * u * 2, camZ - dist * 0.2).lerp(camara.position, 0.35);
+  if (t > proximoVistazo) {
+    // la mitad de las veces vuelve al centro; si no, echa un vistazo a un lado
+    if (Math.random() < 0.5) vistazoObj.set(0, 0);
+    else vistazoObj.set((Math.random() < 0.5 ? -1 : 1) * (260 + Math.random() * 420), (Math.random() - 0.5) * 420);
+    proximoVistazo = t + 2.2 + Math.random() * 3.2;
   }
+  vistazo.lerp(vistazoObj, suave(dt, 2.6));
+  mirada
+    .set(camX + (o.mira.x + vistazo.x - 960) * u * 2, camY - (o.mira.y + vistazo.y - 540) * u * 2, camZ - dist * 0.2)
+    .lerp(camara.position, 0.35);
   ojo.dilatar(niebla > 0.5 ? 1.35 : tieneLuz && tieneLuz.objetivo ? 0.75 : 1);
   ojo.actualizar(dt, mirada);
 

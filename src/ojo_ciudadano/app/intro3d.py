@@ -216,7 +216,7 @@ async function arrancar(data, capa, empezar) {
     compositor.setPixelRatio(Math.min(devicePixelRatio, 1.5));
     compositor.setSize(ancho, alto);
     compositor.addPass(new RenderPass(escena, camara));
-    const brillo = new UnrealBloomPass(new THREE.Vector2(ancho, alto), 0.55, 0.7, 0.82);
+    const brillo = new UnrealBloomPass(new THREE.Vector2(ancho, alto), 0.45, 0.7, 0.82);
     // El desenfoque del brillo escribe opacidad 1 en todo el lienzo y taparía la página: que
     // la opacidad sea la de la propia luz, así el brillo solo cubre donde hay luz.
     for (const m of brillo.separableBlurMaterials) {
@@ -267,9 +267,9 @@ async function arrancar(data, capa, empezar) {
     luz.position.copy(ojo.grupo.position);
     luz.position.z -= 0.05;  // un poco detrás: el cristal tapa la raíz y parece salir del ojo
     cono.cono.scale.set(0.15 + 1.25 * abre, 0.35 + 0.65 * enciende, 0.15 + 1.25 * abre);
-    cono.uniforms.uI.value = 1.1 * enciende * (1 - apaga);
+    cono.uniforms.uI.value = 0.5 * enciende * (1 - apaga);  // suave: se funde con la página
     cono.uniforms.uT.value = t;
-    haces.uniforms.uI.value = 0.55 * enciende * (1 - apaga);
+    haces.uniforms.uI.value = 0.26 * enciende * (1 - apaga);
     haces.uniforms.uT.value = t * 2;
     for (const h of haces.haces) {
       const { angulo, ancho, largo } = h.userData;

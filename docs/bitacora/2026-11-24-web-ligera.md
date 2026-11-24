@@ -116,6 +116,11 @@ Pedido: los rayos se veían pixelados. Tenían que ser exactamente los de la pre
   - no se ven píxeles;
   - al final no queda lienzo y la capa está oculta.
 
+## Séptima ronda: luz más suave y la página se desvela de abajo arriba
+- **Luz:** cono de 1,1 a 0,5, haces de 0,55 a 0,26 y brillo de 0,55 a 0,45. Los rayos se funden con la página en vez de taparla.
+- **Mar oscuro:** antes se desvanecía entero. Ahora es una cortina de 2,2 veces la altura de la pantalla, oscura arriba, con un borde difuminado largo y transparente abajo, que sube (`translateY` hasta -64 %) de 1,26 a 3 s. La página aparece de abajo arriba: primero las señales, después las tarjetas y al final el título y la barra. Solo usa `transform`.
+- **Comprobado en el navegador** con capturas seguidas.
+
 ## Siguiente paso
 - Que el equipo compare con `feat/mapa-billetes`: https://github.com/iisma-ai/Ojo-Ciudadano/compare/main...feat/web-ligera
 - Pasar `revisor-legal` por el aviso en el pie, que antes estaba siempre a la vista.

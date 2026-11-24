@@ -204,11 +204,26 @@ SENAL_FRASE = {
     "R-04": "Una sola empresa recibe más de la mitad del importe que el organismo adjudica en "
     "este tipo de contrato (en la Plataforma de Contratación, para el mismo tipo de objeto). "
     "Puede deberse a un proveedor único o a un mercado pequeño.",
-    "R-05": "Después de adjudicarlo, se añadieron modificaciones por más del 20 % del importe "
-    "(sin contar prórrogas). La ley permite modificaciones justificadas.",
-    "R-06": "La empresa ganó rebajando casi nada el precio de salida (0,5 % o menos, o incluso "
-    "por encima), o rebajándolo a la mitad o más. Las dos cosas son poco habituales con varias "
-    "ofertas.",
+    "R-05": "Una vez adjudicado, al contrato se le sumó dinero con «modificaciones» (por ejemplo, "
+    "más obra o más servicio del previsto): más del 20 % de su precio, sin contar prórrogas. La "
+    "ley fija ese 20 % como máximo para las modificaciones previstas en el pliego; otras pueden "
+    "estar justificadas.",
+    "R-06": "En un concurso, el organismo fija un precio máximo (precio de salida) y las "
+    "empresas ofrecen hacerlo por menos; el contrato se adjudica a una de ellas. La rebaja es "
+    "cuánto bajó el precio adjudicado respecto al de salida. Con dos o más ofertas, una rebaja "
+    "casi nula (0,5 % o menos, o por encima del precio de salida) o muy alta (la mitad o más) "
+    "es poco habitual. Puede tener explicación: el precio no es el único criterio.",
+}
+
+# Qué tienen los contratos de la cifra «X de cada 100 contratos …» de la portada (D-039). El
+# «de cada 100» se cuenta sobre los contratos en los que se pudo comprobar la señal.
+SENAL_DE_100 = {
+    "R-01": "tienen una sola oferta",
+    "R-02": "se adjudicaron sin anuncio público",
+    "R-03": "son menores a la misma empresa que, juntos, pasan del máximo de un contrato menor",
+    "R-04": "son de una empresa que concentra el gasto del organismo",
+    "R-05": "tienen modificaciones de más del 20 %",
+    "R-06": "tienen una rebaja nula o muy alta",
 }
 
 ICONO_SENAL = {
@@ -315,8 +330,8 @@ ORDEN_ATIPICOS = {
     "importe_asc": "Menor importe primero",
 }
 ORDEN_ALERTAS = {
-    "puntuacion": "Mayor puntuación primero",
     "senales": "Más señales primero",
+    "puntuacion": "Mayor puntuación primero",
     "importe_desc": "Mayor importe primero",
     "importe_asc": "Menor importe primero",
     "reciente": "Más recientes primero",
@@ -388,3 +403,37 @@ AVISO_RECURSOS = (
     "dio la razón al recurrente sobre ese acto; no es una señal sobre la empresa adjudicataria "
     "ni sobre el organismo."
 )
+
+
+# --- Títulos de contrato legibles (D-042) ---
+
+# Fórmulas administrativas con las que empiezan muchos títulos y que no dicen nada del objeto.
+_ENTRADAS_TITULO = (
+    "el presente contrato tiene por objeto",
+    "el presente contrato tiene por finalidad",
+    "este contrato tiene por objeto",
+    "el contrato tiene por objeto",
+    "el objeto del contrato es",
+    "procedimiento de adjudicación de",
+    "procedimiento para la adjudicación de",
+)
+
+
+def titulo_limpio(titulo: str | None) -> str:
+    """Título sin las fórmulas administrativas del principio ni comillas sueltas: «Este contrato
+    tiene por objeto “La adquisición de vacunas…”» → «La adquisición de vacunas…». Si viene
+    todo en mayúsculas, se pasa a frase normal."""
+    texto = " ".join((titulo or "").split())
+    cambiado = True
+    while cambiado:
+        cambiado = False
+        texto = texto.strip(" :.,-\"'“”«»")
+        for entrada in _ENTRADAS_TITULO:
+            if texto.lower().startswith(entrada):
+                texto = texto[len(entrada) :]
+                cambiado = True
+    if not texto:
+        return (titulo or "").strip() or "Contrato sin título"
+    if texto.isupper():  # todo en mayúsculas: a frase normal, que se lee mejor
+        texto = texto.lower()
+    return texto[0].upper() + texto[1:]

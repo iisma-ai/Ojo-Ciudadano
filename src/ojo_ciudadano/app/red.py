@@ -40,6 +40,8 @@ class NodoRed:
     x: float | None = None  # posición inicial (diseño radial); None = que la decida la física
     y: float | None = None
     color: str | None = None  # fuerza un color (p. ej. el nodo central)
+    imagen: str | None = None  # imagen propia (data URI), p. ej. un frasco de billetes (D-038)
+    tamano: float | None = None  # radio fijo; None = según el importe
     extra: dict = field(default_factory=dict)
 
 
@@ -197,7 +199,10 @@ def mapa(
     for n in nodos:
         minimo_r, maximo_r = ESCALAS.get(n.grupo, ESCALAS["ent"])
         maximo, minimo = escalas[n.grupo]
-        if n.centro:
+        if n.tamano is not None:
+            radio = n.tamano
+            color = n.color or _mezcla(1.0)
+        elif n.centro:
             radio = RADIO_MAX + 6
             color = n.color or _mezcla(1.0)
         else:
@@ -214,7 +219,7 @@ def mapa(
                 label=n.etiqueta,
                 title=_titulo(n),
                 shape="image",
-                image=svg_nodo(color, n.llenado, n.centro),
+                image=n.imagen or svg_nodo(color, n.llenado, n.centro),
                 size=radio,
                 mass=6 if n.centro else 1,
                 font={

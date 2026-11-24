@@ -6,13 +6,13 @@ tests puedan usar una base sintética en memoria. Las personas físicas no tiene
 
 import duckdb
 
+from ojo_ciudadano.app import cache
 from ojo_ciudadano.normalizacion.nif import PATRON_EMPRESA
 
 
 def _filas(con: duckdb.DuckDBPyConnection, sql: str, parametros: list | None = None) -> list[dict]:
-    cursor = con.execute(sql, parametros or [])
-    columnas = [d[0] for d in cursor.description]
-    return [dict(zip(columnas, fila, strict=True)) for fila in cursor.fetchall()]
+    """Filas como diccionarios; en la web salen de la caché (app/cache.py)."""
+    return cache.filas(con, sql, parametros)
 
 
 # NIF con forma de DNI o NIE, también con erratas (sin el cero inicial, una cifra de más).
@@ -285,7 +285,14 @@ def alertas(
         f"""
         SELECT p.contrato_id, c.titulo, c.tipo_contrato, c.procedimiento, o.nombre AS organo,
                p.anio, p.importe, c.fuente, p.puntuacion, p.n_aplicables, p.n_activados,
-               p.indicadores_activados, c.url_origen
+               p.indicadores_activados, c.url_origen,
+               -- quién lo recibe, con las personas físicas agregadas (D-007)
+               (SELECT array_to_string(list_sort(list_distinct(list(
+                           CASE WHEN {_beneficiario_visible("d")} THEN d.nombre
+                                ELSE '{AGREGADO_PERSONAS}' END))), ' ; ')
+                FROM adjudicacion AS ad2
+                JOIN adjudicatario AS d ON d.adjudicatario_id = ad2.adjudicatario_id
+                WHERE ad2.contrato_id = p.contrato_id) AS adjudicatarios
         FROM puntuacion_contrato AS p
         JOIN contrato_unico AS c USING (contrato_id)
         JOIN organo AS o ON o.organo_id = p.organo_id
@@ -903,12 +910,12 @@ def detalle_r01(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | None
 
 def detalle_r02(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | None:
     """E-02: qué parte del importe del organismo (en contratos comprobados por R-02, misma
-    fuente) se adjudicó sin anuncio público."""
+    fuente, de cualquier tipo) se adjudicó sin anuncio público, y el procedimiento de este."""
     filas = _filas(
         con,
         """
         WITH base AS (
-            SELECT c.contrato_id, c.organo_id, c.fuente, r.activado,
+            SELECT c.contrato_id, c.organo_id, c.fuente, c.procedimiento, r.activado,
                    coalesce(sum(coalesce(a.importe_sin_iva, a.importe_con_iva)), 0) AS importe
             FROM indicador_resultado AS r
             JOIN contrato_unico AS c USING (contrato_id)
@@ -921,7 +928,7 @@ def detalle_r02(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | None
                coalesce(sum(b.importe) FILTER (WHERE b.activado), 0) AS sin_anuncio,
                coalesce(sum(b.importe) FILTER (WHERE NOT b.activado), 0) AS con_anuncio,
                count_if(b.activado) AS n_sin_anuncio, count(*) AS n_contratos,
-               any_value(e.importe) AS importe_este
+               any_value(e.importe) AS importe_este, any_value(e.procedimiento) AS procedimiento
         FROM base AS b
         JOIN este AS e ON b.organo_id = e.organo_id AND b.fuente = e.fuente
         JOIN organo AS o ON o.organo_id = b.organo_id
@@ -1068,7 +1075,8 @@ def detalle_importes(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict |
                sum(CASE WHEN c.fuente = 'placsp' THEN a.importe_sin_iva
                         ELSE a.importe_con_iva END) AS adjudicado,
                sum(a.importe_modificaciones_con_iva) AS modificaciones,
-               sum(a.importe_prorrogas_con_iva) AS prorrogas
+               sum(a.importe_prorrogas_con_iva) AS prorrogas,
+               min(a.n_ofertas) AS n_ofertas, any_value(c.tipo_contrato) AS tipo_contrato
         FROM contrato_unico AS c JOIN adjudicacion AS a USING (contrato_id)
         WHERE c.contrato_id = ?
         GROUP BY c.fuente
@@ -1076,6 +1084,24 @@ def detalle_importes(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict |
         [contrato_id],
     )
     return filas[0] if filas else None
+
+
+def baja_habitual(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | None:
+    """E-06 (D-042): rebaja mediana de los contratos parecidos a este en los que se comprueba
+    R-06 (misma fuente y tipo de contrato, con dos o más ofertas). `mediana` es 0–1."""
+    filas = _filas(
+        con,
+        """
+        SELECT median(r.valor) AS mediana, count(*) AS n
+        FROM indicador_resultado AS r
+        JOIN contrato_unico AS c USING (contrato_id)
+        JOIN contrato_unico AS e ON e.contrato_id = ?
+        WHERE r.indicador = 'R-06' AND r.valor IS NOT NULL
+          AND c.fuente = e.fuente AND c.tipo_contrato IS NOT DISTINCT FROM e.tipo_contrato
+        """,
+        [contrato_id],
+    )
+    return filas[0] if filas and filas[0]["n"] else None
 
 
 def reparto_empresa(con: duckdb.DuckDBPyConnection, adjudicatario_id: str) -> list[dict]:

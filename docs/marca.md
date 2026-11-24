@@ -26,7 +26,8 @@ No se deforma, no se rota y no se cambian sus colores fuera de esta paleta.
 | Texto secundario | `#93A1B8` | Notas, fuentes, fechas |
 | Azul (acento) | `#3D8BFD` | Color principal: botones, selección, pupila del logo |
 | Azul claro | `#7DB3FF` | Enlaces |
-| Ámbar (contraste) | `#F2B544` | Solo para destacar señales; nunca rojo «de peligro» (lenguaje no acusatorio, D-002) |
+| Azul de señal | `#7DB3FF` (etiquetas: cristal `rgba(125,179,255,.13)` con borde `rgba(125,179,255,.35)`) | Señales en las tarjetas de contrato, sus subcajas y la cuadrícula del Inicio (D-042, sustituye al ámbar); nunca rojo «de peligro» (lenguaje no acusatorio, D-002) |
+| Ámbar | `#F2B544` | Solo líneas de referencia de los gráficos (límites y umbrales) y la animación del asistente |
 
 Para distinguir entidades en un gráfico (p. ej. organismos en el mapa del dinero) se usa la paleta categórica de `app/graficos.py` (`CATEGORICOS`), en orden fijo y validada sobre el fondo oscuro: `#3987E5`, `#D95926`, `#199E70`, `#C98500`, `#D55181`, `#0CA30C`, `#9085E9`; del 8.º en adelante, gris.
 

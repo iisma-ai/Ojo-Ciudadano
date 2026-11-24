@@ -10,8 +10,7 @@ st.caption(
     "Contratos que se alejan de otros similares según un modelo de aprendizaje automático. "
     "Señal experimental, aparte de los indicadores: atípico no significa irregular."
 )
-with st.expander("Cómo se calcula", icon=":material/info:"):
-    st.markdown(textos.AVISO_ATIPICOS)
+# «Cómo se calcula» va en el pie de la página (D-043, main.pie).
 
 con = conexion()
 if not datos.hay_anomalias(con):

@@ -1,0 +1,221 @@
+# 2026-11-24 · Web ligera, versión alternativa (D-043)
+
+**Quién:** El Harrak, con Claude (agente). **Rama:** `feat/web-ligera`. Sale de `origin/feat/mapa-billetes` (la rama que se estaba tocando entonces, de Ignacio, con D-038 a D-042) e incluye `origin/main`.
+
+## Qué se pidió
+Una web más fácil y agradable:
+- **Inicio** solo con el logo, y la mascota con billetes en «A dónde va el dinero»;
+- **desplegables** con un fondo que tape lo de detrás;
+- **sin el menú lateral**, con botones a las partes y uno para abrir el menú entero;
+- **avisos legales y datos** abajo del todo;
+- **entrada animada de 1,5 s**, con el ojo en un mar muy oscuro que se aclara, inspirada en la presentación;
+- todo **fluido** y en una rama alternativa.
+
+## Qué se hizo
+- **`main.py`:**
+  - navegación oculta;
+  - `barra_superior()`, con el logo, Inicio, A dónde va el dinero, Contratos a revisar, Asistente y «Menú», que abre todas las pantallas por secciones;
+  - `pie()` con el aviso, la metodología, las fuentes y las fechas. Se dibuja antes que la pantalla y el CSS (`order`) lo manda al final, porque varias pantallas se paran con `st.stop()` esperando una elección.
+  - `intro()` solo la primera vez en la sesión.
+- **`static/intro.html`:** la entrada, primero de 1,5 s (ver la segunda ronda).
+  - mar oscuro, nieve marina y el ojo de cristal, al que se le enciende la pupila;
+  - después, la luz que se abre y la capa que se desvanece;
+  - solo `opacity` y `transform`, sin bloquear clics y sin salir con «reducir movimiento».
+  - **Primer intento:** animar también la página hacía que la capa fija dejara de cubrir la pantalla, porque un `transform` en el contenedor cambia la referencia de `position: fixed`. Se quitó.
+- **`estilo.css`:**
+  - fuera la barra lateral y la cabecera;
+  - barra de arriba fija y opaca. El `sticky` va en la envoltura del contenedor, porque en el contenedor no tenía recorrido;
+  - pie sin recuadro;
+  - desplegables, ventanas emergentes, listas y ayudas con fondo opaco.
+- **Pantallas:**
+  - **Inicio:** solo el logo y sin el botón «Fuentes».
+  - **Mapa del dinero:** las fuentes van al desplegable final.
+  - **Atípicos:** «Cómo se calcula» va al pie.
+  - **Asistente:** sin las fuentes repetidas al final.
+- **Docs:** D-043, plan y esta bitácora.
+
+## Comprobaciones
+- **Las nueve pantallas** (AppTest con la navegación): sin errores y todas con pie. Volver a cargar cada una tarda de 0,02 a 0,9 s.
+- **Navegador:**
+  - la entrada se ve: mar oscuro, el ojo, el nombre y la luz que desvela la página;
+  - el menú y «Más filtros» se leen sobre fondo opaco;
+  - la barra se queda fija al bajar;
+  - scroll a 240 fotogramas por segundo, sin tareas largas.
+- **Tests:** 471, todos bien (3 nuevos en `tests/app/test_intro.py`). `ruff` sin avisos.
+
+## Segunda ronda: el ojo de la presentación y 3 s
+El Harrak pidió tres cambios en la entrada:
+- el ojo de la presentación en vez del logo;
+- que ilumine más sin ser agresiva;
+- 3 s en vez de 1,5 s.
+
+Cambios:
+- **`app/ojo_cristal.py`** dibuja el ojo de `presentacion/ojo3d.js` en dos capas SVG.
+  - **Iris:** halo azul, 240 fibras de luz, anillos, escala de lente y pupila oscura. Lleva una semilla fija para que salga siempre igual y gira 50° durante la entrada.
+  - **Cristal:** borde luminoso, brillo arriba a la izquierda, reflejo abajo y destello en la pupila.
+- **Luz:** ahora es un halo alrededor del ojo, más una luz redonda de caída suave en `vmax`. La primera versión dejaba un óvalo con el borde marcado en pantallas anchas.
+- **Duración:** pasa a 3 s, con los tiempos repartidos.
+- **Comprobado en el navegador:** el ojo aparece, se ilumina y la página se ve a través mientras la capa se desvanece.
+- **Tests:** uno nuevo para el ojo.
+
+## Tercera ronda: «Explorar» y el ojo en 3D
+- **«Menú» pasa a «Explorar»** y solo lleva lo que no está en la barra: Mapa del dinero, Presupuesto y contexto, Ficha de empresa y Ficha de órgano. También Contratos atípicos, que no tiene botón arriba.
+- **El ojo de la entrada es el 3D de la presentación.** `app/intro3d.py` es un componente de Streamlit:
+  - carga Three.js 0.169.0, la misma versión que la presentación;
+  - importa `presentacion/ojo3d.js` tal cual, cambiando solo la importación de `three`;
+  - mueve el ojo en 3 s: aparece hasta 0,9 s, se acerca de 0,9 a 1,5 s y se va a la izquierda y al fondo de 1,5 a 2,7 s, pasando la mirada del espectador a los datos;
+  - al terminar libera WebGL y quita el lienzo.
+- **La capa CSS espera quieta** hasta que el ojo está listo (`en-marcha`). Añade un haz de luz que sale del ojo y se abre sobre los datos.
+- **Reservas:**
+  - si el 3D no llega en 1,2 s, sale el ojo plano con el mismo recorrido (`sin3d`);
+  - si nada arranca, la capa se quita sola a los 2,5 s.
+- **Comprobado en el navegador:**
+  - el ojo 3D aparece, se acerca, se va a la izquierda y la página se ve debajo;
+  - al final no queda lienzo y la capa está oculta;
+  - la reserva plana, simulada, se ve y se oculta;
+  - «Explorar» se abre con las cinco pantallas.
+- **Tests:** dos nuevos.
+
+## Cuarta ronda: el ojo sube y es la fuente de luz
+El Harrak pidió que el ojo subiera en vez de ir a la izquierda, para que también se vea en el móvil y para que la luz venga de arriba, como los rayos. También pidió una luz desde el núcleo al apartarse y un ojo menos oscuro, como en la presentación.
+
+Cambios en `app/intro3d.py`:
+- **Iluminación como en la presentación:**
+  - importa también `presentacion/agua.js` para el entorno de reflejos (`entorno`) y el color del agua cerca de la superficie (`colorProfundidad(0,15)`);
+  - usa `NeutralToneMapping`, cielo `0xa8ecff` y sol `0xe6f9ff`.
+  - Antes el ojo usaba ACES, sin entorno y con agua oscura, y la bola se veía casi negra.
+  - No se usa el `UnrealBloomPass` de la presentación: sobre un lienzo transparente oscurece el fondo. Lo sustituyen tres luces redondas sumadas (núcleo, aura y destello) que van con el ojo.
+- **Recorrido:** se acerca hasta 1,5 s; de 1,5 a 2,7 s sube (y 2,3) y se aleja (z -3,5), con la mirada de la cámara a la página.
+- **Luz:** el núcleo se enciende desde 1,35 s. El haz de CSS baja ahora desde arriba (50 % 12 %) y el ojo plano de reserva también sube.
+- **Primera prueba en el navegador:** el destello deslumbraba. Se bajó a 0,42 de opacidad y 8 veces su tamaño.
+- **Comprobado en el navegador:** el ojo se ve claro, sube, y su luz baja sobre la página mientras se desvela.
+
+## Quinta ronda: el ojo sale por arriba y despliega rayos
+El Harrak pidió que el ojo subiera mucho más, hasta salir de la página, y que desplegara más luz, con rayos que aclaren la página poco a poco.
+- **Recorrido:** sube de 1,4 a 3,0 s, acelerando (curva cuadrática), hasta y 3,9 y z -2. Sale por arriba hacia 2,85 s.
+- **Sin desvanecerse:** el lienzo ya no baja la opacidad y la capa tampoco se desvanece entera; solo el mar se aclara, desde el 45 %.
+- **Rayos:** una textura de 46 cuñas de luz con caída radial, en dos coronas detrás del cristal que giran en sentidos contrarios. Crecen hasta 22 veces el ojo con el encendido (1,3-2,3 s) y se apagan del todo de 2,55 a 3,0 s, para que no se corten de golpe al quitar el lienzo.
+- El haz de CSS sale ahora del borde de arriba. El ojo plano de reserva sube un 70 % de la altura de la pantalla.
+- **Comprobado en el navegador:** los rayos salen del ojo y aclaran la página mientras sube; el ojo sale por arriba de la barra.
+
+## Sexta ronda: la luz de la presentación, sin píxeles y solo hacia abajo
+Pedido: los rayos se veían pixelados. Tenían que ser exactamente los de la presentación, empezar abajo y abrirse poco a poco a los lados, sin apuntar nunca hacia arriba, y había que seguir hasta que el resultado fuera agradable.
+- **Causa de los píxeles:** los rayos (y el núcleo) eran texturas de 256 a 512 px dibujadas en un lienzo y estiradas hasta 22 veces.
+- **Ahora toda la luz se calcula en sombreadores**, sin texturas:
+  - el **cono de luz del ojo** de la presentación (`crearLuz` de `escena3d.js`, mismo sombreador), con el vértice en el ojo y apuntando abajo; se ensancha de 0,15 a 1,4 veces;
+  - los **haces de los rayos de sol** (`crearRayos` de `agua.js`, mismo sombreador): 11, con la raíz en el ojo. Se abren de recto hacia abajo hasta ±66° (`abre`, de 1,45 a 2,75 s);
+  - el núcleo, el aura y el destello del ojo, como brillos redondos calculados.
+- **El ojo salía más oscuro que en la presentación** porque faltaba su posproceso. Se añade el mismo: `EffectComposer`, `RenderPass`, `UnrealBloomPass` (0,55 / 0,7 / 0,82) y `OutputPass`. Se cargan como «+esm» de jsDelivr para que usen la misma copia de Three.js.
+- **El brillo tapaba la página** con un fondo negro opaco: su desenfoque escribe opacidad 1. Se cambia esa línea del sombreador (`vec4(diffuseSum/weightSum, 1.0)` en Three.js 0.169.0) para que la opacidad sea la de la propia luz.
+- **Primera prueba con el posproceso:** el núcleo salía demasiado blanco y tapaba el iris. Se bajó (0,4-0,7) y también el aura.
+- **Comprobado en el navegador, con capturas seguidas y ampliadas:**
+  - el ojo se ve claro;
+  - el cono y los haces salen hacia abajo y se abren a los lados;
+  - la página se aclara;
+  - el ojo sale por arriba;
+  - no se ven píxeles;
+  - al final no queda lienzo y la capa está oculta.
+
+## Séptima ronda: luz más suave y la página se desvela de abajo arriba
+- **Luz:** cono de 1,1 a 0,5, haces de 0,55 a 0,26 y brillo de 0,55 a 0,45. Los rayos se funden con la página en vez de taparla.
+- **Mar oscuro:** antes se desvanecía entero. Ahora es una cortina de 2,2 veces la altura de la pantalla, oscura arriba, con un borde difuminado largo y transparente abajo, que sube (`translateY` hasta -64 %) de 1,26 a 3 s. La página aparece de abajo arriba: primero las señales, después las tarjetas y al final el título y la barra. Solo usa `transform`.
+- **Comprobado en el navegador** con capturas seguidas.
+
+## Octava ronda: ojo más ligero, nítido y claro
+Pedido: el ojo se veía agresivo, pixelado y oscuro.
+- **Causa del pixelado:** con el posproceso, el suavizado de bordes del lienzo no cuenta y se dibujaba a resolución normal. Ahora se dibuja al doble de resolución (como mucho 2,5) y el destino del posproceso lleva su propio suavizado (`samples: 4`, `HalfFloatType`).
+- **Más claro:** agua de la superficie (`colorProfundidad(0)`) ×1,35 y exposición de 1,15 a 1,3.
+- **Más ligero:**
+  - escala de 0,55 a 0,47;
+  - aura de 0,15-0,3 a 0,07-0,15;
+  - brillo de 0,45 a 0,35;
+  - halo de CSS alrededor del ojo, más o menos a la mitad.
+- **Comprobado en el navegador:**
+  - en la ampliación, las fibras del iris y el borde salen finos y sin dientes;
+  - la animación va a 240 fotogramas por segundo de media y el más lento tarda 37 ms, uno solo.
+
+## Novena ronda: un fondo que parezca el mar
+Pedido: el fondo no daba la impresión de estar bajo el mar. Tenía que verse de principio a fin de la entrada, con burbujas que se reconozcan como burbujas y un fondo que se vea mejor al aclararse.
+
+- **Entrada (`intro3d.py`):** añade de `agua.js` la superficie vista desde abajo (y 8,5), los rayos de sol y las burbujas que suben.
+  - Su intensidad va de 0,2 (oscuro) a 1 mientras la página se desvela, y se funde de 2,6 a 3,0 s con el fondo de la web.
+  - La nieve marina CSS dura ahora toda la entrada.
+- **Cuadrados blancos o amarillentos:** costó encontrarlos; los fallos, en orden:
+  1. **Nieve 3D.** Usa puntos de WebGL; en este equipo (Windows, ANGLE, con suavizado) salían cuadrados llenos. Ni el tamaño máximo, ni el borde recortado, ni cambiar los `smoothstep` con los extremos al revés lo arreglaron. Se quita: la nieve es la capa CSS.
+  2. **Burbujas.** Apagándolas una a una, y con un color fijo (discos redondos sin cuadrados), se vio que el fallo estaba en su sombreador. Usa `pow()` y producía valores no válidos que el brillo convertía en bloques. Se reescribe sin `pow()` (potencias por multiplicación), con la normal normalizada, todo acotado y el reflejo por debajo del umbral del brillo (0,85).
+- **Fondo de la web (`estilo.css`):** cada burbuja es ahora un cuerpo casi transparente con borde plateado y un reflejo arriba a la izquierda: dos capas con la misma baldosa, una desplazada. Siguen subiendo solo con `transform`.
+- **Comprobado en el navegador:**
+  - no queda ningún cuadrado;
+  - la superficie ondula y las burbujas son anillos plateados;
+  - los rayos de sol y la página se aclaran;
+  - las burbujas de la web tienen reflejo;
+  - scroll a 240 fotogramas por segundo y el más lento de 4,4 ms.
+
+## Décima ronda: el fondo del mar y un ojo que se desvanece
+Pedido: que no se vea la superficie del mar, porque estamos en el fondo y todo es oscuro, y que el ojo desaparezca de forma progresiva para que se note.
+- **Mar:** fuera la superficie (`crearSuperficie`). Los rayos de sol bajan a 0,02-0,08: del fondo apenas llegan. Las burbujas siguen.
+- **Ojo:**
+  - sube suave (1,4-2,4 s) hasta y 1,75, visible sobre el título, en vez de salirse por el borde;
+  - se desvanece de 1,95 a 3 s.
+- **Ajuste en la primera prueba:** la opacidad iba con una animación CSS que empezaba antes que el bucle 3D, y el ojo se apagaba antes de llegar arriba. Ahora la pone el propio bucle (`lienzo.style.opacity`), con el mismo reloj que el movimiento.
+- **Comprobado en el navegador con capturas seguidas:** el ojo sube con su luz, queda semitransparente arriba con la página ya clara, se vuelve una sombra y desaparece.
+
+## Undécima ronda: sin luz interior
+Pedido: el ojo se veía raro por la luz de dentro. Debe dar luz, pero no tener tanta por dentro.
+- **Fuera el núcleo y el destello:** eran brillos pintados delante del iris.
+- **El halo** pasa detrás del cristal (z -1,2, con prueba de profundidad): el propio cristal lo tapa y solo se ve alrededor.
+- La luz que sale (cono y haces) no cambia.
+- **Comprobado en el navegador:** el iris azul, la pupila oscura y los brillos del cristal se ven como en la presentación, con la luz saliendo hacia abajo.
+
+## Duodécima ronda: el halo se enciende poco a poco
+Pedido: el círculo de luz alrededor del ojo aparecía de golpe y muy intenso. Tenía que iluminarse al ritmo de la página.
+- **Halo CSS (`oc-intro-luz`):** antes llegaba a 1 a los 1,35 s y se apagaba a los 1,9 s. Ahora va de 0 (hasta el 10 %) a 0,3 (42 %, cuando empieza a desvelarse la página) y a 0,75 (80 %), y se apaga al final.
+- **Halo 3D:** `0,24 · tramo(0,3 s, 2,4 s)`, sin escalón inicial.
+- **Comprobado en el navegador con capturas seguidas:** el ojo aparece sin halo, el brillo se forma suave y crece con la página.
+
+## Decimotercera ronda: sin tarjeta gráfica (D-044)
+- **Problema:** en Edge la web iba lenta. La causa más probable es que dibuje sin tarjeta gráfica (aceleración desactivada). Entonces la entrada 3D y el fondo animado van con el procesador. La reserva de la entrada solo saltaba si el 3D no cargaba.
+- **`app/rendimiento.py`:** prueba al abrir la página, con WebGL y `failIfMajorPerformanceCaveat` más el nombre del dibujador; el resultado se guarda en `sessionStorage` (`oc-gpu`). La entrada hace la misma prueba antes de cargar Three.js.
+- **Sin tarjeta gráfica:**
+  - la clase `oc-sin-gpu` deja quietos los rayos y las burbujas del fondo (`estilo.css`);
+  - la entrada usa el ojo plano.
+- **Comprobado en el navegador:**
+  - con tarjeta gráfica, `oc-gpu = si`, entrada 3D y fondo en movimiento;
+  - con `oc-gpu = no` (simulado), clase `oc-sin-gpu`, ojo plano, sin Three.js y el fondo quieto.
+- **Tests:** 3 nuevos (`tests/app/test_rendimiento.py`).
+
+## Decimocuarta ronda: diseño expandido y cabecera moderna (D-045)
+Pedido: usar toda la pantalla dejando borde, con espacio para el texto, los botones y el logo, y una cabecera moderna con el logo a la izquierda y los botones a la derecha. Antes, buscar ejemplos.
+- **Referencias (búsqueda web):**
+  - logo a la izquierda y navegación a la derecha en una línea, que es el patrón más común;
+  - contenido de 1.280 a 1.440 px con márgenes que crecen;
+  - escala de 8 px.
+- **Contenido:** hasta 1.680 px (en 1.920 px de pantalla, un 87 %) con márgenes `clamp(1,25rem, 4vw, 4rem)`; 24 px entre bloques; texto de 16,5 px.
+- **Cabecera fija de 72 px:**
+  - fondo y línea de abajo de borde a borde (sombra de 100vmax recortada con `clip-path` y un `::after` para la línea);
+  - logo a la izquierda (`margin-right: auto`), enlaces sin cápsula a la derecha y la sección abierta marcada.
+- **Fallos que se corrigieron al probar:**
+  - la franja oscura sobresalía por debajo de la cabecera (el recorte dejaba 40 px);
+  - había un hueco de 48 px encima de la cabecera: los dos elementos invisibles de antes (estilos y entrada) sumaban la separación entre bloques. Se anula con margen negativo; no se pueden ocultar porque la entrada vive dentro;
+  - en móvil «Explorar» se salía: queda como icono.
+- **Inicio:** título y logo con `clamp`, columnas con `gap="medium"`, más relleno en las tarjetas.
+- **Comprobado en el navegador** a 1.920, 1.280, 1.000 (solo iconos) y 390 px (marcos de ese ancho, porque la ventana estaba maximizada).
+
+## Decimoquinta ronda: cabecera sin banda
+Pedido: la banda azul más oscura de arriba no gusta. Todo un único fondo, pero con los botones destacados.
+- **Cabecera:**
+  - sin fondo, sin línea y sin el cristal de los contenedores (se fuerza con `!important`, porque la regla general de cristal pesa más);
+  - se desplaza con la página.
+- **Botones:** juntos en un contenedor propio (`key="nav"`, `width="content"`), con forma de cápsula de cristal sutil (fondo blanco al 5 %, borde fino y sombra suave).
+- **Sección abierta:** relleno azul. Streamlit no pone `aria-current` en `st.page_link`: el activo solo se distingue por una clase interna. Por eso lo marca `main.marcar_seccion` con un estilo `nth-child`, colocado antes de la cabecera para no contar como un botón. En las pantallas de «Explorar», se resalta «Explorar».
+- **Comprobado en el navegador:**
+  - Inicio, Contratos a revisar y Mapa del dinero (con «Explorar» resaltado);
+  - a 1.000 px, solo iconos;
+  - a 390 px, todo cabe.
+
+## Siguiente paso
+- Que el equipo compare con `feat/mapa-billetes`: https://github.com/iisma-ai/Ojo-Ciudadano/compare/main...feat/web-ligera
+- Pasar `revisor-legal` por el aviso en el pie, que antes estaba siempre a la vista.
+- La entrada 3D necesita internet la primera vez (Three.js de jsDelivr). Sin red, o sin tarjeta gráfica (D-044), sale el ojo plano.
+- Si Edge sigue lento con tarjeta gráfica, mirar «Mejorar la seguridad en la web» (desactiva el optimizador de JavaScript) y poner una excepción para el sitio.
+- El desplegable del buscador de empresas va dentro de su propio marco, así que el CSS de la web no le llega.

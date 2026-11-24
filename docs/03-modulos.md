@@ -10,13 +10,49 @@ Cinco módulos; los cinco entran en la demo, dos de ellos en versión simplifica
 | **Panel de alertas** | Contratos ordenados por puntuación de riesgo, con el motivo de cada alerta | ¿Qué contratos merece la pena revisar primero? | Sí, simplificado |
 | **Asistente de investigación** | Preguntas en lenguaje natural sobre todo lo anterior, con respuestas citadas; las frecuentes, con respuesta preparada y SQL verificado, y las demás con el modelo (D-037) | Cualquier pregunta ad hoc | Sí, con 43 respuestas preparadas |
 
-## Mapa general (D-026, D-033)
+## Inicio (portada; D-023, D-039)
 
-Pantalla principal. De un vistazo: la Comunidad de Madrid en el centro, sus consejerías y órganos en círculo y, si se quiere, los contratos más grandes de cada una, en un mapa de nodos arrastrable (`app/red.py`, diseño radial calculado para que nada se corte). Tamaño y color = dinero, relleno = parte gastada, gris = sin gastar. Selector de periodo, de vista (presupuesto y gasto, contratos, subvenciones) y de **niveles** (solo consejerías, o consejerías y sus contratos, con 1 a 5 por consejería y menores y subvenciones agrupados opcionales). Al pulsar un círculo, su ficha aparece a la derecha: consejería (disponible, gastado, sin gastar, parte de la Comunidad) o contrato (importe, ofertas, cómo se contrató, adjudicataria, señales, porcentaje del dinero de la consejería y enlace). Dice explícitamente qué datos no tenemos. El «Mapa del dinero» usa el mismo diseño.
+Primera pantalla. En cinco segundos:
+- la mascota (el ojo del logo con manos) y la frase «Mira en qué se gasta tu dinero la Comunidad de Madrid»;
+- un **buscador único** de empresas y organismos que abre directamente su ficha (`buscador.todo`; las fichas aceptan `?empresa=` y `?organo=`);
+- **cuatro puertas** que se pulsan enteras: «¿A dónde va el dinero?», «Contratos a revisar», «Busca una empresa o un organismo» y «Pregúntale al asistente»;
+- las cifras en una línea (contratos, subvenciones, organismos).
+
+Debajo, **«Qué señales buscamos»**:
+- un icono de información junto al título con «Una señal no prueba nada irregular» (el aviso corto de la barra lateral sigue visible);
+- seis tarjetas, cada una con una **cuadrícula de 100 contratos** (en ámbar, los que tienen la señal), la frase «39 de cada 100 contratos tienen una sola oferta» (una por señal, `textos.SENAL_DE_100`; el «de cada 100» se cuenta sobre los contratos en los que se pudo comprobar, como explica «¿Qué significa?») y la explicación en «¿Qué significa?».
+
+El aviso completo, las fuentes y las fechas van en el botón «Fuentes». Ya no se muestra el total de «contratos con alguna señal».
+
+## A dónde va el dinero (mapa general; D-026, D-033, D-038)
+
+Segunda pantalla, después del Inicio, pensada para un ciudadano cualquiera.
+
+- **Año** arriba (el que aún no tiene gasto publicado sale como «previsto») y botón **«Fuentes»**. El botón recoge fuentes, matices y «Qué datos no tenemos», para no llenar la pantalla.
+- **Tarjeta del año:**
+  - la frase «En 2025 la Comunidad de Madrid tuvo X y gastó N de cada 100 €», con una barra;
+  - lo que tocaría a cada habitante al año y al mes (habitantes del INE, F-12), con una figurita por millón de habitantes;
+  - la mascota: el ojo del logo con manos que sujetan billetes.
+- **«¿A dónde van cada 100 €?»:** el mapa de nodos (`app/red.py`) con **frascos de 100 billetes** (`app/billetes.py`).
+  - La Comunidad, en el centro, tiene su frasco lleno; cada consejería lleva un billete por cada euro que recibe de cada 100, y los billetes grises son lo que quedó sin gastar. La etiqueta del frasco dice esos euros («39 €») y debajo va solo el nombre.
+  - El botón **«Opciones»**, junto al título, deja elegir qué dinero ver, si se ven los contratos más grandes de cada consejería y cuántos.
+  - Al pulsar un frasco, su ficha sale a la derecha. Desde la de una consejería se abren sus 15 contratos más grandes, también en frascos, con los menores y las subvenciones resumidos en una línea.
+- **«¿Cuánto ha gastado cada consejería?»:** barra y porcentaje, de mayor a menor.
+- El «Mapa del dinero» sigue usando las burbujas de D-033.
 
 ## Búsqueda y filtros (D-025)
 
-Las búsquedas de empresa y de organismo se autocompletan (primero lo que empieza por lo escrito). «Contratos atípicos» ordena por lejanía o importe, filtra por nivel mínimo y variable, y oculta por defecto los posibles errores de introducción de datos (interruptor para verlos). «Contratos a revisar» permite elegir varias señales (cualquiera o todas), año, tipo, orden, mínimo de señales y organismo o empresa concretos.
+Las búsquedas de empresa y de organismo se autocompletan (primero lo que empieza por lo escrito). «Contratos atípicos» ordena por lejanía o importe, filtra por nivel mínimo y variable, y oculta por defecto los posibles errores de introducción de datos (interruptor para verlos). «Contratos a revisar» (D-042) tiene:
+- un buscador y las seis señales como botones con icono y recuento (se puede elegir más de una);
+- en «Más filtros»: cualquiera o todas las señales, orden («Más señales primero» por defecto), año, tipo, mínimo de señales, contratos menores y organismo o empresa concretos;
+- «Ver más contratos» al final, de 30 en 30 hasta 300.
+
+Cada contrato es una tarjeta (`senales.tarjeta_contrato`, también en las fichas de empresa y de organismo):
+- **cabecera:** el título sin fórmulas administrativas (`textos.titulo_limpio`), el importe en grande, la adjudicataria (personas físicas agregadas), el organismo, el año y las señales en etiquetas ámbar con icono;
+- **dentro:**
+  - el enlace al expediente arriba;
+  - cada señal en su propia subcaja (de dos en dos, misma altura, borde ámbar), con la frase con las cifras del contrato, su gráfico y «¿Qué significa?» abajo;
+  - el atípico, en una frase llana con «Ver el detalle».
 
 ## Presupuesto y contexto (D-024)
 

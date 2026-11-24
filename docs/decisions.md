@@ -560,3 +560,267 @@ Plantilla:
   - **Mantenimiento:** una pregunta preparada nueva necesita su SQL, su texto y sus palabras clave, con test.
   - **Riesgo:** reconocer mal una pregunta da una respuesta correcta a otra pregunta. Por eso se enseña siempre la pregunta reconocida y se puede pedir el modelo.
   - Los textos preparados pasan los mismos filtros de lenguaje que los del modelo (tests).
+
+## D-038 · Mapa general para el ciudadano: frascos de 100 billetes, presupuesto por habitante y entrada por el Inicio
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada por Ignacio en dos rondas. Primero eligió un treemap de billetes y una figura; después lo cambió: «Vuelve al grafo pero cada nodo debe ser un frasco de dinero, cada frasco debe tener un número de billetes proporcional a 100 con lo que recibe»; «Cambia el muñeco por un ojo con manos, replicando nuestra identidad de marca». Está en la rama propia `feat/mapa-billetes` para poder deshacerlo sin tocar el trabajo de nadie; falta que el equipo lo vea antes de fusionarlo.
+- **Autor:** Claude (agente), a petición de Ignacio, dentro del repaso «dashboard a dashboard» pensando en un ciudadano medio
+- **Contexto:** La web se abría con el mapa de nodos de D-033: seis controles, palabras como «crédito» o «gasto reconocido», cifras como «33.296 M€» sin referencia y etiquetas que se pisaban. Era la pantalla más difícil y la primera que se veía.
+- **Decisión:**
+  - **Se entra por el Inicio.** El mapa pasa a llamarse «A dónde va el dinero» y es la segunda página (su dirección sigue siendo `/mapa_general`).
+  - **Tarjeta del año:**
+    - la frase «En 2025 la Comunidad de Madrid tuvo 33.296 M€ y gastó 95 de cada 100 €», con una barra de lo gastado;
+    - lo que tocaría a cada habitante si se repartiera el dinero de todo el año, **al año y al mes** (unos 4.680 € al año y 390 € al mes en 2025), con una figurita por cada millón de habitantes;
+    - la mascota: **el ojo del logo, con su mismo trazo y su pupila azul, con dos manos**. Una levanta un abanico de billetes y la otra saluda; la pupila mira a los lados, y todo se queda quieto con «reducir movimiento».
+  - **Habitantes del INE**, Estadística Continua de Población (serie ECP115490), a 1 de enero: es la fuente F-12, en `ingesta/ine.py`, con caché en `data/raw/ine/`. No entra en la base ni en ningún indicador.
+  - **El mapa de nodos de D-033 se queda, con frascos** (`app/billetes.py`, campos `imagen` y `tamano` opcionales en `red.NodoRed`):
+    - cada nodo es un frasco de cristal en el que **caben 100 billetes**;
+    - el frasco de la Comunidad está lleno, y el de cada consejería lleva **un billete por cada euro que recibe de cada 100**; cada frasco lleva una etiqueta de papel con esos euros («39 €»; «<1 €» si no llega a uno) y debajo solo el nombre;
+    - lo que no llega a un billete es un trozo de billete y **los billetes grises son lo que quedó sin gastar**;
+    - todos los frascos de consejería tienen el mismo tamaño, para que se compare lo llenos que están;
+    - en el nivel con contratos, el frasco de un contrato lleva los euros que recibió de cada 100 que su consejería adjudicó en la misma fuente (Plataforma sin IVA o portal con IVA, sin mezclarlas);
+    - por defecto se ven solo las consejerías.
+  - **Opciones junto al mapa** (botón «Opciones»): qué dinero ver, si se muestran los contratos y cuántos por consejería. Se quitan los menores y las subvenciones como nodos; al abrir una consejería se resumen en una línea.
+  - **Fuentes en un botón de información** («Fuentes», arriba a la derecha): presupuesto, habitantes, contratos, el aviso de que no se cruzan partida a partida y «Qué datos no tenemos». Desaparecen esas notas de la pantalla y de las fichas.
+  - **«¿Cuánto ha gastado cada consejería?»:** barra y porcentaje, de mayor a menor porcentaje, sin más texto.
+  - **Sin la tabla de datos:** repetía lo que ya está en la pantalla.
+  - Las fichas de consejería y de contrato pasan sus cifras a líneas de texto, porque en la columna estrecha se cortaban.
+- **Alternativas:**
+  - treemap de billetes: se probó y se descartó porque no era lo bastante explicativo;
+  - waffle de 100 cuadraditos: no permite entrar en cada consejería;
+  - frascos de tamaño proporcional al dinero: doble codificación, y los frascos pequeños no dejaban ver los billetes.
+- **Consecuencias:**
+  - nueva fuente F-12 (INE): cada instalación la baja sola la primera vez que se abre el mapa, o con `uv run python -m ojo_ciudadano.ingesta.ine`; si no hay red ni caché, la cifra por habitante no se muestra y el resto funciona;
+  - el «Mapa del dinero» no cambia;
+  - docs: 02, 03 y 08.
+
+## D-039 · Inicio para el ciudadano: buscador único, cuatro puertas y señales «de cada 100»
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada por Ignacio («si» a quitar la cifra de contratos con señal, a la cuadrícula de 100, al buscador y a las cuatro puertas). Está en la rama `feat/mapa-billetes`, junto con D-038, para poder deshacer el rediseño de una vez; falta que el equipo lo vea antes de fusionarlo.
+- **Autor:** Claude (agente), a petición de Ignacio, en el repaso «dashboard a dashboard»
+- **Contexto:** La portada abría con cuatro cifras sin referencia, entre ellas «249.999 contratos con alguna señal». Esa cifra se lee como «uno de cada cinco contratos tiene un problema», cuando 228.000 de ellos son la señal más débil (muchos contratos menores). Además, las puertas eran pequeñas, faltaban el mapa nuevo y el asistente, no había buscador y la sección de señales eran seis párrafos.
+- **Decisión:**
+  - **Bienvenida:** la mascota de D-038 y la frase «Mira en qué se gasta tu dinero la Comunidad de Madrid».
+  - **Buscador único:** empresas y organismos a la vez; al elegir, abre su ficha. Las fichas leen `?empresa=` y `?organo=` de la dirección, un cambio pequeño en `empresa.py` y `organo.py`.
+  - **Cuatro puertas grandes, pulsables enteras:** dinero, contratos a revisar, buscar empresa u organismo, y asistente. Cada una con su icono SVG propio en `billetes.ICONOS_PUERTA`.
+  - **Cifras en una línea discreta.** Se quita «contratos con alguna señal» de la portada.
+  - **Señales «X de cada 100 contratos …»:** cuadrícula de 100 con los que tienen la señal en ámbar, el color de las señales (nunca rojo). Si hay alguno pero no llega a 1 de cada 100, se pinta medio cuadrado y se dice «menos de 1». La explicación va en «¿Qué significa?», con los recuentos exactos.
+  - **Aviso legal:** «Una señal no prueba nada irregular» en el icono de información junto al título «Qué señales buscamos», a petición de Ignacio. El aviso corto de la barra lateral sigue siempre visible y el texto completo está en «Fuentes».
+  - **Todas las tarjetas del mismo tamaño:** las puertas rellenan la altura de su fila, y las seis señales van en una sola rejilla CSS con filas iguales (3, 2 o 1 columnas según el ancho), con el botón abajo.
+- **Alternativas:** frascos también para las señales (descartado: los frascos significan euros y aquí se cuentan contratos); mantener las cifras grandes.
+- **Consecuencias:** cambia la portada; las fichas de empresa y de órgano aceptan el elegido por la dirección; sin dependencias nuevas. Docs: 03 y 08.
+## D-040 · Web fluida y asistente sin SQL a la vista
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada (El Harrak: «Quita la consulta SQL de la respuesta. Solo queremos lo que saca la consulta […] optimiza todo para que vaya mejor y que la página web sea fluida»). Ajusta D-034 (estética) y D-037 (asistente).
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** La web iba a tirones y el scroll molestaba a la vista. Había tres causas:
+  - **Burbujas del fondo:** se animaban moviendo la posición de la imagen de fondo, lo que repinta la pantalla entera en cada fotograma.
+  - **Paneles de cristal:** botones, métricas, desplegables, campos, avisos y barra lateral usaban `backdrop-filter`, que desenfoca lo que hay detrás en cada fotograma y al desplazarse.
+  - **Consultas:** las pantallas no tenían caché, así que cada clic repetía todas sus consultas a la base.
+
+  Además, el asistente enseñaba el SQL de cada consulta, y se quería ver el proceso y el resultado, no el código.
+- **Decisión:**
+  - **Fondo:** rayos y burbujas se mueven solo con `transform`, sin filtro de desenfoque ni `background-attachment: fixed`.
+  - **Cristal:** sin `backdrop-filter`. Es un fondo translúcido algo más opaco, con el mismo borde, reflejo y sombra.
+  - **Caché de consultas** (`app/cache.py`): todas las consultas de `datos._filas` y `datos_contexto._filas` (también las de `datos_flujos` y `datos_mapa`) y las de las respuestas preparadas se guardan una hora. La base no cambia con la web abierta: para regenerarla hay que pararla.
+  - **Asistente:**
+    - se quita el SQL de las respuestas;
+    - cada respuesta enseña, en este orden, el proceso de la consulta (tablas, uniones con su clave, pasos y la tarjeta del resultado con sus filas), el texto que se escribe y la salida (gráfico y tabla a la vista);
+    - el proceso se anima una sola vez y en el historial se dibuja quieto; el CSS de las animaciones se carga una vez por página;
+    - el texto se escribe en 40 trozos como mucho, en 1,5 s.
+- **Alternativas consideradas:**
+  - Mantener el desenfoque solo en la barra lateral. Seguía recalculándose sobre el fondo animado.
+  - Quitar el fondo animado.
+  - Dejar el SQL en un desplegable cerrado. Se pidió quitarlo.
+- **Consecuencias:**
+  - **Scroll medido en el navegador:** 241 fotogramas por segundo, con el más lento de 4 ms; no queda ningún `backdrop-filter`.
+  - **Pantallas al volver a cargarlas:** entre 0,01 y 0,3 s (el mapa general, de 1,4 s a 0,04 s).
+  - El cristal se ve algo menos esmerilado.
+  - Quien quiera comprobar una consulta ya no ve el SQL; ve las tablas, las uniones y los pasos, los datos y el enlace oficial de cada fila.
+
+## D-041 · Web fluida con el Inicio y el mapa de billetes
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada (El Harrak: «En una nueva rama, coge lo que ha hecho Ignacio e intenta fluidificarlo más, como hicimos antes»). Ajusta D-038 y D-039 (mascota) y se suma a D-040.
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** La rama `feat/billetes-fluido` junta `feat/mapa-billetes` (D-038 y D-039, de Ignacio) con `feat/web-fluida` (D-040). Medido en el navegador y en el servidor:
+  - **Servidor:** las consultas nuevas ya tenían caché. Volver a cargar el Inicio tarda 0,03 s y el mapa, 0,07 s. Un año que no se había visto tarda unos 0,3 s más.
+  - **Scroll:** 240 fotogramas por segundo en las dos pantallas, sin tareas largas. El grafo de frascos se queda quieto unos 0,3 s después de cambiar de año.
+  - **Mascota:** el ojo con manos tenía 7 animaciones infinitas dentro del SVG. Las animaciones dentro de un SVG no pasan a la tarjeta gráfica, así que el navegador repintaba el dibujo en cada fotograma, sin parar, en el Inicio y en el mapa. En un portátil modesto es el único gasto continuo que quedaba aparte del fondo.
+- **Decisión:**
+  - La mascota se mueve unas vueltas al llegar (unos 10 a 25 s) y se queda quieta. Al pasar el ratón por encima vuelve a moverse.
+  - `contain: layout paint` limita el repintado a su recuadro.
+  - Con «reducir movimiento» sigue quieta.
+- **Alternativas consideradas:**
+  - Dejarla en bucle. Repinta siempre.
+  - Pasar el salto al SVG entero para que lo mueva la tarjeta gráfica. La sombra y los billetes que caen saltarían con ella.
+  - Quitar las animaciones.
+- **Consecuencias:**
+  - Ni el Inicio ni el mapa tienen animaciones que se repitan sin fin, salvo el fondo, que va por la tarjeta gráfica.
+  - Test en `tests/app/test_billetes.py`.
+  - Las demás pantallas de Ignacio no cambian.
+
+## D-042 · «Contratos a revisar» para el ciudadano: filtros sencillos, tarjeta clara y más señales primero
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada por Ignacio («1 sí, 2 sí, 3 sí, 4 más señales primero»). Rama `feat/mapa-billetes`, que ya incluye `feat/billetes-fluido` de Ismael (D-040 y D-041). Falta que el equipo lo vea antes de fusionarlo.
+- **Autor:** Claude (agente), a petición de Ignacio, en el repaso «dashboard a dashboard»
+- **Contexto:** La lista tenía estos problemas:
+  - 30 desplegables casi iguales, con títulos administrativos cortados («Este contrato tiene por objeto…», «Procedimiento de adjudicación de…»);
+  - sin importe ni adjudicataria en la fila;
+  - las señales en texto azul, como si fueran enlaces;
+  - siete filtros técnicos («Mínimo de señales», «Cuántos mostrar», «Mayor puntuación»);
+  - dentro, una explicación general repetida en cada señal y un párrafo técnico de atípico.
+- **Decisión:**
+  - **Filtros:** buscador y las seis señales como botones (`st.pills`, con icono y recuento). El resto va en «Más filtros», y «Cuántos mostrar» se sustituye por «Ver más contratos» (de 30 en 30, hasta 300; al cambiar los filtros se vuelve a 30).
+  - **Orden por defecto: «Más señales primero».** La puntuación sigue como opción.
+  - **Tarjeta:**
+    - título limpio (`textos.titulo_limpio`);
+    - importe en grande y adjudicataria (`datos.alertas` la trae, con las personas físicas agregadas como en D-007), organismo y año;
+    - señales en etiquetas ámbar con icono (`:orange-badge[]`).
+  - **Interior:**
+    - el expediente oficial arriba;
+    - **cada señal en su propia subcaja** (a petición de Ignacio, para distinguir mejor las explicaciones): de dos en dos, con la misma altura y un borde ámbar a la izquierda. Dentro, el nombre en ámbar con su icono, «En este contrato», la frase con cifras, el gráfico y, abajo, «¿Qué significa?» con la explicación general y el contexto;
+    - el atípico en una frase llana («sus cifras se salen de lo habitual en N contratos parecidos; atípico no significa irregular») y el motivo técnico en «Ver el detalle».
+  - **Aviso legal:** en el icono de información del título, como en el Inicio (D-039). El aviso corto de la barra lateral sigue visible.
+- **Alternativas:** dejar «Mayor puntuación» con otro nombre; agrupar los contratos de un mismo acuerdo marco (descartado: son registros distintos en origen).
+- **Consecuencias:** la tarjeta cambia también en las fichas de empresa y de organismo (comprobado sin errores). Ningún indicador ni cifra cambia. Docs: 03 y 08.
+- **Ajustes del mismo día (Ignacio):**
+  - **Color de las señales: azul de cristal** (#7DB3FF) en vez del naranja (`:orange-badge`), que no encajaba con la estética océano. Afecta a:
+    - las etiquetas (`:blue-badge`, con estilo de cristal en `estilo.css`, `.stMarkdownBadge`);
+    - el nombre y el borde de cada subcaja;
+    - la cuadrícula del Inicio (`billetes.COLOR_SENAL`).
+    El ámbar queda solo para las líneas de referencia de los gráficos. Cambia la regla de `docs/marca.md`.
+  - **«Sin anuncio público»:** la frase se parte en «En este contrato: se adjudicó sin anuncio público (vía: …)» y «Para comparar: de cada 100 € que el organismo adjudicó en la misma fuente, X € fueron sin anuncio». Se corrige un error: antes decía «de sus contratos de este tipo», pero la cifra cuenta todos los contratos del organismo en esa fuente, de cualquier tipo. `datos.detalle_r02` devuelve además el procedimiento del contrato.
+  - **«Una empresa concentra el gasto»:**
+    - el donut pasa a un ranking de barras de «de cada 100 €» por empresa, con la de este contrato en azul y una línea de puntos en «la mitad», que es donde salta la señal (`graficos.reparto`);
+    - la frase dice «De cada 100 € que X adjudicó en contratos de suministros de [sector], 52 € fueron a Y (entre N empresas). La señal salta cuando una sola empresa se lleva más de la mitad»;
+    - el sector sale del nombre de la división CPV, o «de este sector» si falta la lista de CPV.
+  - **«Muchos contratos menores»:** al elegir una señal que solo se comprueba en contratos menores (R-03), la lista los incluye sola y lo dice; antes salía vacía. Los títulos escritos todo en mayúsculas se pasan a frase normal.
+  - **Gráficos y frases de R-03, R-05 y R-06** (Ignacio: «poco intuitiva», «muy fea», «muy sosa» y «¿de qué forma sabemos que gana?»):
+    - **R-03:**
+      - los contratos menores de los 12 meses en que más suman, como bloques en una barra (este en azul, con «este»), frente a la línea del máximo de un contrato menor, con la suma al final (`graficos.ventana_doce_meses`, `graficos.menores`);
+      - frase: «es uno de los N contratos menores… Juntos suman X, más que el máximo de un contrato menor».
+    - **R-05:**
+      - «antes y después»: el precio adjudicado frente al precio con modificaciones, que crece en dos tramos (hasta el 20 % y por encima), con la línea del +20 % y la subida en grande;
+      - frase con «En este contrato» y «Para comparar» (el 20 % es el máximo de las modificaciones previstas en el pliego; otras pueden estar justificadas).
+    - **R-06:**
+      - una regla de la rebaja con las dos zonas donde salta la señal sombreadas, el marcador de este contrato y el de la rebaja habitual;
+      - la rebaja habitual es la mediana de los contratos de la misma fuente y tipo en los que se comprueba R-06 (`datos.baja_habitual`; p. ej., 17 % en 3.112 servicios de la Plataforma);
+      - la frase explica el precio de salida, cuántas ofertas hubo y por cuánto se adjudicó.
+    - **Textos de «¿Qué significa?»:**
+      - el de R-06 explica cómo funciona un concurso (precio de salida, ofertas, a quién se adjudica) en lugar de «la empresa ganó rebajando…»;
+      - el de R-05 explica qué es una modificación.
+    - Las líneas de referencia de estos gráficos pasan del ámbar a un gris claro de puntos.
+  - **R-03, segunda versión (Ignacio):**
+    - en lugar del gráfico de bloques, un contrato grande con «Suma de los contratos menores: X», «Máximo de un contrato menor: Y» y cuántas veces el máximo;
+    - debajo, un icono de contrato por cada contrato menor de la ventana de 12 meses, el de este en azul con «este». Al pasar el ratón (o con el teclado) se ve su precio, su fecha y su título;
+    - HTML propio (`billetes.html_menores`, con el componente de `billetes.pintar`); se quita `graficos.menores`;
+    - la frase ya no repite la suma.
+
+## D-043 · Web ligera: sin barra lateral, barra de arriba con menú, avisos en el pie y entrada animada
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada por El Harrak como **versión alternativa** en la rama `feat/web-ligera`, que sale de `feat/mapa-billetes` (D-038 a D-042). Si el equipo la prefiere, sustituye a la navegación con barra lateral de D-023.
+- **Autor:** Claude (agente), a petición de El Harrak («simplificar el HTML aligerando un poco a la vista»)
+- **Contexto:** La web era pesada a la vista. Tenía cuatro problemas:
+  - **Barra lateral** con diez entradas, el aviso, las fechas y la metodología.
+  - **Avisos y fuentes** también arriba de algunas pantallas.
+  - **Dos mascotas:** el ojo con billetes salía en el Inicio y en el mapa.
+  - **Desplegables translúcidos:** su fondo se mezclaba con el mar y costaba leerlos.
+- **Decisión:**
+  - **Sin barra lateral.** Arriba hay una barra fija con el logo, cuatro botones (Inicio, A dónde va el dinero, Contratos a revisar y Asistente) y «Explorar», que abre el resto de pantallas (`st.navigation(position="hidden")` y `st.page_link`).
+    - «Explorar» lleva Mapa del dinero, Presupuesto y contexto, Ficha de empresa y Ficha de órgano.
+    - También lleva Contratos atípicos, que no tiene botón arriba y si no quedaría sin enlace.
+    - Primero se llamaba «Menú» y repetía todas las pantallas.
+  - **Pie en todas las pantallas**, abajo del todo:
+    - el aviso corto;
+    - el desplegable «Aviso legal, metodología y fuentes», con el aviso, la nota de las señales, qué mide cada indicador, las fuentes y el pie legal;
+    - las fechas de descarga.
+    - El pie se dibuja antes que la pantalla y el CSS lo coloca al final, así que sale aunque la pantalla se pare esperando una elección.
+  - **Notas de una pantalla, al final de esa pantalla:**
+    - «Cómo se calculan los contratos atípicos» pasa al pie de Atípicos;
+    - las fuentes del mapa del dinero pasan al desplegable final «Fuentes y qué datos no tenemos»;
+    - se quita el botón «Fuentes» de arriba del Inicio y del mapa, y las fuentes repetidas al final del Asistente.
+    - Siguen donde estaban los iconos de ayuda («una señal no prueba nada») de los títulos y los avisos ligados a una cifra concreta.
+  - **Inicio con solo el logo.** La mascota con billetes queda en «A dónde va el dinero».
+  - **Desplegables opacos.** Desplegables, ventanas emergentes, listas de opciones y ayudas tienen fondo azul marino opaco.
+  - **Entrada animada de 3 s**, la primera vez que se abre la web en la sesión (`static/intro.html` y `app/intro3d.py`):
+    - mar muy oscuro con nieve marina;
+    - aparece el **ojo 3D de la presentación**, con el mismo código (`presentacion/ojo3d.js`) y Three.js 0.169.0 de jsDelivr;
+    - se ilumina como en la presentación: entorno de reflejos y color del agua de `presentacion/agua.js`, el mismo tono de imagen (`NeutralToneMapping`), cielo y sol, y el **mismo posproceso** (brillo `UnrealBloomPass` 0,55 / 0,7 / 0,82 y `OutputPass`). Al brillo se le corrige la opacidad para que no tape la página;
+    - **el ojo es la fuente de luz**, pero por dentro se ve como en la presentación: el iris, la pupila y el cristal, sin núcleo ni destello pintados encima. La luz sale hacia fuera y queda un halo suave por detrás del cristal, que crece poco a poco al ritmo con que se aclara la página, sin encenderse de golpe;
+    - se acerca un poco y **sube alejándose hasta cerca del borde de arriba**, sobre el título (así también se ve en el móvil), mirando hacia la página. Allí **se desvanece poco a poco** con su luz, de 1,95 a 3 s; la opacidad la lleva el mismo bucle que el movimiento, para que vayan a la par;
+    - al apartarse, su núcleo se enciende y **despliega la luz de la presentación**: el cono de luz del ojo (`crearLuz`) y los haces de los rayos de sol (`crearRayos`), con la raíz en el ojo. Empiezan rectos hacia abajo y se abren poco a poco a los lados, como mucho a 66° de la vertical, sin apuntar nunca hacia arriba; aclaran la página mientras el ojo sube. La luz es suave (cono 0,5, haces 0,26, brillo 0,35) para que se funda con la página en vez de taparla. Toda se calcula en sombreadores, sin texturas, así que no se pixela, y se apaga antes de terminar;
+    - **el ojo, ligero y nítido**: se dibuja al doble de resolución y con suavizado de bordes también en el posproceso. Es algo más pequeño (0,47), más claro (agua de superficie ×1,35 y exposición 1,3) y con un halo discreto;
+    - **el mar de la presentación, de principio a fin**: rayos de sol muy tenues y burbujas plateadas que suben (`crearRayos` y `crearBurbujitas` de `agua.js`), sin la superficie, porque estamos en el fondo y todo es oscuro, más claros a medida que se aclara la página y fundidos al final con el fondo de la web. La nieve marina es la capa CSS: la de la presentación usa puntos de WebGL, que aquí salían como cuadrados;
+    - **la página se desvela de abajo arriba**: el mar oscuro es una cortina con el borde difuminado que sube desde 1,26 s (solo `transform`).
+    - Al terminar se libera WebGL y se quita el lienzo.
+    - **Reserva:** si Three.js no carga en 1,2 s (sin red o sin WebGL), sale el ojo plano de `app/ojo_cristal.py`, que también sube. Si nada arranca, la capa se quita sola a los 2,5 s.
+    - Las capas CSS solo animan opacidad y transformaciones, no bloquean los clics y no salen con «reducir movimiento».
+    - **Versiones anteriores** (a petición de El Harrak):
+      - 1,5 s con el logo;
+      - 3 s con el ojo de la presentación en plano;
+      - el ojo 3D yéndose a la izquierda, más oscuro y con la luz hacia la derecha;
+      - el ojo subiendo solo hasta arriba de la pantalla, sin rayos;
+      - rayos en todas direcciones con una textura que se pixelaba.
+- **Alternativas consideradas:**
+  - Barra lateral plegada por defecto: seguía ahí y el aviso no se veía.
+  - Navegación nativa arriba (`position="top"`): con diez entradas se desborda.
+  - Entrada en cada cambio de pantalla: cansa.
+- **Consecuencias:**
+  - El aviso legal deja de estar siempre a la vista en la barra lateral: queda abajo, más los iconos de ayuda de los títulos. Conviene que `revisor-legal` lo valide antes de la entrega.
+  - Medido: scroll a 240 fotogramas por segundo, sin tareas largas; las nueve pantallas cargan sin errores y todas tienen pie.
+  - Tests en `tests/app/test_intro.py`.
+
+## D-044 · Sin tarjeta gráfica, entrada con el ojo plano y fondo quieto
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada (El Harrak: «Vale, pues haz eso», sobre detectar el dibujo sin tarjeta gráfica). En la rama `feat/web-ligera`, junto a D-043.
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** En Microsoft Edge la web iba lenta. Casi todos los equipos tienen tarjeta gráfica, aunque sea la integrada, pero hay navegadores que no pueden usarla y lo dibujan todo con el procesador:
+  - aceleración por hardware desactivada;
+  - controlador antiguo y bloqueado;
+  - escritorio remoto o máquina virtual;
+  - equipos con restricciones.
+
+  En esos casos, la entrada 3D de D-043 (doble resolución y brillo) y el fondo animado iban a tirones. La reserva de la entrada solo saltaba si el 3D no cargaba, no si cargaba pero se dibujaba por software.
+- **Decisión:** `app/rendimiento.py` comprueba al abrir la página si el navegador dibuja con tarjeta gráfica:
+  - pide a WebGL un contexto con `failIfMajorPerformanceCaveat` y mira el nombre del dibujador (SwiftShader, llvmpipe, Microsoft Basic Render…);
+  - guarda el resultado para la pestaña (`sessionStorage`, `oc-gpu`).
+  - Sin tarjeta gráfica:
+    - la página lleva la clase `oc-sin-gpu`;
+    - la entrada usa el ojo plano (CSS) en vez del 3D, sin descargar Three.js;
+    - los rayos y las burbujas del fondo se quedan quietos.
+  - Con tarjeta gráfica no cambia nada.
+- **Alternativas consideradas:**
+  - Medir los primeros fotogramas y bajar la calidad sobre la marcha: es más complejo y la entrada ya habría empezado a tirones.
+  - Quitar la entrada 3D para todos.
+  - Avisar al usuario de que active la aceleración.
+- **Consecuencias:**
+  - Comprobado en el navegador en los dos casos: con tarjeta gráfica, entrada 3D y fondo en movimiento; simulando que no la hay (`oc-gpu` = `no`), ojo plano, sin Three.js y el fondo quieto.
+  - Si Edge u otro navegador va lento por desactivar el optimizador de JavaScript («Mejorar la seguridad en la web»), esto no lo arregla: hay que añadir una excepción para el sitio.
+  - Tests en `tests/app/test_rendimiento.py`.
+
+## D-045 · Diseño expandido y cabecera moderna
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada (El Harrak: «rediseñes la página web expandiendo todo… el logo simplemente arriba a la izquierda y los botones arriba a la derecha, como lo hacen muchas páginas modernas actuales»). En la rama `feat/web-ligera`, sobre D-043.
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** La página usaba 1.200 px de ancho en el centro: en una pantalla de 1.920 px quedaba más de un tercio vacío. La barra de D-043 era una cápsula con todo junto en el centro. Referencias consultadas:
+  - logo arriba a la izquierda y navegación en una línea a la derecha, el patrón más común; el logo a la izquierda se recuerda mejor;
+  - ancho máximo de contenido de 1.280 a 1.440 px con márgenes laterales que crecen con la pantalla;
+  - espaciado en múltiplos de 8 px.
+- **Decisión (`static/estilo.css`):**
+  - **Ancho:** contenido de hasta 1.680 px, casi toda la pantalla grande, con márgenes laterales de 20 a 64 px (`clamp(1.25rem, 4vw, 4rem)`).
+  - **Espaciado:** variables de 8 px (`--oc-e1` … `--oc-e8`); 24 px entre bloques. Texto base de 16,5 px con interlineado 1,6.
+  - **Cabecera sin banda:** el mismo fondo que el resto de la página.
+    - El logo (36 px) y el nombre, a la izquierda.
+    - A la derecha, los botones juntos en una cápsula de cristal sutil, con la sección abierta rellena de azul. Si la pantalla es una de «Explorar», se resalta «Explorar».
+    - La marca `main.marcar_seccion`, porque Streamlit no marca el enlace activo con un atributo estable.
+    - Por debajo de 1.080 px, solo iconos; en móvil, también sin el nombre, y «Explorar» como icono.
+    - Se desplaza con la página: sin fondo propio, fija se pondría encima del contenido.
+    - Primero fue una banda fija y opaca de borde a borde; a El Harrak no le gustó una franja más oscura.
+  - **Inicio:** el título y el logo crecen con la pantalla (`clamp`), con más separación entre las tarjetas y más relleno dentro.
+  - El mapa general deja su ancho propio de 1.500 px y usa el común.
+- **Alternativas consideradas:**
+  - 1.440 px, como recomiendan varias guías: en una pantalla de 1.920 px seguía dejando un 25 % vacío, y se pidió usar toda la pantalla.
+  - Menú hamburguesa en móvil: con cuatro iconos y «Explorar» cabe en una línea.
+- **Consecuencias:**
+  - Comprobado en el navegador a 1.920, 1.280, 1.000 y 390 px de ancho.
+  - El estilo de la cabecera usa clases y estructura de Streamlit 1.67 (`stLayoutWrapper`, `stPageLink`, `stPopover`). Si se actualiza Streamlit, hay que revisarlo.

@@ -1,7 +1,11 @@
-"""Contratos a revisar: los que tienen alguna señal, con un gráfico por señal (D-023, A-03).
+"""Contratos a revisar: los que tienen alguna señal (D-023, A-03; D-042).
 
-Cada contrato es un desplegable: al pulsar en cualquier parte se abre con sus gráficos, que
-solo se calculan entonces.
+Pensada para un ciudadano cualquiera:
+- un buscador y las seis señales como botones, con el resto de filtros en «Más filtros»;
+- cada contrato es una tarjeta con su título limpio, cuánto, a quién, quién lo adjudica y sus
+  señales en etiquetas ámbar. Al pulsarla se abre con un gráfico por señal (que solo se calcula
+  entonces) y el enlace al expediente arriba;
+- primero los contratos con más señales, y «Ver más contratos» al final.
 """
 
 import streamlit as st
@@ -9,36 +13,43 @@ import streamlit as st
 from ojo_ciudadano.app import buscador, datos, senales, textos
 from ojo_ciudadano.app.conexion import conexion
 
-LIMITE = 30
+TANDA = 30  # contratos que se añaden con «Ver más contratos»
+SOLO_MENORES = {"R-03"}  # señales que solo se comprueban en contratos menores
+MAXIMO = 300
+
+
+@st.cache_data(show_spinner=False, ttl=3600)
+def _conteo() -> dict:
+    return datos.conteo_senales(conexion())
+
 
 con = conexion()
-st.header("Contratos a revisar")
-st.caption("Contratos en los que hemos encontrado alguna señal. " + textos.NOTA_SENAL)
+st.header("Contratos a revisar", help=textos.NOTA_SENAL, anchor=False)
+st.caption("Contratos en los que hemos visto alguna señal. Pulsa uno para ver por qué.")
 
-conteo = datos.conteo_senales(con)
-fila1 = st.columns([3, 3])
-texto = (
-    fila1[0]
-    .text_input("Buscar", placeholder="Palabra del título u organismo (vacuna, Metro, hospital…)")
-    .strip()
+conteo = _conteo()
+busqueda, mas = st.columns([5, 1], vertical_alignment="bottom")
+texto = busqueda.text_input(
+    "Buscar",
+    placeholder="Palabra del título u organismo (vacuna, Metro, hospital…)",
+    label_visibility="collapsed",
+).strip()
+elegidas = (
+    st.pills(
+        "Qué señal",
+        list(textos.SENAL_CORTA),
+        selection_mode="multi",
+        format_func=lambda i: (
+            f"{textos.ICONO_SENAL[i]} {textos.SENAL_CORTA[i]}"
+            + (f" ({textos.numero(conteo[i]['encontrados'])})" if i in conteo else "")
+        ),
+        help="Pulsa una o varias para ver solo los contratos con esas señales. "
+        + textos.GLOSARIO["senal"],
+    )
+    or []
 )
-elegidas = fila1[1].multiselect(
-    "Qué se ha detectado",
-    list(textos.SENAL_CORTA),
-    help=textos.GLOSARIO["senal"],
-    placeholder="Todas las señales",
-    format_func=lambda i: (
-        f"{textos.SENAL_CORTA[i]} ({textos.numero(conteo[i]['encontrados'])})"
-        if i in conteo
-        else textos.SENAL_CORTA[i]
-    ),
-)
-menores = st.toggle(
-    "Incluir contratos menores",
-    help="Los contratos menores son los de menos de 15.000 € (40.000 € en obras), sin IVA. "
-    "Son muchos y en ellos solo se pueden comprobar dos señales.",
-)
-with st.expander("Filtros y orden", icon=":material/tune:"):
+
+with mas.popover("Más filtros", icon=":material/tune:", width="stretch"):
     todas = False
     if len(elegidas) > 1:
         todas = (
@@ -52,53 +63,81 @@ with st.expander("Filtros y orden", icon=":material/tune:"):
             )
             == "todas"
         )
-    fila2 = st.columns([1, 2, 3])
-    anio_elegido = fila2[0].selectbox(
+    orden = st.selectbox(
+        "Ordenar por", list(textos.ORDEN_ALERTAS), format_func=textos.ORDEN_ALERTAS.get
+    )
+    anio_elegido = st.selectbox(
         "Año",
         [None, 2026, 2025, 2024, 2023],
         format_func=lambda a: "Todos" if a is None else str(a),
     )
-    tipo = fila2[1].selectbox(
+    tipo = st.selectbox(
         "Tipo de contrato",
         [None, "servicios", "suministros", "obras"],
         format_func=lambda x: "Todos" if x is None else x.capitalize(),
     )
-    orden = fila2[2].selectbox(
-        "Ordenar por", list(textos.ORDEN_ALERTAS), format_func=textos.ORDEN_ALERTAS.get
-    )
-    fila3 = st.columns(2)
-    min_senales = fila3[0].selectbox(
-        "Mínimo de señales",
+    min_senales = st.selectbox(
+        "Con al menos",
         [1, 2, 3, 4],
-        format_func=lambda n: f"{n} o más" if n > 1 else "1 o más",
+        format_func=lambda n: "1 señal" if n == 1 else f"{n} señales",
     )
-    cuantos = fila3[1].selectbox("Cuántos mostrar", [30, 60, 100])
+    menores = st.toggle(
+        "Incluir contratos menores",
+        help="Los contratos menores son los de menos de 15.000 € (40.000 € en obras), sin IVA. "
+        "Son muchos y en ellos solo se pueden comprobar dos señales.",
+    )
     organo_elegido = buscador.organo("revisar_organo", "Organismo concreto")
     empresa_elegida = buscador.empresa("revisar_empresa", "Empresa concreta")
+
 activos = [
     etiqueta
     for etiqueta, activo in (
         ("año", anio_elegido is not None),
         ("tipo de contrato", tipo is not None),
-        ("orden", orden != "puntuacion"),
+        ("orden", orden != "senales"),
         ("mínimo de señales", min_senales > 1),
+        ("contratos menores", menores),
         ("organismo", organo_elegido is not None),
         ("empresa", empresa_elegida is not None),
-        ("modo de señales", todas),
+        ("todas las señales a la vez", todas),
     )
     if activo
 ]
 if activos:
     st.caption("Filtros activos: " + ", ".join(activos) + ".")
-for elegida in elegidas:
-    st.caption(f"**{textos.SENAL_CORTA[elegida]}:** {textos.SENAL_FRASE[elegida]}")
-    if elegida in textos.CONTEXTO_SENAL:
-        st.caption(textos.CONTEXTO_SENAL[elegida])
+
+# Una señal que solo se comprueba en contratos menores no tendría resultados sin ellos: al
+# elegirla, se incluyen solos.
+con_menores = menores or bool(SOLO_MENORES & set(elegidas))
+if con_menores and not menores:
+    st.caption(
+        "Se incluyen los contratos menores, porque «"
+        + ", ".join(textos.SENAL_CORTA[i] for i in sorted(SOLO_MENORES & set(elegidas)))
+        + "» solo se comprueba en ellos."
+    )
+
+# Al cambiar de filtros se vuelve a la primera tanda.
+filtros = (
+    texto,
+    tuple(elegidas),
+    todas,
+    orden,
+    anio_elegido,
+    tipo,
+    min_senales,
+    menores,
+    organo_elegido,
+    empresa_elegida,
+)
+if st.session_state.get("revisar_filtros") != filtros:
+    st.session_state["revisar_filtros"] = filtros
+    st.session_state["revisar_cuantos"] = TANDA
+cuantos = st.session_state.get("revisar_cuantos", TANDA)
 
 # Sin menores, solo contratos en los que se han podido comprobar al menos 3 señales.
 filas = datos.alertas(
     con,
-    1 if menores else 3,
+    1 if con_menores else 3,
     None,
     cuantos,
     texto or None,
@@ -116,10 +155,12 @@ if not filas:
     st.info("No hay contratos con estos filtros.")
     st.stop()
 
-st.caption(
-    f"{len(filas)} contratos, ordenados según «{textos.ORDEN_ALERTAS[orden].lower()}». "
-    "Pulsa uno para ver por qué."
-)
-
 for fila in filas:
     senales.tarjeta_contrato(con, fila, "revisar")
+
+if len(filas) == cuantos and cuantos < MAXIMO:
+    st.button(
+        "Ver más contratos",
+        icon=":material/expand_more:",
+        on_click=lambda: st.session_state.update(revisar_cuantos=cuantos + TANDA),
+    )

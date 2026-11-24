@@ -136,130 +136,178 @@ def suma_doce_meses(contratos: list[dict]) -> list[float]:
     return sumas
 
 
-def menores(detalle: dict, contrato_id: str) -> go.Figure:
-    """E-03: cada contrato menor como un punto (tamaño = importe) y la línea de lo que suman
-    los últimos 12 meses frente al límite legal."""
-    contratos = detalle["contratos"]
-    fechas = [c["fecha"] for c in contratos]
+def ventana_doce_meses(contratos: list[dict]) -> list[dict]:
+    """Los contratos menores de los 12 meses en los que más suman (la ventana de R-03)."""
+    if not contratos:
+        return []
     sumas = suma_doce_meses(contratos)
-    figura = go.Figure()
-    figura.add_scatter(
-        x=fechas,
-        y=sumas,
-        mode="lines+markers",
-        line={"color": GRIS_CLARO, "width": 2, "shape": "hv"},
-        marker={
-            "size": [16 if c["contrato_id"] == contrato_id else 8 for c in contratos],
-            "color": [AZUL if c["contrato_id"] == contrato_id else GRIS_CLARO for c in contratos],
-            "line": {"width": 1, "color": SEPARADOR},
-        },
-        customdata=[[c["importe"], c["titulo"] or ""] for c in contratos],
-        hovertemplate=(
-            "%{x|%d/%m/%Y}: contrato de %{customdata[0]:,.0f} €<br>"
-            "Suma de los 12 meses anteriores: %{y:,.0f} €<br>%{customdata[1]}<extra></extra>"
-        ),
-    )
-    figura.add_hline(
-        y=detalle["umbral"],
-        line={"color": AMBAR, "dash": "dash", "width": 2},
-        annotation_text=f"Límite: {euros(detalle['umbral'])}",
-        annotation_font_color=AMBAR,
-        annotation_position="top left",
-    )
-    figura.update_yaxes(title="Suma en 12 meses (€ con IVA)", rangemode="tozero", tickformat=",.0f")
-    figura.update_xaxes(tickformat="%m/%Y")
-    return _tema(figura, alto=280)
+    fin = contratos[sumas.index(max(sumas))]["fecha"]
+    desde = fin - timedelta(days=364)
+    return [c for c in contratos if desde <= c["fecha"] <= fin]
 
 
 def reparto(detalle: dict) -> go.Figure:
-    """E-04: cómo se reparte el dinero del organismo en este tipo de contrato; la empresa de
-    este contrato en azul."""
+    """E-04 (D-042): de cada 100 € que el organismo adjudica en este tipo de contrato, cuántos
+    se lleva cada empresa. Ranking de barras con la empresa de este contrato en azul y una línea
+    en «la mitad», que es donde salta la señal."""
+    total = detalle["total"] or 1
     partes = detalle["partes"]
+    nombres = [p["nombre"] if len(p["nombre"]) <= 30 else p["nombre"][:29] + "…" for p in partes]
+    de_cada_100 = [100 * p["importe"] / total for p in partes]
     figura = go.Figure(
-        go.Pie(
-            labels=[
-                f"{p['nombre']} ({porcentaje(p['importe'] / detalle['total'])})" for p in partes
-            ],
-            values=[p["importe"] for p in partes],
-            hole=0.62,
-            sort=False,
-            direction="clockwise",
+        go.Bar(
+            y=nombres,
+            x=de_cada_100,
+            orientation="h",
             marker={
-                "colors": [AZUL if p["es_este"] else GRIS for p in partes],
+                "color": [AZUL if p["es_este"] else GRIS for p in partes],
                 "line": {"color": SEPARADOR, "width": 1},
+                "cornerradius": 4,
             },
-            textinfo="none",
-            hovertemplate="%{label}: %{value:,.0f} € (%{percent})<extra></extra>",
+            text=[f"{round(v)} €" for v in de_cada_100],
+            textposition="outside",
+            textfont={"color": TEXTO, "size": 13},
+            cliponaxis=False,
+            customdata=[p["importe"] for p in partes],
+            hovertemplate="%{y}: %{customdata:,.0f} € (%{x:.0f} de cada 100 €)<extra></extra>",
         )
     )
-    if detalle["cuota"] is not None:
-        figura.add_annotation(
-            text=f"<b>{porcentaje(detalle['cuota'])}</b>",
-            showarrow=False,
-            font={"size": 22, "color": TEXTO},
-        )
-    figura.update_layout(showlegend=True, legend={"font": {"size": 12}})
-    figura = _tema(figura, alto=260)
-    figura.update_layout(showlegend=True)
+    figura.add_vline(
+        x=50,
+        line={"color": GRIS_CLARO, "dash": "dot", "width": 2},
+        annotation_text="la mitad",
+        annotation_font_color=GRIS_CLARO,
+        annotation_position="top",
+    )
+    figura.update_xaxes(range=[0, 108], visible=False)
+    figura.update_yaxes(autorange="reversed", tickfont={"size": 12})
+    figura = _tema(figura, alto=60 + 34 * len(partes))
+    figura.update_layout(showlegend=False, bargap=0.35)
     return figura
 
 
 def subida(detalle: dict) -> go.Figure:
-    """E-05: precio adjudicado y lo que se añadió después, con la referencia del 20 %."""
+    """E-05 (D-042): «antes y después». Una columna con el precio adjudicado y otra con el
+    precio tras las modificaciones, que crece en dos tramos (hasta el 20 % y lo que pasa del
+    20 %), con la línea del +20 % y la subida en grande."""
     adjudicado = detalle["adjudicado"] or 0
     modificaciones = detalle["modificaciones"] or 0
+    hasta_20 = min(modificaciones, 0.2 * adjudicado)
+    encima_20 = max(modificaciones - 0.2 * adjudicado, 0)
+    columnas = ["Precio adjudicado", "Con modificaciones"]
     figura = go.Figure()
     figura.add_bar(
-        y=[""],
-        x=[adjudicado],
-        orientation="h",
-        marker={"color": GRIS},
-        text="Precio adjudicado",
+        x=columnas,
+        y=[adjudicado, adjudicado],
+        name="Precio adjudicado",
+        marker={"color": GRIS, "cornerradius": 4},
+        text=[euros(adjudicado), ""],
         textposition="inside",
-        hovertemplate="Adjudicado: %{x:,.0f} €<extra></extra>",
+        hovertemplate="Precio adjudicado: %{y:,.0f} €<extra></extra>",
     )
     figura.add_bar(
-        y=[""],
-        x=[modificaciones],
-        orientation="h",
-        marker={"color": AZUL},
-        text=f"+{porcentaje(modificaciones / adjudicado)}" if adjudicado else "",
-        textposition="inside",
-        hovertemplate="Añadido después: %{x:,.0f} €<extra></extra>",
+        x=columnas,
+        y=[0, hasta_20],
+        name="Modificaciones hasta el 20 %",
+        marker={"color": "#7DB3FF"},
+        hovertemplate="Modificaciones hasta el 20 %: %{y:,.0f} €<extra></extra>",
     )
-    figura.add_vline(
-        x=adjudicado * 1.2,
-        line={"color": AMBAR, "dash": "dash", "width": 2},
+    figura.add_bar(
+        x=columnas,
+        y=[0, encima_20],
+        name="Por encima del 20 %",
+        marker={"color": AZUL, "cornerradius": 4},
+        hovertemplate="Por encima del 20 %: %{y:,.0f} €<extra></extra>",
+    )
+    figura.add_hline(
+        y=adjudicado * 1.2,
+        line={"color": GRIS_CLARO, "dash": "dot", "width": 2},
         annotation_text="+20 %",
-        annotation_font_color=AMBAR,
-        annotation_position="top",
-        annotation_yshift=6,
+        annotation_font_color=GRIS_CLARO,
+        annotation_position="top left",
     )
-    figura.update_layout(barmode="stack")
-    figura.update_xaxes(title="Euros (con IVA)", tickformat=",.0f")
-    figura.update_yaxes(visible=False)
-    return _tema(figura, alto=140)
+    if adjudicado:
+        figura.add_annotation(
+            x=columnas[1],
+            y=adjudicado + modificaciones,
+            text=f"<b>+{porcentaje(modificaciones / adjudicado)}</b>",
+            showarrow=False,
+            yshift=16,
+            font={"size": 20, "color": TEXTO},
+        )
+    figura.update_layout(
+        barmode="stack",
+        bargap=0.45,
+        legend={"orientation": "h", "y": -0.18, "font": {"size": 11}},
+    )
+    figura.update_yaxes(visible=False, range=[0, (adjudicado + modificaciones) * 1.18])
+    figura = _tema(figura, alto=320)
+    figura.update_layout(showlegend=True, legend={"orientation": "h", "y": -0.12})
+    return figura
 
 
-def rebaja(detalle: dict) -> go.Figure:
-    """E-06: precio de salida frente al adjudicado."""
+ZONA_SENAL = "rgba(125, 179, 255, 0.16)"  # zonas de la regla donde salta una señal
+
+
+def rebaja(detalle: dict, habitual: float | None = None) -> go.Figure:
+    """E-06 (D-042): una regla de la rebaja (de «por encima del precio» a «más de la mitad»)
+    con las dos zonas donde salta la señal sombreadas, el marcador de este contrato y, si se
+    conoce, el de la rebaja habitual en contratos parecidos. Rebaja en tanto por uno."""
     presupuesto = detalle["presupuesto"] or 0
     adjudicado = detalle["adjudicado"] or 0
-    figura = go.Figure(
-        go.Bar(
-            y=["Precio de salida", "Precio adjudicado"],
-            x=[presupuesto, adjudicado],
-            orientation="h",
-            marker={"color": [GRIS, AZUL], "cornerradius": 4},
-            text=[f"Precio de salida: {euros(presupuesto)}", f"Adjudicado: {euros(adjudicado)}"],
-            textposition="inside",
-            insidetextanchor="start",
-            hovertemplate="%{y}: %{x:,.0f} €<extra></extra>",
+    baja = 1 - adjudicado / presupuesto if presupuesto else 0
+    minimo = min(-0.1, baja - 0.08)
+    maximo = max(0.6, baja + 0.08)
+    figura = go.Figure()
+    for x0, x1, texto in ((minimo, 0.005, "casi sin rebaja"), (0.5, maximo, "rebaja muy alta")):
+        figura.add_vrect(
+            x0=x0,
+            x1=x1,
+            fillcolor=ZONA_SENAL,
+            line_width=0,
+            annotation_text=texto,
+            annotation_position="bottom",
+            annotation_font={"color": GRIS_CLARO, "size": 11},
         )
+    figura.add_shape(
+        type="line", x0=minimo, x1=maximo, y0=0, y1=0, line={"color": GRIS, "width": 3}
     )
-    figura.update_xaxes(visible=False)
-    figura.update_yaxes(autorange="reversed", visible=False)
-    return _tema(figura, alto=120)
+    if habitual is not None:
+        figura.add_scatter(
+            x=[habitual],
+            y=[0],
+            mode="markers+text",
+            marker={"symbol": "line-ns", "size": 22, "line": {"width": 3, "color": GRIS_CLARO}},
+            text=[f"Lo habitual: {porcentaje(habitual)}"],
+            textposition="bottom center",
+            textfont={"color": GRIS_CLARO, "size": 12},
+            hovertemplate="Rebaja habitual en contratos parecidos: %{x:.1%}<extra></extra>",
+        )
+    etiqueta = (
+        f"Este contrato: {porcentaje(baja, 1)}"
+        if baja >= 0
+        else f"Este contrato: {porcentaje(-baja)} por encima"
+    )
+    figura.add_scatter(
+        x=[baja],
+        y=[0],
+        mode="markers+text",
+        marker={"size": 20, "color": AZUL, "line": {"width": 2, "color": TEXTO}},
+        text=[f"<b>{etiqueta}</b>"],
+        textposition=(
+            "top right"
+            if baja < minimo + (maximo - minimo) / 3
+            else ("top left" if baja > minimo + 2 * (maximo - minimo) / 3 else "top center")
+        ),
+        textfont={"color": TEXTO, "size": 14},
+        hovertemplate="Rebaja de este contrato: %{x:.1%}<extra></extra>",
+    )
+    figura.update_layout(showlegend=False)
+    figura.update_xaxes(
+        range=[minimo, maximo], tickformat=".0%", showgrid=False, zeroline=False, title=None
+    )
+    figura.update_yaxes(visible=False, range=[-1, 1])
+    return _tema(figura, alto=190)
 
 
 # --- Ficha de empresa (A-05) ---

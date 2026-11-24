@@ -300,11 +300,13 @@ iframe[title^="streamlit_agraph"] {
   letter-spacing: -0.02em;
   margin-left: -0.1rem;
 }
-/* en el pie, el logo con el nombre, como la marca completa */
+/* en el pie, lo último y centrado: el logo con el nombre, como la marca completa */
 .oc-marca-pie {
-  margin: var(--oc-e2) 0 var(--oc-e1);
+  justify-content: center;
+  margin: var(--oc-e4) 0 var(--oc-e2);
   font-size: 1.3rem;
   font-weight: 700;
+  opacity: 0.92;
 }
 /* la cápsula de los botones: cristal sutil, no una banda */
 .st-key-nav {
@@ -510,7 +512,7 @@ div[class*="st-key-cajasenal_"][class*="st-key-cajasenal_"] {
 }
 
 /* el componente que deja transparente el buscador (buscador.py) no ocupa sitio */
-[data-testid="stElementContainer"]:has(.st-key-oc_buscador_transparente),
+[data-testid="stElementContainer"]:has([class*="st-key-oc_transparente_"]),
 [data-testid="stElementContainer"]:has(.st-key-oc_mapa_sin_doble_clic) {
   display: none;
 }

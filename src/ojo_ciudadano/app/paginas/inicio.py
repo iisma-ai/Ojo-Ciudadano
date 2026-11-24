@@ -155,6 +155,8 @@ bienvenida()
 elegido = buscador.todo("inicio_buscar")
 if elegido:
     tipo, ident = elegido
+    # se olvida la búsqueda: si no, al volver al Inicio llevaría otra vez a la misma ficha
+    st.session_state.pop("inicio_buscar", None)
     destino = "paginas/empresa.py" if tipo == "empresa" else "paginas/organo.py"
     st.switch_page(destino, query_params={tipo: ident})
 

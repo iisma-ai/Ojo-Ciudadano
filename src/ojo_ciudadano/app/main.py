@@ -101,11 +101,16 @@ def marcar_seccion(pagina) -> None:
     )
 
 
-def barra_superior() -> None:
+def barra_superior(pagina) -> None:
     """Logo, botones de las partes principales y «Explorar» con el resto de pantallas."""
     with st.container(key="barra", horizontal=True, vertical_alignment="center", gap="small"):
-        # arriba solo el nombre: el logo ya sale grande en el Inicio y en el pie
-        st.html('<div class="oc-marca"><span>Ojo <b>Ciudadano</b></span></div>')
+        # En el Inicio, solo el nombre: el logo ya sale grande debajo. En las demás, con el logo.
+        icono = (
+            ""
+            if pagina.url_path == INICIO.url_path
+            else f'<img src="{LOGO}" alt="" width="32" height="32">'
+        )
+        st.html(f'<div class="oc-marca">{icono}<span>Ojo <b>Ciudadano</b></span></div>')
         # los botones, juntos en una cápsula a la derecha (D-045)
         with st.container(
             key="nav", horizontal=True, vertical_alignment="center", gap=None, width="content"
@@ -122,37 +127,38 @@ NOTAS_PIE = {ATIPICOS.url_path: ("Cómo se calculan los contratos atípicos", te
 
 
 def pie(pagina) -> None:
-    """Aviso, metodología, fuentes y fechas, abajo del todo en todas las pantallas."""
+    """Pie sencillo (D-047): el desplegable del aviso legal (con todo lo demás dentro) y, lo
+    último y centrado, el logo con el nombre. En el Inicio, solo el logo."""
     with st.container(key="pie"):
         rendimiento.detectar()  # sin tarjeta gráfica, fondo quieto (D-044); no dibuja nada
-        st.divider()
+        if pagina.url_path != INICIO.url_path:
+            with st.expander("Aviso legal, metodología y fuentes", icon=":material/info:"):
+                st.markdown(textos.AVISO_CORTO)
+                if pagina.url_path in NOTAS_PIE:
+                    titulo, nota = NOTAS_PIE[pagina.url_path]
+                    st.markdown(f"**{titulo}**")
+                    st.markdown(nota)
+                st.markdown(textos.AVISO)
+                st.markdown(textos.NOTA_SENAL)
+                st.markdown("**Qué mide cada indicador**")
+                st.markdown(textos.lista_indicadores())
+                st.markdown(textos.FUENTES)
+                st.caption(
+                    textos.fechas_descarga(
+                        datos.fechas_datos(conexion()) + datos_contexto.fechas_contexto(conexion())
+                    )
+                )
+                st.caption(textos.PIE)
         st.html(
-            f'<div class="oc-marca oc-marca-pie"><img src="{LOGO}" alt="" width="36" height="36">'
+            f'<div class="oc-marca oc-marca-pie"><img src="{LOGO}" alt="" width="34" height="34">'
             "<span>Ojo <b>Ciudadano</b></span></div>"
-        )
-        st.caption(textos.AVISO_CORTO)
-        if pagina.url_path in NOTAS_PIE:
-            titulo, nota = NOTAS_PIE[pagina.url_path]
-            with st.expander(titulo, icon=":material/info:"):
-                st.markdown(nota)
-        with st.expander("Aviso legal, metodología y fuentes", icon=":material/info:"):
-            st.markdown(textos.AVISO)
-            st.markdown(textos.NOTA_SENAL)
-            st.markdown("**Qué mide cada indicador**")
-            st.markdown(textos.lista_indicadores())
-            st.markdown(textos.FUENTES)
-            st.caption(textos.PIE)
-        st.caption(
-            textos.fechas_descarga(
-                datos.fechas_datos(conexion()) + datos_contexto.fechas_contexto(conexion())
-            )
         )
 
 
 paginas = st.navigation(SECCIONES, position="hidden")
 intro()
 marcar_seccion(paginas)
-barra_superior()
+barra_superior(paginas)
 # El pie se dibuja antes que la pantalla y el CSS lo coloca al final (order): así sale también
 # cuando la pantalla se para pronto (st.stop) esperando una elección o por falta de datos.
 pie(paginas)

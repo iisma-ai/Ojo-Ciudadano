@@ -30,6 +30,7 @@ def _organos(texto: str) -> list[tuple[str, str]]:
 def empresa(clave: str, etiqueta: str = "Empresa", valor: str = "adjudicatario_id") -> str | None:
     """Autocompletado de empresas. Devuelve el `adjudicatario_id` (o su NIF o nombre si
     `valor` es «nif» o «nombre»); None mientras no se elija ninguna."""
+    _transparente(key=f"oc_transparente_{clave}")
     elegida = st_searchbox(
         _empresas,
         label=etiqueta,
@@ -37,6 +38,7 @@ def empresa(clave: str, etiqueta: str = "Empresa", valor: str = "adjudicatario_i
         key=clave,
         default_options=_empresas(""),
         debounce=PAUSA_MS,
+        style_overrides=ESTILO_BARRA,
     )
     if elegida is None or valor == "adjudicatario_id":
         return elegida
@@ -52,6 +54,7 @@ def empresa(clave: str, etiqueta: str = "Empresa", valor: str = "adjudicatario_i
 
 def organo(clave: str, etiqueta: str = "Organismo") -> str | None:
     """Autocompletado de órganos. Devuelve el `organo_id`; None mientras no se elija ninguno."""
+    _transparente(key=f"oc_transparente_{clave}")
     return st_searchbox(
         _organos,
         label=etiqueta,
@@ -59,6 +62,7 @@ def organo(clave: str, etiqueta: str = "Organismo") -> str | None:
         key=clave,
         default_options=_organos(""),
         debounce=PAUSA_MS,
+        style_overrides=ESTILO_BARRA,
     )
 
 
@@ -158,7 +162,7 @@ _transparente = st.components.v2.component("oc_buscador_transparente", js=JS_TRA
 
 def todo(clave: str, etiqueta: str = "") -> tuple[str, str] | None:
     """Buscador único de la portada: devuelve («empresa» u «organo», id) al elegir."""
-    _transparente(key="oc_buscador_transparente")
+    _transparente(key=f"oc_transparente_{clave}")
     elegido = st_searchbox(
         _todo,
         label=etiqueta,

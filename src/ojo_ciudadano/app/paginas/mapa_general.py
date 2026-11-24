@@ -678,6 +678,78 @@ def gasto_por_consejeria(entidades: list[dict]) -> str:
     )
 
 
+def barras_dinero(entidades: list[dict]) -> str:
+    """Una barra por consejería (D-047): su largo es todo el dinero disponible y, dentro, la
+    parte gastada en azul intenso; lo que queda sin gastar, en cristal claro. A la derecha, el
+    porcentaje gastado y lo que quedó sin gastar. De más a menos dinero. HTML y CSS, sin Plotly."""
+    con_gasto = [e for e in entidades if e["gastado"] is not None and e["credito"]]
+    if not con_gasto:
+        return ""
+    maximo = max(e["credito"] for e in con_gasto)
+    filas = []
+    for j, e in enumerate(sorted(con_gasto, key=lambda e: -e["credito"])):
+        largo = 100 * e["credito"] / maximo
+        gastado = min(max(e["llenado"] or 0, 0), 1)
+        filas.append(
+            f'<div class="ocb-fila" style="--j:{j}">'
+            f'<div class="ocb-nombre"><b>{html.escape(nombre_corto(e["entidad"]))}</b>'
+            f"<span>{textos.millones(e['credito'])} disponibles</span></div>"
+            f'<div class="ocb-pista"><div class="ocb-total" style="width:max({largo:.2f}%, 6px)"'
+            f' role="img" aria-label="Gastado {textos.porcentaje(gastado)} de '
+            f'{textos.millones(e["credito"])}">'
+            f'<div class="ocb-gastado" style="width:{100 * gastado:.2f}%"></div></div></div>'
+            f'<div class="ocb-dato"><b>{textos.porcentaje(gastado)}</b>'
+            f"<span>{textos.millones(e['sin_gastar'] or 0)} sin gastar</span></div></div>"
+        )
+    leyenda = (
+        '<div class="ocb-leyenda"><span><i class="ocb-i-gastado"></i>Gastado</span>'
+        '<span><i class="ocb-i-resto"></i>Sin gastar</span>'
+        "<span>El largo de cada barra es todo su dinero del año.</span></div>"
+    )
+    return (
+        """<style>
+.ocb { font-family: Inter, sans-serif; color: #E7ECF3; }
+.ocb-leyenda { display:flex; gap:22px; flex-wrap:wrap; font-size:.85rem; color:#9FB6CC;
+  margin: 0 0 14px; }
+.ocb-leyenda span { display:flex; align-items:center; gap:8px; }
+.ocb-leyenda i { width:22px; height:10px; border-radius:6px; display:inline-block; }
+.ocb-i-gastado { background: linear-gradient(90deg, #2f7cf0, #38bdf8);
+  box-shadow: 0 0 10px rgba(56,189,248,.45); }
+.ocb-i-resto { background: rgba(170,225,255,.16); border: 1px solid rgba(170,225,255,.35); }
+.ocb-fila { display:grid; grid-template-columns: minmax(170px, 1.1fr) 4fr minmax(110px, .7fr);
+  gap: 18px; align-items:center; padding: 9px 0;
+  border-bottom: 1px solid rgba(170,225,255,.07); }
+.ocb-nombre { display:flex; flex-direction:column; line-height:1.25; min-width:0; }
+.ocb-nombre b { font-weight:600; font-size:.95rem; }
+.ocb-nombre span, .ocb-dato span { font-size:.78rem; color:#8FA7BF; }
+.ocb-pista { height: 22px; display:flex; align-items:center; }
+.ocb-total { height: 100%; border-radius: 12px; position: relative; overflow: hidden;
+  background: linear-gradient(180deg, rgba(200,235,255,.16), rgba(170,225,255,.07));
+  border: 1px solid rgba(170,225,255,.28);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 6px 18px rgba(0,8,22,.35);
+  transform-origin: left center;
+  animation: ocb-crece 1s cubic-bezier(.25,.8,.25,1) both;
+  animation-delay: calc(var(--j) * 45ms); }
+.ocb-gastado { height: 100%; border-radius: 11px 0 0 11px;
+  background: linear-gradient(90deg, #2f7cf0, #38bdf8);
+  box-shadow: 0 0 16px rgba(56,189,248,.45), inset 0 1px 0 rgba(255,255,255,.35); }
+.ocb-gastado[style*="width:100.00%"] { border-radius: 11px; }
+.ocb-dato { display:flex; flex-direction:column; align-items:flex-end; line-height:1.2; }
+.ocb-dato b { font-size: 1.15rem; font-weight: 650; }
+@keyframes ocb-crece { from { transform: scaleX(0); opacity: 0; }
+  to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .ocb-total { animation: none; } }
+@media (max-width: 640px) {
+  .ocb-fila { grid-template-columns: 1fr auto; }
+  .ocb-pista { grid-column: 1 / -1; grid-row: 2; }
+}
+</style><div class="ocb">"""
+        + leyenda
+        + "".join(filas)
+        + "</div>"
+    )
+
+
 def fuentes(datos_anio: dict, anio: int, poblacion: dict | None) -> None:
     """Todo lo que es fuente, matiz o límite de los datos, en el desplegable del final."""
     lineas = [
@@ -875,9 +947,11 @@ with derecha:
         _ficha(con, marcado, entidades, datos_anio, ampliada is not None, forma)
 
 if liquidado:
-    st.subheader("¿Cuánto ha gastado cada consejería?")
-    st.html(gasto_por_consejeria(entidades))
-    if burbujas:
+    st.subheader("Dinero de cada consejería y cuánto ha gastado")
+    st.html(barras_dinero(entidades))
+    with st.expander("Gráficas por separado: porcentaje gastado y dinero sin gastar"):
+        st.markdown("**Porcentaje gastado**")
+        st.html(gasto_por_consejeria(entidades))
         sin_gastar = [e for e in entidades if e["sin_gastar"]]
         st.markdown("**Dinero sin gastar**")
         st.plotly_chart(
@@ -886,24 +960,24 @@ if liquidado:
             ),
             config=graficos_contexto.GRAFICO_CONFIG,
         )
-if burbujas:
-    with st.expander("Todas las consejerías, en una tabla", icon=":material/table:"):
-        st.dataframe(
-            [
-                {
-                    "Consejería u órgano": e["entidad"],
-                    "Disponible": textos.euros(e["credito"]),
-                    "Gastado": textos.euros(e["gastado"]) if liquidado else "Sin publicar",
-                    "% gastado": textos.porcentaje(e["llenado"], 1) if liquidado else "",
-                    "Contratos (Plataforma, sin IVA)": textos.euros(e["contratos_plataforma"]),
-                    "Contratos (portal, con IVA)": textos.euros(e["contratos_portal"]),
-                    "Subvenciones": textos.euros(e["subvenciones"]),
-                }
-                for e in entidades
-            ],
-            hide_index=True,
-            width="stretch",
-        )
+# la tabla de todas las consejerías, en las dos formas del mapa
+with st.expander("Todas las consejerías, en una tabla", icon=":material/table:"):
+    st.dataframe(
+        [
+            {
+                "Consejería u órgano": e["entidad"],
+                "Disponible": textos.euros(e["credito"]),
+                "Gastado": textos.euros(e["gastado"]) if liquidado else "Sin publicar",
+                "% gastado": textos.porcentaje(e["llenado"], 1) if liquidado else "",
+                "Contratos (Plataforma, sin IVA)": textos.euros(e["contratos_plataforma"]),
+                "Contratos (portal, con IVA)": textos.euros(e["contratos_portal"]),
+                "Subvenciones": textos.euros(e["subvenciones"]),
+            }
+            for e in entidades
+        ],
+        hide_index=True,
+        width="stretch",
+    )
 
 # Fuentes, matices y datos que no tenemos, abajo del todo (D-043).
 with st.expander("Fuentes y qué datos no tenemos", icon=":material/info:"):

@@ -30,6 +30,7 @@ from ojo_ciudadano.app import (
     senales,
     textos,
 )
+from ojo_ciudadano.app import burbujas as mapa_burbujas
 from ojo_ciudadano.app.conexion import conexion
 from ojo_ciudadano.ingesta import ine
 
@@ -163,7 +164,7 @@ def leyenda_burbujas(vista: str, liquidado: bool, niveles: int) -> str:
         )
     if niveles == 2:
         texto += "Las pequeñas son sus contratos más grandes del año. "
-    return texto + "Arrastra las burbujas y pulsa una para ver su ficha."
+    return texto + "Pasa el ratón por una burbuja para ver sus cifras y púlsala para ver su ficha."
 
 
 def _hijos_agrupados(indice: int, entidad: dict, agregados: dict, destinos: dict) -> list:
@@ -910,7 +911,15 @@ with izquierda:
             )
         )
         alto = 760
-    seleccion = red.mapa(nodos, enlaces, alto=alto)
+    if burbujas:
+        # burbujas con la estética de la presentación (D-047), dibujadas en un lienzo propio
+        marcada = st.session_state.get("mg_sel")
+        sel_id = next((k for k, v in destinos.items() if v == marcada), None)
+        seleccion = mapa_burbujas.mapa(
+            nodos, enlaces, alto, clave=f"mg_burbujas_{ampliada or 'todas'}", seleccionado=sel_id
+        )
+    else:
+        seleccion = red.mapa(nodos, enlaces, alto=alto)
     if seleccion and seleccion in destinos:
         st.session_state["mg_sel"] = destinos[seleccion]
     if ampliada is not None and not burbujas:

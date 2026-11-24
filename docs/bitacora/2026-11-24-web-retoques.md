@@ -31,3 +31,13 @@
 
 - Lucas sigue con más cambios.
 - Cuando estén revisados, integrar con `feat/web-ligera` y `main`.
+
+## Segunda tanda (D-047)
+
+- Mapa de burbujas redibujado en un lienzo propio con la estética de la presentación (`app/burbujas.py`): cristal, líquido con superficie ondulada, motas de luz por las líneas, cuadro al pasar el ratón y clic que abre la ficha.
+- Barra única por consejería: dinero disponible con lo gastado dentro, en HTML. Las dos gráficas anteriores quedan en «Gráficas por separado».
+- Pie: aviso legal plegado y el logo centrado al final. En el Inicio, solo el logo.
+- Logo arriba en todas las pantallas menos el Inicio.
+- Buscadores de las fichas como barra.
+- Arreglado: volver al Inicio después de buscar llevaba otra vez a la ficha.
+- Comprobado en Chrome: el mapa con burbujas, el clic en Sanidad (sale su ficha), la barra, el pie, la cabecera y la vuelta al Inicio después de buscar «hospital».

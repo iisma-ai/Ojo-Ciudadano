@@ -867,3 +867,35 @@ Plantilla:
 - **Consecuencias:**
   - Los dos parches de iframes (buscador y mapa) dependen de que los componentes sigan siendo del mismo origen.
   - Una base generada antes de D-036 no tiene `adjudicatario_ente_publico` y «Contratos a revisar» falla. Se arregla con `uv run python -m ojo_ciudadano.ingesta.invente` y `uv run python -m ojo_ciudadano.indicadores.ejecutor`.
+
+## D-047 · Mapa de burbujas dibujado como en la presentación, barra de dinero sin Plotly y pie sencillo
+
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada (Lucas: «mira la diferencia entre el gráfico de las burbujas que has dibujado en la presentación y el que hay luego realmente en la página web… no tienes por qué usar Plotly»). En la rama `feat/web-retoques`, sobre D-046.
+- **Autor:** Claude (agente), a petición de Lucas
+- **Contexto:** En el Mapa del dinero, las burbujas eran imágenes SVG dentro de `streamlit-agraph` (vis-network): planas y muy lejos de las de la presentación. Debajo había dos gráficas, una en HTML y otra en Plotly, que repetían información. El pie tenía demasiadas cosas sueltas.
+- **Decisión:**
+  - **Burbujas en un lienzo propio** (`app/burbujas.py`, un componente `components.v2` que corre en la página):
+    - **Cristal:** borde que se aclara (Fresnel) y un arco de reflejo suave, sin manchas de dibujo animado.
+    - **Líquido:** sube hasta lo gastado, con la superficie en perspectiva y ondulada.
+    - **Entrada:** al abrir el mapa, el líquido sube y las burbujas crecen.
+    - **Movimiento:** las burbujas flotan y unas motas de luz recorren las líneas.
+    - **Interacción:** cuadro al pasar el ratón y clic que abre la ficha.
+    - **Sin tarjeta gráfica (D-044) o con «reducir movimiento»:** se dibuja quieto.
+    - Mismas escalas de tamaño y color que `red.mapa`. Los frascos siguen en `streamlit-agraph`.
+  - **Una sola barra por consejería** (`barras_dinero`, HTML y CSS):
+    - el largo es todo su dinero del año;
+    - dentro, lo gastado en azul intenso, y lo que queda sin gastar en cristal claro;
+    - a la derecha, el porcentaje y lo que queda sin gastar.
+
+    Las dos gráficas anteriores quedan en un desplegable «Gráficas por separado».
+  - **Plotly** se queda para las gráficas del asistente y las secundarias. Las importantes se hacen a mano.
+  - **Pie:** el desplegable «Aviso legal, metodología y fuentes» lleva dentro el aviso corto, las notas de la pantalla y las fechas de descarga. Debajo, lo último y centrado, el logo con el nombre. En el Inicio, solo el logo.
+  - **Cabecera:** en el Inicio, solo el nombre (el logo grande está debajo); en las demás pantallas, el logo y el nombre.
+  - **Buscadores:** los de las fichas también como barra de búsqueda. Al ir a una ficha desde el Inicio se olvida la búsqueda: antes, volver al Inicio llevaba otra vez a la ficha.
+- **Alternativas consideradas:**
+  - Three.js, como en la presentación: más peso y dependencia de un CDN en la web. El lienzo 2D consigue el mismo lenguaje (cristal, líquido, luz) sin dependencias y sin tarjeta gráfica.
+  - Arrastrar las burbujas: se pierde. El diseño radial ya no se pisa y el clic es lo que importa.
+- **Consecuencias:**
+  - El mapa de burbujas ya no depende de `streamlit-agraph`.
+  - Las etiquetas se dibujan en el lienzo. Lo accesible sigue estando en la tabla de todas las consejerías.

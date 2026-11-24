@@ -1553,13 +1553,15 @@ def _consejeria(con: duckdb.DuckDBPyConnection, texto: str) -> str | None:
     return mejor
 
 
-_EMPRESAS: dict[int, dict[str, list[tuple[str, str, str]]]] = {}
+_EMPRESAS: dict[str, dict[str, list[tuple[str, str, str]]]] = {}
 
 
 def _empresas(con: duckdb.DuckDBPyConnection) -> dict[str, list[tuple[str, str, str]]]:
     """Primera palabra del nombre normalizado → [(nombre normalizado, NIF, nombre)] de las
-    empresas y entidades con contratos, de más a menos contratos (una vez por conexión)."""
-    if id(con) not in _EMPRESAS:
+    empresas y entidades con contratos, de más a menos contratos. Se calcula una vez por base
+    (la web abre un cursor nuevo en cada consulta: la clave es la base, no el cursor)."""
+    base = con.execute("SELECT current_database()").fetchone()[0]
+    if base not in _EMPRESAS:
         filas = con.execute(
             """
             SELECT d.nombre, d.nif
@@ -1575,8 +1577,8 @@ def _empresas(con: duckdb.DuckDBPyConnection) -> dict[str, list[tuple[str, str, 
             clave = normalizar(nombre).strip()
             if clave:
                 tabla.setdefault(clave.split()[0], []).append((clave, nif, nombre))
-        _EMPRESAS[id(con)] = tabla
-    return _EMPRESAS[id(con)]
+        _EMPRESAS[base] = tabla
+    return _EMPRESAS[base]
 
 
 def _empresa_de(con: duckdb.DuckDBPyConnection, original: str) -> tuple[str, str] | None:

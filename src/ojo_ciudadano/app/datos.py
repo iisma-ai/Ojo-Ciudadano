@@ -6,13 +6,13 @@ tests puedan usar una base sintética en memoria. Las personas físicas no tiene
 
 import duckdb
 
+from ojo_ciudadano.app import cache
 from ojo_ciudadano.normalizacion.nif import PATRON_EMPRESA
 
 
 def _filas(con: duckdb.DuckDBPyConnection, sql: str, parametros: list | None = None) -> list[dict]:
-    cursor = con.execute(sql, parametros or [])
-    columnas = [d[0] for d in cursor.description]
-    return [dict(zip(columnas, fila, strict=True)) for fila in cursor.fetchall()]
+    """Filas como diccionarios; en la web salen de la caché (app/cache.py)."""
+    return cache.filas(con, sql, parametros)
 
 
 # NIF con forma de DNI o NIE, también con erratas (sin el cero inicial, una cifra de más).

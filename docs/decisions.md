@@ -458,3 +458,105 @@ Plantilla:
 - **Alternativas:** mantener el tema plano anterior; tema claro.
 - **Consecuencias:** `static/estilo.css`, `.streamlit/config.toml`, `red.svg_nodo` y los bordes de `graficos.py`. Los selectores de Streamlit pueden cambiar con la versión: si algo deja de verse de cristal, revisar `estilo.css`. Sin animación con `prefers-reduced-motion`.
 
+## D-035 · Nombres de los CPV y entes del sector público (INVENTE) como contexto
+- **Fecha:** 2026-11-23
+- **Estado:** Aceptada (El Harrak: «empieza por los CPV y mira INVENTE», tras el análisis de datos libres del 23-nov). Numerada D-033 en su rama; pasó a D-035 al fusionar `main`, donde D-033 y D-034 ya eran del mapa de un vistazo y de la estética.
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** Las 17.589 licitaciones de PLACSP traen su código CPV, pero la web y el asistente solo enseñaban el número. Además, entre los adjudicatarios hay entes públicos (universidades, fundaciones del sector público, sociedades mercantiles públicas) que aparecen como «empresas» en las fichas. DIR3 ([13](13-fuentes-externas.md), X-05) ya se había estudiado, pero cubre sobre todo unidades de las administraciones y el cruce era por nombre.
+- **Decisión:**
+  - **CPV:**
+    - tabla aditiva `cpv` (`sql/esquema/008_cpv.sql`) con los 9.454 códigos y su nombre oficial en español;
+    - viene de la lista CODICE de la Plataforma de Contratación (`CPV2008-2.04.gc`), que es la misma con la que PLACSP clasifica: casan los 1.963 códigos distintos de la base;
+    - la de TED pide pasar una comprobación de robots, y no se fuerza.
+  - **INVENTE:**
+    - tabla aditiva `entidad_sector_publico` (`009_sector_publico.sql`) con los 4.602 entes con NIF del inventario de la IGAE;
+    - se baja con una sola petición a su API pública, documentada en el YAML de la aplicación;
+    - se cruza con `adjudicatario.nif`.
+  - **Uso:**
+    - **ficha de contrato:** el objeto CPV con su sector;
+    - **ficha de empresa:** si el NIF es de un ente público, aviso «Ente del sector público, no una empresa privada», con su forma jurídica y la administración de la que depende. Si el nombre del adjudicatario no se parece al del inventario, solo una nota: puede ser un nombre abreviado o un error de NIF en la fuente;
+    - **asistente:** las dos tablas, en la lista permitida y con sus reglas.
+  - **No cambia ningún indicador** (lo hace después D-036). Excluir los entes públicos de R-04 (concentración) o de la puntuación de empresa sería un cambio de metodología: queda para decidirlo en equipo.
+- **Alternativas consideradas:**
+  - DIR3, cuyo cruce era por nombre y no trae fundaciones ni sociedades.
+  - Consultar INVENTE NIF a NIF: unas 2.000 peticiones, frente a una.
+  - Los nombres del CPV desde TED: protegidos por la comprobación de robots.
+- **Consecuencias:**
+  - **Datos:** `uv run python -m ojo_ciudadano.ingesta.cpv` y `uv run python -m ojo_ciudadano.ingesta.invente` bajan y cargan cada tabla en la base ya construida. `modelo.carga` las incluye si están en `data/raw/`.
+  - **Resultado del cruce (23-nov):** 261 adjudicatarios con NIF de un ente público, con unas 4.200 adjudicaciones y unos 121 M€ con IVA y 40 M€ sin IVA. De ellos, 235 tienen el nombre compatible y 26 no: siglas, nombres abreviados o errores de NIF de la fuente, como «PIXELWARE, S.A.» con el NIF de Planifica Madrid.
+
+## D-036 · CPV y entes del sector público en R-04, en la puntuación de empresa y en los atípicos
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada (El Harrak: «haz la 1, la 2 y la 3. Además de llevar todo a las anomalías y a los indicadores»). Es un cambio de metodología el día de la demo H3: el equipo debe conocerlo antes de fusionarlo, y se puede deshacer revirtiendo la rama `feat/datos-nuevos-modelos`.
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** D-035 trajo los nombres de los CPV y el inventario INVENTE solo como contexto. R-04 decía en sus limitaciones que no distinguía mercados por CPV (D-013), y unos 200 entes públicos (universidades, fundaciones, sociedades públicas) tenían puntuación de empresa como si fueran empresas privadas.
+- **Decisión:**
+  - **R-04:**
+    - en PLACSP, el mercado es fuente + órgano + tipo + **división CPV** (dos primeras cifras); el portal regional no publica CPV y sigue con órgano + tipo;
+    - los entes del sector público **cuentan en el mercado** (se llevan parte del importe) pero **no activan** la señal: un contrato cuyos adjudicatarios son todos entes públicos no es aplicable;
+    - la ficha (E-04) dibuja el mismo mercado y nombra la división.
+  - **Qué es un ente público aquí:** un adjudicatario cuyo NIF está en INVENTE **y cuyo nombre se parece** al del inventario. El ejecutor de indicadores lo guarda en la tabla derivada `adjudicatario_ente_publico` (235 adjudicatarios). Si el nombre no cuadra, suele ser un NIF de otra entidad puesto por error en la fuente (D-035, como PIXELWARE con el NIF de Planifica Madrid), y se sigue tratando como empresa privada: un error de la fuente no debe apagar sus señales.
+  - **Puntuación de empresa:** los entes públicos conservan su ficha y sus contratos, pero `puntuacion_empresa[_anio]` les deja la puntuación vacía y los marca con `sector_publico`. Sus contratos siguen contando en el órgano.
+  - **Atípicos (D-021):**
+    - en las licitaciones de PLACSP, el grupo de pares se divide por división CPV;
+    - una división con menos de 50 contratos va a «otras divisiones CPV»; si ese resto no llega a 50, o ninguna división llega, el tipo no se divide.
+  - **Validación de atípicos:** grupo nuevo «Adjudicados a entes del sector público (INVENTE)» en `anomalia_validacion`. No es variable del modelo.
+  - **No se llevan al modelo ni a los indicadores:**
+    - las resoluciones del Tribunal, que son la única referencia externa para validar los atípicos (D-031);
+    - los pliegos, porque tener o no PDF depende de cómo publica cada portal y no del contrato.
+  - **Asistente:** preguntas B-35 a B-37 en la batería, y reglas sobre el CPV y los entes públicos.
+- **Alternativas consideradas:**
+  - Sacar los entes públicos del mercado de R-04. Inflaría la cuota de las demás empresas.
+  - Quitarles la ficha de empresa. Se perdía el aviso de D-035 y la lista de sus contratos.
+  - Dividir por CPV todos los grupos. El portal regional no lo trae, y las divisiones pequeñas se quedaban sin pares.
+  - Grupo CPV de 3 o 4 cifras. Haría mercados aún más pequeños.
+- **Consecuencias (recalculado el 24-nov con la base del 16-nov):**
+  - **R-04 en PLACSP:**
+    - de 14.537 a 11.686 contratos aplicables, porque más mercados quedan por debajo de 10 contratos o 3 adjudicatarios;
+    - de 29 a 92 activados, con 22 en común;
+    - en el portal regional, 54 antes y 54 después, todos los mismos;
+    - los entes públicos no activaban R-04 ni antes.
+  - **Puntuación de órgano:** cambia en 83 de 131 órganos, con 0,10 de diferencia máxima, porque cambia R-04.
+  - **Puntuación de empresa:** 209 entes públicos con contratos puntuados pasan a no tener puntuación. Antes algunos estaban arriba, como la Fábrica Nacional de Moneda y Timbre (0,42) o Renfe Viajeros (0,42).
+  - **Atípicos de PLACSP:**
+    - de 151 a 165, con 97 en común;
+    - 48 grupos en vez de 14;
+    - el total sigue en el 1 %.
+  - **Validación:**
+    - recursos estimados: 0 de 55 atípicos (igual que antes);
+    - solo desestimados o inadmitidos: 10 de 174 (5,7 %, antes 4,6 %);
+    - entes públicos: 5 de 3.961 (0,13 %).
+    - El CPV no hace que los atípicos se acerquen más a los recursos estimados.
+  - **Batería:** B-35 a B-37 con `openai/gpt-6.1-terra` (0,028 USD). Las tres bien, B-35 tras corregir su referencia para que use la misma definición de año que B-06.
+  - **Riesgo:** la comparación de nombres puede fallar en los dos sentidos. Por un lado, una sigla puede no cuadrar con el nombre completo: un ente público, como ASERPINTO o CEDEX, se tratará como empresa. Por otro, una empresa con una palabra en común con el ente se tratará como ente. El primer error es el más prudente, porque conserva las señales.
+  - **Instalaciones:** `ingesta.cpv` e `ingesta.invente` antes de `indicadores.ejecutor` y `anomalias.deteccion`. Sin esas tablas, el ejecutor las crea vacías y todo funciona como antes de D-036.
+
+## D-037 · Un solo asistente: respuestas preparadas primero y el modelo como respaldo
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada (El Harrak: «que el asistente RAG y SQL sean el mismo […] es mejor si es hardcodeado […] y si no, deberíamos dejarlo al modelo que hemos elegido»).
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** Había dos pantallas para preguntar. «Preguntas guiadas» tenía 4 consultas verificadas en un desplegable. «Asistente» era el modelo de lenguaje con SQL, catálogo, pliegos y resoluciones. Para la demo se quería una sola pantalla, que respondiera sin modelo todo lo que la base permite responder de antemano y que enseñara qué hace mientras consulta.
+- **Decisión:**
+  - **Una sola pantalla, «Asistente».** «Preguntas guiadas» desaparece del menú y su contenido pasa a la lista «Preguntas con respuesta preparada».
+  - **Primero, las respuestas preparadas** (`asistente/respuestas_fijas.py`), con 43 preguntas:
+    - 26 de datos. Usan el SQL verificado de la batería y de las antiguas preguntas guiadas, más 5 consultas nuevas: importe por fuente y año, empresas con más importe, señales por indicador, atípicos por grupo y organismos con más menores. El texto está escrito de antemano y se rellena con las cifras del resultado y la cita de su fuente.
+    - 17 sin consulta: conceptos (contrato menor, señal, puntuación, atípico, fuentes, IVA y cada indicador) y límites (calificar de irregular, personas físicas, otras administraciones, instrucciones al asistente).
+  - **Cómo se reconocen:** palabras clave, sin modelo. Hacen falta todas las de la pregunta y ninguna de sus exclusiones.
+    - El año, la consejería o la empresa (por NIF o por el principio de su nombre) se leen de la pregunta.
+    - Un año fuera de 2023–2026, o una consejería o empresa que no está en la base, pasan al modelo.
+    - Ante la duda, contesta el modelo. La pantalla dice qué pregunta preparada se reconoció y ofrece «que responda el modelo».
+  - **Después, el modelo** (D-010), con las mismas herramientas y filtros de retención.
+  - **Animaciones** (`app/animacion.py`, `asistente/plano.py`), solo con CSS y quietas con «reducir movimiento»:
+    - mientras corre una consulta, las tablas que lee, sus uniones con la clave y los pasos (filtrar, agrupar, ordenar), sacados del árbol del SQL;
+    - mientras se buscan documentos, páginas que se recorren;
+    - la respuesta aparece palabra a palabra, también cuando no hay consulta.
+  - El agente avisa a la interfaz antes de usar cada herramienta (`al_usar`) para cambiar la animación.
+- **Alternativas consideradas:**
+  - Clasificar la pregunta con el modelo antes de decidir. Cuesta una llamada por pregunta y depende de la red.
+  - Parecido por vectores con las preguntas preparadas. Sin vectores en el proyecto, y menos explicable.
+  - Dejar dos pantallas.
+- **Consecuencias:**
+  - **Coste:** las preguntas frecuentes no gastan saldo, responden en unos 2 segundos y funcionan sin clave del modelo.
+  - **Mantenimiento:** una pregunta preparada nueva necesita su SQL, su texto y sus palabras clave, con test.
+  - **Riesgo:** reconocer mal una pregunta da una respuesta correcta a otra pregunta. Por eso se enseña siempre la pregunta reconocida y se puede pedir el modelo.
+  - Los textos preparados pasan los mismos filtros de lenguaje que los del modelo (tests).

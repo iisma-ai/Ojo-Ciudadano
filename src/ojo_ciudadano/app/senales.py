@@ -61,9 +61,13 @@ def frase_y_grafico(con: duckdb.DuckDBPyConnection, indicador: str, contrato_id:
             return None, None
         quien = d["partes"][0]["nombre"]
         cuota = textos.porcentaje(d["cuota"])
+        mercado = f"contratos de {d['tipo']}"
+        if d.get("division"):
+            nombre = f" ({d['nombre_division'].lower()})" if d.get("nombre_division") else ""
+            mercado += f" de la división CPV {d['division']}{nombre}"
         frase = (
             f"{quien} recibe el **{cuota}** del importe que {d['organo']} ha adjudicado "
-            f"en contratos de {d['tipo']} ({d['n_empresas']} empresas en total)."
+            f"en {mercado} ({d['n_empresas']} adjudicatarios en total)."
         )
         return frase, graficos.reparto(d)
     if indicador in ("R-05", "R-06"):
@@ -131,6 +135,13 @@ def tarjeta_contrato(con: duckdb.DuckDBPyConnection, fila: dict, prefijo: str) -
         )
         if not desplegable.open:
             return
+        objeto = datos_flujos.cpv_contrato(con, fila["contrato_id"])
+        if objeto:
+            st.caption(
+                f"Objeto (CPV {objeto['codigo']}): {objeto['nombre']} · sector: "
+                f"{objeto['nombre_division']}. Clasificación oficial de la Plataforma de "
+                "Contratación del Sector Público."
+            )
         if encontradas:
             columnas = st.columns(2) if len(encontradas) > 1 else [st.container()]
             for n, indicador in enumerate(encontradas):

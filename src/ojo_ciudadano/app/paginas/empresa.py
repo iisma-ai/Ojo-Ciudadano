@@ -44,6 +44,26 @@ id_ = ficha["adjudicatario_id"]
 
 st.subheader(ficha["nombre"])
 st.caption(f"NIF {ficha['nif']}" if ficha["nif"] else "Unión temporal de empresas")
+publico = datos_flujos.sector_publico(con, ficha["nif"], ficha["nombre"])
+if publico:
+    fuente_invente = (
+        f"Fuente: [Inventario de Entes del Sector Público (INVENTE)]({publico['url_origen']}), "
+        f"Intervención General de la Administración del Estado, descargado el "
+        f"{publico['fecha_descarga']}."
+    )
+    if publico["nombre_compatible"]:
+        st.info(
+            f"**Ente del sector público**, no una empresa privada: {publico['forma_juridica']}"
+            f" ({publico['administracion'] or 'administración sin indicar'}). Los contratos "
+            f"entre entes públicos tienen otras reglas. {fuente_invente}",
+            icon=":material/account_balance:",
+        )
+    else:
+        st.caption(
+            f"El NIF de esta ficha corresponde en el inventario del sector público a "
+            f"«{publico['nombre']}» ({publico['forma_juridica']}). Puede ser un nombre "
+            f"abreviado o un error de NIF en la fuente de los contratos. {fuente_invente}"
+        )
 
 # --- Cifras ---
 subvenciones = datos.subvenciones_empresa(con, id_)

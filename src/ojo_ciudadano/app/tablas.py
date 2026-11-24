@@ -1,4 +1,4 @@
-"""Tabla de resultados de una consulta del asistente, compartida por «Preguntas guiadas» y
+"""Tabla de resultados de una consulta del asistente, compartida por las respuestas preparadas y
 «Asistente»: proporciones en porcentaje, importes con separador de miles y enlaces clicables."""
 
 import streamlit as st

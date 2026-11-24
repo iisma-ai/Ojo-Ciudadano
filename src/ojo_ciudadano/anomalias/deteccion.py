@@ -6,7 +6,11 @@ No entra en la puntuación de riesgo (D-020) hasta validarla. «Atípico» no es
 haber explicaciones legítimas (un contrato grande, un mercado con un único proveedor posible…).
 
 Grupo de pares = fuente + licitación o menor + tipo de contrato. Se separa por fuente porque
-PLACSP da importes sin IVA y el portal regional con IVA (nunca se mezclan bases).
+PLACSP da importes sin IVA y el portal regional con IVA (nunca se mezclan bases). En las
+licitaciones de PLACSP, además, por división del CPV (D-036): un suministro de material
+sanitario (33) se compara con otros de material sanitario y no con los de oficina (30). Una
+división con menos de MIN_GRUPO contratos va a «otras divisiones CPV» de su tipo, y si ese resto
+también es pequeño, el tipo no se divide. El portal regional no publica CPV.
 
 Variables (todas ya están en la base):
   * importe adjudicado (en escala logarítmica),
@@ -23,11 +27,14 @@ Datos de D-027 a D-029 (D-031):
   * Encargos a medios propios (D-028): no son contratos licitados, así que no se mezclan con
     ellos; forman su propio grupo de pares («portal_cm · encargo») con importe, modificaciones
     y cuota del medio propio en lo que encarga el órgano. Resultado aparte: `anomalia_encargo`.
-    * Recursos ante el TACPCM (D-029) y fondos europeos (D-027): **no son variables**. En un
+  * Recursos ante el TACPCM (D-029) y fondos europeos (D-027): **no son variables**. En un
     recurso estimado el Tribunal dio la razón, total o parcialmente, a quien recurrió el acto:
     **validar** la señal (¿hay más atípicos entre los contratos con recurso estimado?), y
     usarlo como variable haría que el modelo solo aprendiera a marcar los recurridos. Los
     fondos europeos no indican nada sobre el riesgo. Ambos van a `anomalia_validacion`.
+  * Entes del sector público de INVENTE (D-036): tampoco son variable (ser un ente público no
+    hace raro un contrato); son otro grupo de `anomalia_validacion`, para ver si el modelo los
+    marca más o menos que al resto.
 
 Uso: uv run python -m ojo_ciudadano.anomalias.deteccion
 """
@@ -38,6 +45,8 @@ import duckdb
 import numpy as np
 import polars as pl
 from sklearn.ensemble import IsolationForest
+
+from ojo_ciudadano.indicadores import ejecutor
 
 RAIZ = Path(__file__).resolve().parents[3]
 RUTA_DB = RAIZ / "data" / "ojo_ciudadano.duckdb"
@@ -67,6 +76,8 @@ WITH adjudicaciones AS (
     SELECT
         c.contrato_id, c.fuente, c.es_menor, c.tipo_contrato, c.organo_id, c.url_origen,
         c.fecha_contrato,
+        CASE WHEN c.fuente = 'placsp' AND NOT c.es_menor THEN substr(c.cpv, 1, 2) END
+            AS division,
         CASE WHEN c.fuente = 'placsp' THEN c.presupuesto_sin_iva
              ELSE c.presupuesto_con_iva END AS presupuesto,
         a.adjudicatario_id,
@@ -108,6 +119,7 @@ SELECT
     a.fuente || ' · ' || CASE WHEN a.es_menor THEN 'menor' ELSE 'licitación' END
         || ' · ' || lower(a.tipo_contrato) AS grupo,
     any_value(a.es_menor) AS es_menor,
+    any_value(a.division) AS division,
     any_value(a.url_origen) AS url_origen,
     sum(a.importe) AS importe,
     min(a.n_ofertas) AS n_ofertas,
@@ -217,6 +229,12 @@ VALIDACION = [
         "tipo_resolucion IN ('Estimatoria', 'Estimatoria parcial'))",
     ),
     (
+        "Adjudicados a entes del sector público (INVENTE)",
+        "adjudicatario_ente_publico",
+        "r.contrato_id IN (SELECT a.contrato_id FROM adjudicacion AS a "
+        "JOIN adjudicatario_ente_publico AS e USING (adjudicatario_id))",
+    ),
+    (
         "Licitaciones de PLACSP con fondos europeos",
         "contrato_financiacion",
         "r.contrato_id IN (SELECT contrato_id FROM contrato_financiacion WHERE financiado_ue)",
@@ -229,17 +247,24 @@ VALIDACION = [
 ]
 
 
+TABLA_ORIGEN = {"adjudicatario_ente_publico": "entidad_sector_publico"}
+
+
 def validar(con: duckdb.DuckDBPyConnection) -> pl.DataFrame:
     """Proporción de atípicos y puntuación de riesgo media por grupo de validación, en
     `anomalia_validacion`. Es una comprobación descriptiva, no un entrenamiento: si la señal
     sirve, los contratos con recurso estimado deberían ser atípicos más a menudo que el 1 %."""
     filas = []
+    if _hay_tabla(con, "entidad_sector_publico"):
+        ejecutor.marcar_entes_publicos(con)  # al día aunque no se hayan recalculado indicadores
     con_puntuacion = _hay_tabla(con, "puntuacion_contrato")
     puntuacion_sql = "avg(p.puntuacion)" if con_puntuacion else "NULL"
     union = "LEFT JOIN puntuacion_contrato AS p USING (contrato_id)" if con_puntuacion else ""
     for nombre, tabla, condicion in VALIDACION:
         if tabla and not _hay_tabla(con, tabla):
             continue
+        # La tabla derivada de entes públicos no tiene fecha: se toma la del inventario.
+        origen = TABLA_ORIGEN.get(tabla, tabla) or "contrato_unico"
         n, atipicos, puntuacion = con.execute(
             f"""
             SELECT count(*), count_if(r.atipico), {puntuacion_sql}
@@ -254,9 +279,9 @@ def validar(con: duckdb.DuckDBPyConnection) -> pl.DataFrame:
                 "atipicos": atipicos,
                 "proporcion_atipicos": atipicos / n if n else None,
                 "puntuacion_riesgo_media": puntuacion,
-                "fuente": tabla or "contrato_unico",
+                "fuente": origen,
                 "fecha_descarga": con.execute(
-                    f"SELECT max(fecha_descarga) FROM {tabla or 'contrato_unico'}"
+                    f"SELECT max(fecha_descarga) FROM {origen}"
                 ).fetchall()[0][0],
             }
         )
@@ -277,9 +302,43 @@ def validar(con: duckdb.DuckDBPyConnection) -> pl.DataFrame:
     return resultado
 
 
+OTRAS_DIVISIONES = "otras divisiones CPV"
+
+
+def con_division_cpv(datos: pl.DataFrame) -> pl.DataFrame:
+    """Añade la división CPV al grupo de pares de las licitaciones de PLACSP (D-036).
+
+    Cada división con al menos MIN_GRUPO contratos es su propio grupo («… · CPV 33»); las demás
+    se juntan en «… · otras divisiones CPV». Si ese resto no llega a MIN_GRUPO, o si ninguna
+    división llega, el tipo de contrato no se divide, para no dejar contratos sin pares con los
+    que compararse."""
+    if "division" not in datos.columns:
+        return datos
+    n_division = pl.len().over("grupo", "division")
+    grupos = datos.with_columns(
+        pl.when(pl.col("division").is_null())
+        .then(None)
+        .when(n_division >= MIN_GRUPO)
+        .then(pl.lit("CPV ") + pl.col("division"))
+        .otherwise(pl.lit(OTRAS_DIVISIONES))
+        .alias("_sub")
+    )
+    resto = (pl.col("_sub") == OTRAS_DIVISIONES).sum().over("grupo")
+    propias = (pl.col("_sub").str.starts_with("CPV ")).sum().over("grupo")
+    # Sin ninguna división propia, «otras divisiones» sería el tipo entero: no se divide.
+    dividir = (propias > 0) & ((resto == 0) | (resto >= MIN_GRUPO))
+    return grupos.with_columns(
+        pl.when(pl.col("_sub").is_not_null() & dividir)
+        .then(pl.col("grupo") + " · " + pl.col("_sub"))
+        .otherwise(pl.col("grupo"))
+        .alias("grupo")
+    ).drop("_sub")
+
+
 def leer_variables(con: duckdb.DuckDBPyConnection) -> pl.DataFrame:
     """Una fila por contrato con su grupo de pares y sus variables."""
-    return con.sql(CONSULTA_VARIABLES).pl().sort("contrato_id")  # orden fijo: reproducible
+    datos = con.sql(CONSULTA_VARIABLES).pl().sort("contrato_id")  # orden fijo: reproducible
+    return con_division_cpv(datos)
 
 
 def _matriz(grupo: pl.DataFrame, variables: list[str]) -> np.ndarray:

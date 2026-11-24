@@ -23,7 +23,12 @@ FUENTES = (
     "[Base de Datos Nacional de Subvenciones]"
     "(https://www.infosubvenciones.es/bdnstrans/GE/es/concesiones) "
     "(origen de los datos de subvenciones: Intervención General de la Administración del "
-    "Estado). Contexto presupuestario y organizativo: [Catálogo de Datos Abiertos]"
+    "Estado). Recursos especiales: [Tribunal Administrativo de Contratación Pública de la "
+    "Comunidad de Madrid](https://www.comunidad.madrid/tacp/busquedaresoluciones). Entes del "
+    "sector público: [Inventario de Entes del Sector Público (INVENTE)]"
+    "(https://www.pap.hacienda.gob.es/invente2/pagMenuPrincipalV2.aspx), Intervención General "
+    "de la Administración del Estado. Contexto presupuestario y organizativo: "
+    "[Catálogo de Datos Abiertos]"
     "(https://datos.comunidad.madrid) y [Portal de Transparencia]"
     "(https://www.comunidad.madrid/transparencia) de la Comunidad de Madrid. "
     "Indicadores y puntuaciones: cálculo propio de Ojo Ciudadano."
@@ -81,8 +86,9 @@ AYUDA_INDICADOR = {
     "(obras). Solo cuentan los menores de al menos 6.050 € / 16.133,33 €. Pueden ser "
     "necesidades distintas.",
     "R-04": "Un adjudicatario recibe más del 50 % del importe que un órgano adjudica en un tipo "
-    "de contrato (si ese mercado tiene al menos 10 contratos y 3 empresas). Puede deberse a "
-    "exclusividad técnica o a un mercado pequeño.",
+    "de contrato y, en la Plataforma de Contratación, en la misma división CPV (si ese mercado "
+    "tiene al menos 10 contratos y 3 adjudicatarios). Los entes del sector público no la "
+    "activan. Puede deberse a exclusividad técnica o a un mercado pequeño.",
     "R-05": "Las modificaciones suman más del 20 % del importe adjudicado. La ley admite otras "
     "modificaciones justificadas; las prórrogas no se cuentan.",
     "R-06": "La baja es cuánto rebaja la oferta ganadora el presupuesto de licitación "
@@ -149,9 +155,9 @@ AVISO_ATIPICOS = (
 
 def nombre_grupo(grupo: str) -> str:
     """«placsp · menor · obras» → «Plataforma de Contratación del Sector Público · contrato
-    menor · obras»."""
+    menor · obras»; «… · CPV 33» → «… · división CPV 33» (D-036)."""
     fuente, _, resto = grupo.partition(" · ")
-    resto = resto.replace("menor", "contrato menor", 1)
+    resto = resto.replace("menor", "contrato menor", 1).replace("· CPV ", "· división CPV ")
     return f"{NOMBRES_FUENTE.get(fuente, fuente)} · {resto}"
 
 
@@ -196,7 +202,8 @@ SENAL_FRASE = {
     "que, sumados en 12 meses, pasan del importe máximo de un contrato menor. Puede ser normal "
     "si son compras distintas.",
     "R-04": "Una sola empresa recibe más de la mitad del importe que el organismo adjudica en "
-    "este tipo de contrato. Puede deberse a un proveedor único o a un mercado pequeño.",
+    "este tipo de contrato (en la Plataforma de Contratación, para el mismo tipo de objeto). "
+    "Puede deberse a un proveedor único o a un mercado pequeño.",
     "R-05": "Después de adjudicarlo, se añadieron modificaciones por más del 20 % del importe "
     "(sin contar prórrogas). La ley permite modificaciones justificadas.",
     "R-06": "La empresa ganó rebajando casi nada el precio de salida (0,5 % o menos, o incluso "

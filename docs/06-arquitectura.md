@@ -136,3 +136,8 @@ Cuando el equipo lo congele, cambiarlo requiere decisión registrada, porque blo
 ## Asistente
 
 `src/ojo_ciudadano/asistente/`: `sql_seguro.py` valida y ejecuta el SQL de solo lectura (conexión sin acceso a ficheros) `consultas_demo.py` guarda las consultas verificadas de las preguntas de demo `bateria.py` las 24 preguntas de prueba con su SQL o conjunto de referencia y la función que evalúa al modelo, `agente.py` el bucle del asistente (instrucciones, herramientas, corrección de errores), independiente del proveedor de LLM, `openrouter.py` el adaptador del proveedor (D-010) `texto.py` la búsqueda por palabras en títulos de contratos, convenios, convocatorias y encargos (tabla derivada `busqueda_texto` con índice BM25) y `catalogo.py` el RAG de catálogo (D-030): búsqueda BM25 en los metadatos del catálogo de datos abiertos (caché en `data/raw/catalogo/`) y consulta del CSV de un conjunto en una base en memoria sin acceso a ficheros, y `documentos.py` el RAG documental (D-030, bloques B y C): búsqueda por páginas, con BM25, en los pliegos de una licitación o en las resoluciones del Tribunal. La pantalla está en `app/paginas/asistente.py`. Detalle y reglas en [05-asistente.md](05-asistente.md).
+
+**D-036 (24-nov):**
+- Antes de los indicadores, `indicadores.ejecutor` crea vacías `cpv` y `entidad_sector_publico` si faltan.
+- También rehace la tabla derivada `adjudicatario_ente_publico`: NIF en INVENTE y nombre compatible.
+- La usan R-04, `900_puntuacion.sql` (columna `sector_publico`), la validación de atípicos y la ficha E-04.

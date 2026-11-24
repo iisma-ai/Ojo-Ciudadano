@@ -243,9 +243,9 @@ def test_pasar_bateria_con_un_modelo_que_usa_las_referencias(con, monkeypatch):
             }
 
     evaluaciones = agente.pasar_bateria(con, modelo, catalogo_=CatalogoFalso())
-    assert len(evaluaciones) == 34  # B-31 a B-34: pliegos y resoluciones (D-030, B y C)
+    assert len(evaluaciones) == 37  # B-31 a B-34: pliegos y resoluciones; B-35 a B-37: D-036
     de_datos = [e for e in evaluaciones if e["datos_ok"] is not None]
-    assert len(de_datos) == 27
+    assert len(de_datos) == 29
     assert all(e["datos_ok"] for e in de_datos), [e for e in de_datos if not e["datos_ok"]]
 
 
@@ -262,3 +262,19 @@ def test_con_clave_usa_openrouter_sin_llamar_todavia(monkeypatch):
     monkeypatch.setattr(openrouter, "hay_clave", lambda: True)
     monkeypatch.setattr(openrouter, "modelo_elegido", lambda: "proveedor/modelo")
     assert callable(agente.modelo_configurado())
+
+
+def test_avisa_de_cada_herramienta_antes_de_usarla(con):
+    vistas = []
+
+    def al_usar(llamada):
+        vistas.append(llamada)
+        raise RuntimeError("la animación falla")  # no debe romper la respuesta
+
+    modelo = Guion(
+        LlamadaSQL("SELECT count(*) AS n, 'Portal' AS fuente FROM contrato_unico"),
+        TextoFinal("Hay 2 contratos (fuente: portales oficiales)."),
+    )
+    r = agente.responder(con, modelo, "¿Cuántos contratos hay?", al_usar=al_usar)
+    assert [type(v) for v in vistas] == [LlamadaSQL]
+    assert r.completa and len(r.consultas) == 1

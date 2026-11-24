@@ -23,6 +23,7 @@ Formato neutro de la conversación (lista de diccionarios):
   {"rol": "modelo", "contenido": str}        respuesta final del modelo
 """
 
+import contextlib
 import json
 import re
 from collections.abc import Callable
@@ -271,13 +272,18 @@ DESCRIPCION_TABLAS = {
         "el año del contrato; importe es solo un peso (mezcla bases con y sin IVA)."
     ),
     "puntuacion_empresa_contrato": (
-        "Puntuación de cada contrato por adjudicatario (sin personas físicas)."
+        "Puntuación de cada contrato por adjudicatario (sin personas físicas). sector_publico "
+        "marca los entes del sector público de INVENTE."
     ),
     "puntuacion_organo": (
         "Por órgano: contratos, contratos con alertas, puntuación media y ponderada por importe."
     ),
     "puntuacion_organo_anio": "Como puntuacion_organo, por año.",
-    "puntuacion_empresa": "Por adjudicatario (sin personas físicas): igual que puntuacion_organo.",
+    "puntuacion_empresa": (
+        "Por adjudicatario (sin personas físicas): igual que puntuacion_organo. Los entes del "
+        "sector público (sector_publico) tienen la puntuación vacía: no se comparan con empresas "
+        "(D-036)."
+    ),
     "puntuacion_empresa_anio": "Como puntuacion_empresa, por año.",
     "contrato_financiacion": (
         "Licitaciones de PLACSP con fondos europeos: financiado_ue (true/false) y programas_ue "
@@ -340,6 +346,19 @@ busca con ILIKE y avisa.
 nombre ni NIF en la base y solo se muestran agregadas. Muestra nombres solo si tipo_persona IN \
 ('juridica', 'ute').
 - Importes con decimales en euros. Proporciones entre 0 y 1 (multiplica por 100 para porcentajes).
+- Objeto del contrato: contrato_unico.cpv (código de 8 cifras del Vocabulario Común de Contratos \
+Públicos) solo viene en las licitaciones de PLACSP; el portal regional no lo trae. Para su nombre, \
+JOIN cpv ON cpv.codigo = c.cpv; para agrupar por sector, usa cpv.division y cpv.nombre_division \
+(p. ej. 33 = equipamiento médico). Da el nombre junto al código y, en un resumen por CPV, avisa \
+de que los contratos del portal regional no entran porque no lo publican. R-04 y los grupos de \
+pares de los atípicos usan la división del CPV en PLACSP (D-036).
+- Adjudicatarios que son entes públicos (universidades, fundaciones del sector público, \
+sociedades mercantiles públicas, organismos autónomos): JOIN entidad_sector_publico s ON s.nif = \
+d.nif (inventario INVENTE de la Intervención General del Estado). No son empresas privadas: dilo \
+si aparecen en un ranking de empresas. No activan R-04 y no tienen puntuación de empresa \
+(puntuacion_empresa.sector_publico, D-036). Si el nombre del adjudicatario no se parece al del \
+inventario, puede ser un error de NIF de la fuente: dilo y no lo afirmes. Cita «Inventario de \
+Entes del Sector Público (INVENTE), Intervención General de la Administración del Estado».
 """
 
 REGLAS_RESPUESTA = """\
@@ -623,6 +642,10 @@ class Respuesta:
     avisos: list[str] = field(default_factory=list)  # para revisar (lenguaje, DNI, cifras)
     completa: bool = True  # False si se agotaron las llamadas sin respuesta final
     retencion: str | None = None  # RETENCION_*: la interfaz no muestra el texto ni los datos
+    # Respuesta preparada (D-037): el id y la pregunta reconocida, y cómo se interpretó.
+    preparada: str | None = None
+    pregunta_preparada: str | None = None
+    interpretacion: dict = field(default_factory=dict)
 
 
 # Cifras con euros, porcentaje o separador de miles: no deberían salir sin consulta.
@@ -767,11 +790,13 @@ def responder(
     pregunta: str,
     historial: list[dict] | None = None,
     catalogo_=catalogo,
+    al_usar: Callable[[Llamada], None] | None = None,
 ) -> Respuesta:
     """Responde a una pregunta. `historial` son los mensajes de usuario y modelo de turnos
     anteriores, para preguntas de seguimiento («¿y en 2024?»). Una pregunta con un DNI o NIE
     no llega al modelo (el proveedor es externo). `catalogo_` permite sustituir el catálogo en
-    los tests."""
+    los tests. `al_usar` recibe cada herramienta antes de usarla: la interfaz la anima (D-037);
+    si falla, la respuesta sigue."""
     if bateria.PATRON_DNI.search(pregunta):
         return Respuesta(PREGUNTA_CON_DNI)
     sistema = instrucciones(con)
@@ -783,6 +808,9 @@ def responder(
             texto = _sin_terminos_acusatorios(modelo, sistema, mensajes, salida.texto)
             return _cerrar(texto, consultas, errores, completa=True)
         mensajes.append(mensaje_llamada(salida))
+        if al_usar is not None:
+            with contextlib.suppress(Exception):
+                al_usar(salida)
         try:
             resultado, para_modelo = _usar_herramienta(con, salida, catalogo_)
         except (
@@ -813,7 +841,7 @@ def responder(
         mensajes.append({"rol": "resultado", "contenido": para_modelo})
     texto = (
         "No he podido completar la respuesta con consultas válidas. Prueba a reformular la "
-        "pregunta o consulta las preguntas guiadas."
+        "pregunta o elige una de las preguntas con respuesta preparada."
     )
     return _cerrar(texto, consultas, errores, completa=False)
 
@@ -835,7 +863,7 @@ def pasar_bateria(con: duckdb.DuckDBPyConnection, modelo: Modelo, catalogo_=cata
 def modelo_configurado() -> Modelo | None:
     """El modelo de lenguaje conectado (D-010): OpenRouter con el modelo principal y uno de
     respaldo, o el de `LLM_MODEL` si está en el entorno o en `.env`. None si no hay clave, y
-    entonces la interfaz remite a las preguntas guiadas."""
+    entonces la interfaz solo da las respuestas preparadas (D-037)."""
     from ojo_ciudadano.asistente import openrouter  # importa este módulo: evitar el ciclo
 
     if not openrouter.hay_clave():

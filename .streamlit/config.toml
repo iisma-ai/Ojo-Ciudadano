@@ -9,16 +9,16 @@ gatherUsageStats = false
 [theme]
 base = "dark"
 primaryColor = "#3D8BFD"
-backgroundColor = "#0B1120"
-secondaryBackgroundColor = "#131C2E"
+backgroundColor = "#041627"
+secondaryBackgroundColor = "#0B2236"
 textColor = "#E7ECF3"
 linkColor = "#7DB3FF"
-borderColor = "#24314A"
+borderColor = "#1E3A52"
 showWidgetBorder = true
 baseRadius = "0.6rem"
-font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
 codeFont = "'JetBrains Mono', ui-monospace, monospace"
 
 [theme.sidebar]
-backgroundColor = "#0E1626"
-secondaryBackgroundColor = "#131C2E"
+backgroundColor = "#06202F"
+secondaryBackgroundColor = "#0B2236"

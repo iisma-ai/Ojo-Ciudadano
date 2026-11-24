@@ -1,4 +1,4 @@
--- Ampliación aditiva del esquema v1 (D-017, D-033): entes del sector público institucional
+-- Ampliación aditiva del esquema v1 (D-017, D-035): entes del sector público institucional
 -- (INVENTE, IGAE) con su NIF, para reconocer los adjudicatarios que son entes públicos y no
 -- empresas privadas. Es contexto: no cambia ninguna tabla ni ningún indicador. Se cruza con
 -- adjudicatario.nif; un NIF que casa con un nombre muy distinto suele ser un error de la fuente.

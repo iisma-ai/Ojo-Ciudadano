@@ -2,7 +2,7 @@
 Estado): estatal, autonómico y local, con su NIF y su forma jurídica.
 
 Sirve para reconocer qué adjudicatarios son entes públicos (universidades, fundaciones del sector
-público, sociedades mercantiles públicas, organismos autónomos…) y no empresas privadas (D-033).
+público, sociedades mercantiles públicas, organismos autónomos…) y no empresas privadas (D-035).
 Es contexto: no es una señal ni cambia ningún indicador.
 
 Fuente: la API pública de INVENTE (`/Invente2/api/EntidadesSPI_ConFiltros` sin filtros devuelve

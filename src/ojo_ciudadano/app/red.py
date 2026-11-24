@@ -16,13 +16,13 @@ from streamlit_agraph import Config, Edge, Node, agraph
 from ojo_ciudadano.app.graficos import TEXTO
 from ojo_ciudadano.app.textos import euros
 
-FONDO = "#0B1120"
+FONDO = "#041627"
 VACIO = "#33415C"  # parte sin gastar (gris azulado; contraste con el fondo)
-LINEA = "#5B6B86"
+LINEA = "#4F9CC0"  # líneas de agua
 BORDE = "#E7ECF3"
 COLOR_POCO = (0x1F, 0x5F, 0xBF)  # azul oscuro: poco dinero
 COLOR_MUCHO = (0x8C, 0xC2, 0xFF)  # azul claro: mucho dinero
-RADIO_MIN, RADIO_MAX = 16, 64
+RADIO_MAX = 64  # radio del círculo central (la Comunidad o la consejería)
 
 
 @dataclass
@@ -36,6 +36,9 @@ class NodoRed:
     detalle: str = ""
     titulo: str | None = None  # nombre completo, para el cuadro que sale al pasar el ratón
     centro: bool = False
+    grupo: str = "ent"  # escala de tamaño y color propia: ent, con o agr
+    x: float | None = None  # posición inicial (diseño radial); None = que la decida la física
+    y: float | None = None
     color: str | None = None  # fuerza un color (p. ej. el nodo central)
     extra: dict = field(default_factory=dict)
 
@@ -51,34 +54,42 @@ def _mezcla(t: float) -> str:
     return f"#{r:02X}{g:02X}{b:02X}"
 
 
-def _radio(importe: float, maximo: float) -> float:
-    if maximo <= 0 or importe <= 0:
-        return RADIO_MIN
-    return RADIO_MIN + (RADIO_MAX - RADIO_MIN) * math.sqrt(min(importe / maximo, 1.0))
-
-
 def svg_nodo(color: str, llenado: float | None, centro: bool = False) -> str:
-    """Círculo con el relleno de abajo arriba en `color` y el resto en gris (data URI)."""
+    """Burbuja de cristal (data URI): el líquido en `color` sube hasta lo gastado y el resto queda
+    como cristal gris azulado. Sin manchas de brillo: solo un velo de luz muy suave arriba, el borde
+    algo más claro (efecto Fresnel) y una línea fina en la superficie del líquido."""
     lado = 100
-    if llenado is None:
-        relleno = lado  # sin dato de gasto: todo del color
-        parte = ""
-    else:
-        relleno = lado * (1 - min(max(llenado, 0.0), 1.0))
-        parte = ""
     base = VACIO if llenado is not None else color
-    borde = BORDE if centro else "#9FB0CC"
-    ancho = 5 if centro else 3
+    parte = ""
     if llenado is not None:
+        nivel = lado * (1 - min(max(llenado, 0.0), 1.0))
         parte = (
-            f'<rect x="0" y="{relleno:.1f}" width="{lado}" height="{lado - relleno:.1f}" '
-            f'fill="{color}" clip-path="url(#c)"/>'
+            f'<g clip-path="url(#c)"><rect x="0" y="{nivel:.1f}" width="{lado}" '
+            f'height="{lado - nivel:.1f}" fill="url(#l)"/>'
+            f'<rect x="0" y="{nivel:.1f}" width="{lado}" height="1.2" fill="#fff" '
+            'fill-opacity=".35"/></g>'
         )
     svg = (
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{lado}" height="{lado}" '
-        f'viewBox="0 0 {lado} {lado}"><defs><clipPath id="c"><circle cx="50" cy="50" r="47"/>'
-        f'</clipPath></defs><circle cx="50" cy="50" r="47" fill="{base}"/>{parte}'
-        f'<circle cx="50" cy="50" r="47" fill="none" stroke="{borde}" stroke-width="{ancho}"/>'
+        f'viewBox="0 0 {lado} {lado}"><defs>'
+        '<clipPath id="c"><circle cx="50" cy="50" r="47"/></clipPath>'
+        '<linearGradient id="l" x1="0" y1="0" x2="0" y2="1">'
+        f'<stop offset="0" stop-color="{color}"/>'
+        f'<stop offset="1" stop-color="{color}" stop-opacity=".75"/></linearGradient>'
+        # borde más claro que el centro, como un cristal de verdad
+        '<radialGradient id="f" cx="50%" cy="50%" r="50%"><stop offset=".72" stop-color="#dff4ff" '
+        'stop-opacity="0"/><stop offset="1" stop-color="#dff4ff" stop-opacity=".32"/>'
+        "</radialGradient>"
+        # velo de luz que entra desde arriba
+        '<linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" '
+        'stop-opacity=".16"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/>'
+        "</linearGradient>"
+        "</defs>"
+        f'<circle cx="50" cy="50" r="47" fill="{base}"/>{parte}'
+        '<circle cx="50" cy="50" r="47" fill="url(#f)"/>'
+        '<circle cx="50" cy="50" r="47" fill="url(#s)"/>'
+        f'<circle cx="50" cy="50" r="46.5" fill="none" stroke="#e6f6ff" '
+        f'stroke-opacity="{0.55 if centro else 0.3}" stroke-width="{1.6 if centro else 1}"/>'
         "</svg>"
     )
     return "data:image/svg+xml;base64," + base64.b64encode(svg.encode()).decode()
@@ -93,24 +104,57 @@ def _titulo(n: NodoRed) -> str:
     return "\n".join(lineas)
 
 
-def configuracion(alto: int = 560) -> Config:
-    """Física suave: los nodos se separan, las líneas tiran y todo se recoloca al arrastrar."""
+# Radio mínimo y máximo de cada grupo de nodos: cada grupo tiene su propia escala de tamaño y de
+# color (los contratos de una consejería no se comparan con el dinero de la consejería).
+ESCALAS = {"ent": (18.0, 56.0), "con": (10.0, 30.0), "agr": (14.0, 34.0)}
+
+
+def posiciones_radiales(
+    n: int, radio: float, inicio: float = -math.pi / 2
+) -> list[tuple[float, float]]:
+    """`n` puntos repartidos por igual en una circunferencia alrededor del origen."""
+    return [
+        (
+            radio * math.cos(inicio + 2 * math.pi * i / n),
+            radio * math.sin(inicio + 2 * math.pi * i / n),
+        )
+        for i in range(n)
+    ]
+
+
+def alternar_tamanos(items: list) -> list:
+    """Ordena de mayor a menor y los intercala (grande, pequeño, grande…) para que dos círculos
+    grandes no queden pegados en la circunferencia."""
+    ordenados = list(items)
+    resultado = []
+    while ordenados:
+        resultado.append(ordenados.pop(0))
+        if ordenados:
+            resultado.append(ordenados.pop())
+    return resultado
+
+
+def configuracion(alto: int = 720) -> Config:
+    """Física suave que parte del diseño radial: al arrastrar un nodo tiran los conectados y al
+    soltar vuelve a asentarse cerca de donde estaba."""
     cfg = Config(height=alto, width=1000, directed=True, physics=True)
     cfg.width = "100%"
     cfg.physics = {
         "enabled": True,
         "solver": "forceAtlas2Based",
         "forceAtlas2Based": {
-            "gravitationalConstant": -75,
-            "centralGravity": 0.02,
-            "springLength": 150,
-            "springConstant": 0.07,
-            "damping": 0.55,
-            "avoidOverlap": 0.9,
+            "gravitationalConstant": -4,
+            "centralGravity": 0.0,
+            "springLength": 120,
+            "springConstant": 0.09,
+            "damping": 0.8,
+            "avoidOverlap": 1.0,
         },
-        "stabilization": {"enabled": True, "iterations": 250, "fit": True},
+        "maxVelocity": 30,
+        "minVelocity": 0.6,
+        "stabilization": {"enabled": False},
     }
-    cfg.layout = {"randomSeed": 7, "improvedLayout": True}  # mismo dibujo en cada recarga
+    cfg.layout = {"randomSeed": 7, "improvedLayout": False}
     cfg.interaction = {
         "zoomView": False,  # sin zoom: solo se mueven los nodos
         "dragView": False,
@@ -123,38 +167,47 @@ def configuracion(alto: int = 560) -> Config:
     cfg.edges = {
         "width": 2,  # todas las líneas iguales
         "color": {"color": LINEA, "highlight": LINEA, "hover": LINEA},
-        "arrows": {"to": {"enabled": True, "scaleFactor": 0.6}},
-        "smooth": {"enabled": True, "type": "dynamic"},
+        "arrows": {"to": {"enabled": True, "scaleFactor": 0.5}},
+        "smooth": {"enabled": True, "type": "continuous"},
         "selectionWidth": 0,
         "hoverWidth": 0,
     }
     return cfg
 
 
+def _escala(nodos: list[NodoRed], grupo: str) -> tuple[float, float]:
+    """Mayor y menor importe de un grupo (sin los nodos con color propio)."""
+    valores = [n.importe for n in nodos if n.grupo == grupo and not n.centro and n.color is None]
+    valores = valores or [n.importe for n in nodos if n.grupo == grupo and not n.centro]
+    positivos = [v for v in valores if v > 0]
+    return max(valores, default=0.0), min(positivos, default=0.0)
+
+
 def mapa(
     nodos: list[NodoRed],
-    enlaces: list[tuple[str, str]],
-    alto: int = 560,
+    enlaces: list[tuple],
+    alto: int = 720,
 ) -> str | None:
-    """Dibuja el mapa y devuelve el `id` del nodo pulsado (None si no se ha pulsado ninguno)."""
+    """Dibuja el mapa y devuelve el `id` del nodo pulsado (None si no se ha pulsado ninguno).
+    Cada enlace es `(origen, destino)` o `(origen, destino, longitud)`."""
     if not nodos:
         return None
-    # La escala de tamaño y color usa solo los nodos "normales": los que llevan un color propio
-    # (agregados como «contratos menores») no deforman la escala de los demás.
-    normales = [n for n in nodos if not n.centro and n.color is None] or [
-        n for n in nodos if not n.centro
-    ]
-    maximo = max((n.importe for n in normales), default=0.0)
-    minimo = min((n.importe for n in normales if n.importe > 0), default=0.0)
+    escalas = {g: _escala(nodos, g) for g in {n.grupo for n in nodos}}
     elementos = []
     for n in nodos:
+        minimo_r, maximo_r = ESCALAS.get(n.grupo, ESCALAS["ent"])
+        maximo, minimo = escalas[n.grupo]
         if n.centro:
-            radio = RADIO_MAX + 14
+            radio = RADIO_MAX + 6
             color = n.color or _mezcla(1.0)
         else:
-            radio = _radio(n.importe, maximo)
+            if maximo <= 0 or n.importe <= 0:
+                radio = minimo_r
+            else:
+                radio = minimo_r + (maximo_r - minimo_r) * math.sqrt(min(n.importe / maximo, 1.0))
             t = 0.5 if maximo == minimo else max((n.importe - minimo) / (maximo - minimo), 0)
             color = n.color or _mezcla(math.sqrt(max(t, 0.0)))
+        posicion = {} if n.x is None or n.y is None else {"x": n.x, "y": n.y}
         elementos.append(
             Node(
                 id=n.id,
@@ -163,19 +216,24 @@ def mapa(
                 shape="image",
                 image=svg_nodo(color, n.llenado, n.centro),
                 size=radio,
+                mass=6 if n.centro else 1,
                 font={
                     "color": TEXTO,
-                    "size": 15 if n.centro else 13,
+                    "size": 15 if n.centro else (11 if n.grupo != "ent" else 13),
                     "face": "Inter, sans-serif",
                     "strokeWidth": 4,
                     "strokeColor": FONDO,
                     "multi": False,
                 },
-                fixed=False,
+                fixed={"x": True, "y": True} if n.centro else False,
                 shapeProperties={"useBorderWithImage": False},
+                **posicion,
             )
         )
-    lineas = [Edge(source=a, target=b, color=LINEA, width=2) for a, b in enlaces]
+    lineas = []
+    for e in enlaces:
+        largo = {"length": e[2]} if len(e) > 2 else {}
+        lineas.append(Edge(source=e[0], target=e[1], color=LINEA, width=2, **largo))
     return agraph(nodes=elementos, edges=lineas, config=configuracion(alto))
 
 

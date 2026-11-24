@@ -137,7 +137,7 @@ def pliegos_contrato(con: duckdb.DuckDBPyConnection, contrato_id: str) -> list[d
 
 
 def cpv_contrato(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | None:
-    """Código CPV del contrato (o de su fila de PLACSP) con su nombre oficial (D-033)."""
+    """Código CPV del contrato (o de su fila de PLACSP) con su nombre oficial (D-035)."""
     if not hay_tabla(con, "cpv"):
         return None
     filas = _filas(
@@ -155,7 +155,7 @@ def cpv_contrato(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | Non
 
 
 def sector_publico(con: duckdb.DuckDBPyConnection, nif: str | None, nombre: str | None):
-    """El ente del sector público (INVENTE, D-033) con ese NIF, si lo hay, y si su nombre se
+    """El ente del sector público (INVENTE, D-035) con ese NIF, si lo hay, y si su nombre se
     parece al del adjudicatario (`nombre_compatible`)."""
     from ojo_ciudadano.ingesta.invente import nombres_compatibles
 

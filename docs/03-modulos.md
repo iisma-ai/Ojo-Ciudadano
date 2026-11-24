@@ -10,9 +10,9 @@ Cinco módulos; los cinco entran en la demo, dos de ellos en versión simplifica
 | **Panel de alertas** | Contratos ordenados por puntuación de riesgo, con el motivo de cada alerta | ¿Qué contratos merece la pena revisar primero? | Sí, simplificado |
 | **Asistente de investigación** | Preguntas en lenguaje natural sobre todo lo anterior, con respuestas citadas | Cualquier pregunta ad hoc | Sí, con preguntas de demo preparadas |
 
-## Mapa general (D-026)
+## Mapa general (D-026, D-033)
 
-Pantalla principal. La Comunidad de Madrid en el centro y sus consejerías y órganos alrededor, en un mapa de nodos arrastrable (`app/red.py`): tamaño y color = dinero, relleno = parte gastada, gris = sin gastar. Selector de periodo y de vista (presupuesto y gasto, contratos, subvenciones). Al pulsar una consejería salen sus contratos más grandes del año y al pulsar un contrato, su ficha con ofertas, procedimiento, adjudicataria y el porcentaje que supone del dinero de la consejería. Dice explícitamente qué datos no tenemos. El «Mapa del dinero» usa el mismo componente.
+Pantalla principal. De un vistazo: la Comunidad de Madrid en el centro, sus consejerías y órganos en círculo y, si se quiere, los contratos más grandes de cada una, en un mapa de nodos arrastrable (`app/red.py`, diseño radial calculado para que nada se corte). Tamaño y color = dinero, relleno = parte gastada, gris = sin gastar. Selector de periodo, de vista (presupuesto y gasto, contratos, subvenciones) y de **niveles** (solo consejerías, o consejerías y sus contratos, con 1 a 5 por consejería y menores y subvenciones agrupados opcionales). Al pulsar un círculo, su ficha aparece a la derecha: consejería (disponible, gastado, sin gastar, parte de la Comunidad) o contrato (importe, ofertas, cómo se contrató, adjudicataria, señales, porcentaje del dinero de la consejería y enlace). Dice explícitamente qué datos no tenemos. El «Mapa del dinero» usa el mismo diseño.
 
 ## Búsqueda y filtros (D-025)
 

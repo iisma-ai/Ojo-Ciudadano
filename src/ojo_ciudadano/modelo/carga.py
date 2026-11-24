@@ -406,9 +406,9 @@ def construir(
         )
     if (
         cpv.FICHERO.exists()
-    ):  # nombres de los CPV (D-033): `uv run python -m ojo_ciudadano.ingesta.cpv`
+    ):  # nombres de los CPV (D-035): `uv run python -m ojo_ciudadano.ingesta.cpv`
         tablas["cpv"] = cpv.leer()
-    # Entes del sector público (D-033): `uv run python -m ojo_ciudadano.ingesta.invente`.
+    # Entes del sector público (D-035): `uv run python -m ojo_ciudadano.ingesta.invente`.
     if invente.FICHERO.exists():
         tablas["entidad_sector_publico"] = invente.leer()
     escribir(tablas, ruta_db)

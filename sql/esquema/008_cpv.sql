@@ -1,4 +1,4 @@
--- Ampliación aditiva del esquema v1 (D-017, D-033): nombres oficiales de los códigos CPV
+-- Ampliación aditiva del esquema v1 (D-017, D-035): nombres oficiales de los códigos CPV
 -- (Reglamento (CE) 213/2008), de la lista CODICE de la Plataforma de Contratación. Es un
 -- diccionario para leer `contrato.cpv`: no cambia ninguna tabla ni ningún indicador.
 

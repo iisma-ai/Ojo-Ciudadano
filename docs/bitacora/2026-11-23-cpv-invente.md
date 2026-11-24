@@ -1,4 +1,4 @@
-# 2026-11-23 · Nombres de los CPV y entes del sector público (D-033)
+# 2026-11-23 · Nombres de los CPV y entes del sector público (D-035)
 
 **Quién:** El Harrak, con Claude (agente). **Rama:** `feat/cpv-invente`.
 
@@ -26,5 +26,5 @@ Tras el análisis de datos libres que podían aportar algo al proyecto, se eligi
 
 ## Siguiente paso
 - Decidir en equipo si los entes públicos dejan de contar en R-04 y en la puntuación de empresa, porque es un cambio de metodología.
-- Al fusionar `feat/mapa-vistazo`, renumerar su decisión a D-034.
+- La decisión de esta sesión pasó de D-033 a D-035 al fusionar `main` (24-nov), porque D-033 y D-034 ya eran del mapa de un vistazo y de la estética.
 - En cada instalación: `ingesta.cpv` e `ingesta.invente`.

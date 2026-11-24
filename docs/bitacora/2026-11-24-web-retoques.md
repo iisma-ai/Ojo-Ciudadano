@@ -79,3 +79,9 @@
 - Logo a la izquierda del título del Inicio; arriba solo el nombre en el Inicio.
 - Buscador entre el mapa y «Qué ofrecemos».
 - El aviso de las señales y las fuentes pasan de la portada a «Contratos a revisar».
+
+## Sexta tanda, 25-nov (D-052 y D-053)
+
+- Tarjetas de «Qué ofrecemos» pulsables enteras (comprobado: un clic en una zona vacía de la tarjeta lleva a «Contratos a revisar»).
+- Mapa del dinero: «Presupuesto 2025» en una barra (total, gastado y sin gastar). Lo de cada habitante, en un desplegable al final.
+- Portada: el mapa de burbujas con la animación de la presentación (ondas dentro, perlas de luz en las líneas y la cifra en el centro), comparado en Chrome con la escena 4 de la presentación.

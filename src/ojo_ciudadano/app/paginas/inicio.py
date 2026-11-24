@@ -187,9 +187,17 @@ def que_hace() -> None:
         if mapa is None:
             return
         nodos, enlaces, destinos = burbujas.vista_previa(
-            mapa["entidades"], mapa["principales"], textos.millones, n_entidades=8, con_contratos=3
+            mapa["entidades"],
+            mapa["principales"],
+            textos.millones,
+            anio=mapa["anio"],
+            n_entidades=8,
+            con_contratos=3,
         )
-        pulsado = burbujas.mapa(nodos, enlaces, alto=560, clave="inicio_mapa")
+        # con la animación de la presentación: ondas dentro y perlas de luz en las líneas (D-053)
+        pulsado = burbujas.mapa(
+            nodos, enlaces, alto=640, clave="inicio_mapa", estilo="presentacion"
+        )
         if pulsado and pulsado in destinos:
             tipo, referencia = destinos[pulsado]
             st.session_state["mg_sel"] = None if tipo == "todo" else (tipo, referencia)

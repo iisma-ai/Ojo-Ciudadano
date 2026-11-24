@@ -981,3 +981,28 @@ Plantilla:
     6. los contratos que destacan.
   - **Aviso y fuentes:** el aviso de que una señal no prueba nada y las fuentes de los contratos salen de la portada y pasan a la cabecera de «Contratos a revisar».
 - **Consecuencias:** las cifras de los destacados de la portada ya no llevan su enlace a la fuente en la misma pantalla; lo llevan «Contratos a revisar» y el pie de las demás pantallas. Hay que revisarlo con el equipo frente a la regla de «cada cifra enlaza a su fuente».
+
+## D-052 · Mapa del dinero: el presupuesto en una barra, lo primero
+
+- **Fecha:** 2026-11-25
+- **Estado:** Aceptada (Lucas: «lo primero tendría que salir el selector de año y luego ya el presupuesto general y el mapa»).
+- **Autor:** Claude (agente), a petición de Lucas
+- **Decisión:**
+  - Debajo del selector de año, «Presupuesto 2025» con el total y una sola barra llena hasta lo gastado, con una marca donde acaba. Debajo, lo gastado (y su %) y lo que quedó sin gastar. Sin frases.
+  - La tarjeta de la mascota con lo que tocaría a cada habitante pasa a un desplegable al final, «Si se repartiera entre todos los habitantes».
+  - En el Inicio, las tres tarjetas de «Qué ofrecemos» se pueden pulsar enteras: lo de dentro de la tarjeta deja de tener posición propia, para que el enlace se estire sobre toda ella.
+
+## D-053 · Portada: el mapa de burbujas con la animación de la presentación
+
+- **Fecha:** 2026-11-25
+- **Estado:** Aceptada (Lucas: «darles la misma animación con esas ondas y que las líneas que los unan tengan la misma dirección de puntos blancos»).
+- **Autor:** Claude (agente), a petición de Lucas
+- **Decisión:** el lienzo de `app/burbujas.py` tiene un segundo estilo, `estilo="presentacion"`, que solo usa la portada:
+  - burbujas de azul intenso con ondas de luz (cáusticas) que se mueven dentro, reflejos arriba y halo;
+  - líneas como collares de perlas de luz que avanzan de la burbuja grande a la pequeña;
+  - nombres en mayúsculas y espaciados, sin cifras debajo;
+  - la cifra total y «Comunidad de Madrid · año» dentro de la burbuja central;
+  - la burbuja central y las consejerías, algo más grandes.
+
+  El Mapa del dinero sigue con el estilo `mapa`, más sobrio y con cifras, porque ahí se lee y se compara.
+- **Consecuencias:** las cifras de cada consejería en la portada salen al pasar el ratón.

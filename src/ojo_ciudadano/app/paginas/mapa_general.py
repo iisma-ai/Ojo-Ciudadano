@@ -1,28 +1,30 @@
-"""Mapa general del dinero de la Comunidad de Madrid (D-026, D-033).
+"""Mapa general del dinero de la Comunidad de Madrid (D-026, D-033, D-038).
 
-De un vistazo: la Comunidad en el centro, sus consejerías alrededor y, si se quiere, los
-contratos más grandes de cada una. Tamaño y color = dinero; relleno = parte gastada (el resto,
-en gris). No hace falta entrar en ninguna consejería: se ve todo a la vez y, al pulsar un
-círculo, su ficha aparece a la derecha. Niveles elegibles: solo consejerías, o consejerías y sus
-contratos principales.
+Pensado para un ciudadano cualquiera: una frase con el dinero del año y lo gastado, lo que
+tocaría a cada habitante (con su figura) y un treemap de billetes donde cada bloque es una
+consejería y cada billete vale lo mismo, así que más dinero = más billetes (los grises, sin
+gastar). Al pulsar una consejería se ven sus contratos más grandes, también en billetes, y su
+ficha. El mapa de nodos de D-033 se conserva como vista avanzada («Más opciones»).
 Presupuesto y contratos son fuentes distintas: se comparan por consejería y año, no partida a
 partida. Lo que no tenemos se dice en la propia pantalla. Sin personas físicas (D-007).
 """
 
+import html
 import math
 
 import streamlit as st
 
 from ojo_ciudadano.app import (
+    billetes,
     datos,
     datos_contexto,
     datos_mapa,
-    graficos_contexto,
     red,
     senales,
     textos,
 )
 from ojo_ciudadano.app.conexion import conexion
+from ojo_ciudadano.ingesta import ine
 
 VISTAS = {
     "presupuesto": "Presupuesto y gasto",
@@ -57,6 +59,11 @@ def _principales(anio: int, n: int) -> dict:
 @st.cache_data(show_spinner=False, ttl=3600)
 def _agregados(anio: int) -> dict:
     return datos_mapa.menores_y_subvenciones(conexion(), anio)
+
+
+@st.cache_data(show_spinner=False, ttl=86400)
+def _poblacion() -> dict | None:
+    return ine.poblacion()
 
 
 @st.cache_data(show_spinner=False, ttl=3600)
@@ -376,31 +383,29 @@ def ficha_contrato(con, contrato_id: str, entidades: list[dict]) -> None:
     entidad = next(
         (e for e in entidades if e["organo_id"] == destino.get(detalle["organo_id"])), None
     )
-    st.subheader((detalle["titulo"] or "Contrato")[:140])
-    st.caption(f"{detalle['organo']} · {detalle['tipo_contrato'] or 'tipo sin dato'}")
+    st.subheader(detalle["adjudicatarios"] or "Contrato sin adjudicataria")
+    st.caption(
+        f"{(detalle['titulo'] or 'Contrato')[:160]} · {detalle['organo']} · "
+        f"{detalle['tipo_contrato'] or 'tipo sin dato'}"
+    )
     iva = textos.iva_fuente(detalle["fuente"])
     importe = detalle["importe_sin_iva"] or detalle["importe_con_iva"]
     presupuesto = detalle["presupuesto_sin_iva"] or detalle["presupuesto_con_iva"]
-    m = st.columns(2)
-    m[0].metric("Adjudicado", textos.millones(importe), help=f"Importe adjudicado, {iva}.")
-    m[1].metric(
-        "Licitación", textos.millones(presupuesto), help=f"Presupuesto de licitación, {iva}."
-    )
-    m = st.columns(2)
-    m[0].metric(
-        "Ofertas recibidas",
-        textos.numero(detalle["n_ofertas"]) if detalle["n_ofertas"] else "Sin dato",
-    )
+    lineas = [
+        f"- **Adjudicado:** {textos.euros(importe, iva)}",
+        f"- **Precio de salida (licitación):** {textos.euros(presupuesto, iva)}",
+        "- **Ofertas recibidas:** "
+        + (textos.numero(detalle["n_ofertas"]) if detalle["n_ofertas"] else "sin dato"),
+    ]
     if entidad:
-        m[1].metric(
-            "De la consejería",
-            textos.porcentaje((importe or 0) / entidad["credito"], 2),
-            help="Importe adjudicado sobre el dinero disponible de la consejería este año.",
+        lineas.append(
+            f"- **Parte del dinero de la consejería en el año:** "
+            f"{textos.porcentaje((importe or 0) / entidad['credito'], 2)}"
         )
+    st.markdown("\n".join(lineas))
     st.markdown(
         f"**Cómo se contrató:** {detalle['procedimiento'] or 'sin dato'}. "
-        f"**Estado:** {detalle['estado'] or 'sin dato'}. "
-        f"**Adjudicataria:** {detalle['adjudicatarios'] or 'sin dato'}."
+        f"**Estado:** {detalle['estado'] or 'sin dato'}."
     )
     st.caption(
         "Los datos abiertos no publican los criterios de adjudicación ni por qué se eligió a "
@@ -420,13 +425,350 @@ def ficha_contrato(con, contrato_id: str, entidades: list[dict]) -> None:
         )
 
 
+def vista_red(con, entidades, vista, datos_anio, anio, liquidado) -> None:
+    """Vista avanzada: el mapa de nodos de D-033, tal cual estaba."""
+    nombres = [e["entidad"] for e in entidades]
+    ampliada = st.session_state.get("mg_ampliada")
+    if ampliada not in nombres:
+        ampliada = None
+        st.session_state["mg_ampliada"] = None
+
+    if ampliada is None:
+        o1, o2, o3 = st.columns([3, 3, 3])
+        niveles = (
+            o1.segmented_control(
+                "Niveles", list(NIVELES), default=2, format_func=NIVELES.get, key="mg_niveles"
+            )
+            or 2
+        )
+        por_consejeria = o2.slider(
+            "Contratos por consejería",
+            1,
+            5,
+            3,
+            disabled=niveles == 1,
+            key="mg_contratos",
+            help="Cuántos de los contratos más grandes del año se dibujan junto a cada consejería.",
+        )
+        con_agrupados = o3.toggle(
+            "Añadir menores y subvenciones",
+            disabled=niveles == 1,
+            key="mg_agrupados",
+            help="Un círculo por consejería con sus contratos menores y otro con sus subvenciones.",
+        )
+    else:
+        st.button(
+            "Volver a todas las consejerías",
+            icon=":material/arrow_back:",
+            type="tertiary",
+            on_click=lambda: st.session_state.update(mg_ampliada=None, mg_sel=None),
+        )
+
+    izquierda, derecha = st.columns([5, 2])
+    with izquierda:
+        if ampliada is None:
+            principales = _principales(anio, por_consejeria) if niveles == 2 else {}
+            agregados = _agregados(anio) if (niveles == 2 and con_agrupados) else {}
+            nodos, enlaces, destinos = grafo_general(
+                entidades, vista, datos_anio, niveles, principales, agregados, con_agrupados
+            )
+            alto = ALTO_MAPA[niveles]
+            st.markdown(leyenda(vista, liquidado, niveles))
+        else:
+            entidad_amp = next(e for e in entidades if e["entidad"] == ampliada)
+            cuerpo = _de_la_consejeria(entidad_amp["organo_id"] or "", anio)
+            nodos, enlaces, destinos = grafo_ampliado(entidad_amp, cuerpo, datos_anio)
+            alto = 760
+            st.markdown(
+                f"Los **{len(cuerpo['contratos'])} contratos más grandes** de {anio} de "
+                f"{ampliada}, más los menores y las subvenciones agrupados. **Tamaño y color = "
+                "importe.** Arrastra los círculos y pulsa uno para ver su ficha."
+            )
+        seleccion = red.mapa(nodos, enlaces, alto=alto)
+        if seleccion and seleccion in destinos:
+            st.session_state["mg_sel"] = destinos[seleccion]
+
+    with derecha:
+        marcado = st.session_state.get("mg_sel")
+        if not marcado:
+            st.info(
+                "Pulsa un círculo del mapa y aquí verás su ficha: cuánto dinero tiene, cuánto ha "
+                "gastado y, si es un contrato, cómo se contrató y cuántas ofertas hubo.",
+                icon=":material/touch_app:",
+            )
+        else:
+            _ficha(con, marcado, entidades, datos_anio, anio, ampliada is not None)
+
+
+def _ficha(con, marcado: tuple, entidades, datos_anio, anio, ampliada: bool) -> None:
+    tipo, referencia = marcado
+    if tipo == "con":
+        ficha_contrato(con, referencia, entidades)
+        return
+    entidad = next((e for e in entidades if e["entidad"] == referencia), None)
+    if entidad is None:
+        st.info("Esa consejería no está en este periodo.")
+    elif tipo == "ent":
+        ficha_entidad(con, entidad, datos_anio, anio, ampliada)
+    else:
+        ficha_agrupado(con, tipo, entidad, anio)
+
+
+# ------------------------------------------------------------------------------ billetes
+def bloques_consejerias(entidades: list[dict], vista: str) -> list[billetes.Bloque]:
+    bloques = []
+    for indice, e in enumerate(entidades):
+        importe = importe_vista(e, vista)
+        if not importe or importe <= 0:
+            continue
+        detalle = ""
+        if vista == "presupuesto" and e["gastado"] is not None:
+            detalle = f"De media, unos {textos.millones(e['gastado'] / 365)} al día"
+        bloques.append(
+            billetes.Bloque(
+                id=f"ent:{indice}",
+                nombre=e["entidad"].replace("Consejería de ", "").replace("Consejería ", ""),
+                importe=importe,
+                gastado=e["llenado"] if vista == "presupuesto" else None,
+                detalle=detalle,
+            )
+        )
+    return bloques
+
+
+def bloques_contratos(cuerpo: dict) -> tuple[list[billetes.Bloque], dict]:
+    """Contratos más grandes de una consejería, uno por bloque. Los menores y las subvenciones
+    van aparte, en una línea: juntos pesarían tanto que aplastarían a los contratos."""
+    bloques, destinos = [], {}
+    for c in cuerpo["contratos"]:
+        id_con = f"con:{c['contrato_id']}"
+        destinos[id_con] = ("con", c["contrato_id"])
+        quien = (c["adjudicatarios"] or "Sin adjudicataria").split(" ; ")
+        nombre = quien[0] + (f" y {len(quien) - 1} más" if len(quien) > 1 else "")
+        bloques.append(
+            billetes.Bloque(
+                id=id_con,
+                nombre=nombre,
+                importe=c["importe"],
+                detalle=f"{(c['titulo'] or '')[:120]} ({textos.iva_fuente(c['fuente'])})",
+            )
+        )
+    return bloques, destinos
+
+
+def tarjeta_ciudadano(datos_anio: dict, anio: int, poblacion: dict | None) -> None:
+    """La frase principal del año y la figura con lo que tocaría a cada habitante."""
+    credito, liquidado = datos_anio["credito"], datos_anio["liquidado"]
+    if liquidado:
+        gastado = datos_anio["gastado"] or 0
+        de_cada = round(100 * gastado / credito) if credito else 0
+        frase = (
+            f"En <b>{anio}</b> la Comunidad de Madrid tuvo <b>{textos.millones(credito)}</b> "
+            f"(millones de euros) y gastó <b>{de_cada} de cada 100 €</b>."
+        )
+        barra = (
+            f'<div class="oc-barra" role="img" aria-label="Gastado: {de_cada} %">'
+            f'<div style="width:{min(de_cada, 100)}%"></div></div>'
+            f'<div class="oc-barra-pie"><span>Gastado: {textos.millones(gastado)}</span>'
+            f"<span>Sin gastar: {textos.millones(max(credito - gastado, 0))}</span></div>"
+        )
+    else:
+        frase = (
+            f"Para <b>{anio}</b> la Comunidad de Madrid aprobó un presupuesto de "
+            f"<b>{textos.millones(credito)}</b> (millones de euros). Cuánto se ha gastado se "
+            "sabrá cuando cierre el año."
+        )
+        barra = ""
+
+    por_persona, habitantes = "", ""
+    referencia = ine.del_anio(poblacion, anio) if poblacion else None
+    if referencia:
+        anio_pob, n_hab = referencia
+        euros_hab = round(credito / n_hab / 10) * 10
+        cifra = f"{euros_hab:,.0f}".replace(",", ".")
+        por_persona = (
+            f'<p class="oc-persona-txt">Si ese dinero se repartiera entre sus '
+            f"<b>{textos.numero(n_hab)} de habitantes</b>, a cada uno le tocarían unos</p>"
+            f'<p class="oc-persona-cifra">{cifra} €</p>'
+        )
+        habitantes = (
+            f'<div class="oc-habitantes">{billetes.svg_habitantes(n_hab / 1_000_000)}'
+            f"<span>Cada figura, un millón de habitantes (a 1 de enero de {anio_pob})</span></div>"
+        )
+    contenido = f"""
+<style>
+.oc-tarjeta {{ display:flex; gap:28px; align-items:center; flex-wrap:wrap;
+  padding:22px 26px; border-radius:18px; background:rgba(255,255,255,.045);
+  border:1px solid rgba(170,225,255,.16); box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+  font-family:Inter, sans-serif; color:#E7ECF3; }}
+.oc-tarjeta .texto {{ flex:1 1 360px; min-width:0; }}
+.oc-frase {{ font-size:1.45rem; line-height:1.45; margin:0 0 14px; font-weight:300; }}
+.oc-frase b {{ font-weight:650; color:#fff; }}
+.oc-barra {{ height:16px; border-radius:9px; background:#33415C; overflow:hidden; }}
+.oc-barra div {{ height:100%; border-radius:9px;
+  background:linear-gradient(90deg,#1E9E74,#3CC495); }}
+.oc-barra-pie {{ display:flex; justify-content:space-between; font-size:.85rem;
+  color:#93A1B8; margin-top:6px; }}
+.oc-persona-txt {{ margin:18px 0 0; color:#B9C6D8; font-size:1rem; }}
+.oc-persona-cifra {{ margin:0; font-size:3rem; font-weight:700; letter-spacing:-.02em;
+  background:linear-gradient(180deg,#fff,#7DB3FF); -webkit-background-clip:text;
+  background-clip:text; color:transparent; line-height:1.15; }}
+.oc-habitantes {{ display:flex; gap:12px; align-items:center; flex-wrap:wrap;
+  color:#93A1B8; font-size:.82rem; margin-top:6px; }}
+.oc-persona {{ width:210px; max-width:42vw; height:auto; flex:0 0 auto; }}
+.oc-salta {{ animation:salta 2.6s ease-in-out infinite; transform-origin:110px 216px; }}
+.abanico {{ animation:abanico 2.6s ease-in-out infinite; transform-origin:110px 60px; }}
+.cae {{ animation:cae 4.2s linear infinite; opacity:0; }}
+@keyframes salta {{ 0%,100% {{ transform:translateY(0) }} 50% {{ transform:translateY(-7px) }} }}
+@keyframes abanico {{ 0%,100% {{ transform:rotate(-3deg) }} 50% {{ transform:rotate(3deg) }} }}
+@keyframes cae {{ 0% {{ transform:translateY(-10px); opacity:0 }} 15% {{ opacity:.9 }}
+  85% {{ opacity:.9 }} 100% {{ transform:translateY(150px); opacity:0 }} }}
+@media (prefers-reduced-motion: reduce) {{
+  .oc-salta, .abanico {{ animation:none; }} .cae {{ animation:none; opacity:.8; }} }}
+@media (max-width: 640px) {{ .oc-frase {{ font-size:1.15rem; }}
+  .oc-persona-cifra {{ font-size:2.3rem; }} .oc-tarjeta {{ padding:16px; }} }}
+</style>
+<div class="oc-tarjeta">
+  {billetes.svg_ciudadano()}
+  <div class="texto">
+    <p class="oc-frase">{frase}</p>
+    {barra}
+    {por_persona}
+    {habitantes}
+  </div>
+</div>"""
+    billetes.pintar(contenido, clave=f"mb_tarjeta_{anio}")
+    fuentes = (
+        f"Fuente: [presupuesto en datos abiertos de la Comunidad de Madrid]"
+        f"({datos_anio['url_origen']}), descargado el {datos_anio['fecha_descarga']}"
+    )
+    if referencia:
+        fuentes += (
+            f" · [habitantes: Estadística Continua de Población del INE]"
+            f"({poblacion['url_origen']}), descargado el {poblacion['fecha_descarga']}"
+        )
+    st.caption(fuentes + ". El reparto por habitante es una forma de dar escala, no un pago.")
+
+
+def gasto_por_consejeria(entidades: list[dict]) -> str:
+    """Una línea por consejería: barra de lo gastado, porcentaje, lo que quedó y el gasto medio
+    diario. Ordenadas por dinero disponible."""
+    filas = []
+    for e in sorted(entidades, key=lambda e: -(e["credito"] or 0)):
+        if e["gastado"] is None or not e["credito"]:
+            continue
+        llenado = e["llenado"] or 0
+        nombre = html.escape(e["entidad"].replace("Consejería de ", ""))
+        filas.append(
+            f'<div class="oc-fila"><div class="oc-nombre">{nombre}</div>'
+            f'<div class="oc-mini" role="img" aria-label="Gastado {textos.porcentaje(llenado)}">'
+            f'<div style="width:{100 * llenado:.1f}%"></div></div>'
+            f'<div class="oc-dato"><b>{textos.porcentaje(llenado)}</b> gastado · '
+            f"quedan {textos.millones(e['sin_gastar'])} · "
+            f"unos {textos.millones(e['gastado'] / 365)} al día</div></div>"
+        )
+    return (
+        "<style>"
+        ".oc-fila{display:grid;grid-template-columns:minmax(150px,1.3fr) 2fr minmax(230px,1.5fr);"
+        "gap:14px;align-items:center;padding:7px 0;border-bottom:1px solid rgba(170,225,255,.08);"
+        "font-family:Inter,sans-serif;color:#E7ECF3;font-size:.92rem}"
+        ".oc-nombre{line-height:1.25}"
+        ".oc-mini{height:12px;border-radius:7px;background:#33415C;overflow:hidden}"
+        ".oc-mini div{height:100%;border-radius:7px;"
+        "background:linear-gradient(90deg,#1E9E74,#3CC495)}"
+        ".oc-dato{color:#93A1B8;font-size:.85rem}.oc-dato b{color:#E7ECF3}"
+        "@media (max-width:760px){.oc-fila{grid-template-columns:1fr;gap:4px}}"
+        "</style>" + "".join(filas)
+    )
+
+
+def vista_billetes(con, entidades, vista, datos_anio, anio) -> None:
+    """El treemap de billetes: todas las consejerías y, al pulsar una, sus contratos."""
+    nombres = [e["entidad"] for e in entidades]
+    elegida = st.session_state.get("mb_consejeria")
+    if elegida not in nombres:
+        elegida = None
+        st.session_state["mb_consejeria"] = None
+
+    if elegida is None:
+        bloques = bloques_consejerias(entidades, vista)
+        if not bloques:
+            st.info("No hay importes que mostrar en esta vista y periodo.")
+            return
+        valor = billetes.valor_billete(sum(b.importe for b in bloques))
+        billetes.pintar(
+            billetes.leyenda(valor, vista == "presupuesto" and datos_anio["liquidado"]),
+            clave="mb_leyenda",
+        )
+        pulsado = billetes.mostrar(bloques, valor, clave=f"mb_general_{anio}_{vista}", alto=540)
+        if pulsado and pulsado.startswith("ent:"):
+            st.session_state["mb_consejeria"] = entidades[int(pulsado[4:])]["entidad"]
+            st.session_state["mb_sel"] = None
+            st.rerun()
+        return
+
+    entidad = next(e for e in entidades if e["entidad"] == elegida)
+    cuerpo = _de_la_consejeria(entidad["organo_id"] or "", anio)
+    bloques, destinos = bloques_contratos(cuerpo)
+    izquierda, derecha = st.columns([5, 2])
+    with izquierda:
+        st.button(
+            "Volver a todas las consejerías",
+            icon=":material/arrow_back:",
+            type="tertiary",
+            on_click=lambda: st.session_state.update(mb_consejeria=None, mb_sel=None),
+        )
+        st.markdown(f"#### {elegida}: sus contratos más grandes de {anio}")
+        if not bloques:
+            st.info(
+                "De este órgano no tenemos contratos ni subvenciones con fecha de este año en "
+                "nuestras fuentes.",
+                icon=":material/info:",
+            )
+        else:
+            valor = billetes.valor_billete(sum(b.importe for b in bloques), objetivo=160)
+            billetes.pintar(billetes.leyenda(valor, False), clave="mb_leyenda_c")
+            pulsado = billetes.mostrar(
+                bloques,
+                valor,
+                clave=f"mb_consejeria_{anio}_{elegida}",
+                alto=520,
+                ancho=720,
+                con_cuota=False,
+            )
+            if pulsado in destinos:
+                tipo, ref = destinos[pulsado]
+                st.session_state["mb_sel"] = (tipo, ref or elegida)
+            st.caption(
+                "Cada bloque es un contrato; el nombre es la empresa que lo ganó. Los de la "
+                "Plataforma van sin IVA y los del portal, con IVA."
+            )
+        aparte = []
+        if cuerpo["menores"] and cuerpo["menores"]["importe"]:
+            m = cuerpo["menores"]
+            aparte.append(
+                f"**{textos.numero(m['n'])} contratos menores** por "
+                f"{textos.euros(m['importe'], 'con IVA')}"
+            )
+        if cuerpo["subvenciones"] and cuerpo["subvenciones"]["importe"]:
+            s = cuerpo["subvenciones"]
+            aparte.append(
+                f"**{textos.numero(s['n'])} subvenciones** por {textos.euros(s['importe'])}"
+            )
+        if aparte:
+            st.markdown(
+                f"Además, en {anio}: " + " y ".join(aparte) + ". Son tantos que no caben uno a "
+                "uno: míralos en **Contratos a revisar** o en la **Ficha de órgano**."
+            )
+    with derecha:
+        marcado = st.session_state.get("mb_sel")
+        _ficha(con, marcado or ("ent", elegida), entidades, datos_anio, anio, True)
+
+
 # ------------------------------------------------------------------------------ pantalla
 con = conexion()
-st.header("Mapa general del dinero")
-st.caption(
-    "Cuánto dinero tiene la Comunidad de Madrid, cómo se reparte entre sus consejerías y cuánto "
-    "han gastado, de un vistazo."
-)
+st.header("A dónde va el dinero")
+st.caption("El presupuesto de la Comunidad de Madrid, explicado con billetes.")
 
 periodos = datos_mapa.periodos(con)
 if not periodos:
@@ -439,14 +781,30 @@ if not periodos:
 
 anios = [p["anio"] for p in periodos]
 por_defecto = next((p["anio"] for p in periodos if p["liquidado"]), anios[0])
-c1, c2 = st.columns(2)
-anio = c1.segmented_control("Periodo", anios, default=por_defecto, key="mg_anio") or por_defecto
-vista = (
-    c2.segmented_control(
-        "Qué ver", list(VISTAS), default="presupuesto", format_func=VISTAS.get, key="mg_vista"
+liquidados = {p["anio"] for p in periodos if p["liquidado"]}
+c1, c2 = st.columns([3, 2])
+anio = (
+    c1.segmented_control(
+        "Año",
+        anios,
+        default=por_defecto,
+        format_func=lambda a: str(a) if a in liquidados else f"{a} (previsto)",
+        key="mg_anio",
     )
-    or "presupuesto"
+    or por_defecto
 )
+with c2.expander("Más opciones", icon=":material/tune:"):
+    vista = (
+        st.radio("Qué dinero ver", list(VISTAS), format_func=VISTAS.get, key="mg_vista")
+        or "presupuesto"
+    )
+    modo = st.radio(
+        "Cómo verlo",
+        ["billetes", "red"],
+        format_func={"billetes": "Billetes", "red": "Red de contratos (avanzada)"}.get,
+        key="mg_modo",
+    )
+
 datos_anio = _reparto(anio)
 entidades = datos_anio["entidades"]
 if not entidades:
@@ -454,138 +812,20 @@ if not entidades:
     st.stop()
 liquidado = datos_anio["liquidado"]
 
-# --- Cifras de arriba ---
-cifras = st.columns(4)
-cifras[0].metric(
-    "Dinero disponible" if liquidado else "Presupuesto inicial",
-    textos.millones(datos_anio["credito"]),
-    help="Crédito actual de todas las consejerías y órganos (presupuesto liquidado)."
-    if liquidado
-    else "Presupuesto inicial aprobado para el año.",
-)
+tarjeta_ciudadano(datos_anio, anio, _poblacion())
+
+st.subheader("¿A dónde van cada 100 €?" if vista == "presupuesto" else VISTAS[vista])
+if modo == "red":
+    vista_red(con, entidades, vista, datos_anio, anio, liquidado)
+else:
+    vista_billetes(con, entidades, vista, datos_anio, anio)
+
 if liquidado:
-    gastado, credito = datos_anio["gastado"], datos_anio["credito"]
-    cifras[1].metric(
-        "Gastado",
-        textos.millones(gastado),
-        delta=f"{textos.porcentaje(gastado / credito, 1)} del disponible",
-        delta_color="off",
-        help="Obligaciones reconocidas: gasto ya comprometido por la Administración.",
-    )
-    cifras[2].metric("Sin gastar", textos.millones(max(credito - gastado, 0)))
-    cifras[3].metric(
-        "Pagado",
-        textos.millones(datos_anio["pagado"]),
-        help="Pagos realizados sobre las obligaciones reconocidas.",
-    )
-else:
-    cifras[1].metric("Gastado", "Sin publicar")
-    cifras[2].metric("Sin gastar", "Sin publicar")
-    cifras[3].metric("Pagado", "Sin publicar")
-    st.info(
-        f"Todavía no hay datos de gasto de {anio}: la Comunidad publica el presupuesto "
-        "liquidado cuando cierra el año. Se muestra el presupuesto inicial.",
-        icon=":material/info:",
-    )
-st.caption(
-    f"Fuente: [Datos abiertos de la Comunidad de Madrid]({datos_anio['url_origen']}) · "
-    f"descargado el {datos_anio['fecha_descarga']}. " + textos.AVISO_CONTEXTO
-)
+    st.subheader("¿Cuánto ha gastado cada consejería?")
+    st.caption("De más a menos dinero. La barra verde es lo gastado; la gris, lo que quedó.")
+    st.html(gasto_por_consejeria(entidades))
 
-# --- Qué entidad está ampliada (se conserva entre periodos si existe) ---
-nombres = [e["entidad"] for e in entidades]
-ampliada = st.session_state.get("mg_ampliada")
-if ampliada not in nombres:
-    ampliada = None
-    st.session_state["mg_ampliada"] = None
-
-if ampliada is None:
-    o1, o2, o3 = st.columns([3, 3, 3])
-    niveles = (
-        o1.segmented_control(
-            "Niveles", list(NIVELES), default=2, format_func=NIVELES.get, key="mg_niveles"
-        )
-        or 2
-    )
-    por_consejeria = o2.slider(
-        "Contratos por consejería",
-        1,
-        5,
-        3,
-        disabled=niveles == 1,
-        key="mg_contratos",
-        help="Cuántos de los contratos más grandes del año se dibujan junto a cada consejería.",
-    )
-    con_agrupados = o3.toggle(
-        "Añadir menores y subvenciones",
-        disabled=niveles == 1,
-        key="mg_agrupados",
-        help="Un círculo por consejería con sus contratos menores y otro con sus subvenciones.",
-    )
-else:
-    st.button(
-        "Volver a todas las consejerías",
-        icon=":material/arrow_back:",
-        type="tertiary",
-        on_click=lambda: st.session_state.update(mg_ampliada=None, mg_sel=None),
-    )
-
-izquierda, derecha = st.columns([5, 2])
-with izquierda:
-    if ampliada is None:
-        principales = _principales(anio, por_consejeria) if niveles == 2 else {}
-        agregados = _agregados(anio) if (niveles == 2 and con_agrupados) else {}
-        nodos, enlaces, destinos = grafo_general(
-            entidades, vista, datos_anio, niveles, principales, agregados, con_agrupados
-        )
-        alto = ALTO_MAPA[niveles]
-        st.markdown(leyenda(vista, liquidado, niveles))
-    else:
-        entidad_amp = next(e for e in entidades if e["entidad"] == ampliada)
-        cuerpo = _de_la_consejeria(entidad_amp["organo_id"] or "", anio)
-        nodos, enlaces, destinos = grafo_ampliado(entidad_amp, cuerpo, datos_anio)
-        alto = 760
-        st.markdown(
-            f"Los **{len(cuerpo['contratos'])} contratos más grandes** de {anio} de "
-            f"{ampliada}, más los menores y las subvenciones agrupados. **Tamaño y color = "
-            "importe.** Arrastra los círculos y pulsa uno para ver su ficha."
-        )
-    seleccion = red.mapa(nodos, enlaces, alto=alto)
-    if seleccion and seleccion in destinos:
-        st.session_state["mg_sel"] = destinos[seleccion]
-
-with derecha:
-    marcado = st.session_state.get("mg_sel")
-    if not marcado:
-        st.info(
-            "Pulsa un círculo del mapa y aquí verás su ficha: cuánto dinero tiene, cuánto ha "
-            "gastado y, si es un contrato, cómo se contrató y cuántas ofertas hubo.",
-            icon=":material/touch_app:",
-        )
-    else:
-        tipo, referencia = marcado
-        if tipo == "con":
-            ficha_contrato(con, referencia, entidades)
-        else:
-            entidad = next((e for e in entidades if e["entidad"] == referencia), None)
-            if entidad is None:
-                st.info("Esa consejería no está en este periodo.")
-            elif tipo == "ent":
-                ficha_entidad(con, entidad, datos_anio, anio, ampliada is not None)
-            else:
-                ficha_agrupado(con, tipo, entidad, anio)
-
-if ampliada is None:
-    st.subheader("Cada consejería, de más a menos dinero")
-    if liquidado:
-        sin_gastar = [e for e in entidades if e["sin_gastar"]]
-        st.markdown("**Dinero sin gastar**")
-        st.plotly_chart(
-            graficos_contexto.barras_horizontales(
-                [e["entidad"] for e in sin_gastar], [e["sin_gastar"] for e in sin_gastar]
-            ),
-            config=graficos_contexto.GRAFICO_CONFIG,
-        )
+with st.expander("Ver los datos en tabla", icon=":material/table:"):
     st.dataframe(
         [
             {
@@ -602,9 +842,15 @@ if ampliada is None:
         hide_index=True,
         width="stretch",
     )
+    if liquidado:
+        st.caption(
+            f"Pagado en el año: {textos.euros(datos_anio['pagado'])} (pagos realizados sobre el "
+            "gasto reconocido). «Gastado» son las obligaciones reconocidas."
+        )
 
 with st.expander("Qué datos no tenemos", icon=":material/help:"):
     st.markdown(
+        textos.AVISO_CONTEXTO + "\n\n"
         "- **Gasto del año en curso:** la Comunidad publica el presupuesto liquidado al cerrar "
         "el año; de 2026 solo hay presupuesto inicial.\n"
         "- **Gasto que no es contratación:** personal, transferencias, deuda y otras partidas no "

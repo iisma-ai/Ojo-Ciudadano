@@ -3,7 +3,8 @@
 import * as THREE from "three";
 
 // Color del agua de la superficie al fondo
-const PALETA = ["#2b9bb0", "#15728f", "#0b4b6b", "#06304d", "#021526"].map((c) => new THREE.Color(c));
+// Azul marino desde la superficie; al bajar se oscurece sin llegar a negro
+const PALETA = ["#13406b", "#0f345c", "#0b2a4d", "#092241", "#071b36"].map((c) => new THREE.Color(c));
 
 export function colorProfundidad(p, destino) {
   const t = THREE.MathUtils.clamp(p, 0, 1) * (PALETA.length - 1);
@@ -23,7 +24,7 @@ export function entorno(renderer) {
         fragmentShader: `varying vec3 vP;
           void main(){
             float y = vP.y;
-            vec3 hondo = vec3(.004,.025,.05), medio = vec3(.03,.2,.3), alto = vec3(.55,.9,1.);
+            vec3 hondo = vec3(.004,.015,.04), medio = vec3(.02,.07,.17), alto = vec3(.42,.62,.95);
             vec3 c = y < 0. ? mix(medio, hondo, -y) : mix(medio, alto, pow(y, 1.6));
             float celdas = pow(abs(sin(vP.x * 18.) * sin(vP.z * 18.)), 6.) * smoothstep(.35, .95, y);
             c += celdas * .15;
@@ -36,7 +37,7 @@ export function entorno(renderer) {
   const brillo = new THREE.ShaderMaterial({
     side: THREE.DoubleSide,
     vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`,
-    fragmentShader: `varying vec2 vUv; void main(){ float d = length(vUv - .5) * 2.; gl_FragColor = vec4(vec3(2.6, 3., 3.2) * pow(clamp(1. - d, 0., 1.), 2.), 1.); }`,
+    fragmentShader: `varying vec2 vUv; void main(){ float d = length(vUv - .5) * 2.; gl_FragColor = vec4(vec3(2.2, 2.6, 3.2) * pow(clamp(1. - d, 0., 1.), 2.), 1.); }`,
   });
   for (const [x, y, z, w] of [[-14, 30, 14, 26], [18, 18, 8, 12], [0, 40, -10, 34]]) {
     const mancha = new THREE.Mesh(new THREE.PlaneGeometry(w, w * 0.6), brillo);
@@ -69,7 +70,7 @@ export function crearRayos() {
             float alto = pow(smoothstep(0., 1., vUv.y), 1.8);
             float parpadeo = .55 + .45 * sin(uT * (.4 + uS * .5) + uS * 30. + vUv.x * 5.);
             float a = borde * alto * parpadeo * uI;
-            gl_FragColor = vec4(vec3(.7, .95, 1.) * a, a);
+            gl_FragColor = vec4(vec3(.55, .75, 1.) * a, a);
           }`,
         transparent: true,
         depthWrite: false,
@@ -103,7 +104,24 @@ export function crearSuperficie(altura) {
           vec2 p = vW.xz;
           float n = ola(p) + ola(p * 2.7 + 7.) * .45 + ola(p * 6.1 - 3.) * .2;
           float d = length(vW.xz - uCam.xz);
-          vec3 c = mix(vec3(1.5, 1.9, 1.95), vec3(.12, .5, .6), smoothstep(3., 60., d));
+          if (uCam.y > vW.y) {
+            // desde arriba: mar oscuro que refleja el cielo del atardecer y destellos hacia el sol
+            vec3 v = normalize(uCam - vW);
+            float nn = n * .5 + .5;
+            float fres = clamp(pow(1. - clamp(v.y, 0., 1.), 6.) * .8 + .02 + nn * .04, 0., 1.);
+            vec3 c = mix(vec3(.01, .035, .075) * (.7 + .6 * nn), vec3(.85, .55, .38), fres);
+            vec2 rel = vW.xz - uCam.xz;
+            vec2 alSol = normalize(vec2(-.35, -1.));
+            float lado = abs(rel.x * alSol.y - rel.y * alSol.x) / (length(rel) + 1.);
+            float delante = step(0., dot(rel, alSol));
+            float fino = ola(p * 5.3 + 11.) * .6 + ola(p * 11.7 - 4.) * .4;
+            c *= .85 + .3 * (fino * .5 + .5);
+            c += vec3(1., .78, .5) * pow(max(fino, 0.), 6.) * smoothstep(.3, 0., lado) * delante * 2.2;
+            c = mix(c, vec3(.85, .6, .45) * .85, smoothstep(80., 300., d));
+            gl_FragColor = vec4(c, 1.);
+            return;
+          }
+          vec3 c = mix(vec3(.42, .66, 1.1), vec3(.03, .1, .24), smoothstep(3., 50., d));
           c *= .6 + .22 * n;
           c += pow(max(n, 0.), 6.) * .25 * (1. - smoothstep(5., 40., d));
           float a = (1. - smoothstep(30., 160., d)) * uI;
@@ -153,7 +171,7 @@ export function crearNieve() {
       fragmentShader: `varying float vA; uniform float uI;
         void main(){
           float a = smoothstep(.5, 0., length(gl_PointCoord - .5)) * vA * uI;
-          gl_FragColor = vec4(vec3(.78, .92, 1.) * a, a);
+          gl_FragColor = vec4(vec3(.7, .84, 1.) * a, a);
         }`,
       transparent: true,
       depthWrite: false,
@@ -185,7 +203,7 @@ export function crearBurbujitas() {
           float borde = pow(f, 2.4);
           float brillo = pow(max(dot(vN, normalize(vec3(-.4, .65, .65))), 0.), 50.);
           float a = clamp(borde * .9 + brillo, 0., 1.) * uI;
-          gl_FragColor = vec4(mix(vec3(.62, .86, 1.), vec3(1.6), brillo), a);
+          gl_FragColor = vec4(mix(vec3(.55, .75, 1.), vec3(1.5), brillo), a);
         }`,
       transparent: true,
       depthWrite: false,
@@ -252,9 +270,59 @@ export const PasoFinal = {
       float ca = .0015 + .004 * dot(d, d);
       vec3 c = vec3(texture2D(tDiffuse, uv + d * ca).r, texture2D(tDiffuse, uv).g, texture2D(tDiffuse, uv - d * ca).b);
       float l = dot(c, vec3(.299, .587, .114));
-      c = mix(c, vec3(l) * vec3(.5, .68, .8), uNiebla * .6);
+      c = mix(c, vec3(l) * vec3(.45, .6, .8), uNiebla * .3) * (1. - uNiebla * .35);
       c *= mix(.3, 1., smoothstep(1.08, .28, length(d * vec2(1.2, 1.))));
       c += (azar(uv * uRes + fract(uT) * 91.) - .5) * .04;
       gl_FragColor = vec4(c, 1.);
     }`,
 };
+
+
+// Cielo de atardecer (solo se ve fuera del agua). Sigue a la camara: siempre esta en el horizonte.
+export function crearCielo() {
+  const m = new THREE.Mesh(
+    new THREE.SphereGeometry(300, 64, 32),
+    new THREE.ShaderMaterial({
+      side: THREE.BackSide,
+      depthWrite: false,
+      uniforms: { uSol: { value: new THREE.Vector3(-0.35, 0.1, -1).normalize() } },
+      vertexShader: `varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`,
+      fragmentShader: `uniform vec3 uSol; varying vec3 vD;
+        void main(){
+          float y = vD.y;
+          vec3 c = mix(vec3(.9, .6, .42), vec3(.45, .42, .6), smoothstep(0., .2, y));
+          c = mix(c, vec3(.06, .11, .28), smoothstep(.18, .75, y));
+          float s = max(dot(vD, uSol), 0.);
+          c += vec3(1., .72, .42) * pow(s, 10.) * .4 + vec3(2.2, 1.7, 1.1) * pow(s, 900.) * 3.;
+          if (y < 0.) c = vec3(.85, .6, .45) * .85;
+          gl_FragColor = vec4(c, 1.);
+        }`,
+    }),
+  );
+  m.renderOrder = -1;
+  return m;
+}
+
+// Rocas: esferas deformadas con ruido, de piedra oscura. Cada roca es [x, y, z, ancho, alto, fondo, semilla].
+export function crearRocas(lista) {
+  const grupo = new THREE.Group();
+  const material = new THREE.MeshStandardMaterial({ color: 0x2a2724, roughness: 0.95, metalness: 0, flatShading: true, envMapIntensity: 0.25 });
+  for (const [x, y, z, sx, sy, sz, s] of lista) {
+    const g = new THREE.IcosahedronGeometry(1, 5);
+    const pos = g.attributes.position;
+    const v = new THREE.Vector3();
+    for (let i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i);
+      const k = 1 + 0.22 * Math.sin(v.x * 3.1 + s) * Math.sin(v.y * 2.7 + s * 2) + 0.12 * Math.sin(v.z * 5.3 + s * 3) + 0.06 * Math.sin((v.x + v.y) * 9 + s) + 0.03 * Math.sin(v.x * 23 + v.z * 17 + s) + 0.02 * Math.sin(v.y * 31 - v.x * 19);
+      v.multiplyScalar(k);
+      pos.setXYZ(i, v.x, v.y, v.z);
+    }
+    g.computeVertexNormals();
+    const m = new THREE.Mesh(g, material);
+    m.position.set(x, y, z);
+    m.scale.set(sx, sy, sz);
+    m.rotation.set(s * 0.3, s * 1.7, s * 0.2);
+    grupo.add(m);
+  }
+  return grupo;
+}

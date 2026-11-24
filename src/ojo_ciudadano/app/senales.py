@@ -61,9 +61,13 @@ def frase_y_grafico(con: duckdb.DuckDBPyConnection, indicador: str, contrato_id:
             return None, None
         quien = d["partes"][0]["nombre"]
         cuota = textos.porcentaje(d["cuota"])
+        mercado = f"contratos de {d['tipo']}"
+        if d.get("division"):
+            nombre = f" ({d['nombre_division'].lower()})" if d.get("nombre_division") else ""
+            mercado += f" de la división CPV {d['division']}{nombre}"
         frase = (
             f"{quien} recibe el **{cuota}** del importe que {d['organo']} ha adjudicado "
-            f"en contratos de {d['tipo']} ({d['n_empresas']} empresas en total)."
+            f"en {mercado} ({d['n_empresas']} adjudicatarios en total)."
         )
         return frase, graficos.reparto(d)
     if indicador in ("R-05", "R-06"):

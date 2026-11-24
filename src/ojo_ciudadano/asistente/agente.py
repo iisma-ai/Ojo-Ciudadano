@@ -271,13 +271,18 @@ DESCRIPCION_TABLAS = {
         "el año del contrato; importe es solo un peso (mezcla bases con y sin IVA)."
     ),
     "puntuacion_empresa_contrato": (
-        "Puntuación de cada contrato por adjudicatario (sin personas físicas)."
+        "Puntuación de cada contrato por adjudicatario (sin personas físicas). sector_publico "
+        "marca los entes del sector público de INVENTE."
     ),
     "puntuacion_organo": (
         "Por órgano: contratos, contratos con alertas, puntuación media y ponderada por importe."
     ),
     "puntuacion_organo_anio": "Como puntuacion_organo, por año.",
-    "puntuacion_empresa": "Por adjudicatario (sin personas físicas): igual que puntuacion_organo.",
+    "puntuacion_empresa": (
+        "Por adjudicatario (sin personas físicas): igual que puntuacion_organo. Los entes del "
+        "sector público (sector_publico) tienen la puntuación vacía: no se comparan con empresas "
+        "(D-036)."
+    ),
     "puntuacion_empresa_anio": "Como puntuacion_empresa, por año.",
     "contrato_financiacion": (
         "Licitaciones de PLACSP con fondos europeos: financiado_ue (true/false) y programas_ue "

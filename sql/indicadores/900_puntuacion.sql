@@ -9,6 +9,10 @@
 -- sin IVA (P-10).
 -- Personas físicas (PF-…): no tienen puntuación propia (D-007); sus contratos sí cuentan en
 -- el órgano.
+-- Entes del sector público (INVENTE, D-036): conservan su ficha y sus contratos, pero su
+-- puntuación de empresa queda vacía (NULL) y `sector_publico` lo marca, porque no son empresas
+-- privadas (una universidad, un hospital o una empresa pública) y no se comparan con ellas.
+-- Sus contratos sí cuentan en el órgano que adjudica.
 
 CREATE OR REPLACE TABLE puntuacion_contrato AS
 WITH agregado AS (
@@ -51,6 +55,7 @@ SELECT
     p.anio,
     p.puntuacion,
     p.n_activados,
+    EXISTS (SELECT 1 FROM entidad_sector_publico AS s WHERE s.nif = d.nif) AS sector_publico,
     sum(coalesce(a.importe_sin_iva, a.importe_con_iva, 0)) AS importe
 FROM adjudicacion AS a
 JOIN puntuacion_contrato AS p USING (contrato_id)
@@ -85,8 +90,10 @@ SELECT
     adjudicatario_id,
     count(*) AS n_contratos,
     count_if(n_activados > 0) AS n_con_alertas,
-    sum(puntuacion * importe) / nullif(sum(importe), 0) AS puntuacion_ponderada,
-    avg(puntuacion) AS puntuacion_media
+    bool_or(sector_publico) AS sector_publico,
+    CASE WHEN NOT bool_or(sector_publico)
+         THEN sum(puntuacion * importe) / nullif(sum(importe), 0) END AS puntuacion_ponderada,
+    CASE WHEN NOT bool_or(sector_publico) THEN avg(puntuacion) END AS puntuacion_media
 FROM puntuacion_empresa_contrato
 GROUP BY adjudicatario_id;
 
@@ -96,8 +103,10 @@ SELECT
     anio,
     count(*) AS n_contratos,
     count_if(n_activados > 0) AS n_con_alertas,
-    sum(puntuacion * importe) / nullif(sum(importe), 0) AS puntuacion_ponderada,
-    avg(puntuacion) AS puntuacion_media
+    bool_or(sector_publico) AS sector_publico,
+    CASE WHEN NOT bool_or(sector_publico)
+         THEN sum(puntuacion * importe) / nullif(sum(importe), 0) END AS puntuacion_ponderada,
+    CASE WHEN NOT bool_or(sector_publico) THEN avg(puntuacion) END AS puntuacion_media
 FROM puntuacion_empresa_contrato
 WHERE anio BETWEEN 2023 AND 2026
 GROUP BY adjudicatario_id, anio;

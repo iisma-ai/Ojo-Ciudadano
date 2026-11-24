@@ -106,3 +106,37 @@ def test_importe_cero_no_rompe_la_media_ponderada(datos):
         .fetchone()
     )
     assert fila == (None, 1.0)
+
+
+def test_ente_del_sector_publico_sin_puntuacion_de_empresa(datos):
+    contrato(datos, "a", 100, adjudicatario="E1")
+    contrato(datos, "b", 100, adjudicatario="UNI")
+    datos.con.execute("UPDATE adjudicatario SET nif = 'Q2818014I' WHERE adjudicatario_id = 'UNI'")
+    datos.con.execute(
+        "INSERT INTO entidad_sector_publico (nif, codigo_invente, nombre, fuente, url_origen, "
+        "fecha_descarga) VALUES ('Q2818014I', 'INV1', 'Universidad', 'invente', 'https://x.test', "
+        "DATE '2026-11-23')"
+    )
+    resultado(datos, "a", "R-01", True)
+    resultado(datos, "b", "R-01", True)
+    con = calcular(datos)
+    filas = dict(
+        con.execute(
+            "SELECT adjudicatario_id, puntuacion_ponderada FROM puntuacion_empresa"
+        ).fetchall()
+    )
+    assert filas == {"E1": 1.0, "UNI": None}  # conserva su ficha, sin puntuación
+    assert con.execute(
+        "SELECT sector_publico FROM puntuacion_empresa WHERE adjudicatario_id = 'UNI'"
+    ).fetchone() == (True,)
+    # Su contrato sí cuenta en el órgano.
+    assert con.execute("SELECT n_contratos FROM puntuacion_organo").fetchone() == (2,)
+
+
+def test_calcular_funciona_sin_las_tablas_de_contexto(datos):
+    datos.con.execute("DROP TABLE entidad_sector_publico")
+    datos.con.execute("DROP TABLE cpv")
+    contrato(datos, "a", 100)
+    resultado(datos, "a", "R-01", True)
+    con = calcular(datos)
+    assert con.execute("SELECT puntuacion_ponderada FROM puntuacion_empresa").fetchone() == (1.0,)

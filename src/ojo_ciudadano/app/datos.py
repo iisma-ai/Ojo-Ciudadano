@@ -1075,7 +1075,8 @@ def detalle_importes(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict |
                sum(CASE WHEN c.fuente = 'placsp' THEN a.importe_sin_iva
                         ELSE a.importe_con_iva END) AS adjudicado,
                sum(a.importe_modificaciones_con_iva) AS modificaciones,
-               sum(a.importe_prorrogas_con_iva) AS prorrogas
+               sum(a.importe_prorrogas_con_iva) AS prorrogas,
+               min(a.n_ofertas) AS n_ofertas, any_value(c.tipo_contrato) AS tipo_contrato
         FROM contrato_unico AS c JOIN adjudicacion AS a USING (contrato_id)
         WHERE c.contrato_id = ?
         GROUP BY c.fuente
@@ -1083,6 +1084,24 @@ def detalle_importes(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict |
         [contrato_id],
     )
     return filas[0] if filas else None
+
+
+def baja_habitual(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | None:
+    """E-06 (D-042): rebaja mediana de los contratos parecidos a este en los que se comprueba
+    R-06 (misma fuente y tipo de contrato, con dos o más ofertas). `mediana` es 0–1."""
+    filas = _filas(
+        con,
+        """
+        SELECT median(r.valor) AS mediana, count(*) AS n
+        FROM indicador_resultado AS r
+        JOIN contrato_unico AS c USING (contrato_id)
+        JOIN contrato_unico AS e ON e.contrato_id = ?
+        WHERE r.indicador = 'R-06' AND r.valor IS NOT NULL
+          AND c.fuente = e.fuente AND c.tipo_contrato IS NOT DISTINCT FROM e.tipo_contrato
+        """,
+        [contrato_id],
+    )
+    return filas[0] if filas and filas[0]["n"] else None
 
 
 def reparto_empresa(con: duckdb.DuckDBPyConnection, adjudicatario_id: str) -> list[dict]:

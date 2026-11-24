@@ -59,8 +59,14 @@ def test_r03_suma_doce_meses_y_limite(con):
     assert detalle["empresa"] == "Empresa B2"
     assert graficos.suma_doce_meses(detalle["contratos"]) == [7000, 14000, 21000]
     frase, _ = senales.frase_y_grafico(con, "R-03", "m1")
-    assert "3 contratos menores de Empresa B2 con este organismo" in frase
-    assert "21.000 €" in frase
+    assert "es uno de los **3 contratos menores**" in frase
+    assert "dio a Empresa B2 en 12 meses" in frase
+    assert "**Juntos suman 21.000 €**" in frase
+    assert [c["importe"] for c in graficos.ventana_doce_meses(detalle["contratos"])] == [
+        7000,
+        7000,
+        7000,
+    ]
 
 
 def test_r03_sin_nombre_de_persona_fisica(base, con):
@@ -83,7 +89,9 @@ def test_importes_y_rebaja(con):
     detalle = datos.detalle_importes(con, "l1")
     assert detalle["presupuesto"] == 1000 and detalle["adjudicado"] == 900
     frase, figura = senales.frase_y_grafico(con, "R-06", "l1")
-    assert "la rebaja fue del **10,0 %**" in frase
+    assert "una rebaja del **10,0 %**" in frase
+    assert "el precio de salida (el máximo que fijó el organismo) era 1.000 €" in frase
+    assert "**Para comparar:**" in frase
     assert figura is not None
 
 
@@ -179,3 +187,12 @@ def test_grafico_automatico_ranking_y_por_anio():
     figura, frase = graficos.automatico(anual)
     assert frase == "Contratos o concesiones por año."
     assert graficos.automatico({"columnas": ["a"], "filas": []}) == (None, None)
+
+
+def test_graficos_de_modificaciones_y_rebaja():
+    subida = graficos.subida({"adjudicado": 100.0, "modificaciones": 40.0})
+    tramos = [traza.y[1] for traza in subida.data]
+    assert tramos == [100.0, 20.0, 20.0]  # precio, hasta el 20 % y lo que pasa del 20 %
+    regla = graficos.rebaja({"presupuesto": 100.0, "adjudicado": 170.0}, habitual=0.17)
+    assert regla.data[-1].x[0] == pytest.approx(-0.7)  # 70 % por encima del precio de salida
+    assert "por encima" in regla.data[-1].text[0]

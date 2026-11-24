@@ -204,11 +204,15 @@ SENAL_FRASE = {
     "R-04": "Una sola empresa recibe más de la mitad del importe que el organismo adjudica en "
     "este tipo de contrato (en la Plataforma de Contratación, para el mismo tipo de objeto). "
     "Puede deberse a un proveedor único o a un mercado pequeño.",
-    "R-05": "Después de adjudicarlo, se añadieron modificaciones por más del 20 % del importe "
-    "(sin contar prórrogas). La ley permite modificaciones justificadas.",
-    "R-06": "La empresa ganó rebajando casi nada el precio de salida (0,5 % o menos, o incluso "
-    "por encima), o rebajándolo a la mitad o más. Las dos cosas son poco habituales con varias "
-    "ofertas.",
+    "R-05": "Una vez adjudicado, al contrato se le sumó dinero con «modificaciones» (por ejemplo, "
+    "más obra o más servicio del previsto): más del 20 % de su precio, sin contar prórrogas. La "
+    "ley fija ese 20 % como máximo para las modificaciones previstas en el pliego; otras pueden "
+    "estar justificadas.",
+    "R-06": "En un concurso, el organismo fija un precio máximo (precio de salida) y las "
+    "empresas ofrecen hacerlo por menos; el contrato se adjudica a una de ellas. La rebaja es "
+    "cuánto bajó el precio adjudicado respecto al de salida. Con dos o más ofertas, una rebaja "
+    "casi nula (0,5 % o menos, o por encima del precio de salida) o muy alta (la mitad o más) "
+    "es poco habitual. Puede tener explicación: el precio no es el único criterio.",
 }
 
 # Qué tienen los contratos de la cifra «X de cada 100 contratos …» de la portada (D-039). El

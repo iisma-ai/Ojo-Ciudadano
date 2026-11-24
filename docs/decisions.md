@@ -695,3 +695,18 @@ Plantilla:
     - la frase dice «De cada 100 € que X adjudicó en contratos de suministros de [sector], 52 € fueron a Y (entre N empresas). La señal salta cuando una sola empresa se lleva más de la mitad»;
     - el sector sale del nombre de la división CPV, o «de este sector» si falta la lista de CPV.
   - **«Muchos contratos menores»:** al elegir una señal que solo se comprueba en contratos menores (R-03), la lista los incluye sola y lo dice; antes salía vacía. Los títulos escritos todo en mayúsculas se pasan a frase normal.
+  - **Gráficos y frases de R-03, R-05 y R-06** (Ignacio: «poco intuitiva», «muy fea», «muy sosa» y «¿de qué forma sabemos que gana?»):
+    - **R-03:**
+      - los contratos menores de los 12 meses en que más suman, como bloques en una barra (este en azul, con «este»), frente a la línea del máximo de un contrato menor, con la suma al final (`graficos.ventana_doce_meses`, `graficos.menores`);
+      - frase: «es uno de los N contratos menores… Juntos suman X, más que el máximo de un contrato menor».
+    - **R-05:**
+      - «antes y después»: el precio adjudicado frente al precio con modificaciones, que crece en dos tramos (hasta el 20 % y por encima), con la línea del +20 % y la subida en grande;
+      - frase con «En este contrato» y «Para comparar» (el 20 % es el máximo de las modificaciones previstas en el pliego; otras pueden estar justificadas).
+    - **R-06:**
+      - una regla de la rebaja con las dos zonas donde salta la señal sombreadas, el marcador de este contrato y el de la rebaja habitual;
+      - la rebaja habitual es la mediana de los contratos de la misma fuente y tipo en los que se comprueba R-06 (`datos.baja_habitual`; p. ej., 17 % en 3.112 servicios de la Plataforma);
+      - la frase explica el precio de salida, cuántas ofertas hubo y por cuánto se adjudicó.
+    - **Textos de «¿Qué significa?»:**
+      - el de R-06 explica cómo funciona un concurso (precio de salida, ofertas, a quién se adjudica) en lugar de «la empresa ganó rebajando…»;
+      - el de R-05 explica qué es una modificación.
+    - Las líneas de referencia de estos gráficos pasan del ámbar a un gris claro de puntos.

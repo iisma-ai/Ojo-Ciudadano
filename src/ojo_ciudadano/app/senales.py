@@ -53,13 +53,14 @@ def frase_y_grafico(con: duckdb.DuckDBPyConnection, indicador: str, contrato_id:
         d = datos.detalle_r03(con, contrato_id)
         if not d:
             return None, None
-        maximo = max(graficos.suma_doce_meses(d["contratos"]))
+        ventana = graficos.ventana_doce_meses(d["contratos"])
+        suma = sum(c["importe"] for c in ventana)
         quien = d["empresa"] or "la misma adjudicataria"
         frase = (
-            f"{len(d['contratos'])} contratos menores de {quien} con este organismo, del mismo "
-            f"tipo y de más de {textos.euros(d['umbral'] / 3)} cada uno (en el año antes y el "
-            f"año después de este). En algún periodo de 12 meses suman "
-            f"**{textos.euros(maximo)}**, más que el máximo de un contrato menor "
+            f"**En este contrato:** es uno de los **{len(ventana)} contratos menores** del mismo "
+            f"tipo que este organismo dio a {quien} en 12 meses (de más de "
+            f"{textos.euros(d['umbral'] / 3)} cada uno).  \n"
+            f"**Juntos suman {textos.euros(suma)}**, más que el máximo de un contrato menor "
             f"({textos.euros(d['umbral'])}, con IVA). Pueden ser compras distintas: el "
             "expediente lo aclara."
         )
@@ -89,25 +90,39 @@ def frase_y_grafico(con: duckdb.DuckDBPyConnection, indicador: str, contrato_id:
         if indicador == "R-05":
             mod = d["modificaciones"] or 0
             frase = (
-                f"Se adjudicó por {textos.euros(d['adjudicado'], iva)} y después se añadieron "
-                f"**{textos.euros(mod, iva)} ({_porcentaje(mod, d['adjudicado'])})** en "
-                "modificaciones."
+                f"**En este contrato:** se adjudicó por {textos.euros(d['adjudicado'], iva)}. "
+                f"Después se le sumaron **{textos.euros(mod, iva)} en modificaciones**, así que "
+                f"el precio subió un **{_porcentaje(mod, d['adjudicado'])}**.  \n"
+                "**Para comparar:** la ley fija en un 20 % el máximo de las modificaciones "
+                "previstas en el pliego; otras pueden estar justificadas."
             )
             return frase, graficos.subida(d)
         if not d["presupuesto"]:
             return None, None
         baja = 1 - d["adjudicado"] / d["presupuesto"]
         if baja < 0:
-            detalle = (
-                f"se adjudicó **un {textos.porcentaje(-baja)} por encima** del precio de salida"
-            )
+            resultado = f"**un {textos.porcentaje(-baja)} por encima** del precio de salida"
         else:
-            detalle = f"la rebaja fue del **{textos.porcentaje(baja, 1)}**"
-        frase = (
-            f"Precio de salida: {textos.euros(d['presupuesto'], iva)}; adjudicado por "
-            f"{textos.euros(d['adjudicado'], iva)}: {detalle}."
+            resultado = f"una rebaja del **{textos.porcentaje(baja, 1)}**"
+        n_ofertas = d.get("n_ofertas")
+        ofertas = (
+            f"Hubo {n_ofertas} {'oferta' if n_ofertas == 1 else 'ofertas'} y se"
+            if n_ofertas
+            else "Se"
         )
-        return frase, graficos.rebaja(d)
+        frase = (
+            f"**En este contrato:** el precio de salida (el máximo que fijó el organismo) era "
+            f"{textos.euros(d['presupuesto'], iva)}. {ofertas} adjudicó por "
+            f"{textos.euros(d['adjudicado'], iva)}: {resultado}."
+        )
+        habitual = datos.baja_habitual(con, contrato_id)
+        if habitual and habitual["mediana"] is not None:
+            frase += (
+                f"  \n**Para comparar:** en {textos.numero(habitual['n'])} contratos parecidos "
+                f"con varias ofertas, la rebaja habitual es del "
+                f"**{textos.porcentaje(habitual['mediana'])}**."
+            )
+        return frase, graficos.rebaja(d, habitual["mediana"] if habitual else None)
     return None, None
 
 

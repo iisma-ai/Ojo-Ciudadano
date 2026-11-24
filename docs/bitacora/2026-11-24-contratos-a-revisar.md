@@ -88,3 +88,22 @@ Ignacio vio que al elegir «Muchos contratos menores» no salía nada.
 - **Arreglo:** si se elige una señal que solo se comprueba en menores (`SOLO_MENORES = {"R-03"}`), la lista los incluye sola y lo dice en una línea.
 - **Comprobado en el navegador:** 30 contratos, todos con la señal, y el contrato abierto sin errores.
 - **De paso:** `titulo_limpio` pasa a frase normal los títulos escritos todo en mayúsculas.
+
+## Ajuste: gráficos y frases de menores, modificaciones y rebaja
+Ignacio dijo que los gráficos de R-03 y R-05 eran poco intuitivos, feos o sosos, y preguntó qué significa R-06 y cómo sabemos que la empresa «ganó». Ganó porque es a quien se adjudicó el contrato, y eso lo publican los datos oficiales; la rebaja compara el precio adjudicado con el precio de salida.
+
+**Qué se hizo:**
+- **R-03:**
+  - bloques de los contratos menores de la ventana de 12 meses en que más suman, frente al máximo;
+  - frase «es uno de los N… juntos suman X».
+- **R-05:**
+  - columnas «precio adjudicado» y «con modificaciones», con dos tramos (hasta el 20 % y por encima), línea del +20 %, subida en grande y leyenda;
+  - frase «En este contrato» y «Para comparar».
+- **R-06:**
+  - regla de la rebaja con las zonas de la señal, el contrato y lo habitual (`datos.baja_habitual`, mediana de los parecidos);
+  - frase con el precio de salida, las ofertas y el precio adjudicado. Admite adjudicaciones por encima del precio de salida (hasta un 70 % en la base).
+- Textos de «¿Qué significa?» de R-05 y R-06 reescritos (también salen en el Inicio).
+
+**Comprobaciones:**
+- tests de los gráficos actualizados y uno nuevo;
+- comprobado en el navegador abriendo un contrato de cada señal, sin errores.

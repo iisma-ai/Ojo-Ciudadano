@@ -76,6 +76,20 @@ Cambios:
   - «Explorar» se abre con las cinco pantallas.
 - **Tests:** dos nuevos.
 
+## Cuarta ronda: el ojo sube y es la fuente de luz
+El Harrak pidió que el ojo subiera en vez de ir a la izquierda, para que también se vea en el móvil y para que la luz venga de arriba, como los rayos. También pidió una luz desde el núcleo al apartarse y un ojo menos oscuro, como en la presentación.
+
+Cambios en `app/intro3d.py`:
+- **Iluminación como en la presentación:**
+  - importa también `presentacion/agua.js` para el entorno de reflejos (`entorno`) y el color del agua cerca de la superficie (`colorProfundidad(0,15)`);
+  - usa `NeutralToneMapping`, cielo `0xa8ecff` y sol `0xe6f9ff`.
+  - Antes el ojo usaba ACES, sin entorno y con agua oscura, y la bola se veía casi negra.
+  - No se usa el `UnrealBloomPass` de la presentación: sobre un lienzo transparente oscurece el fondo. Lo sustituyen tres luces redondas sumadas (núcleo, aura y destello) que van con el ojo.
+- **Recorrido:** se acerca hasta 1,5 s; de 1,5 a 2,7 s sube (y 2,3) y se aleja (z -3,5), con la mirada de la cámara a la página.
+- **Luz:** el núcleo se enciende desde 1,35 s. El haz de CSS baja ahora desde arriba (50 % 12 %) y el ojo plano de reserva también sube.
+- **Primera prueba en el navegador:** el destello deslumbraba. Se bajó a 0,42 de opacidad y 8 veces su tamaño.
+- **Comprobado en el navegador:** el ojo se ve claro, sube, y su luz baja sobre la página mientras se desvela.
+
 ## Siguiente paso
 - Que el equipo compare con `feat/mapa-billetes`: https://github.com/iisma-ai/Ojo-Ciudadano/compare/main...feat/web-ligera
 - Pasar `revisor-legal` por el aviso en el pie, que antes estaba siempre a la vista.

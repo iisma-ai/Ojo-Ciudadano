@@ -745,12 +745,17 @@ Plantilla:
   - **Entrada animada de 3 s**, la primera vez que se abre la web en la sesión (`static/intro.html` y `app/intro3d.py`):
     - mar muy oscuro con nieve marina;
     - aparece el **ojo 3D de la presentación**, con el mismo código (`presentacion/ojo3d.js`) y Three.js 0.169.0 de jsDelivr;
-    - se acerca un poco y se va a la izquierda alejándose, mirando hacia la derecha;
-    - un haz de luz sale de él y se abre sobre los datos mientras el mar se aclara.
+    - se ilumina como en la presentación: entorno de reflejos y color del agua de `presentacion/agua.js`, el mismo tono de imagen (`NeutralToneMapping`), cielo y sol;
+    - **el ojo es la fuente de luz**: lleva un núcleo blanco y se ve claro, no oscuro;
+    - se acerca un poco y **sube alejándose**, así también se ve en el móvil, y mira hacia la página;
+    - al apartarse, su núcleo se enciende y la luz **baja desde arriba** sobre la página mientras el mar se aclara, como los rayos del fondo.
     - Al terminar se libera WebGL y se quita el lienzo.
-    - **Reserva:** si Three.js no carga en 1,2 s (sin red o sin WebGL), sale el ojo plano de `app/ojo_cristal.py` con el mismo recorrido. Si nada arranca, la capa se quita sola a los 2,5 s.
+    - **Reserva:** si Three.js no carga en 1,2 s (sin red o sin WebGL), sale el ojo plano de `app/ojo_cristal.py`, que también sube. Si nada arranca, la capa se quita sola a los 2,5 s.
     - Las capas CSS solo animan opacidad y transformaciones, no bloquean los clics y no salen con «reducir movimiento».
-    - **Versiones anteriores** (a petición de El Harrak): 1,5 s con el logo; después, 3 s con el ojo de la presentación en plano.
+    - **Versiones anteriores** (a petición de El Harrak):
+      - 1,5 s con el logo;
+      - 3 s con el ojo de la presentación en plano;
+      - el ojo 3D yéndose a la izquierda, más oscuro y con la luz hacia la derecha.
 - **Alternativas consideradas:**
   - Barra lateral plegada por defecto: seguía ahí y el aviso no se veía.
   - Navegación nativa arriba (`position="top"`): con diez entradas se desborda.

@@ -48,3 +48,17 @@ def test_mascota_es_el_ojo_del_logo():
     svg = billetes.svg_ojo()
     assert "M102 72 C98 38 80 15 46 15" in svg  # mismo trazo que static/logo.svg
     assert billetes.PUPILA in svg
+
+
+def test_etiqueta_del_frasco_con_los_euros():
+    assert billetes.rotulo(38.6) == "39 €"
+    assert billetes.rotulo(0.3) == "<1 €"
+    assert ">39 €</text>" in billetes.svg_frasco(39, etiqueta="39 €")
+    imagen = billetes.imagen_frasco(100, centro=True)
+    assert b">100 \xe2\x82\xac</text>" in base64.b64decode(imagen.split(",", 1)[1])
+
+
+def test_etiqueta_menos_de_un_euro_no_rompe_el_svg():
+    from xml.dom.minidom import parseString
+
+    parseString(billetes.svg_frasco(0.2, etiqueta=billetes.rotulo(0.2)))  # SVG bien formado

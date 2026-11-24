@@ -575,7 +575,7 @@ Plantilla:
   - **Habitantes del INE**, Estadística Continua de Población (serie ECP115490), a 1 de enero: es la fuente F-12, en `ingesta/ine.py`, con caché en `data/raw/ine/`. No entra en la base ni en ningún indicador.
   - **El mapa de nodos de D-033 se queda, con frascos** (`app/billetes.py`, campos `imagen` y `tamano` opcionales en `red.NodoRed`):
     - cada nodo es un frasco de cristal en el que **caben 100 billetes**;
-    - el frasco de la Comunidad está lleno, y el de cada consejería lleva **un billete por cada euro que recibe de cada 100**; bajo el frasco va, por ejemplo, «Sanidad 39 €»;
+    - el frasco de la Comunidad está lleno, y el de cada consejería lleva **un billete por cada euro que recibe de cada 100**; cada frasco lleva una etiqueta de papel con esos euros («39 €»; «<1 €» si no llega a uno) y debajo solo el nombre;
     - lo que no llega a un billete es un trozo de billete y **los billetes grises son lo que quedó sin gastar**;
     - todos los frascos de consejería tienen el mismo tamaño, para que se compare lo llenos que están;
     - en el nivel con contratos, el frasco de un contrato lleva los euros que recibió de cada 100 que su consejería adjudicó en la misma fuente (Plataforma sin IVA o portal con IVA, sin mezclarlas);

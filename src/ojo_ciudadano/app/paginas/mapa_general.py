@@ -38,7 +38,7 @@ RADIO_ENTIDADES = {1: 300, 2: 230}  # distancia de las consejerías al centro, s
 RADIO_CONTRATOS = 125  # distancia de los contratos a su consejería (se añade al radio anterior)
 ALTO_MAPA = {1: 920, 2: 960}
 ESTIRAR_Y = {1: 1.22, 2: 1.0}  # el mapa es más alto que ancho
-FRASCO = {"centro": 78, "ent": 50, "con": 24}  # radio de cada frasco en el mapa
+FRASCO = {"centro": 78, "ent": 50, "con": 28}  # radio de cada frasco en el mapa
 
 st.html("<style>.block-container { max-width: 1500px; }</style>")
 
@@ -71,11 +71,11 @@ def nombre_corto(nombre: str) -> str:
 
 
 def etiqueta_contrato(contrato: dict, ancho: int = 14) -> str:
-    """Quién recibe el contrato y cuánto, para que se lea de un vistazo (el título completo
-    sale al pasar el ratón y al pulsar)."""
+    """Quién recibe el contrato (los euros van en la etiqueta del frasco; el importe y el título,
+    al pasar el ratón y al pulsar)."""
     nombres = (contrato["adjudicatarios"] or "Sin adjudicataria").split(" ; ")
-    quien = nombres[0][:20] + (f" (+{len(nombres) - 1})" if len(nombres) > 1 else "")
-    return red.envolver(quien, ancho) + chr(10) + textos.millones(contrato["importe"])
+    quien = nombres[0][:24] + (f" (+{len(nombres) - 1})" if len(nombres) > 1 else "")
+    return red.envolver(quien, ancho)
 
 
 def importe_vista(entidad: dict, vista: str) -> float:
@@ -96,7 +96,8 @@ def leyenda_mapa(vista: str, liquidado: bool, niveles: int) -> str:
     if vista == "presupuesto":
         texto = (
             "El frasco del centro es todo el dinero de la Comunidad: **100 billetes**. Cada "
-            "consejería se lleva **los billetes que recibe de cada 100 €**. "
+            "consejería se lleva **los billetes que recibe de cada 100 €**, y su etiqueta dice "
+            "cuántos euros son. "
         )
         if not liquidado:
             texto += "Este año todavía no hay gasto publicado. "
@@ -146,9 +147,7 @@ def grafo_general(entidades, vista, datos_anio, niveles, principales):
         nodos.append(
             red.NodoRed(
                 id=id_ent,
-                etiqueta=red.envolver(nombre_corto(e["entidad"]), 24)
-                + chr(10)
-                + billetes.texto_corto(n),
+                etiqueta=red.envolver(nombre_corto(e["entidad"]), 24),
                 importe=importe_vista(e, vista),
                 titulo=e["entidad"],
                 detalle=f"Recibe {billetes.texto_de_cada_100(n)} de la Comunidad",
@@ -220,7 +219,7 @@ def grafo_ampliado(entidad: dict, cuerpo: dict, datos_anio: dict):
         nodos.append(
             red.NodoRed(
                 id=id_con,
-                etiqueta=etiqueta_contrato(c, 16) + chr(10) + billetes.texto_de_cada_100(n_c),
+                etiqueta=etiqueta_contrato(c, 16),
                 importe=c["importe"],
                 titulo=c["adjudicatarios"] or "Sin adjudicataria",
                 detalle=f"{(c['titulo'] or '')[:120]} ({textos.iva_fuente(c['fuente'])})",

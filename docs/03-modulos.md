@@ -20,7 +20,7 @@ Segunda pantalla, después del Inicio, pensada para un ciudadano cualquiera.
   - lo que tocaría a cada habitante al año y al mes (habitantes del INE, F-12), con una figurita por millón de habitantes;
   - la mascota: el ojo del logo con manos que sujetan billetes.
 - **«¿A dónde van cada 100 €?»:** el mapa de nodos (`app/red.py`) con **frascos de 100 billetes** (`app/billetes.py`).
-  - La Comunidad, en el centro, tiene su frasco lleno; cada consejería lleva un billete por cada euro que recibe de cada 100, y los billetes grises son lo que quedó sin gastar.
+  - La Comunidad, en el centro, tiene su frasco lleno; cada consejería lleva un billete por cada euro que recibe de cada 100, y los billetes grises son lo que quedó sin gastar. La etiqueta del frasco dice esos euros («39 €») y debajo va solo el nombre.
   - El botón **«Opciones»**, junto al título, deja elegir qué dinero ver, si se ven los contratos más grandes de cada consejería y cuántos.
   - Al pulsar un frasco, su ficha sale a la derecha. Desde la de una consejería se abren sus 15 contratos más grandes, también en frascos, con los menores y las subvenciones resumidos en una línea.
 - **«¿Cuánto ha gastado cada consejería?»:** barra y porcentaje, de mayor a menor.

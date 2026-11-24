@@ -80,3 +80,6 @@ Ignacio revisó la primera versión y pidió:
 - clic en el frasco de Sanidad, que abre su ficha con 39 de cada 100 € y el 99 % gastado.
 
 **Tests:** 453, todos bien (los del treemap se cambiaron por los del frasco y la mascota).
+
+## Tercera ronda: etiqueta en el frasco
+Ignacio pidió que la etiqueta del frasco diga los euros que se lleva («solo el número con el símbolo del dinero») y que debajo vaya solo el nombre. Cada frasco lleva ahora una etiqueta de papel con «39 €» (o «<1 €», escapado en el SVG) y debajo, el nombre de la consejería o de la empresa. Los billetes se apilan por debajo de la etiqueta. Comprobado en el navegador; tests del frasco ampliados.

@@ -10,6 +10,7 @@ billetes. Se pinta con un componente de Streamlit (`components.v2`) sin interacc
 """
 
 import base64
+import html
 import math
 
 import streamlit as st
@@ -39,9 +40,9 @@ def texto_de_cada_100(n: float) -> str:
     return f"{round(n)} de cada 100 €"
 
 
-def texto_corto(n: float) -> str:
-    """Rótulo bajo el frasco: «39 €», «menos de 1 €» (de cada 100, lo dice la leyenda)."""
-    return "menos de 1 €" if n < 0.5 else f"{round(n)} €"
+def rotulo(n: float) -> str:
+    """Lo que pone la etiqueta del frasco: «39 €», «<1 €» (de cada 100, lo dice la leyenda)."""
+    return "<1 €" if n < 0.5 else f"{round(n)} €"
 
 
 # --------------------------------------------------------------------------- frasco
@@ -58,12 +59,15 @@ def _piezas(n: float, gastado: float | None) -> list[tuple[float, str]]:
     return piezas
 
 
-def svg_frasco(n: float, gastado: float | None = None, centro: bool = False) -> str:
-    """SVG de un frasco de cristal con `n` billetes apilados (como mucho 100)."""
+def svg_frasco(
+    n: float, gastado: float | None = None, centro: bool = False, etiqueta: str | None = None
+) -> str:
+    """SVG de un frasco de cristal con `n` billetes apilados (como mucho 100) y, si se da, una
+    etiqueta de papel pegada arriba con los euros que recibe."""
     n = min(max(n, 0.0), float(CAPACIDAD))
     filas = CAPACIDAD // COLUMNAS
     x0, ancho = 21.0, 58.0  # interior del frasco
-    abajo, alto = 90.0, 64.0
+    abajo, alto = 91.0, 47.0  # los billetes se apilan por debajo de la etiqueta
     paso_x, paso_y = ancho / COLUMNAS, alto / filas
     billetes = []
     for k, (fraccion, color) in enumerate(_piezas(n, gastado)):
@@ -75,6 +79,14 @@ def svg_frasco(n: float, gastado: float | None = None, centro: bool = False) -> 
             f'height="{paso_y - 0.7:.2f}" rx=".6" fill="{color}"/>'
         )
     borde = 0.75 if centro else 0.5
+    papel = ""
+    if etiqueta:
+        papel = (
+            '<rect x="22" y="22" width="56" height="20" rx="4" fill="#F4EBD0" '
+            'stroke="#C9B98F" stroke-width="1"/>'
+            f'<text x="50" y="37" text-anchor="middle" font-family="Inter, Arial, sans-serif" '
+            f'font-size="15" font-weight="700" fill="#0B2236">{html.escape(etiqueta)}</text>'
+        )
     return (
         '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">'
         # tapa metálica y cuello
@@ -89,20 +101,21 @@ def svg_frasco(n: float, gastado: float | None = None, centro: bool = False) -> 
         + "".join(billetes)
         + '<rect x="19" y="25" width="5" height="62" rx="2.5" fill="#fff" fill-opacity=".13"/>'
         f'<rect x="14" y="18" width="72" height="79" rx="17" fill="none" stroke="#e6f6ff" '
-        f'stroke-opacity="{borde}" stroke-width="{2.4 if centro else 2}"/>'
-        "</svg>"
+        f'stroke-opacity="{borde}" stroke-width="{2.4 if centro else 2}"/>' + papel + "</svg>"
     )
 
 
 def imagen_frasco(n: float, gastado: float | None = None, centro: bool = False) -> str:
-    """El frasco como data URI, para usarlo de imagen de un nodo del mapa."""
-    svg = svg_frasco(n, gastado, centro)
+    """El frasco como data URI, con su etiqueta de euros, para la imagen de un nodo del mapa."""
+    svg = svg_frasco(n, gastado, centro, etiqueta=rotulo(n))
     return "data:image/svg+xml;base64," + base64.b64encode(svg.encode()).decode()
 
 
 def leyenda_frascos(con_gasto: bool) -> str:
     """Leyenda en HTML: un frasco de muestra y qué es cada billete."""
-    frasco = svg_frasco(39, 0.9).replace('width="100" height="100"', 'width="44" height="44"')
+    frasco = svg_frasco(39, 0.9, etiqueta="39 €").replace(
+        'width="100" height="100"', 'width="44" height="44"'
+    )
     verde = (
         f'<svg width="26" height="12" viewBox="0 0 26 12"><rect width="26" height="12" rx="2" '
         f'fill="{VERDES[0]}"/></svg>'
@@ -114,7 +127,7 @@ def leyenda_frascos(con_gasto: bool) -> str:
     ]
     if con_gasto:
         partes.append(f'<span class="oc-ley">{gris} sin gastar</span>')
-    partes.append('<span class="oc-ley">Bajo cada frasco: euros que recibe de cada 100</span>')
+    partes.append('<span class="oc-ley">La etiqueta: euros que recibe de cada 100</span>')
     return '<div class="oc-leyenda">' + "".join(partes) + "</div>"
 
 

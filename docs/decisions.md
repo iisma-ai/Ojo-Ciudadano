@@ -824,3 +824,46 @@ Plantilla:
 - **Consecuencias:**
   - Comprobado en el navegador a 1.920, 1.280, 1.000 y 390 px de ancho.
   - El estilo de la cabecera usa clases y estructura de Streamlit 1.67 (`stLayoutWrapper`, `stPageLink`, `stPopover`). Si se actualiza Streamlit, hay que revisarlo.
+
+## D-046 · Mapa del dinero con burbujas o frascos, cabecera solo con el nombre e Inicio con menos texto
+
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada (Lucas: «que esté su opción, pero que haya un switch… lo mío tenía muchísima más información»). En la rama `feat/web-retoques`, sobre `feat/web-ligera` (D-043 a D-045).
+- **Autor:** Claude (agente), a petición de Lucas
+- **Contexto:** D-038 cambió las burbujas del mapa general (D-033) por frascos de 100 billetes. Los frascos se entienden mejor de un vistazo, pero perdían información:
+  - el llenado según lo gastado;
+  - el tamaño según el dinero;
+  - los contratos menores y las subvenciones agrupados;
+  - la tabla de cada consejería.
+
+  Además:
+  - el logo salía dos veces en el Inicio;
+  - el buscador parecía un desplegable;
+  - las burbujas del fondo parecían pintadas con rotulador;
+  - el doble clic en un nodo del mapa abría una pestaña rota.
+- **Decisión:**
+  - **Mapa del dinero** (`paginas/mapa_general.py`):
+    - **Interruptor:** «Burbujas» (por defecto) / «Frascos de 100 €».
+    - **Burbujas (D-033):** tamaño y color = dinero; cada burbuja se llena hasta lo gastado, con la superficie ondulada como en la presentación (`red.svg_nodo`). Vuelven:
+      - los menores y las subvenciones agrupados, como opción;
+      - las cifras de la ficha;
+      - la tabla de contratos de cada consejería;
+      - el gráfico de dinero sin gastar;
+      - la tabla de todas las consejerías.
+    - **Frascos (D-038):** se mantienen, con un dibujo nuevo (`billetes.svg_frasco`): cristal con hombros redondeados, tapa azul de la marca y billetes con brillo.
+  - **Nombres de las pantallas:**
+    - La pestaña «A dónde va el dinero» pasa a llamarse **«Mapa del dinero»**.
+    - La red de adjudicaciones (antes «Mapa del dinero») pasa a **«Red del dinero»**.
+    - La puerta del Inicio sigue diciendo «¿A dónde va el dinero?».
+  - **Cabecera:** solo «Ojo Ciudadano», sin el icono. El logo con el nombre va en el pie, y el logo grande queda en el Inicio.
+  - **Inicio:**
+    - Sin el subtítulo ni la línea de cifras: esas cifras van en las pantallas de análisis.
+    - Buscador como barra de búsqueda: cápsula de cristal con lupa y sin flecha. El fondo del iframe se vuelve transparente con un componente que corre en la página.
+  - **Fondo:** burbujas sin trazo, con el borde que se aclara poco a poco y un reflejo difuso (SVG generados).
+  - **Doble clic en el mapa:** `streamlit-agraph` hace `window.open(título del nodo)`. Un componente anula `window.open` dentro de sus iframes, que son del mismo origen.
+- **Alternativas consideradas:**
+  - Volver solo a las burbujas: se pierde el «de cada 100 €», que Ignacio quería para el ciudadano.
+  - Parchear el paquete `streamlit-agraph`: se perdería al reinstalar.
+- **Consecuencias:**
+  - Los dos parches de iframes (buscador y mapa) dependen de que los componentes sigan siendo del mismo origen.
+  - Una base generada antes de D-036 no tiene `adjudicatario_ente_publico` y «Contratos a revisar» falla. Se arregla con `uv run python -m ojo_ciudadano.ingesta.invente` y `uv run python -m ojo_ciudadano.indicadores.ejecutor`.

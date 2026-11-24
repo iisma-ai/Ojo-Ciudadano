@@ -10,9 +10,22 @@ Cinco módulos; los cinco entran en la demo, dos de ellos en versión simplifica
 | **Panel de alertas** | Contratos ordenados por puntuación de riesgo, con el motivo de cada alerta | ¿Qué contratos merece la pena revisar primero? | Sí, simplificado |
 | **Asistente de investigación** | Preguntas en lenguaje natural sobre todo lo anterior, con respuestas citadas; las frecuentes, con respuesta preparada y SQL verificado, y las demás con el modelo (D-037) | Cualquier pregunta ad hoc | Sí, con 43 respuestas preparadas |
 
-## Mapa general (D-026, D-033)
+## A dónde va el dinero (mapa general; D-026, D-033, D-038)
 
-Pantalla principal. De un vistazo: la Comunidad de Madrid en el centro, sus consejerías y órganos en círculo y, si se quiere, los contratos más grandes de cada una, en un mapa de nodos arrastrable (`app/red.py`, diseño radial calculado para que nada se corte). Tamaño y color = dinero, relleno = parte gastada, gris = sin gastar. Selector de periodo, de vista (presupuesto y gasto, contratos, subvenciones) y de **niveles** (solo consejerías, o consejerías y sus contratos, con 1 a 5 por consejería y menores y subvenciones agrupados opcionales). Al pulsar un círculo, su ficha aparece a la derecha: consejería (disponible, gastado, sin gastar, parte de la Comunidad) o contrato (importe, ofertas, cómo se contrató, adjudicataria, señales, porcentaje del dinero de la consejería y enlace). Dice explícitamente qué datos no tenemos. El «Mapa del dinero» usa el mismo diseño.
+Segunda pantalla, después del Inicio, pensada para un ciudadano cualquiera.
+
+- **Año** arriba (el que aún no tiene gasto publicado sale como «previsto»).
+- **Tarjeta del año:**
+  - la frase «En 2025 la Comunidad de Madrid tuvo X y gastó N de cada 100 €», con una barra de lo gastado;
+  - lo que tocaría a cada habitante si se repartiera (habitantes del INE, F-12), con una figura que sujeta billetes y una figurita por cada millón de habitantes.
+- **«¿A dónde van cada 100 €?»:** treemap de billetes (`app/billetes.py`).
+  - Cada bloque es una consejería y cada billete vale lo mismo en todo el gráfico; la leyenda dice cuánto.
+  - Los billetes grises son lo que quedó sin gastar.
+  - Al pulsar un bloque se ven los 15 contratos más grandes de esa consejería en billetes, con la ficha del bloque pulsado al lado, y los menores y las subvenciones en una línea.
+- **«¿Cuánto ha gastado cada consejería?»:** una línea por consejería con su barra, el porcentaje gastado, lo que queda y el gasto medio diario.
+- **«Más opciones»:** qué dinero ver (presupuesto, contratos de la Plataforma o del portal, subvenciones) y la **red de contratos** de D-033 como vista avanzada (`app/red.py`). Esta conserva los niveles, los contratos por consejería y la ficha lateral.
+- **Desplegables:** «Ver los datos en tabla» y «Qué datos no tenemos».
+- El «Mapa del dinero» sigue usando el diseño de nodos.
 
 ## Búsqueda y filtros (D-025)
 

@@ -560,3 +560,26 @@ Plantilla:
   - **Mantenimiento:** una pregunta preparada nueva necesita su SQL, su texto y sus palabras clave, con test.
   - **Riesgo:** reconocer mal una pregunta da una respuesta correcta a otra pregunta. Por eso se enseña siempre la pregunta reconocida y se puede pedir el modelo.
   - Los textos preparados pasan los mismos filtros de lenguaje que los del modelo (tests).
+
+## D-038 · Mapa general para el ciudadano: treemap de billetes, presupuesto por habitante y entrada por el Inicio
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada por Ignacio («me gusta la idea del treemap […] que se represente con billetes»; «añádelo y de manera también gráfica: añade un muñequito»; «Lo apruebo»). Está en la rama propia `feat/mapa-billetes` para poder deshacerlo sin tocar el trabajo de nadie; falta que el equipo lo vea antes de fusionarlo.
+- **Autor:** Claude (agente), a petición de Ignacio, dentro del repaso «dashboard a dashboard» pensando en un ciudadano medio
+- **Contexto:** La web se abría con el mapa de nodos de D-033: seis controles, palabras como «crédito» o «gasto reconocido», cifras como «33.296 M€» sin referencia y etiquetas que se pisaban. Era la pantalla más difícil y la primera que se veía.
+- **Decisión:**
+  - **Se entra por el Inicio.** El mapa pasa a llamarse «A dónde va el dinero» y es la segunda página (su dirección sigue siendo `/mapa_general`).
+  - **Una frase y una figura en lugar de cuatro cifras:** «En 2025 la Comunidad de Madrid tuvo 33.296 M€ y gastó 95 de cada 100 €», con una barra de lo gastado. Debajo, lo que tocaría a cada habitante si se repartiera (**unos 4.680 €** en 2025), con una persona que sujeta billetes y una figurita por cada millón de habitantes.
+  - **Habitantes del INE**, Estadística Continua de Población (serie ECP115490), a 1 de enero de cada año: es la fuente F-12, en `ingesta/ine.py`, con caché en `data/raw/ine/`. No entra en la base ni en ningún indicador, y la pantalla dice que es una forma de dar escala, no un pago.
+  - **Treemap de billetes** (`app/billetes.py`) como gráfico principal: cada bloque es una consejería y su área es el dinero.
+    - Dentro van billetes que **valen lo mismo en todo el gráfico** (100 M€ en el presupuesto), así que más dinero son más billetes.
+    - Lo que no llega a un billete se pinta como trozo de billete, y **los billetes grises son lo que quedó sin gastar**.
+    - Al pulsar una consejería se ven sus 15 contratos más grandes, también en billetes y con su ficha al lado. Los menores y las subvenciones van en una línea aparte, porque juntos aplastarían a los contratos.
+    - Es un componente de `st.components.v2`, sin dependencias nuevas.
+  - **Gasto de cada consejería en una línea:** barra de lo gastado, porcentaje, lo que queda y el gasto medio diario («unos 35 M€ al día»), ordenadas por dinero.
+  - **Lo técnico va plegado:**
+    - en «Más opciones», qué dinero ver (presupuesto, contratos o subvenciones) y la **red de contratos de D-033, que se conserva como vista avanzada**;
+    - la tabla, en «Ver los datos en tabla»;
+    - las advertencias de fuentes, en «Qué datos no tenemos».
+  - La ficha del contrato pasa sus cifras a líneas de texto, porque en la columna estrecha se cortaban; esto también afecta a la vista de red.
+- **Alternativas:** waffle de 100 cuadraditos (descartado: no permite entrar en cada consejería); arreglar solo el grafo (seguía sin responder «¿en qué se gasta?»); quitar el grafo (descartado: se conserva como vista avanzada para no deshacer D-033).
+- **Consecuencias:** nueva fuente F-12 (INE): cada instalación la baja sola la primera vez que se abre el mapa, o con `uv run python -m ojo_ciudadano.ingesta.ine`. Si no hay red ni caché, la cifra por habitante no se muestra y el resto funciona. Docs: 02, 03 y 08.

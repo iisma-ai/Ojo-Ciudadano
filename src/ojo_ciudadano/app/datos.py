@@ -910,12 +910,12 @@ def detalle_r01(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | None
 
 def detalle_r02(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | None:
     """E-02: qué parte del importe del organismo (en contratos comprobados por R-02, misma
-    fuente) se adjudicó sin anuncio público."""
+    fuente, de cualquier tipo) se adjudicó sin anuncio público, y el procedimiento de este."""
     filas = _filas(
         con,
         """
         WITH base AS (
-            SELECT c.contrato_id, c.organo_id, c.fuente, r.activado,
+            SELECT c.contrato_id, c.organo_id, c.fuente, c.procedimiento, r.activado,
                    coalesce(sum(coalesce(a.importe_sin_iva, a.importe_con_iva)), 0) AS importe
             FROM indicador_resultado AS r
             JOIN contrato_unico AS c USING (contrato_id)
@@ -928,7 +928,7 @@ def detalle_r02(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | None
                coalesce(sum(b.importe) FILTER (WHERE b.activado), 0) AS sin_anuncio,
                coalesce(sum(b.importe) FILTER (WHERE NOT b.activado), 0) AS con_anuncio,
                count_if(b.activado) AS n_sin_anuncio, count(*) AS n_contratos,
-               any_value(e.importe) AS importe_este
+               any_value(e.importe) AS importe_este, any_value(e.procedimiento) AS procedimiento
         FROM base AS b
         JOIN este AS e ON b.organo_id = e.organo_id AND b.fuente = e.fuente
         JOIN organo AS o ON o.organo_id = b.organo_id

@@ -172,35 +172,42 @@ def menores(detalle: dict, contrato_id: str) -> go.Figure:
 
 
 def reparto(detalle: dict) -> go.Figure:
-    """E-04: cómo se reparte el dinero del organismo en este tipo de contrato; la empresa de
-    este contrato en azul."""
+    """E-04 (D-042): de cada 100 € que el organismo adjudica en este tipo de contrato, cuántos
+    se lleva cada empresa. Ranking de barras con la empresa de este contrato en azul y una línea
+    en «la mitad», que es donde salta la señal."""
+    total = detalle["total"] or 1
     partes = detalle["partes"]
+    nombres = [p["nombre"] if len(p["nombre"]) <= 30 else p["nombre"][:29] + "…" for p in partes]
+    de_cada_100 = [100 * p["importe"] / total for p in partes]
     figura = go.Figure(
-        go.Pie(
-            labels=[
-                f"{p['nombre']} ({porcentaje(p['importe'] / detalle['total'])})" for p in partes
-            ],
-            values=[p["importe"] for p in partes],
-            hole=0.62,
-            sort=False,
-            direction="clockwise",
+        go.Bar(
+            y=nombres,
+            x=de_cada_100,
+            orientation="h",
             marker={
-                "colors": [AZUL if p["es_este"] else GRIS for p in partes],
+                "color": [AZUL if p["es_este"] else GRIS for p in partes],
                 "line": {"color": SEPARADOR, "width": 1},
+                "cornerradius": 4,
             },
-            textinfo="none",
-            hovertemplate="%{label}: %{value:,.0f} € (%{percent})<extra></extra>",
+            text=[f"{round(v)} €" for v in de_cada_100],
+            textposition="outside",
+            textfont={"color": TEXTO, "size": 13},
+            cliponaxis=False,
+            customdata=[p["importe"] for p in partes],
+            hovertemplate="%{y}: %{customdata:,.0f} € (%{x:.0f} de cada 100 €)<extra></extra>",
         )
     )
-    if detalle["cuota"] is not None:
-        figura.add_annotation(
-            text=f"<b>{porcentaje(detalle['cuota'])}</b>",
-            showarrow=False,
-            font={"size": 22, "color": TEXTO},
-        )
-    figura.update_layout(showlegend=True, legend={"font": {"size": 12}})
-    figura = _tema(figura, alto=260)
-    figura.update_layout(showlegend=True)
+    figura.add_vline(
+        x=50,
+        line={"color": GRIS_CLARO, "dash": "dot", "width": 2},
+        annotation_text="la mitad",
+        annotation_font_color=GRIS_CLARO,
+        annotation_position="top",
+    )
+    figura.update_xaxes(range=[0, 108], visible=False)
+    figura.update_yaxes(autorange="reversed", tickfont={"size": 12})
+    figura = _tema(figura, alto=60 + 34 * len(partes))
+    figura.update_layout(showlegend=False, bargap=0.35)
     return figura
 
 

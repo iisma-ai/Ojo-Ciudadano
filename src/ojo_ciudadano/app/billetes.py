@@ -226,13 +226,13 @@ CSS_OJO = f"""
 
 
 # --------------------------------------------------------------------------- portada
-AMBAR = "#F2B544"  # color de las señales (docs/marca.md); nunca rojo
+COLOR_SENAL = "#7DB3FF"  # señales en azul de cristal (D-042, docs/marca.md); nunca rojo
 VACIO = "#33415C"
 
 
 def svg_cuadricula(n: float, que: str = "tienen esta señal", lado: int = 14, hueco: int = 3) -> str:
-    """Cuadrícula de 100 contratos: los `n` primeros en ámbar (los que tienen la señal) y el
-    resto en gris. Si `n` no llega a 1, el primer cuadrado se pinta a medias para que se vea
+    """Cuadrícula de 100 contratos: los `n` primeros en azul claro (los que tienen la señal) y
+    el resto en gris. Si `n` no llega a 1, el primer cuadrado se pinta a medias para que se vea
     que hay alguno."""
     n = min(max(n, 0.0), 100.0)
     llenos = round(n)
@@ -241,13 +241,14 @@ def svg_cuadricula(n: float, que: str = "tienen esta señal", lado: int = 14, hu
     for k in range(100):
         fila, columna = divmod(k, 10)
         x, y = columna * (lado + hueco), fila * (lado + hueco)
-        color = AMBAR if k < llenos else VACIO
+        color = COLOR_SENAL if k < llenos else VACIO
         piezas.append(
             f'<rect x="{x}" y="{y}" width="{lado}" height="{lado}" rx="3" fill="{color}"/>'
         )
         if k == 0 and llenos == 0 and n > 0:
             piezas.append(
-                f'<rect x="{x}" y="{y}" width="{lado / 2}" height="{lado}" rx="2" fill="{AMBAR}"/>'
+                f'<rect x="{x}" y="{y}" width="{lado / 2}" height="{lado}" rx="2" '
+                f'fill="{COLOR_SENAL}"/>'
             )
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {total} {total}" width="{total}" '
@@ -278,12 +279,12 @@ ICONOS_PUERTA = {
     "dinero": svg_frasco(39, 0.95, etiqueta="39 €").replace(
         'width="100" height="100"', 'width="64" height="64" aria-hidden="true"'
     ),
-    # lupa sobre un contrato con una banderita ámbar
+    # lupa sobre un contrato con una banderita del color de las señales
     "revisar": _icono(
         '<rect x="8" y="6" width="34" height="44" rx="5" fill="#0B2236" stroke="#9FB6CC" '
         'stroke-width="2.5"/><rect x="15" y="16" width="20" height="3" rx="1.5" fill="#9FB6CC"/>'
         '<rect x="15" y="24" width="16" height="3" rx="1.5" fill="#9FB6CC"/>'
-        f'<path d="M36 8 v10 l5 -3 l5 3 v-10z" fill="{AMBAR}"/>'
+        f'<path d="M36 8 v10 l5 -3 l5 3 v-10z" fill="{COLOR_SENAL}"/>'
         '<circle cx="38" cy="38" r="12" fill="#0B2236" fill-opacity=".6" stroke="#E7ECF3" '
         'stroke-width="4"/><path d="M47 47 L57 57" stroke="#E7ECF3" stroke-width="6" '
         'stroke-linecap="round"/>'

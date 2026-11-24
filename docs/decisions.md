@@ -683,3 +683,14 @@ Plantilla:
   - **Aviso legal:** en el icono de información del título, como en el Inicio (D-039). El aviso corto de la barra lateral sigue visible.
 - **Alternativas:** dejar «Mayor puntuación» con otro nombre; agrupar los contratos de un mismo acuerdo marco (descartado: son registros distintos en origen).
 - **Consecuencias:** la tarjeta cambia también en las fichas de empresa y de organismo (comprobado sin errores). Ningún indicador ni cifra cambia. Docs: 03 y 08.
+- **Ajustes del mismo día (Ignacio):**
+  - **Color de las señales: azul de cristal** (#7DB3FF) en vez del naranja (`:orange-badge`), que no encajaba con la estética océano. Afecta a:
+    - las etiquetas (`:blue-badge`, con estilo de cristal en `estilo.css`, `.stMarkdownBadge`);
+    - el nombre y el borde de cada subcaja;
+    - la cuadrícula del Inicio (`billetes.COLOR_SENAL`).
+    El ámbar queda solo para las líneas de referencia de los gráficos. Cambia la regla de `docs/marca.md`.
+  - **«Sin anuncio público»:** la frase se parte en «En este contrato: se adjudicó sin anuncio público (vía: …)» y «Para comparar: de cada 100 € que el organismo adjudicó en la misma fuente, X € fueron sin anuncio». Se corrige un error: antes decía «de sus contratos de este tipo», pero la cifra cuenta todos los contratos del organismo en esa fuente, de cualquier tipo. `datos.detalle_r02` devuelve además el procedimiento del contrato.
+  - **«Una empresa concentra el gasto»:**
+    - el donut pasa a un ranking de barras de «de cada 100 €» por empresa, con la de este contrato en azul y una línea de puntos en «la mitad», que es donde salta la señal (`graficos.reparto`);
+    - la frase dice «De cada 100 € que X adjudicó en contratos de suministros de [sector], 52 € fueron a Y (entre N empresas). La señal salta cuando una sola empresa se lleva más de la mitad»;
+    - el sector sale del nombre de la división CPV, o «de este sector» si falta la lista de CPV.

@@ -312,16 +312,25 @@ iframe[title^="streamlit_agraph"] {
   margin-bottom: 1.5rem;
 }
 
-/* Subcajas de cada señal dentro de la tarjeta de un contrato (D-042): borde ámbar a la izquierda,
-   la misma altura en las dos columnas y el botón «¿Qué significa?» abajo. */
+/* Señales en azul de cristal (D-042, sustituye al ámbar): subcajas de cada señal dentro de la
+   tarjeta de un contrato, con borde azul claro a la izquierda, la misma altura en las dos
+   columnas y el botón «¿Qué significa?» abajo. */
 div[class*="st-key-cajasenal_"][class*="st-key-cajasenal_"] {
   height: 100%;
-  border-left: 3px solid var(--oc-ambar) !important;
-  box-shadow: inset 3px 0 0 var(--oc-ambar), var(--oc-cristal-sombra) !important;
+  border-left: 3px solid #7db3ff !important;
+  box-shadow: inset 3px 0 0 #7db3ff, var(--oc-cristal-sombra) !important;
 }
 [data-testid="stLayoutWrapper"]:has(> [class*="st-key-cajasenal_"]) {
   flex: 1 1 auto;
 }
 [class*="st-key-cajasenal_"] > div:last-child {
   margin-top: auto;
+}
+/* Etiquetas de señal (`:blue-badge[]`) como cristal azul, en vez del bloque opaco de Streamlit. */
+.stMarkdownBadge {
+  background: rgba(125, 179, 255, 0.13) !important;
+  color: #a9cdff !important;
+  border: 1px solid rgba(125, 179, 255, 0.35);
+  border-radius: 999px !important;
+  padding: 0.05rem 0.55rem !important;
 }

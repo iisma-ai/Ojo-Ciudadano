@@ -132,7 +132,7 @@ def senales() -> None:
                     billetes.svg_cuadricula(n, que)
                     + '<p style="font-family:Inter,sans-serif;color:#E7ECF3;font-size:1.05rem;'
                     "line-height:1.5;"
-                    f'margin:.5rem 0 0"><b style="font-size:1.6rem;color:{billetes.AMBAR}">'
+                    f'margin:.5rem 0 0"><b style="font-size:1.6rem;color:{billetes.COLOR_SENAL}">'
                     f"{billetes.cifra_de_100(n)}</b> de cada 100 contratos {que}</p>",
                     clave=f"cuadricula_{indicador}",
                 )

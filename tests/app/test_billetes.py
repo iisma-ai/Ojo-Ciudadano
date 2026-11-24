@@ -66,9 +66,9 @@ def test_etiqueta_menos_de_un_euro_no_rompe_el_svg():
 
 def test_cuadricula_de_100_contratos():
     svg = billetes.svg_cuadricula(39.4)
-    assert svg.count(f'fill="{billetes.AMBAR}"') == 39
+    assert svg.count(f'fill="{billetes.COLOR_SENAL}"') == 39
     assert svg.count(f'fill="{billetes.VACIO}"') == 61
-    # alguno pero menos de 1 de cada 100: medio cuadrado ámbar, para que se vea
+    # alguno pero menos de 1 de cada 100: medio cuadrado azul, para que se vea
     assert svg_ambar(billetes.svg_cuadricula(0.006)) == 1
     assert (
         billetes.texto_de_100_contratos(0.006, "tienen una sola oferta")
@@ -78,7 +78,7 @@ def test_cuadricula_de_100_contratos():
 
 
 def svg_ambar(svg: str) -> int:
-    return svg.count(f'fill="{billetes.AMBAR}"')
+    return svg.count(f'fill="{billetes.COLOR_SENAL}"')
 
 
 def test_iconos_de_las_puertas():

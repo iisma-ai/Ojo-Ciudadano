@@ -36,10 +36,17 @@ def frase_y_grafico(con: duckdb.DuckDBPyConnection, indicador: str, contrato_id:
         if not d:
             return None, None
         total = d["sin_anuncio"] + d["con_anuncio"]
+        via = textos.PROCEDIMIENTO_LLANO.get(d["procedimiento"], d["procedimiento"])
+        fuente = textos.NOMBRES_FUENTE.get(d["fuente"], "la misma fuente")
+        de_cada = round(100 * d["sin_anuncio"] / total) if total else 0
+        # Primero lo que tiene este contrato; después, el contexto del organismo (D-042).
         frase = (
-            f"{d['organo']} adjudicó sin anuncio público, o por «otro procedimiento», el "
-            f"**{_porcentaje(d['sin_anuncio'], total)} del importe** de sus contratos de este "
-            f"tipo ({d['n_sin_anuncio']} de {d['n_contratos']} contratos)."
+            "**En este contrato:** se adjudicó **sin anuncio público**"
+            + (f" (vía: {via.lower()})" if via else "")
+            + ".  \n"
+            f"**Para comparar:** de cada 100 € que {d['organo']} adjudicó en la {fuente}, "
+            f"**{de_cada} € fueron sin anuncio** ({d['n_sin_anuncio']} de sus "
+            f"{d['n_contratos']} contratos)."
         )
         return frase, graficos.sin_anuncio(d)
     if indicador == "R-03":
@@ -62,14 +69,16 @@ def frase_y_grafico(con: duckdb.DuckDBPyConnection, indicador: str, contrato_id:
         if not d or d["cuota"] is None:
             return None, None
         quien = d["partes"][0]["nombre"]
-        cuota = textos.porcentaje(d["cuota"])
-        mercado = f"contratos de {d['tipo']}"
-        if d.get("division"):
-            nombre = f" ({d['nombre_division'].lower()})" if d.get("nombre_division") else ""
-            mercado += f" de la división CPV {d['division']}{nombre}"
+        if d.get("nombre_division"):
+            sector = f" de {d['nombre_division'].lower()}"
+        elif d.get("division"):
+            sector = " de este sector"
+        else:
+            sector = ""
         frase = (
-            f"{quien} recibe el **{cuota}** del importe que {d['organo']} ha adjudicado "
-            f"en {mercado} ({d['n_empresas']} adjudicatarios en total)."
+            f"De cada 100 € que {d['organo']} adjudicó en contratos de {d['tipo']}{sector}, "
+            f"**{round(100 * d['cuota'])} € fueron a {quien}** (entre {d['n_empresas']} "
+            "empresas). La señal salta cuando una sola empresa se lleva más de la mitad."
         )
         return frase, graficos.reparto(d)
     if indicador in ("R-05", "R-06"):
@@ -113,12 +122,12 @@ def mostrar(
 ) -> None:
     """Bloque de una señal: su nombre con icono, la frase con las cifras de este contrato y su
     gráfico. La explicación general va en «¿Qué significa?» (D-042). `en_caja`: dentro de la
-    subcaja de la tarjeta, con el nombre en ámbar y la etiqueta «En este contrato»."""
+    subcaja de la tarjeta, con el nombre en azul y la etiqueta «En este contrato»."""
     nombre = f"{textos.ICONO_SENAL[indicador]} **{textos.SENAL_CORTA[indicador]}**"
-    st.markdown(f":orange[{nombre}]" if en_caja else nombre)
+    st.markdown(f":blue[{nombre}]" if en_caja else nombre)
     frase, figura = frase_y_grafico(con, indicador, contrato_id)
     if frase:
-        if en_caja:
+        if en_caja and not frase.startswith("**En este contrato"):
             st.caption("En este contrato")
         st.markdown(frase)
     if figura is not None:
@@ -130,9 +139,9 @@ def mostrar(
 
 
 def etiquetas_senales(indicadores: list[str]) -> str:
-    """Señales como etiquetas ámbar con su icono (Markdown de Streamlit)."""
+    """Señales como etiquetas azules con su icono (Markdown de Streamlit)."""
     return " ".join(
-        f":orange-badge[{textos.ICONO_SENAL[i]} {textos.SENAL_CORTA[i]}]" for i in indicadores
+        f":blue-badge[{textos.ICONO_SENAL[i]} {textos.SENAL_CORTA[i]}]" for i in indicadores
     )
 
 
@@ -158,7 +167,7 @@ def cabecera_contrato(fila: dict) -> str:
 
 def tarjeta_contrato(con: duckdb.DuckDBPyConnection, fila: dict, prefijo: str) -> None:
     """Contrato como desplegable (D-042). En la cabecera, el título limpio, cuánto, a quién,
-    quién lo adjudica y las señales en etiquetas ámbar. Al pulsar en cualquier parte se abre con
+    quién lo adjudica y las señales en etiquetas azules. Al pulsar en cualquier parte se abre con
     el enlace al expediente arriba, un gráfico por señal (que solo se calcula entonces) y el
     aviso de contrato atípico. `fila` lleva los campos de `datos.alertas` o
     `datos.contratos_empresa`."""

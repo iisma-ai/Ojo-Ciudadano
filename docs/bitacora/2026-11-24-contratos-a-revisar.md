@@ -59,3 +59,25 @@ Detalles técnicos:
 - en `estilo.css`, hay que reforzar el selector y usar una sombra interior para que el borde ámbar gane al estilo de cristal.
 
 Comprobado en el navegador: las dos cajas del contrato de la vacuna miden 546 px.
+
+## Ajuste: color, «sin anuncio público» y gráfico de concentración
+Ignacio pidió tres cambios:
+- otra visualización para la concentración: eligió el ranking de barras con la línea de «la mitad»;
+- que se entendiera qué significa el 85 % de «sin anuncio público»;
+- sustituir el naranja: eligió el azul de cristal.
+
+**Qué se hizo:**
+- **R-02:**
+  - «En este contrato» (la vía de adjudicación, en lenguaje llano) y «Para comparar» (de cada 100 € del organismo en esa fuente, cuántos fueron sin anuncio).
+  - Al revisarlo se encontró que la frase decía «de este tipo» y el cálculo no filtra por tipo. Corregido.
+- **R-04:**
+  - `graficos.reparto` es ahora un ranking de barras de «de cada 100 €», con la empresa del contrato en azul y una línea de puntos en 50.
+  - Frase nueva que explica cuándo salta la señal.
+  - En esta base local el nombre del sector no sale porque la lista de CPV no se pudo bajar; se dice «de este sector».
+- **Color:**
+  - etiquetas `:blue-badge` con estilo de cristal (`.stMarkdownBadge` en `estilo.css`);
+  - nombre y borde de las subcajas en #7DB3FF;
+  - cuadrícula del Inicio en el mismo azul (`billetes.COLOR_SENAL`);
+  - `docs/marca.md` actualizado: el ámbar queda para las líneas de referencia de los gráficos.
+
+**Comprobaciones:** comprobado en el navegador con el contrato de la vacuna (cajas de 550 px, iguales). Tests en verde.

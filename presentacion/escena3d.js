@@ -61,8 +61,8 @@ const rocas = Agua.crearRocas([
   [17, 8.4, -30, 4, 3, 4, 4],
   [-32, 8.4, -75, 9, 4.5, 6, 5],
   [38, 8.4, -95, 11, 5, 7, 6],
-  [2, 4.5, 1, 4, 3, 3, 7],
-  [-5, 3.5, -6, 5, 3, 4, 8],
+  [9, 4, -3, 4, 3, 3, 7],
+  [-10, 3.5, -7, 5, 3, 4, 8],
   [-6, -21, -6, 5, 3, 4, 9],
   [7, -23, -3, 6, 4, 5, 10],
   [0, -27, -12, 10, 5, 8, 11],
@@ -615,6 +615,9 @@ function contar(it) {
 function ir(i, p) {
   const nuevo = THREE.MathUtils.clamp(i, 0, diapositivas.length - 1);
   if (nuevo !== actual) burbujitas.rafaga(camY, 110);
+  // de las rocas al agua (o de vuelta): salto en arco por delante de la roca, sin atravesarla
+  const deArriba = diapositivas[actual].cfg.arriba || diapositivas[nuevo].cfg.arriba;
+  if (deArriba && Math.abs(nuevo - actual) === 1) zambullida = { t0: reloj.elapsedTime, ida: nuevo > actual, curva: null };
   actual = nuevo;
   paso = Math.min(p, diapositivas[actual].maxPaso);
   estado();
@@ -694,6 +697,8 @@ let camZ = D;
 let velX = 0;
 let velY = 0;
 let velZ = 0;
+let zambullida = null; // salto de las rocas al agua: {t0, ida, curva}
+const DURA_SALTO = 2.8;
 const ojoPant = { x: null, y: null };
 const vistazo = new THREE.Vector2(); // desvio de la mirada, en pixeles del escenario
 const vistazoObj = new THREE.Vector2();
@@ -735,12 +740,35 @@ function cuadro() {
   } else {
     miraObj.set(objX, objY, objZ - D);
   }
-  velX += ((objX - camX) * 6 - velX * 4.9) * dt;
-  velY += ((objY - camY) * 7 - velY * 5.2) * dt;
-  velZ += ((objZ - camZ) * 6 - velZ * 4.9) * dt;
-  camX += velX * dt;
-  camY += velY * dt;
-  camZ += velZ * dt;
+  if (zambullida) {
+    // la camara sigue un arco: un pequeño impulso hacia arriba y adelante, pasa por delante
+    // de la roca, cae al agua y baja hasta la diapositiva siguiente
+    if (!zambullida.curva) {
+      const medio = [new THREE.Vector3(0, 13.9, 7), new THREE.Vector3(0, 10.2, 3), new THREE.Vector3(0, 3, 1.5), new THREE.Vector3(0, -8, D * 0.7)];
+      if (!zambullida.ida) medio.reverse();
+      zambullida.curva = new THREE.CatmullRomCurve3([new THREE.Vector3(camX, camY, camZ), ...medio, new THREE.Vector3(objX, objY, objZ)], false, "centripetal");
+    }
+    const u = Math.min((t - zambullida.t0) / DURA_SALTO, 1);
+    // ida: arranca rapido (el salto) y frena al final; vuelta: suave en los dos extremos
+    const s = zambullida.ida ? 1 - Math.pow(1 - u, 2.2) : u * u * (3 - 2 * u);
+    const P = zambullida.curva.getPoint(s);
+    camX = P.x;
+    camY = P.y;
+    camZ = P.z;
+    velX = velY = velZ = 0;
+    // mientras cae mira hacia delante y abajo; al final vuelve a lo que pide la diapositiva
+    const mezcla = THREE.MathUtils.smoothstep(s, 0.55, 1);
+    const delante = new THREE.Vector3(P.x, P.y - 6, P.z - 14);
+    miraObj.copy(delante.lerp(miraObj, mezcla));
+    if (u >= 1) zambullida = null;
+  } else {
+    velX += ((objX - camX) * 6 - velX * 4.9) * dt;
+    velY += ((objY - camY) * 7 - velY * 5.2) * dt;
+    velZ += ((objZ - camZ) * 6 - velZ * 4.9) * dt;
+    camX += velX * dt;
+    camY += velY * dt;
+    camZ += velZ * dt;
+  }
   camara.position.set(camX + Math.sin(t * 0.21) * 0.12, camY + Math.sin(t * 0.17) * 0.08, camZ);
   if (miraCam.lengthSq() === 0) miraCam.copy(miraObj);
   miraCam.lerp(miraObj, suave(dt, 2.2));
@@ -885,4 +913,4 @@ setTimeout(() => document.getElementById("cortina").classList.add("fuera"), 400)
 setTimeout(() => document.getElementById("ayuda").classList.add("oculta"), 5000);
 
 // acceso para depurar desde la consola
-window.__oc = { ojo, escena, brillo, final, VIDRIO, items, compositor };
+window.__oc = { camara, rocas, ojo, escena, brillo, final, VIDRIO, items, compositor };

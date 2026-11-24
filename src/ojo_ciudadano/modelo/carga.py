@@ -10,7 +10,7 @@ from pathlib import Path
 import duckdb
 import polars as pl
 
-from ojo_ciudadano.ingesta import bdns, encargos, placsp, portal_cm, tacp
+from ojo_ciudadano.ingesta import bdns, cpv, encargos, invente, placsp, portal_cm, tacp
 from ojo_ciudadano.normalizacion import texto as n_texto
 
 RUTA_DB = Path("data/ojo_ciudadano.duckdb")
@@ -354,6 +354,8 @@ def escribir(
             "contrato_documento",
             "encargo",
             "recurso_especial",
+            "cpv",
+            "entidad_sector_publico",
         ):
             if tablas.get(nombre) is None:
                 continue
@@ -402,6 +404,13 @@ def construir(
         tablas["recurso_especial"] = cruzar_recursos(
             tacp.con_texto_pdf(recursos), tablas["contrato"]
         )
+    if (
+        cpv.FICHERO.exists()
+    ):  # nombres de los CPV (D-035): `uv run python -m ojo_ciudadano.ingesta.cpv`
+        tablas["cpv"] = cpv.leer()
+    # Entes del sector público (D-035): `uv run python -m ojo_ciudadano.ingesta.invente`.
+    if invente.FICHERO.exists():
+        tablas["entidad_sector_publico"] = invente.leer()
     escribir(tablas, ruta_db)
     if carpeta_cm is not None and any(carpeta_cm.glob("*.csv")):
         from ojo_ciudadano.modelo import contexto

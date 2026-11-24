@@ -458,3 +458,29 @@ Plantilla:
 - **Alternativas:** mantener el tema plano anterior; tema claro.
 - **Consecuencias:** `static/estilo.css`, `.streamlit/config.toml`, `red.svg_nodo` y los bordes de `graficos.py`. Los selectores de Streamlit pueden cambiar con la versión: si algo deja de verse de cristal, revisar `estilo.css`. Sin animación con `prefers-reduced-motion`.
 
+## D-035 · Nombres de los CPV y entes del sector público (INVENTE) como contexto
+- **Fecha:** 2026-11-23
+- **Estado:** Aceptada (El Harrak: «empieza por los CPV y mira INVENTE», tras el análisis de datos libres del 23-nov). Numerada D-033 en su rama; pasó a D-035 al fusionar `main`, donde D-033 y D-034 ya eran del mapa de un vistazo y de la estética.
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** Las 17.589 licitaciones de PLACSP traen su código CPV, pero la web y el asistente solo enseñaban el número. Además, entre los adjudicatarios hay entes públicos (universidades, fundaciones del sector público, sociedades mercantiles públicas) que aparecen como «empresas» en las fichas. DIR3 ([13](13-fuentes-externas.md), X-05) ya se había estudiado, pero cubre sobre todo unidades de las administraciones y el cruce era por nombre.
+- **Decisión:**
+  - **CPV:**
+    - tabla aditiva `cpv` (`sql/esquema/008_cpv.sql`) con los 9.454 códigos y su nombre oficial en español;
+    - viene de la lista CODICE de la Plataforma de Contratación (`CPV2008-2.04.gc`), que es la misma con la que PLACSP clasifica: casan los 1.963 códigos distintos de la base;
+    - la de TED pide pasar una comprobación de robots, y no se fuerza.
+  - **INVENTE:**
+    - tabla aditiva `entidad_sector_publico` (`009_sector_publico.sql`) con los 4.602 entes con NIF del inventario de la IGAE;
+    - se baja con una sola petición a su API pública, documentada en el YAML de la aplicación;
+    - se cruza con `adjudicatario.nif`.
+  - **Uso:**
+    - **ficha de contrato:** el objeto CPV con su sector;
+    - **ficha de empresa:** si el NIF es de un ente público, aviso «Ente del sector público, no una empresa privada», con su forma jurídica y la administración de la que depende. Si el nombre del adjudicatario no se parece al del inventario, solo una nota: puede ser un nombre abreviado o un error de NIF en la fuente;
+    - **asistente:** las dos tablas, en la lista permitida y con sus reglas.
+  - **No cambia ningún indicador.** Excluir los entes públicos de R-04 (concentración) o de la puntuación de empresa sería un cambio de metodología: queda para decidirlo en equipo.
+- **Alternativas consideradas:**
+  - DIR3, cuyo cruce era por nombre y no trae fundaciones ni sociedades.
+  - Consultar INVENTE NIF a NIF: unas 2.000 peticiones, frente a una.
+  - Los nombres del CPV desde TED: protegidos por la comprobación de robots.
+- **Consecuencias:**
+  - **Datos:** `uv run python -m ojo_ciudadano.ingesta.cpv` y `uv run python -m ojo_ciudadano.ingesta.invente` bajan y cargan cada tabla en la base ya construida. `modelo.carga` las incluye si están en `data/raw/`.
+  - **Resultado del cruce (23-nov):** 261 adjudicatarios con NIF de un ente público, con unas 4.200 adjudicaciones y unos 121 M€ con IVA y 40 M€ sin IVA. De ellos, 235 tienen el nombre compatible y 26 no: siglas, nombres abreviados o errores de NIF de la fuente, como «PIXELWARE, S.A.» con el NIF de Planifica Madrid.

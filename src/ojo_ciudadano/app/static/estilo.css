@@ -302,6 +302,19 @@ iframe[title^="streamlit_agraph"] {
   color: #7db3ff;
   font-weight: 600;
 }
+/* arriba, solo el nombre (sin el logo), algo más grande y pegado a la izquierda */
+.st-key-barra .oc-marca {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-left: -0.1rem;
+}
+/* en el pie, el logo con el nombre, como la marca completa */
+.oc-marca-pie {
+  margin: var(--oc-e2) 0 var(--oc-e1);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
 /* la cápsula de los botones: cristal sutil, no una banda */
 .st-key-nav {
   gap: 0.25rem !important;

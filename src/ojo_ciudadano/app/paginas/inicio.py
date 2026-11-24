@@ -1,7 +1,8 @@
 """Portada para el ciudadano (D-023, D-039).
 
 En cinco segundos: el logo y una frase, un buscador que lleva a la ficha de una empresa o
-de un organismo, cuatro puertas grandes y las cifras en una línea. Debajo, las señales que
+de un organismo y cuatro puertas grandes (sin subtítulo ni línea de cifras: poco texto).
+Debajo, las señales que
 buscamos en formato «de cada 100 contratos», con la explicación en un botón. El aviso de que
 una señal no prueba nada queda en el icono de las señales; las fuentes, en el pie (D-043).
 """
@@ -13,7 +14,7 @@ import streamlit as st
 from ojo_ciudadano.app import billetes, buscador, datos, textos
 from ojo_ciudadano.app.conexion import conexion
 
-# Solo el logo (D-043); la mascota con billetes queda en «A dónde va el dinero».
+# Solo el logo (D-043); la mascota con billetes queda en el «Mapa del dinero».
 LOGO = (Path(__file__).parents[1] / "static" / "logo.svg").read_text(encoding="utf-8")
 
 PUERTAS = [
@@ -66,16 +67,9 @@ ESTILO = """
 [class*="st-key-puerta_"], [class*="st-key-senal_"] { height: 100%; }
 [class*="st-key-senal_"] > div:last-child { margin-top: auto; }
 [class*="st-key-puerta_"] [data-testid="stPageLink"] a { padding-left: 0; }
-.oc-cifras { color: #9FB6CC; font-size: 1.05rem; margin: .5rem 0 1rem; }
 [class*="st-key-puerta_"], [class*="st-key-senal_"] { padding: 1.25rem 1.35rem !important; }
-.oc-cifras b { color: #E7ECF3; }
 </style>
 """
-
-
-@st.cache_data(show_spinner=False, ttl=3600)
-def _resumen() -> dict:
-    return datos.resumen_portada(conexion())
 
 
 @st.cache_data(show_spinner=False, ttl=3600)
@@ -103,7 +97,6 @@ def bienvenida() -> None:
   {LOGO.replace("<svg ", '<svg class="oc-logo" ', 1)}
   <div class="texto">
     <h1>Mira en qué se gasta tu dinero la Comunidad de Madrid</h1>
-    <p>Contratos y subvenciones de 2023 a 2026, sacados de fuentes oficiales.</p>
   </div>
 </div>"""
     billetes.pintar(contenido, clave="inicio_bienvenida")
@@ -166,14 +159,5 @@ if elegido:
     st.switch_page(destino, query_params={tipo: ident})
 
 puertas()
-
-resumen = _resumen()
-st.html(
-    '<p class="oc-cifras">'
-    f"<b>{textos.numero(resumen['n_contratos'])}</b> contratos · "
-    f"<b>{textos.numero(resumen['n_concesiones'])}</b> subvenciones · "
-    f"<b>{textos.numero(resumen['n_organos'])}</b> organismos · de fuentes oficiales"
-    "</p>"
-)
 
 senales()

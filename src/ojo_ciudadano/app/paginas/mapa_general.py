@@ -1,4 +1,4 @@
-"""A dónde va el dinero: mapa general de la Comunidad de Madrid (D-026, D-033, D-038).
+"""Mapa del dinero: mapa general de la Comunidad de Madrid (D-026, D-033, D-038).
 
 Pensado para un ciudadano cualquiera:
 - una tarjeta con el dinero del año, lo gastado y lo que tocaría a cada habitante al año y al
@@ -473,7 +473,7 @@ def fuentes(datos_anio: dict, anio: int, poblacion: dict | None) -> None:
 
 # ------------------------------------------------------------------------------ pantalla
 con = conexion()
-st.header("A dónde va el dinero")
+st.header("Mapa del dinero")
 
 periodos = datos_mapa.periodos(con)
 if not periodos:

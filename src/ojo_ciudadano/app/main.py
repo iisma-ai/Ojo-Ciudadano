@@ -39,13 +39,13 @@ INTRO = (ESTATICOS / "intro.html").read_text(encoding="utf-8")
 for marca, imagen in ojo_cristal.imagenes().items():  # el ojo de cristal de la presentación
     INTRO = INTRO.replace(marca, imagen)
 
-# Web ligera (D-043): sin barra lateral. Arriba, una barra con el logo, los botones de las
+# Web ligera (D-043): sin barra lateral. Arriba, una barra con el nombre, los botones de las
 # partes principales y «Explorar» con el resto de pantallas; abajo del todo, el pie con el aviso, la
 # metodología, las fuentes y las fechas de descarga.
 INICIO = st.Page("paginas/inicio.py", title="Inicio", icon=":material/home:", default=True)
 DINERO = st.Page(
     "paginas/mapa_general.py",
-    title="A dónde va el dinero",
+    title="Mapa del dinero",
     icon=":material/payments:",
     url_path="mapa_general",
 )
@@ -53,7 +53,7 @@ REVISAR = st.Page("paginas/alertas.py", title="Contratos a revisar", icon=":mate
 ATIPICOS = st.Page(
     "paginas/atipicos.py", title="Contratos atípicos", icon=":material/scatter_plot:"
 )
-MAPA = st.Page("paginas/mapa.py", title="Mapa del dinero", icon=":material/account_tree:")
+MAPA = st.Page("paginas/mapa.py", title="Red del dinero", icon=":material/account_tree:")
 CONTEXTO = st.Page(
     "paginas/contexto.py",
     title="Presupuesto y contexto",
@@ -104,10 +104,8 @@ def marcar_seccion(pagina) -> None:
 def barra_superior() -> None:
     """Logo, botones de las partes principales y «Explorar» con el resto de pantallas."""
     with st.container(key="barra", horizontal=True, vertical_alignment="center", gap="small"):
-        st.html(
-            f'<div class="oc-marca"><img src="{LOGO}" alt="" width="30" height="30">'
-            "<span>Ojo <b>Ciudadano</b></span></div>"
-        )
+        # arriba solo el nombre: el logo ya sale grande en el Inicio y en el pie
+        st.html('<div class="oc-marca"><span>Ojo <b>Ciudadano</b></span></div>')
         # los botones, juntos en una cápsula a la derecha (D-045)
         with st.container(
             key="nav", horizontal=True, vertical_alignment="center", gap=None, width="content"
@@ -128,6 +126,10 @@ def pie(pagina) -> None:
     with st.container(key="pie"):
         rendimiento.detectar()  # sin tarjeta gráfica, fondo quieto (D-044); no dibuja nada
         st.divider()
+        st.html(
+            f'<div class="oc-marca oc-marca-pie"><img src="{LOGO}" alt="" width="36" height="36">'
+            "<span>Ojo <b>Ciudadano</b></span></div>"
+        )
         st.caption(textos.AVISO_CORTO)
         if pagina.url_path in NOTAS_PIE:
             titulo, nota = NOTAS_PIE[pagina.url_path]

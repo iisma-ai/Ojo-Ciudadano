@@ -1,4 +1,4 @@
-"""Mapa del dinero: a quién adjudica cada organismo (D-023, A-07).
+"""Red del dinero: a quién adjudica cada organismo (D-023, A-07).
 
 1. Burbujas de los organismos que más adjudican (área = importe).
 2. Al elegir uno, su red: el organismo en el centro y sus empresas alrededor (área y grosor de
@@ -26,7 +26,7 @@ def elegir(organo_id: str) -> None:
 
 
 con = conexion()
-st.header("Mapa del dinero")
+st.header("Red del dinero")
 st.caption(
     "A quién adjudica contratos o concede subvenciones cada organismo. El tamaño de cada "
     "burbuja es el dinero."

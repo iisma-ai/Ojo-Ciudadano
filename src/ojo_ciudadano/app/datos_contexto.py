@@ -7,6 +7,7 @@ Personas físicas: ninguna de estas tablas las contiene (D-007).
 
 import duckdb
 
+from ojo_ciudadano.app import cache
 from ojo_ciudadano.normalizacion import texto as n_texto
 
 TABLAS = ("serie_cm", "presupuesto_organo", "convenio", "entidad_registro", "plantilla_organismo")
@@ -22,9 +23,8 @@ NOMBRE_REGISTRO = {
 
 
 def _filas(con: duckdb.DuckDBPyConnection, sql: str, parametros: list | None = None) -> list[dict]:
-    cursor = con.execute(sql, parametros or [])
-    columnas = [d[0] for d in cursor.description]
-    return [dict(zip(columnas, fila, strict=True)) for fila in cursor.fetchall()]
+    """Filas como diccionarios; en la web salen de la caché (app/cache.py)."""
+    return cache.filas(con, sql, parametros)
 
 
 def hay_contexto(con: duckdb.DuckDBPyConnection) -> bool:

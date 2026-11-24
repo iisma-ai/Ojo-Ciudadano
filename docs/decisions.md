@@ -797,3 +797,28 @@ Plantilla:
   - Comprobado en el navegador en los dos casos: con tarjeta gráfica, entrada 3D y fondo en movimiento; simulando que no la hay (`oc-gpu` = `no`), ojo plano, sin Three.js y el fondo quieto.
   - Si Edge u otro navegador va lento por desactivar el optimizador de JavaScript («Mejorar la seguridad en la web»), esto no lo arregla: hay que añadir una excepción para el sitio.
   - Tests en `tests/app/test_rendimiento.py`.
+
+## D-045 · Diseño expandido y cabecera moderna
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada (El Harrak: «rediseñes la página web expandiendo todo… el logo simplemente arriba a la izquierda y los botones arriba a la derecha, como lo hacen muchas páginas modernas actuales»). En la rama `feat/web-ligera`, sobre D-043.
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** La página usaba 1.200 px de ancho en el centro: en una pantalla de 1.920 px quedaba más de un tercio vacío. La barra de D-043 era una cápsula con todo junto en el centro. Referencias consultadas:
+  - logo arriba a la izquierda y navegación en una línea a la derecha, el patrón más común; el logo a la izquierda se recuerda mejor;
+  - ancho máximo de contenido de 1.280 a 1.440 px con márgenes laterales que crecen con la pantalla;
+  - espaciado en múltiplos de 8 px.
+- **Decisión (`static/estilo.css`):**
+  - **Ancho:** contenido de hasta 1.680 px, casi toda la pantalla grande, con márgenes laterales de 20 a 64 px (`clamp(1.25rem, 4vw, 4rem)`).
+  - **Espaciado:** variables de 8 px (`--oc-e1` … `--oc-e8`); 24 px entre bloques. Texto base de 16,5 px con interlineado 1,6.
+  - **Cabecera fija de 72 px:**
+    - el fondo y la línea de abajo van de borde a borde de la pantalla;
+    - el logo (36 px) y el nombre, a la izquierda;
+    - a la derecha, los enlaces con icono, sin cápsula, con la sección abierta marcada, y «Explorar» con un borde fino;
+    - por debajo de 1.080 px, solo iconos; en móvil, también sin el nombre, y «Explorar» como icono.
+  - **Inicio:** el título y el logo crecen con la pantalla (`clamp`), con más separación entre las tarjetas y más relleno dentro.
+  - El mapa general deja su ancho propio de 1.500 px y usa el común.
+- **Alternativas consideradas:**
+  - 1.440 px, como recomiendan varias guías: en una pantalla de 1.920 px seguía dejando un 25 % vacío, y se pidió usar toda la pantalla.
+  - Menú hamburguesa en móvil: con cuatro iconos y «Explorar» cabe en una línea.
+- **Consecuencias:**
+  - Comprobado en el navegador a 1.920, 1.280, 1.000 y 390 px de ancho.
+  - El estilo de la cabecera usa clases y estructura de Streamlit 1.67 (`stLayoutWrapper`, `stPageLink`, `stPopover`). Si se actualiza Streamlit, hay que revisarlo.

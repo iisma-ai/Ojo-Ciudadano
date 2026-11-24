@@ -58,7 +58,7 @@ ESTILO = """
    y el botón de cada señal queda abajo. */
 [data-testid="stLayoutWrapper"]:has(> [class*="st-key-puerta_"]) { flex: 1 1 auto; }
 .st-key-senales { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-auto-rows: 1fr; gap: 1rem; align-items: stretch !important; }
+  grid-auto-rows: 1fr; gap: 1.5rem; align-items: stretch !important; }
 .st-key-senales > [data-testid="stLayoutWrapper"] { align-self: stretch !important;
   height: auto !important; }
 @media (max-width: 900px) { .st-key-senales { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -66,7 +66,8 @@ ESTILO = """
 [class*="st-key-puerta_"], [class*="st-key-senal_"] { height: 100%; }
 [class*="st-key-senal_"] > div:last-child { margin-top: auto; }
 [class*="st-key-puerta_"] [data-testid="stPageLink"] a { padding-left: 0; }
-.oc-cifras { color: #9FB6CC; font-size: .98rem; margin: .2rem 0 .4rem; }
+.oc-cifras { color: #9FB6CC; font-size: 1.05rem; margin: .5rem 0 1rem; }
+[class*="st-key-puerta_"], [class*="st-key-senal_"] { padding: 1.25rem 1.35rem !important; }
 .oc-cifras b { color: #E7ECF3; }
 </style>
 """
@@ -85,14 +86,16 @@ def _conteo() -> dict:
 def bienvenida() -> None:
     contenido = f"""
 <style>
-.oc-bienvenida {{ display:flex; gap:26px; align-items:center; flex-wrap:wrap;
-  font-family:Inter, sans-serif; color:#E7ECF3; }}
-.oc-bienvenida .texto {{ flex:1 1 380px; min-width:0; }}
-.oc-bienvenida h1 {{ font-size:2.6rem; line-height:1.15; margin:0 0 12px; font-weight:700;
+.oc-bienvenida {{ display:flex; gap:clamp(24px, 4vw, 56px); align-items:center; flex-wrap:wrap;
+  font-family:Inter, sans-serif; color:#E7ECF3; padding:16px 0 8px; }}
+.oc-bienvenida .texto {{ flex:1 1 420px; min-width:0; max-width:900px; }}
+.oc-bienvenida h1 {{ font-size:clamp(2.2rem, 3.6vw, 3.5rem); line-height:1.1; margin:0 0 16px;
+  font-weight:700;
   letter-spacing:-.02em; background:linear-gradient(180deg,#fff,#9FCBFF);
   -webkit-background-clip:text; background-clip:text; color:transparent; }}
-.oc-bienvenida p {{ font-size:1.15rem; color:#B9C6D8; margin:0; }}
-.oc-bienvenida .oc-logo {{ width:150px; height:auto; flex:0 0 auto; max-width:34vw;
+.oc-bienvenida p {{ font-size:clamp(1.1rem, 1.4vw, 1.3rem); color:#B9C6D8; margin:0;
+  line-height:1.5; }}
+.oc-bienvenida .oc-logo {{ width:clamp(110px, 12vw, 176px); height:auto; flex:0 0 auto;
   filter:drop-shadow(0 0 26px rgba(56,189,248,.35)); }}
 @media (max-width:640px) {{ .oc-bienvenida h1 {{ font-size:1.9rem; }} }}
 </style>
@@ -107,7 +110,7 @@ def bienvenida() -> None:
 
 
 def puertas() -> None:
-    columnas = st.columns(len(PUERTAS))
+    columnas = st.columns(len(PUERTAS), gap="medium")
     for columna, (clave, pagina, titulo, frase) in zip(columnas, PUERTAS, strict=True):
         with columna.container(border=True, key=f"puerta_{clave}"):
             billetes.pintar(billetes.ICONOS_PUERTA[clave], clave=f"icono_{clave}")

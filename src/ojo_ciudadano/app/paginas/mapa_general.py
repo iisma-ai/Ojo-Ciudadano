@@ -40,7 +40,7 @@ ALTO_MAPA = {1: 920, 2: 960}
 ESTIRAR_Y = {1: 1.22, 2: 1.0}  # el mapa es más alto que ancho
 FRASCO = {"centro": 78, "ent": 50, "con": 28}  # radio de cada frasco en el mapa
 
-st.html("<style>.block-container { max-width: 1500px; }</style>")
+# el ancho de la página lo fija estilo.css (D-045)
 
 
 @st.cache_data(show_spinner=False, ttl=3600)

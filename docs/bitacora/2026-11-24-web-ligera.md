@@ -184,6 +184,23 @@ Pedido: el círculo de luz alrededor del ojo aparecía de golpe y muy intenso. T
   - con `oc-gpu = no` (simulado), clase `oc-sin-gpu`, ojo plano, sin Three.js y el fondo quieto.
 - **Tests:** 3 nuevos (`tests/app/test_rendimiento.py`).
 
+## Decimocuarta ronda: diseño expandido y cabecera moderna (D-045)
+Pedido: usar toda la pantalla dejando borde, con espacio para el texto, los botones y el logo, y una cabecera moderna con el logo a la izquierda y los botones a la derecha. Antes, buscar ejemplos.
+- **Referencias (búsqueda web):**
+  - logo a la izquierda y navegación a la derecha en una línea, que es el patrón más común;
+  - contenido de 1.280 a 1.440 px con márgenes que crecen;
+  - escala de 8 px.
+- **Contenido:** hasta 1.680 px (en 1.920 px de pantalla, un 87 %) con márgenes `clamp(1,25rem, 4vw, 4rem)`; 24 px entre bloques; texto de 16,5 px.
+- **Cabecera fija de 72 px:**
+  - fondo y línea de abajo de borde a borde (sombra de 100vmax recortada con `clip-path` y un `::after` para la línea);
+  - logo a la izquierda (`margin-right: auto`), enlaces sin cápsula a la derecha y la sección abierta marcada.
+- **Fallos que se corrigieron al probar:**
+  - la franja oscura sobresalía por debajo de la cabecera (el recorte dejaba 40 px);
+  - había un hueco de 48 px encima de la cabecera: los dos elementos invisibles de antes (estilos y entrada) sumaban la separación entre bloques. Se anula con margen negativo; no se pueden ocultar porque la entrada vive dentro;
+  - en móvil «Explorar» se salía: queda como icono.
+- **Inicio:** título y logo con `clamp`, columnas con `gap="medium"`, más relleno en las tarjetas.
+- **Comprobado en el navegador** a 1.920, 1.280, 1.000 (solo iconos) y 390 px (marcos de ese ancho, porque la ventana estaba maximizada).
+
 ## Siguiente paso
 - Que el equipo compare con `feat/mapa-billetes`: https://github.com/iisma-ai/Ojo-Ciudadano/compare/main...feat/web-ligera
 - Pasar `revisor-legal` por el aviso en el pie, que antes estaba siempre a la vista.

@@ -8,7 +8,7 @@ Cinco módulos; los cinco entran en la demo, dos de ellos en versión simplifica
 | **Ficha de empresa** | Todo lo recibido por un NIF: contratos, menores, prórrogas, modificaciones, subvenciones; con sus indicadores | ¿Cuánto ha cobrado esta empresa y de quién? | Sí (**no recortable**) |
 | **Ficha de órgano** | Gasto contratado, procedimientos usados, proveedores principales y riesgo agregado | ¿Cómo contrata este órgano comparado con los demás? | Sí |
 | **Panel de alertas** | Contratos ordenados por puntuación de riesgo, con el motivo de cada alerta | ¿Qué contratos merece la pena revisar primero? | Sí, simplificado |
-| **Asistente de investigación** | Preguntas en lenguaje natural sobre todo lo anterior, con respuestas citadas | Cualquier pregunta ad hoc | Sí, con preguntas de demo preparadas |
+| **Asistente de investigación** | Preguntas en lenguaje natural sobre todo lo anterior, con respuestas citadas; las frecuentes, con respuesta preparada y SQL verificado, y las demás con el modelo (D-037) | Cualquier pregunta ad hoc | Sí, con 43 respuestas preparadas |
 
 ## Mapa general (D-026, D-033)
 

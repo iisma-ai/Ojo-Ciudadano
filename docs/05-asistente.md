@@ -207,3 +207,37 @@ Dos herramientas nuevas (`asistente/documentos.py`):
   - B-35: importe de PLACSP por división CPV en 2025;
   - B-36: adjudicatarios que son entes públicos, por administración;
   - B-37: límites; el Canal de Isabel II no tiene puntuación de empresa.
+
+## Un solo asistente (24-nov, D-037)
+
+- **Pantalla única «Asistente»:** «Preguntas guiadas» se quita del menú.
+- **Orden de respuesta:**
+  1. Si la pregunta tiene un DNI o NIE, no se busca ni llega al modelo.
+  2. Respuesta preparada (`asistente/respuestas_fijas.py`): se reconoce por palabras clave y se responde con su SQL verificado y un texto escrito de antemano, con cifras y fuente. Sin modelo y sin gasto.
+  3. Si no hay ninguna, el modelo con sus herramientas (SQL, catálogo, pliegos, resoluciones).
+  4. Sin modelo conectado, se dice y se remite a las preguntas preparadas.
+- **Respuestas preparadas:** 43.
+  - 26 de datos:
+    - B-01 a B-16, B-28 a B-30, B-35 y B-36;
+    - N-01 a N-05: importe por fuente y año, empresas con más importe, señales por indicador, atípicos y organismos con más menores.
+  - 17 de texto: conceptos C-01 a C-07 y C-R-01 a C-R-06, y límites L-01 a L-04.
+  - Parámetros que se leen de la pregunta: año (2023–2026), consejería (palabra distintiva de su nombre, que casa con varias legislaturas) y empresa (por NIF o por el principio de su nombre).
+- **Lo que siempre contesta el modelo:**
+  - catálogo de datos abiertos (B-21 a B-24);
+  - búsqueda en títulos (B-26);
+  - pliegos y resoluciones (B-31 a B-33);
+  - preguntas sobre una entidad concreta, salvo «qué ha recibido» una empresa.
+- **Transparencia:**
+  - cada respuesta preparada dice qué pregunta se reconoció y cómo se leyó (año, consejería, empresa);
+  - el botón «No es lo que preguntaba: que responda el modelo» manda la misma pregunta al modelo.
+- **Animaciones** (`app/animacion.py`):
+  - **consulta:** tablas, uniones con su clave y pasos, sacados del árbol del SQL (`asistente/plano.py`). Se ve al menos 1,8 s en las preparadas;
+  - **documentos:** páginas que se recorren;
+  - **modelo pensando:** tres puntos;
+  - **texto:** se escribe palabra a palabra, en 2,5 s como mucho.
+  - Solo CSS, quietas con «reducir movimiento». El agente avisa de cada herramienta con `responder(..., al_usar=...)`.
+- **Tests:**
+  - reconocimiento con otras palabras y lo que debe pasar al modelo;
+  - cada SQL preparado pasa el validador;
+  - cada texto se redacta sin términos de la tabla de lenguaje;
+  - plano del SQL y animaciones.

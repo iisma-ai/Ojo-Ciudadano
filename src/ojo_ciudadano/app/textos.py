@@ -417,7 +417,8 @@ _ENTRADAS_TITULO = (
 
 def titulo_limpio(titulo: str | None) -> str:
     """Título sin las fórmulas administrativas del principio ni comillas sueltas: «Este contrato
-    tiene por objeto “La adquisición de vacunas…”» → «La adquisición de vacunas…»."""
+    tiene por objeto “La adquisición de vacunas…”» → «La adquisición de vacunas…». Si viene
+    todo en mayúsculas, se pasa a frase normal."""
     texto = " ".join((titulo or "").split())
     cambiado = True
     while cambiado:
@@ -429,4 +430,6 @@ def titulo_limpio(titulo: str | None) -> str:
                 cambiado = True
     if not texto:
         return (titulo or "").strip() or "Contrato sin título"
+    if texto.isupper():  # todo en mayúsculas: a frase normal, que se lee mejor
+        texto = texto.lower()
     return texto[0].upper() + texto[1:]

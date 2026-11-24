@@ -694,3 +694,4 @@ Plantilla:
     - el donut pasa a un ranking de barras de «de cada 100 €» por empresa, con la de este contrato en azul y una línea de puntos en «la mitad», que es donde salta la señal (`graficos.reparto`);
     - la frase dice «De cada 100 € que X adjudicó en contratos de suministros de [sector], 52 € fueron a Y (entre N empresas). La señal salta cuando una sola empresa se lleva más de la mitad»;
     - el sector sale del nombre de la división CPV, o «de este sector» si falta la lista de CPV.
+  - **«Muchos contratos menores»:** al elegir una señal que solo se comprueba en contratos menores (R-03), la lista los incluye sola y lo dice; antes salía vacía. Los títulos escritos todo en mayúsculas se pasan a frase normal.

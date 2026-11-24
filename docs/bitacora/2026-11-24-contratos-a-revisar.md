@@ -81,3 +81,10 @@ Ignacio pidió tres cambios:
   - `docs/marca.md` actualizado: el ámbar queda para las líneas de referencia de los gráficos.
 
 **Comprobaciones:** comprobado en el navegador con el contrato de la vacuna (cajas de 550 px, iguales). Tests en verde.
+
+## Arreglo: «Muchos contratos menores» sin resultados
+Ignacio vio que al elegir «Muchos contratos menores» no salía nada.
+- **Causa:** la lista excluye por defecto los contratos menores (exige 3 señales comprobables y en un menor solo se comprueban 2), y R-03 solo se calcula en menores.
+- **Arreglo:** si se elige una señal que solo se comprueba en menores (`SOLO_MENORES = {"R-03"}`), la lista los incluye sola y lo dice en una línea.
+- **Comprobado en el navegador:** 30 contratos, todos con la señal, y el contrato abierto sin errores.
+- **De paso:** `titulo_limpio` pasa a frase normal los títulos escritos todo en mayúsculas.

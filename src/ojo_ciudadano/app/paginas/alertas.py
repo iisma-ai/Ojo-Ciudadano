@@ -14,6 +14,7 @@ from ojo_ciudadano.app import buscador, datos, senales, textos
 from ojo_ciudadano.app.conexion import conexion
 
 TANDA = 30  # contratos que se añaden con «Ver más contratos»
+SOLO_MENORES = {"R-03"}  # señales que solo se comprueban en contratos menores
 MAXIMO = 300
 
 
@@ -105,6 +106,16 @@ activos = [
 if activos:
     st.caption("Filtros activos: " + ", ".join(activos) + ".")
 
+# Una señal que solo se comprueba en contratos menores no tendría resultados sin ellos: al
+# elegirla, se incluyen solos.
+con_menores = menores or bool(SOLO_MENORES & set(elegidas))
+if con_menores and not menores:
+    st.caption(
+        "Se incluyen los contratos menores, porque «"
+        + ", ".join(textos.SENAL_CORTA[i] for i in sorted(SOLO_MENORES & set(elegidas)))
+        + "» solo se comprueba en ellos."
+    )
+
 # Al cambiar de filtros se vuelve a la primera tanda.
 filtros = (
     texto,
@@ -126,7 +137,7 @@ cuantos = st.session_state.get("revisar_cuantos", TANDA)
 # Sin menores, solo contratos en los que se han podido comprobar al menos 3 señales.
 filas = datos.alertas(
     con,
-    1 if menores else 3,
+    1 if con_menores else 3,
     None,
     cuantos,
     texto or None,

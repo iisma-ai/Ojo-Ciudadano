@@ -79,3 +79,4 @@ def test_titulo_limpio_quita_formulas_administrativas():
     assert titulo_limpio("Restauración de la muralla") == "Restauración de la muralla"
     assert titulo_limpio("") == "Contrato sin título"
     assert titulo_limpio(None) == "Contrato sin título"
+    assert titulo_limpio("SERVICIO DE LIMPIEZA DEL PP2") == "Servicio de limpieza del pp2"

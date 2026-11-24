@@ -121,6 +121,19 @@ Pedido: los rayos se veían pixelados. Tenían que ser exactamente los de la pre
 - **Mar oscuro:** antes se desvanecía entero. Ahora es una cortina de 2,2 veces la altura de la pantalla, oscura arriba, con un borde difuminado largo y transparente abajo, que sube (`translateY` hasta -64 %) de 1,26 a 3 s. La página aparece de abajo arriba: primero las señales, después las tarjetas y al final el título y la barra. Solo usa `transform`.
 - **Comprobado en el navegador** con capturas seguidas.
 
+## Octava ronda: ojo más ligero, nítido y claro
+Pedido: el ojo se veía agresivo, pixelado y oscuro.
+- **Causa del pixelado:** con el posproceso, el suavizado de bordes del lienzo no cuenta y se dibujaba a resolución normal. Ahora se dibuja al doble de resolución (como mucho 2,5) y el destino del posproceso lleva su propio suavizado (`samples: 4`, `HalfFloatType`).
+- **Más claro:** agua de la superficie (`colorProfundidad(0)`) ×1,35 y exposición de 1,15 a 1,3.
+- **Más ligero:**
+  - escala de 0,55 a 0,47;
+  - aura de 0,15-0,3 a 0,07-0,15;
+  - brillo de 0,45 a 0,35;
+  - halo de CSS alrededor del ojo, más o menos a la mitad.
+- **Comprobado en el navegador:**
+  - en la ampliación, las fibras del iris y el borde salen finos y sin dientes;
+  - la animación va a 240 fotogramas por segundo de media y el más lento tarda 37 ms, uno solo.
+
 ## Siguiente paso
 - Que el equipo compare con `feat/mapa-billetes`: https://github.com/iisma-ai/Ojo-Ciudadano/compare/main...feat/web-ligera
 - Pasar `revisor-legal` por el aviso en el pie, que antes estaba siempre a la vista.

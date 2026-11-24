@@ -176,11 +176,13 @@ async function arrancar(data, capa, empezar) {
   lienzo.className = 'oc-intro-3d';
   const ancho = innerWidth, alto = innerHeight;
   const render = new THREE.WebGLRenderer({ canvas: lienzo, alpha: true, antialias: true });
-  render.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  // doble resolución (también en pantallas normales): el ojo y sus fibras salen nítidos
+  const resolucion = Math.min(Math.max(devicePixelRatio, 1) * 2, 2.5);
+  render.setPixelRatio(resolucion);
   render.setSize(ancho, alto, false);
   render.outputColorSpace = THREE.SRGBColorSpace;
   render.toneMapping = THREE.NeutralToneMapping;  // como la presentación: conserva los azules
-  render.toneMappingExposure = 1.15;
+  render.toneMappingExposure = 1.3;
   const escena = new THREE.Scene();
   if (Agua) escena.environment = Agua.entorno(render);
   escena.add(new THREE.HemisphereLight(0xa8ecff, 0x021020, 1.1));
@@ -191,7 +193,8 @@ async function arrancar(data, capa, empezar) {
   camara.position.set(0, 0, 6);
   // agua de cerca de la superficie, con luz: el cristal refleja un mar claro y el ojo se ve claro
   const agua = new THREE.Color('#13406b');
-  if (Agua) Agua.colorProfundidad(0.15, agua);
+  if (Agua) Agua.colorProfundidad(0, agua);
+  agua.multiplyScalar(1.35);  // agua clara alrededor: el cristal no se ve oscuro
   const ojo = crearOjo(agua);
   escena.add(ojo.grupo);
 
@@ -212,11 +215,14 @@ async function arrancar(data, capa, empezar) {
   if (efectos) {
     const [{ EffectComposer }, { RenderPass }, { UnrealBloomPass }, { OutputPass }] = efectos;
     render.setClearColor(0x000000, 0);
-    const compositor = new EffectComposer(render);
-    compositor.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+    // con posproceso el suavizado de bordes del lienzo no cuenta: el destino lleva el suyo
+    const destino = new THREE.WebGLRenderTarget(ancho * resolucion, alto * resolucion,
+      { type: THREE.HalfFloatType, samples: 4 });
+    const compositor = new EffectComposer(render, destino);
+    compositor.setPixelRatio(resolucion);
     compositor.setSize(ancho, alto);
     compositor.addPass(new RenderPass(escena, camara));
-    const brillo = new UnrealBloomPass(new THREE.Vector2(ancho, alto), 0.45, 0.7, 0.82);
+    const brillo = new UnrealBloomPass(new THREE.Vector2(ancho, alto), 0.35, 0.7, 0.82);
     // El desenfoque del brillo escribe opacidad 1 en todo el lienzo y taparía la página: que
     // la opacidad sea la de la propia luz, así el brillo solo cubre donde hay luz.
     for (const m of brillo.separableBlurMaterials) {
@@ -254,13 +260,13 @@ async function arrancar(data, capa, empezar) {
     const aparece = tramo(t, 0, 0.9), acerca = tramo(t, 0.9, 1.5);
     const lineal = Math.min(Math.max((t - 1.4) / 1.6, 0), 1), sube = lineal * lineal;
     const enciende = tramo(t, 1.3, 2.2), abre = tramo(t, 1.45, 2.75), apaga = tramo(t, 2.55, 3.0);
-    ojo.grupo.scale.setScalar(0.55 * (0.75 + 0.25 * aparece));
+    ojo.grupo.scale.setScalar(0.47 * (0.75 + 0.25 * aparece));  // algo más pequeño
     ojo.grupo.position.set(0, 3.9 * sube, 1.1 * acerca - 3.1 * sube);
     mirada.copy(alEspectador).lerp(alaPagina, tramo(t, 1.3, 2.3));  // mira hacia la página
     ojo.dilatar(1 + 0.35 * enciende);
     nucleo.malla.scale.setScalar(1.3 + 0.6 * enciende);
     nucleo.uniforms.uI.value = (0.4 + 0.3 * enciende) * aparece;
-    aura.uniforms.uI.value = (0.15 + 0.15 * enciende) * aparece;
+    aura.uniforms.uI.value = (0.07 + 0.08 * enciende) * aparece;  // halo discreto
     destello.malla.scale.setScalar(1.5 + 5 * enciende);
     destello.uniforms.uI.value = 0.3 * enciende * (1 - apaga);
     // la luz hacia abajo: empieza estrecha, recta hacia la página, y se abre a los lados

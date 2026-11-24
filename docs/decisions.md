@@ -609,3 +609,52 @@ Plantilla:
   - **Todas las tarjetas del mismo tamaño:** las puertas rellenan la altura de su fila, y las seis señales van en una sola rejilla CSS con filas iguales (3, 2 o 1 columnas según el ancho), con el botón abajo.
 - **Alternativas:** frascos también para las señales (descartado: los frascos significan euros y aquí se cuentan contratos); mantener las cifras grandes.
 - **Consecuencias:** cambia la portada; las fichas de empresa y de órgano aceptan el elegido por la dirección; sin dependencias nuevas. Docs: 03 y 08.
+## D-040 · Web fluida y asistente sin SQL a la vista
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada (El Harrak: «Quita la consulta SQL de la respuesta. Solo queremos lo que saca la consulta […] optimiza todo para que vaya mejor y que la página web sea fluida»). Ajusta D-034 (estética) y D-037 (asistente).
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** La web iba a tirones y el scroll molestaba a la vista. Había tres causas:
+  - **Burbujas del fondo:** se animaban moviendo la posición de la imagen de fondo, lo que repinta la pantalla entera en cada fotograma.
+  - **Paneles de cristal:** botones, métricas, desplegables, campos, avisos y barra lateral usaban `backdrop-filter`, que desenfoca lo que hay detrás en cada fotograma y al desplazarse.
+  - **Consultas:** las pantallas no tenían caché, así que cada clic repetía todas sus consultas a la base.
+
+  Además, el asistente enseñaba el SQL de cada consulta, y se quería ver el proceso y el resultado, no el código.
+- **Decisión:**
+  - **Fondo:** rayos y burbujas se mueven solo con `transform`, sin filtro de desenfoque ni `background-attachment: fixed`.
+  - **Cristal:** sin `backdrop-filter`. Es un fondo translúcido algo más opaco, con el mismo borde, reflejo y sombra.
+  - **Caché de consultas** (`app/cache.py`): todas las consultas de `datos._filas` y `datos_contexto._filas` (también las de `datos_flujos` y `datos_mapa`) y las de las respuestas preparadas se guardan una hora. La base no cambia con la web abierta: para regenerarla hay que pararla.
+  - **Asistente:**
+    - se quita el SQL de las respuestas;
+    - cada respuesta enseña, en este orden, el proceso de la consulta (tablas, uniones con su clave, pasos y la tarjeta del resultado con sus filas), el texto que se escribe y la salida (gráfico y tabla a la vista);
+    - el proceso se anima una sola vez y en el historial se dibuja quieto; el CSS de las animaciones se carga una vez por página;
+    - el texto se escribe en 40 trozos como mucho, en 1,5 s.
+- **Alternativas consideradas:**
+  - Mantener el desenfoque solo en la barra lateral. Seguía recalculándose sobre el fondo animado.
+  - Quitar el fondo animado.
+  - Dejar el SQL en un desplegable cerrado. Se pidió quitarlo.
+- **Consecuencias:**
+  - **Scroll medido en el navegador:** 241 fotogramas por segundo, con el más lento de 4 ms; no queda ningún `backdrop-filter`.
+  - **Pantallas al volver a cargarlas:** entre 0,01 y 0,3 s (el mapa general, de 1,4 s a 0,04 s).
+  - El cristal se ve algo menos esmerilado.
+  - Quien quiera comprobar una consulta ya no ve el SQL; ve las tablas, las uniones y los pasos, los datos y el enlace oficial de cada fila.
+
+## D-041 · Web fluida con el Inicio y el mapa de billetes
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada (El Harrak: «En una nueva rama, coge lo que ha hecho Ignacio e intenta fluidificarlo más, como hicimos antes»). Ajusta D-038 y D-039 (mascota) y se suma a D-040.
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** La rama `feat/billetes-fluido` junta `feat/mapa-billetes` (D-038 y D-039, de Ignacio) con `feat/web-fluida` (D-040). Medido en el navegador y en el servidor:
+  - **Servidor:** las consultas nuevas ya tenían caché. Volver a cargar el Inicio tarda 0,03 s y el mapa, 0,07 s. Un año que no se había visto tarda unos 0,3 s más.
+  - **Scroll:** 240 fotogramas por segundo en las dos pantallas, sin tareas largas. El grafo de frascos se queda quieto unos 0,3 s después de cambiar de año.
+  - **Mascota:** el ojo con manos tenía 7 animaciones infinitas dentro del SVG. Las animaciones dentro de un SVG no pasan a la tarjeta gráfica, así que el navegador repintaba el dibujo en cada fotograma, sin parar, en el Inicio y en el mapa. En un portátil modesto es el único gasto continuo que quedaba aparte del fondo.
+- **Decisión:**
+  - La mascota se mueve unas vueltas al llegar (unos 10 a 25 s) y se queda quieta. Al pasar el ratón por encima vuelve a moverse.
+  - `contain: layout paint` limita el repintado a su recuadro.
+  - Con «reducir movimiento» sigue quieta.
+- **Alternativas consideradas:**
+  - Dejarla en bucle. Repinta siempre.
+  - Pasar el salto al SVG entero para que lo mueva la tarjeta gráfica. La sombra y los billetes que caen saltarían con ella.
+  - Quitar las animaciones.
+- **Consecuencias:**
+  - Ni el Inicio ni el mapa tienen animaciones que se repitan sin fin, salvo el fondo, que va por la tarjeta gráfica.
+  - Test en `tests/app/test_billetes.py`.
+  - Las demás pantallas de Ignacio no cambian.

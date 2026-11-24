@@ -241,3 +241,11 @@ Dos herramientas nuevas (`asistente/documentos.py`):
   - cada SQL preparado pasa el validador;
   - cada texto se redacta sin términos de la tabla de lenguaje;
   - plano del SQL y animaciones.
+
+## Sin SQL a la vista y proceso animado (24-nov, D-040)
+
+- **Las respuestas ya no enseñan el SQL.** El orden es:
+  1. **Proceso de cada consulta:** tablas que se leen, uniones con su clave, pasos y la tarjeta del resultado con sus filas. Se anima una sola vez: en las preparadas, antes del texto; en las del modelo, mientras trabaja, y en la respuesta queda quieto.
+  2. **Texto:** aparece escribiéndose.
+  3. **Salida:** gráfico y tabla de la primera consulta a la vista, y las demás en desplegables. Los datos del catálogo, de las búsquedas en títulos y de los documentos van a la vista, sin SQL.
+- **Caché:** los resultados de las respuestas preparadas se guardan una hora. El índice de nombres de empresas se calcula una vez por base, no por cursor.

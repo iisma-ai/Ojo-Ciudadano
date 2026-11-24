@@ -83,6 +83,24 @@ def intro() -> None:
         intro3d.pintar()
 
 
+def marcar_seccion(pagina) -> None:
+    """Resalta en la cápsula el botón de la pantalla abierta (o «Explorar» si es una de las
+    suyas). Streamlit no marca el enlace activo con un atributo estable, pero aquí se sabe qué
+    pantalla está abierta. El estilo va antes de la cabecera, para no contar como un botón."""
+    rutas = [p.url_path for p in PRINCIPALES]
+    posicion = rutas.index(pagina.url_path) + 1 if pagina.url_path in rutas else len(rutas) + 1
+    st.html(
+        "<style>"
+        f".st-key-nav > div:nth-child({posicion}) [data-testid='stPageLink-NavLink'],"
+        f".st-key-nav > div:nth-child({posicion}) [data-testid='stPopover'] button {{"
+        "background: linear-gradient(135deg, #3d8bfd, #22b5d8) !important;"
+        "box-shadow: 0 4px 14px rgba(61,139,253,.35), inset 0 1px 0 rgba(255,255,255,.3)"
+        " !important; }"
+        f".st-key-nav > div:nth-child({posicion}) * {{ color: #fff !important; }}"
+        "</style>"
+    )
+
+
 def barra_superior() -> None:
     """Logo, botones de las partes principales y «Explorar» con el resto de pantallas."""
     with st.container(key="barra", horizontal=True, vertical_alignment="center", gap="small"):
@@ -90,11 +108,15 @@ def barra_superior() -> None:
             f'<div class="oc-marca"><img src="{LOGO}" alt="" width="30" height="30">'
             "<span>Ojo <b>Ciudadano</b></span></div>"
         )
-        for pagina in PRINCIPALES:
-            st.page_link(pagina, label=pagina.title, icon=pagina.icon)
-        with st.popover("Explorar", icon=":material/explore:"):
-            for pagina in EXPLORAR:
+        # los botones, juntos en una cápsula a la derecha (D-045)
+        with st.container(
+            key="nav", horizontal=True, vertical_alignment="center", gap=None, width="content"
+        ):
+            for pagina in PRINCIPALES:
                 st.page_link(pagina, label=pagina.title, icon=pagina.icon)
+            with st.popover("Explorar", icon=":material/explore:"):
+                for pagina in EXPLORAR:
+                    st.page_link(pagina, label=pagina.title, icon=pagina.icon)
 
 
 # Notas de una pantalla concreta que también van al pie.
@@ -127,6 +149,7 @@ def pie(pagina) -> None:
 
 paginas = st.navigation(SECCIONES, position="hidden")
 intro()
+marcar_seccion(paginas)
 barra_superior()
 # El pie se dibuja antes que la pantalla y el CSS lo coloca al final (order): así sale también
 # cuando la pantalla se para pronto (st.stop) esperando una elección o por falta de datos.

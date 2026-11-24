@@ -257,44 +257,30 @@ iframe[title^="streamlit_agraph"] {
 .block-container {
   padding-top: 1rem !important;
 }
-/* Cabecera (D-045): fija arriba, de borde a borde de la pantalla, con el logo a la izquierda
-   y la navegación a la derecha, como la mayoría de webs actuales. Opaca (sin desenfoque, ver
-   arriba) para que se lea al desplazarse. Lo que se queda fijo es la envoltura del contenedor. */
+/* Cabecera (D-045): con el mismo fondo que la página, sin banda. El logo a la izquierda y los
+   botones a la derecha, juntos en una cápsula de cristal que los destaca; la sección abierta,
+   rellena de azul. Se desplaza con la página: sin fondo propio, fija se pondría encima del
+   contenido y no se leería. */
 [data-testid="stLayoutWrapper"]:has(> .st-key-barra) {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  margin-bottom: var(--oc-e4);
+  margin-bottom: var(--oc-e3);
 }
 .st-key-barra {
   min-height: var(--oc-cabecera);
   flex-wrap: nowrap;
   align-items: center !important;
-  gap: var(--oc-e1) !important;
-  padding: 0;
-  position: relative;
-  background: rgba(3, 17, 31, 0.94);
-  /* el fondo sale hasta los bordes de la pantalla aunque el contenido quede alineado; el
-     recorte solo deja que se extienda a los lados, no por debajo */
-  box-shadow: 0 0 0 100vmax rgba(3, 17, 31, 0.94);
-  clip-path: inset(0 -100vmax);
-}
-/* línea fina de abajo, también de borde a borde */
-.st-key-barra::after {
-  content: "";
-  position: absolute;
-  left: -100vmax;
-  right: -100vmax;
-  bottom: 0;
-  height: 1px;
-  background: rgba(170, 225, 255, 0.12);
-  pointer-events: none;
+  gap: var(--oc-e2) !important;
+  padding: var(--oc-e2) 0 0;
+  /* sin el cristal ni el movimiento al pasar el ratón de los demás contenedores */
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
 .st-key-barra > div {
   width: auto !important;
   flex: 0 0 auto !important;
 }
-/* el logo empuja la navegación a la derecha */
+/* el logo empuja la cápsula a la derecha */
 .st-key-barra > div:first-child {
   margin-right: auto;
 }
@@ -316,36 +302,47 @@ iframe[title^="streamlit_agraph"] {
   color: #7db3ff;
   font-weight: 600;
 }
-/* enlaces de la navegación: texto con icono, sin cápsula; el de la pantalla abierta, marcado */
-.st-key-barra [data-testid="stPageLink"] a {
-  border-radius: 0.6rem;
-  padding: 0.55rem 0.9rem;
-  transition: background 0.2s ease, color 0.2s ease;
+/* la cápsula de los botones: cristal sutil, no una banda */
+.st-key-nav {
+  gap: 0.25rem !important;
+  padding: 0.3rem !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(170, 225, 255, 0.16) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 8px 24px rgba(0, 8, 22, 0.25) !important;
+  transform: none !important;
 }
-.st-key-barra [data-testid="stPageLink"] a p {
+.st-key-nav > div {
+  width: auto !important;
+  flex: 0 0 auto !important;
+}
+.st-key-nav [data-testid="stPageLink"] a {
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  transition: background 0.2s ease;
+}
+.st-key-nav [data-testid="stPageLink"] a p {
   font-size: 0.98rem;
   font-weight: 500;
 }
-.st-key-barra [data-testid="stPageLink"] a:hover {
-  background: rgba(255, 255, 255, 0.07);
+.st-key-nav [data-testid="stPageLink"] a:hover {
+  background: rgba(255, 255, 255, 0.08);
 }
-.st-key-barra [data-testid="stPageLink"] a[aria-current="page"],
-.st-key-barra [data-testid="stPageLink-NavLink"][aria-current="page"] {
-  background: rgba(61, 139, 253, 0.18);
-  box-shadow: inset 0 -2px 0 #7db3ff;
-}
-/* «Explorar»: el mismo aspecto que los enlaces, con un borde fino para que se vea que despliega */
-.st-key-barra [data-testid="stPopover"] button {
+/* la sección abierta, rellena de azul: la marca main.marcar_seccion */
+/* «Explorar», dentro de la cápsula, como un botón más */
+.st-key-nav [data-testid="stPopover"] button {
   background: transparent !important;
-  border: 1px solid rgba(170, 225, 255, 0.22) !important;
-  border-radius: 0.6rem !important;
+  border: none !important;
+  border-radius: 999px !important;
   box-shadow: none !important;
-  padding: 0.5rem 0.9rem !important;
-  margin-left: var(--oc-e1);
+  padding: 0.5rem 1rem !important;
+}
+.st-key-nav [data-testid="stPopover"] button:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
 }
 /* pantallas medianas: solo iconos en la navegación; móvil: también el nombre fuera */
 @media (max-width: 1080px) {
-  .st-key-barra [data-testid="stPageLink"] a p {
+  .st-key-nav [data-testid="stPageLink"] a p {
     display: none;
   }
 }
@@ -354,15 +351,15 @@ iframe[title^="streamlit_agraph"] {
     display: none;
   }
   /* móvil: «Explorar» también solo con su icono, y los enlaces más estrechos para que quepan */
-  .st-key-barra [data-testid="stPopover"] button [data-testid="stMarkdownContainer"] {
+  .st-key-nav [data-testid="stPopover"] button [data-testid="stMarkdownContainer"] {
     display: none;
   }
-  .st-key-barra [data-testid="stPageLink"] a,
-  .st-key-barra [data-testid="stPopover"] button {
+  .st-key-nav [data-testid="stPageLink"] a,
+  .st-key-nav [data-testid="stPopover"] button {
     padding: 0.5rem 0.6rem !important;
   }
   .st-key-barra {
-    gap: 0.25rem !important;
+    gap: 0.5rem !important;
   }
 }
 .st-key-pie,

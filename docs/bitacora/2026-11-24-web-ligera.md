@@ -201,6 +201,18 @@ Pedido: usar toda la pantalla dejando borde, con espacio para el texto, los boto
 - **Inicio:** título y logo con `clamp`, columnas con `gap="medium"`, más relleno en las tarjetas.
 - **Comprobado en el navegador** a 1.920, 1.280, 1.000 (solo iconos) y 390 px (marcos de ese ancho, porque la ventana estaba maximizada).
 
+## Decimoquinta ronda: cabecera sin banda
+Pedido: la banda azul más oscura de arriba no gusta. Todo un único fondo, pero con los botones destacados.
+- **Cabecera:**
+  - sin fondo, sin línea y sin el cristal de los contenedores (se fuerza con `!important`, porque la regla general de cristal pesa más);
+  - se desplaza con la página.
+- **Botones:** juntos en un contenedor propio (`key="nav"`, `width="content"`), con forma de cápsula de cristal sutil (fondo blanco al 5 %, borde fino y sombra suave).
+- **Sección abierta:** relleno azul. Streamlit no pone `aria-current` en `st.page_link`: el activo solo se distingue por una clase interna. Por eso lo marca `main.marcar_seccion` con un estilo `nth-child`, colocado antes de la cabecera para no contar como un botón. En las pantallas de «Explorar», se resalta «Explorar».
+- **Comprobado en el navegador:**
+  - Inicio, Contratos a revisar y Mapa del dinero (con «Explorar» resaltado);
+  - a 1.000 px, solo iconos;
+  - a 390 px, todo cabe.
+
 ## Siguiente paso
 - Que el equipo compare con `feat/mapa-billetes`: https://github.com/iisma-ai/Ojo-Ciudadano/compare/main...feat/web-ligera
 - Pasar `revisor-legal` por el aviso en el pie, que antes estaba siempre a la vista.

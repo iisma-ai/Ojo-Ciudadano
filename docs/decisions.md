@@ -809,11 +809,13 @@ Plantilla:
 - **Decisión (`static/estilo.css`):**
   - **Ancho:** contenido de hasta 1.680 px, casi toda la pantalla grande, con márgenes laterales de 20 a 64 px (`clamp(1.25rem, 4vw, 4rem)`).
   - **Espaciado:** variables de 8 px (`--oc-e1` … `--oc-e8`); 24 px entre bloques. Texto base de 16,5 px con interlineado 1,6.
-  - **Cabecera fija de 72 px:**
-    - el fondo y la línea de abajo van de borde a borde de la pantalla;
-    - el logo (36 px) y el nombre, a la izquierda;
-    - a la derecha, los enlaces con icono, sin cápsula, con la sección abierta marcada, y «Explorar» con un borde fino;
-    - por debajo de 1.080 px, solo iconos; en móvil, también sin el nombre, y «Explorar» como icono.
+  - **Cabecera sin banda:** el mismo fondo que el resto de la página.
+    - El logo (36 px) y el nombre, a la izquierda.
+    - A la derecha, los botones juntos en una cápsula de cristal sutil, con la sección abierta rellena de azul. Si la pantalla es una de «Explorar», se resalta «Explorar».
+    - La marca `main.marcar_seccion`, porque Streamlit no marca el enlace activo con un atributo estable.
+    - Por debajo de 1.080 px, solo iconos; en móvil, también sin el nombre, y «Explorar» como icono.
+    - Se desplaza con la página: sin fondo propio, fija se pondría encima del contenido.
+    - Primero fue una banda fija y opaca de borde a borde; a El Harrak no le gustó una franja más oscura.
   - **Inicio:** el título y el logo crecen con la pantalla (`clamp`), con más separación entre las tarjetas y más relleno dentro.
   - El mapa general deja su ancho propio de 1.500 px y usa el común.
 - **Alternativas consideradas:**

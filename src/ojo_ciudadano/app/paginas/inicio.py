@@ -116,19 +116,20 @@ def senales() -> None:
             n = 100 * c["encontrados"] / c["comprobados"]
             with columna.container(border=True, key=f"senal_{indicador}"):
                 st.markdown(f"{textos.ICONO_SENAL[indicador]} **{textos.SENAL_CORTA[indicador]}**")
+                que = textos.SENAL_DE_100[indicador]
                 billetes.pintar(
-                    billetes.svg_cuadricula(n)
+                    billetes.svg_cuadricula(n, que)
                     + '<p style="font-family:Inter,sans-serif;color:#E7ECF3;font-size:1.05rem;'
                     f'margin:.5rem 0 0"><b style="font-size:1.6rem;color:{billetes.AMBAR}">'
-                    f"{billetes.cifra_de_100(n)}</b> de cada 100 contratos comprobados</p>",
+                    f"{billetes.cifra_de_100(n)}</b> de cada 100 contratos {que}</p>",
                     clave=f"cuadricula_{indicador}",
                 )
                 with st.popover("¿Qué significa?", icon=":material/help:", width="stretch"):
                     st.markdown(textos.SENAL_FRASE[indicador])
                     st.caption(
-                        f"{textos.numero(c['encontrados'])} de "
-                        f"{textos.numero(c['comprobados'])} contratos en los que se pudo "
-                        "comprobar."
+                        f"Se pudo comprobar en {textos.numero(c['comprobados'])} contratos (los "
+                        f"que traen los datos necesarios); {textos.numero(c['encontrados'])} "
+                        "tienen la señal. El «de cada 100» se cuenta sobre los comprobados."
                     )
 
 

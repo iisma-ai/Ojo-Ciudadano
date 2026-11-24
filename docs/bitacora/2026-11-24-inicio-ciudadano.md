@@ -38,3 +38,6 @@ Ignacio aceptó las cuatro propuestas: quitar esa cifra, cuadrícula de 100 cont
 ## Siguiente paso
 - Que el equipo vea la rama (`https://github.com/iisma-ai/Ojo-Ciudadano/compare/main...feat/mapa-billetes`).
 - Seguir el repaso con **Contratos a revisar**.
+
+## Ajuste: qué dice el «de cada 100»
+Ignacio preguntó si «39 de cada 100 contratos comprobados» significaba que 39 cumplen la condición o que solo se pudieron comprobar 39. Significa lo primero: de los contratos en los que se puede comprobar (por ejemplo, 20.763 publican cuántas ofertas hubo), 8.178 tienen una sola oferta, es decir, 39 de cada 100. Para que no haya duda, cada tarjeta dice ahora qué cumplen esos contratos («39 de cada 100 contratos tienen una sola oferta», `textos.SENAL_DE_100`), y «¿Qué significa?» da los dos números: en cuántos se pudo comprobar y cuántos tienen la señal.

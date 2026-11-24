@@ -57,3 +57,9 @@ def test_pregunta_del_pliego_segun_las_senales():
     pregunta = textos.pregunta_pliego("placsp:1", ["R-02", "R-03"])
     assert "placsp:1" in pregunta and "sin publicidad" in pregunta and "página" in pregunta
     assert "objeto" in textos.pregunta_pliego("placsp:1", ["R-04"])
+
+
+def test_cada_senal_tiene_su_frase_de_cada_100():
+    from ojo_ciudadano.app import textos
+
+    assert set(textos.SENAL_DE_100) == set(textos.SENAL_CORTA)

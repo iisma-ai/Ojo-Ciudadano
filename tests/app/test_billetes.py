@@ -70,7 +70,10 @@ def test_cuadricula_de_100_contratos():
     assert svg.count(f'fill="{billetes.VACIO}"') == 61
     # alguno pero menos de 1 de cada 100: medio cuadrado ámbar, para que se vea
     assert svg_ambar(billetes.svg_cuadricula(0.006)) == 1
-    assert billetes.texto_de_100_contratos(0.006) == "menos de 1 de cada 100 contratos comprobados"
+    assert (
+        billetes.texto_de_100_contratos(0.006, "tienen una sola oferta")
+        == "menos de 1 de cada 100 contratos tienen una sola oferta"
+    )
     assert billetes.cifra_de_100(38.6) == "39"
 
 

@@ -211,6 +211,18 @@ SENAL_FRASE = {
     "ofertas.",
 }
 
+# Qué tienen los contratos de la cifra «X de cada 100 contratos …» de la portada (D-039). El
+# «de cada 100» se cuenta sobre los contratos en los que se pudo comprobar la señal.
+SENAL_DE_100 = {
+    "R-01": "tienen una sola oferta",
+    "R-02": "se adjudicaron sin anuncio público",
+    "R-03": "son contratos menores que, sumados con otros a la misma empresa, pasan del "
+    "máximo de un contrato menor",
+    "R-04": "son de una empresa que concentra el gasto del organismo",
+    "R-05": "tienen modificaciones de más del 20 %",
+    "R-06": "tienen una rebaja nula o muy alta",
+}
+
 ICONO_SENAL = {
     "R-01": ":material/person:",
     "R-02": ":material/visibility_off:",

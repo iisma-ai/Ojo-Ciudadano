@@ -221,7 +221,7 @@ AMBAR = "#F2B544"  # color de las señales (docs/marca.md); nunca rojo
 VACIO = "#33415C"
 
 
-def svg_cuadricula(n: float, lado: int = 14, hueco: int = 3) -> str:
+def svg_cuadricula(n: float, que: str = "tienen esta señal", lado: int = 14, hueco: int = 3) -> str:
     """Cuadrícula de 100 contratos: los `n` primeros en ámbar (los que tienen la señal) y el
     resto en gris. Si `n` no llega a 1, el primer cuadrado se pinta a medias para que se vea
     que hay alguno."""
@@ -242,7 +242,7 @@ def svg_cuadricula(n: float, lado: int = 14, hueco: int = 3) -> str:
             )
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {total} {total}" width="{total}" '
-        f'height="{total}" role="img" aria-label="{texto_de_100_contratos(n)}">'
+        f'height="{total}" role="img" aria-label="{texto_de_100_contratos(n, que)}">'
         + "".join(piezas)
         + "</svg>"
     )
@@ -253,9 +253,9 @@ def cifra_de_100(n: float) -> str:
     return "menos de 1" if 0 < n < 0.5 else str(round(n))
 
 
-def texto_de_100_contratos(n: float) -> str:
-    """«39 de cada 100 contratos comprobados»."""
-    return f"{cifra_de_100(n)} de cada 100 contratos comprobados"
+def texto_de_100_contratos(n: float, que: str = "tienen esta señal") -> str:
+    """«39 de cada 100 contratos tienen una sola oferta»."""
+    return f"{cifra_de_100(n)} de cada 100 contratos {que}"
 
 
 def _icono(contenido: str) -> str:

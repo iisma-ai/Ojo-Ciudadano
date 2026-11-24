@@ -604,7 +604,7 @@ Plantilla:
   - **Buscador único:** empresas y organismos a la vez; al elegir, abre su ficha. Las fichas leen `?empresa=` y `?organo=` de la dirección, un cambio pequeño en `empresa.py` y `organo.py`.
   - **Cuatro puertas grandes, pulsables enteras:** dinero, contratos a revisar, buscar empresa u organismo, y asistente. Cada una con su icono SVG propio en `billetes.ICONOS_PUERTA`.
   - **Cifras en una línea discreta.** Se quita «contratos con alguna señal» de la portada.
-  - **Señales «de cada 100 contratos comprobados»:** cuadrícula de 100 con los que tienen la señal en ámbar, el color de las señales (nunca rojo). Si hay alguno pero no llega a 1 de cada 100, se pinta medio cuadrado y se dice «menos de 1». La explicación va en «¿Qué significa?», con los recuentos exactos.
+  - **Señales «X de cada 100 contratos …»:** cuadrícula de 100 con los que tienen la señal en ámbar, el color de las señales (nunca rojo). Si hay alguno pero no llega a 1 de cada 100, se pinta medio cuadrado y se dice «menos de 1». La explicación va en «¿Qué significa?», con los recuentos exactos.
   - **Aviso legal:** una línea visible («Una señal no prueba nada irregular») y el texto completo en «Fuentes».
 - **Alternativas:** frascos también para las señales (descartado: los frascos significan euros y aquí se cuentan contratos); mantener las cifras grandes.
 - **Consecuencias:** cambia la portada; las fichas de empresa y de órgano aceptan el elegido por la dirección; sin dependencias nuevas. Docs: 03 y 08.

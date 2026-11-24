@@ -593,3 +593,18 @@ Plantilla:
   - nueva fuente F-12 (INE): cada instalación la baja sola la primera vez que se abre el mapa, o con `uv run python -m ojo_ciudadano.ingesta.ine`; si no hay red ni caché, la cifra por habitante no se muestra y el resto funciona;
   - el «Mapa del dinero» no cambia;
   - docs: 02, 03 y 08.
+
+## D-039 · Inicio para el ciudadano: buscador único, cuatro puertas y señales «de cada 100»
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada por Ignacio («si» a quitar la cifra de contratos con señal, a la cuadrícula de 100, al buscador y a las cuatro puertas). Está en la rama `feat/mapa-billetes`, junto con D-038, para poder deshacer el rediseño de una vez; falta que el equipo lo vea antes de fusionarlo.
+- **Autor:** Claude (agente), a petición de Ignacio, en el repaso «dashboard a dashboard»
+- **Contexto:** La portada abría con cuatro cifras sin referencia, entre ellas «249.999 contratos con alguna señal». Esa cifra se lee como «uno de cada cinco contratos tiene un problema», cuando 228.000 de ellos son la señal más débil (muchos contratos menores). Además, las puertas eran pequeñas, faltaban el mapa nuevo y el asistente, no había buscador y la sección de señales eran seis párrafos.
+- **Decisión:**
+  - **Bienvenida:** la mascota de D-038 y la frase «Mira en qué se gasta tu dinero la Comunidad de Madrid».
+  - **Buscador único:** empresas y organismos a la vez; al elegir, abre su ficha. Las fichas leen `?empresa=` y `?organo=` de la dirección, un cambio pequeño en `empresa.py` y `organo.py`.
+  - **Cuatro puertas grandes, pulsables enteras:** dinero, contratos a revisar, buscar empresa u organismo, y asistente. Cada una con su icono SVG propio en `billetes.ICONOS_PUERTA`.
+  - **Cifras en una línea discreta.** Se quita «contratos con alguna señal» de la portada.
+  - **Señales «de cada 100 contratos comprobados»:** cuadrícula de 100 con los que tienen la señal en ámbar, el color de las señales (nunca rojo). Si hay alguno pero no llega a 1 de cada 100, se pinta medio cuadrado y se dice «menos de 1». La explicación va en «¿Qué significa?», con los recuentos exactos.
+  - **Aviso legal:** una línea visible («Una señal no prueba nada irregular») y el texto completo en «Fuentes».
+- **Alternativas:** frascos también para las señales (descartado: los frascos significan euros y aquí se cuentan contratos); mantener las cifras grandes.
+- **Consecuencias:** cambia la portada; las fichas de empresa y de órgano aceptan el elegido por la dirección; sin dependencias nuevas. Docs: 03 y 08.

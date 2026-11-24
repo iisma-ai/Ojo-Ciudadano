@@ -388,23 +388,7 @@ def tarjeta_ciudadano(datos_anio: dict, anio: int, poblacion: dict | None) -> No
 .oc-persona-mes b {{ color:#E7ECF3; }}
 .oc-habitantes {{ display:flex; gap:12px; align-items:center; flex-wrap:wrap;
   color:#93A1B8; font-size:.82rem; margin-top:6px; }}
-.oc-ojo {{ width:210px; max-width:42vw; height:auto; flex:0 0 auto; }}
-.oc-salta {{ animation:salta 2.6s ease-in-out infinite; transform-origin:110px 210px; }}
-.abanico {{ animation:abanico 2.6s ease-in-out infinite; transform-origin:40px 78px; }}
-.saluda {{ animation:saluda 1.6s ease-in-out infinite; transform-origin:160px 150px; }}
-.pupila {{ animation:mira 6s ease-in-out infinite; transform-box:fill-box;
-  transform-origin:center; }}
-.cae {{ animation:cae 4.2s linear infinite; opacity:0; }}
-@keyframes salta {{ 0%,100% {{ transform:translateY(0) }} 50% {{ transform:translateY(-7px) }} }}
-@keyframes abanico {{ 0%,100% {{ transform:rotate(-4deg) }} 50% {{ transform:rotate(4deg) }} }}
-@keyframes saluda {{ 0%,100% {{ transform:rotate(0) }} 50% {{ transform:rotate(-12deg) }} }}
-@keyframes mira {{ 0%,30%,100% {{ transform:translate(0,0) }}
-  40%,55% {{ transform:translate(-6px,-3px) }} 65%,85% {{ transform:translate(7px,-4px) }} }}
-@keyframes cae {{ 0% {{ transform:translateY(-10px); opacity:0 }} 15% {{ opacity:.9 }}
-  85% {{ opacity:.9 }} 100% {{ transform:translateY(150px); opacity:0 }} }}
-@media (prefers-reduced-motion: reduce) {{
-  .oc-salta, .abanico, .saluda, .pupila {{ animation:none; }}
-  .cae {{ animation:none; opacity:.8; }} }}
+{billetes.CSS_OJO}
 @media (max-width: 640px) {{ .oc-frase {{ font-size:1.15rem; }}
   .oc-persona-cifra {{ font-size:2.3rem; }} .oc-tarjeta {{ padding:16px; }} }}
 </style>

@@ -193,6 +193,117 @@ def svg_ojo() -> str:
 </svg>"""
 
 
+# Animaciones de la mascota (en la tarjeta del mapa y en la portada). Quietas con «reducir
+# movimiento».
+CSS_OJO = """
+.oc-ojo { width:210px; max-width:42vw; height:auto; flex:0 0 auto; }
+.oc-salta { animation:salta 2.6s ease-in-out infinite; transform-origin:110px 210px; }
+.abanico { animation:abanico 2.6s ease-in-out infinite; transform-origin:40px 78px; }
+.saluda { animation:saluda 1.6s ease-in-out infinite; transform-origin:160px 150px; }
+.pupila { animation:mira 6s ease-in-out infinite; transform-box:fill-box;
+  transform-origin:center; }
+.cae { animation:cae 4.2s linear infinite; opacity:0; }
+@keyframes salta { 0%,100% { transform:translateY(0) } 50% { transform:translateY(-7px) } }
+@keyframes abanico { 0%,100% { transform:rotate(-4deg) } 50% { transform:rotate(4deg) } }
+@keyframes saluda { 0%,100% { transform:rotate(0) } 50% { transform:rotate(-12deg) } }
+@keyframes mira { 0%,30%,100% { transform:translate(0,0) }
+  40%,55% { transform:translate(-6px,-3px) } 65%,85% { transform:translate(7px,-4px) } }
+@keyframes cae { 0% { transform:translateY(-10px); opacity:0 } 15% { opacity:.9 }
+  85% { opacity:.9 } 100% { transform:translateY(150px); opacity:0 } }
+@media (prefers-reduced-motion: reduce) {
+  .oc-salta, .abanico, .saluda, .pupila { animation:none; }
+  .cae { animation:none; opacity:.8; } }
+"""
+
+
+# --------------------------------------------------------------------------- portada
+AMBAR = "#F2B544"  # color de las señales (docs/marca.md); nunca rojo
+VACIO = "#33415C"
+
+
+def svg_cuadricula(n: float, lado: int = 14, hueco: int = 3) -> str:
+    """Cuadrícula de 100 contratos: los `n` primeros en ámbar (los que tienen la señal) y el
+    resto en gris. Si `n` no llega a 1, el primer cuadrado se pinta a medias para que se vea
+    que hay alguno."""
+    n = min(max(n, 0.0), 100.0)
+    llenos = round(n)
+    total = 10 * lado + 9 * hueco
+    piezas = []
+    for k in range(100):
+        fila, columna = divmod(k, 10)
+        x, y = columna * (lado + hueco), fila * (lado + hueco)
+        color = AMBAR if k < llenos else VACIO
+        piezas.append(
+            f'<rect x="{x}" y="{y}" width="{lado}" height="{lado}" rx="3" fill="{color}"/>'
+        )
+        if k == 0 and llenos == 0 and n > 0:
+            piezas.append(
+                f'<rect x="{x}" y="{y}" width="{lado / 2}" height="{lado}" rx="2" fill="{AMBAR}"/>'
+            )
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {total} {total}" width="{total}" '
+        f'height="{total}" role="img" aria-label="{texto_de_100_contratos(n)}">'
+        + "".join(piezas)
+        + "</svg>"
+    )
+
+
+def cifra_de_100(n: float) -> str:
+    """«39», o «menos de 1» si hay alguno pero no llega a uno de cada 100."""
+    return "menos de 1" if 0 < n < 0.5 else str(round(n))
+
+
+def texto_de_100_contratos(n: float) -> str:
+    """«39 de cada 100 contratos comprobados»."""
+    return f"{cifra_de_100(n)} de cada 100 contratos comprobados"
+
+
+def _icono(contenido: str) -> str:
+    return (
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" '
+        f'aria-hidden="true">{contenido}</svg>'
+    )
+
+
+ICONOS_PUERTA = {
+    "dinero": svg_frasco(39, 0.95, etiqueta="39 €").replace(
+        'width="100" height="100"', 'width="64" height="64" aria-hidden="true"'
+    ),
+    # lupa sobre un contrato con una banderita ámbar
+    "revisar": _icono(
+        '<rect x="8" y="6" width="34" height="44" rx="5" fill="#0B2236" stroke="#9FB6CC" '
+        'stroke-width="2.5"/><rect x="15" y="16" width="20" height="3" rx="1.5" fill="#9FB6CC"/>'
+        '<rect x="15" y="24" width="16" height="3" rx="1.5" fill="#9FB6CC"/>'
+        f'<path d="M36 8 v10 l5 -3 l5 3 v-10z" fill="{AMBAR}"/>'
+        '<circle cx="38" cy="38" r="12" fill="#0B2236" fill-opacity=".6" stroke="#E7ECF3" '
+        'stroke-width="4"/><path d="M47 47 L57 57" stroke="#E7ECF3" stroke-width="6" '
+        'stroke-linecap="round"/>'
+    ),
+    # edificio de una empresa y edificio público
+    "buscar": _icono(
+        '<rect x="6" y="20" width="24" height="38" rx="3" fill="#0B2236" stroke="#9FB6CC" '
+        'stroke-width="2.5"/><path d="M34 26 L47 16 L60 26 Z" fill="#7DB3FF"/>'
+        '<rect x="35" y="26" width="24" height="32" rx="2" fill="#0B2236" stroke="#7DB3FF" '
+        'stroke-width="2.5"/><rect x="39" y="32" width="3" height="20" fill="#7DB3FF"/>'
+        '<rect x="46" y="32" width="3" height="20" fill="#7DB3FF"/>'
+        '<rect x="53" y="32" width="3" height="20" fill="#7DB3FF"/>'
+        + "".join(
+            f'<rect x="{x}" y="{y}" width="5" height="5" rx="1" fill="#9FB6CC"/>'
+            for x in (11, 20)
+            for y in (27, 36, 45)
+        )
+    ),
+    # bocadillo con la pupila del logo
+    "asistente": _icono(
+        '<path d="M8 10 h48 a6 6 0 0 1 6 6 v24 a6 6 0 0 1 -6 6 h-28 l-12 10 v-10 h-8 '
+        'a6 6 0 0 1 -6 -6 v-24 a6 6 0 0 1 6 -6z" fill="#0B2236" stroke="#E7ECF3" '
+        f'stroke-width="3"/><circle cx="32" cy="28" r="7" fill="{PUPILA}"/>'
+        '<circle cx="18" cy="28" r="3.5" fill="#9FB6CC"/><circle cx="46" cy="28" r="3.5" '
+        'fill="#9FB6CC"/>'
+    ),
+}
+
+
 def svg_habitantes(millones_hab: float) -> str:
     """Fila de figuritas: una por cada millón de habitantes (la última, recortada)."""
     figura = '<circle cx="9" cy="6" r="5"/><rect x="2" y="12.5" width="14" height="17" rx="6.5"/>'

@@ -10,6 +10,20 @@ Cinco módulos; los cinco entran en la demo, dos de ellos en versión simplifica
 | **Panel de alertas** | Contratos ordenados por puntuación de riesgo, con el motivo de cada alerta | ¿Qué contratos merece la pena revisar primero? | Sí, simplificado |
 | **Asistente de investigación** | Preguntas en lenguaje natural sobre todo lo anterior, con respuestas citadas; las frecuentes, con respuesta preparada y SQL verificado, y las demás con el modelo (D-037) | Cualquier pregunta ad hoc | Sí, con 43 respuestas preparadas |
 
+## Inicio (portada; D-023, D-039)
+
+Primera pantalla. En cinco segundos:
+- la mascota (el ojo del logo con manos) y la frase «Mira en qué se gasta tu dinero la Comunidad de Madrid»;
+- un **buscador único** de empresas y organismos que abre directamente su ficha (`buscador.todo`; las fichas aceptan `?empresa=` y `?organo=`);
+- **cuatro puertas** que se pulsan enteras: «¿A dónde va el dinero?», «Contratos a revisar», «Busca una empresa o un organismo» y «Pregúntale al asistente»;
+- las cifras en una línea (contratos, subvenciones, organismos).
+
+Debajo, **«Qué señales buscamos»**:
+- una línea visible: «Una señal no prueba nada irregular»;
+- seis tarjetas, cada una con una **cuadrícula de 100 contratos** (en ámbar, los que tienen la señal), la cifra «39 de cada 100 contratos comprobados» y la explicación en «¿Qué significa?».
+
+El aviso completo, las fuentes y las fechas van en el botón «Fuentes». Ya no se muestra el total de «contratos con alguna señal».
+
 ## A dónde va el dinero (mapa general; D-026, D-033, D-038)
 
 Segunda pantalla, después del Inicio, pensada para un ciudadano cualquiera.

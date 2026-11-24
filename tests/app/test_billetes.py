@@ -62,3 +62,22 @@ def test_etiqueta_menos_de_un_euro_no_rompe_el_svg():
     from xml.dom.minidom import parseString
 
     parseString(billetes.svg_frasco(0.2, etiqueta=billetes.rotulo(0.2)))  # SVG bien formado
+
+
+def test_cuadricula_de_100_contratos():
+    svg = billetes.svg_cuadricula(39.4)
+    assert svg.count(f'fill="{billetes.AMBAR}"') == 39
+    assert svg.count(f'fill="{billetes.VACIO}"') == 61
+    # alguno pero menos de 1 de cada 100: medio cuadrado ámbar, para que se vea
+    assert svg_ambar(billetes.svg_cuadricula(0.006)) == 1
+    assert billetes.texto_de_100_contratos(0.006) == "menos de 1 de cada 100 contratos comprobados"
+    assert billetes.cifra_de_100(38.6) == "39"
+
+
+def svg_ambar(svg: str) -> int:
+    return svg.count(f'fill="{billetes.AMBAR}"')
+
+
+def test_iconos_de_las_puertas():
+    assert set(billetes.ICONOS_PUERTA) == {"dinero", "revisar", "buscar", "asistente"}
+    assert all(svg.startswith("<svg") for svg in billetes.ICONOS_PUERTA.values())

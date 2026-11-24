@@ -31,7 +31,8 @@ con = conexion()
 st.header("Ficha de organismo")
 st.caption("Cómo contrata una consejería, un hospital o una empresa pública, y a quién adjudica.")
 
-elegido = buscador.organo("buscar_organo", "Buscar organismo")
+# Desde el buscador de la portada se llega con el organismo en la dirección (?organo=…).
+elegido = buscador.organo("buscar_organo", "Buscar organismo") or st.query_params.get("organo")
 buscador.esperar(
     elegido,
     "Escribe las primeras letras del nombre y elige un organismo de la lista "

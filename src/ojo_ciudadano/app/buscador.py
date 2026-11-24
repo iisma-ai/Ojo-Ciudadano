@@ -67,3 +67,31 @@ def esperar(elegido: str | None, mensaje: str) -> None:
     if elegido is None:
         st.info(mensaje)
         st.stop()
+
+
+def _todo(texto: str) -> list[tuple[str, str]]:
+    """Organismos y empresas a la vez (primero los organismos, que son pocos)."""
+    organos = [
+        (f"Organismo · {o['nombre']}", f"organo:{o['organo_id']}")
+        for o in datos.sugerir_organos(conexion(), texto, limite=5)
+    ]
+    empresas = [
+        (f"Empresa · {e['nombre']} · {e['nif'] or 'UTE'}", f"empresa:{e['adjudicatario_id']}")
+        for e in datos.sugerir_empresas(conexion(), texto, limite=10)
+    ]
+    return organos + empresas
+
+
+def todo(clave: str, etiqueta: str = "") -> tuple[str, str] | None:
+    """Buscador único de la portada: devuelve («empresa» u «organo», id) al elegir."""
+    elegido = st_searchbox(
+        _todo,
+        label=etiqueta,
+        placeholder="Busca una empresa, un hospital o una consejería",
+        key=clave,
+        debounce=PAUSA_MS,
+    )
+    if not elegido:
+        return None
+    tipo, _, ident = elegido.partition(":")
+    return tipo, ident

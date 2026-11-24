@@ -31,7 +31,10 @@ st.caption(
     "organismos."
 )
 
-elegida = buscador.empresa("buscar_empresa", "Buscar empresa o entidad")
+# Desde el buscador de la portada se llega con la empresa en la dirección (?empresa=…).
+elegida = buscador.empresa("buscar_empresa", "Buscar empresa o entidad") or st.query_params.get(
+    "empresa"
+)
 buscador.esperar(
     elegida,
     "Escribe las primeras letras del nombre (o el NIF) y elige una empresa de la lista. "

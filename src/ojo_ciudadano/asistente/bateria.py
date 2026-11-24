@@ -747,7 +747,7 @@ JOIN adjudicacion AS a USING (contrato_id)
 LEFT JOIN (SELECT DISTINCT division, nombre_division FROM cpv) AS v
   ON v.division = substr(c.cpv, 1, 2)
 WHERE c.fuente = 'placsp' AND c.cpv IS NOT NULL
-  AND year(coalesce(c.fecha_contrato, a.fecha_formalizacion)) = 2025
+  AND year(coalesce(a.fecha_formalizacion, c.fecha_fin_plazo)) = 2025
 GROUP BY 1
 ORDER BY importe_sin_iva DESC NULLS LAST
 LIMIT 10
@@ -757,8 +757,7 @@ LIMIT 10
     PreguntaPrueba(
         id="B-36",
         pregunta=(
-            "¿Cuántos adjudicatarios son entes del sector público y de qué administración "
-            "dependen?"
+            "¿Cuántos adjudicatarios son entes del sector público y de qué administración dependen?"
         ),
         tipo="datos",
         criterios=(

@@ -237,3 +237,10 @@ def test_validacion_con_entes_del_sector_publico(base):
     tabla = {f["grupo_validacion"]: f for f in deteccion.validar(base.con).to_dicts()}
     # B1 gana uno de cada 30 contratos: 4 de 120.
     assert tabla["Adjudicados a entes del sector público (INVENTE)"]["contratos"] == 4
+
+
+def test_sin_ninguna_division_grande_el_tipo_no_se_divide(base):
+    _licitaciones(base, n=30, cpv="79000000", prefijo="a")
+    _licitaciones(base, n=30, cpv="90000000", prefijo="c", semilla=2)
+    grupos = dict(deteccion.leer_variables(base.con).group_by("grupo").len().iter_rows())
+    assert grupos == {"placsp · licitación · servicios": 60}

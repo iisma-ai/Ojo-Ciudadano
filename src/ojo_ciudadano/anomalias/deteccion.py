@@ -301,8 +301,9 @@ def con_division_cpv(datos: pl.DataFrame) -> pl.DataFrame:
     """Añade la división CPV al grupo de pares de las licitaciones de PLACSP (D-036).
 
     Cada división con al menos MIN_GRUPO contratos es su propio grupo («… · CPV 33»); las demás
-    se juntan en «… · otras divisiones CPV». Si ese resto no llega a MIN_GRUPO, el tipo de
-    contrato no se divide, para no dejar contratos sin pares con los que compararse."""
+    se juntan en «… · otras divisiones CPV». Si ese resto no llega a MIN_GRUPO, o si ninguna
+    división llega, el tipo de contrato no se divide, para no dejar contratos sin pares con los
+    que compararse."""
     if "division" not in datos.columns:
         return datos
     n_division = pl.len().over("grupo", "division")
@@ -315,7 +316,9 @@ def con_division_cpv(datos: pl.DataFrame) -> pl.DataFrame:
         .alias("_sub")
     )
     resto = (pl.col("_sub") == OTRAS_DIVISIONES).sum().over("grupo")
-    dividir = (resto == 0) | (resto >= MIN_GRUPO)
+    propias = (pl.col("_sub").str.starts_with("CPV ")).sum().over("grupo")
+    # Sin ninguna división propia, «otras divisiones» sería el tipo entero: no se divide.
+    dividir = (propias > 0) & ((resto == 0) | (resto >= MIN_GRUPO))
     return grupos.with_columns(
         pl.when(pl.col("_sub").is_not_null() & dividir)
         .then(pl.col("grupo") + " · " + pl.col("_sub"))

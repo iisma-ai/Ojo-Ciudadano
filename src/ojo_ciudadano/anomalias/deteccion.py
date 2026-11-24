@@ -46,6 +46,8 @@ import numpy as np
 import polars as pl
 from sklearn.ensemble import IsolationForest
 
+from ojo_ciudadano.indicadores import ejecutor
+
 RAIZ = Path(__file__).resolve().parents[3]
 RUTA_DB = RAIZ / "data" / "ojo_ciudadano.duckdb"
 
@@ -228,10 +230,9 @@ VALIDACION = [
     ),
     (
         "Adjudicados a entes del sector público (INVENTE)",
-        "entidad_sector_publico",
+        "adjudicatario_ente_publico",
         "r.contrato_id IN (SELECT a.contrato_id FROM adjudicacion AS a "
-        "JOIN adjudicatario AS d USING (adjudicatario_id) "
-        "JOIN entidad_sector_publico AS e ON e.nif = d.nif)",
+        "JOIN adjudicatario_ente_publico AS e USING (adjudicatario_id))",
     ),
     (
         "Licitaciones de PLACSP con fondos europeos",
@@ -246,17 +247,24 @@ VALIDACION = [
 ]
 
 
+TABLA_ORIGEN = {"adjudicatario_ente_publico": "entidad_sector_publico"}
+
+
 def validar(con: duckdb.DuckDBPyConnection) -> pl.DataFrame:
     """Proporción de atípicos y puntuación de riesgo media por grupo de validación, en
     `anomalia_validacion`. Es una comprobación descriptiva, no un entrenamiento: si la señal
     sirve, los contratos con recurso estimado deberían ser atípicos más a menudo que el 1 %."""
     filas = []
+    if _hay_tabla(con, "entidad_sector_publico"):
+        ejecutor.marcar_entes_publicos(con)  # al día aunque no se hayan recalculado indicadores
     con_puntuacion = _hay_tabla(con, "puntuacion_contrato")
     puntuacion_sql = "avg(p.puntuacion)" if con_puntuacion else "NULL"
     union = "LEFT JOIN puntuacion_contrato AS p USING (contrato_id)" if con_puntuacion else ""
     for nombre, tabla, condicion in VALIDACION:
         if tabla and not _hay_tabla(con, tabla):
             continue
+        # La tabla derivada de entes públicos no tiene fecha: se toma la del inventario.
+        origen = TABLA_ORIGEN.get(tabla, tabla) or "contrato_unico"
         n, atipicos, puntuacion = con.execute(
             f"""
             SELECT count(*), count_if(r.atipico), {puntuacion_sql}
@@ -271,9 +279,9 @@ def validar(con: duckdb.DuckDBPyConnection) -> pl.DataFrame:
                 "atipicos": atipicos,
                 "proporcion_atipicos": atipicos / n if n else None,
                 "puntuacion_riesgo_media": puntuacion,
-                "fuente": tabla or "contrato_unico",
+                "fuente": origen,
                 "fecha_descarga": con.execute(
-                    f"SELECT max(fecha_descarga) FROM {tabla or 'contrato_unico'}"
+                    f"SELECT max(fecha_descarga) FROM {origen}"
                 ).fetchall()[0][0],
             }
         )

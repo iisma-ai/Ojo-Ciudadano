@@ -25,7 +25,8 @@
 -- Limitaciones: en el portal regional no distingue mercados pequeños por naturaleza dentro de
 -- un tipo de contrato (sin CPV, D-013); un órgano con un único proveedor posible
 -- (exclusividad) queda señalado; incluye menores y mayores del portal. Un NIF de la fuente mal
--- puesto puede hacer pasar por ente público a una empresa (D-035). Las alertas de personas
+-- puesto en la fuente no convierte a una empresa en ente público: hace falta que el nombre
+-- también cuadre (D-035). Las alertas de personas
 -- físicas seudonimizadas solo se muestran agregadas (D-007). Una cuota alta es una señal de
 -- dependencia, no una irregularidad.
 --
@@ -73,11 +74,10 @@ mercado AS (
     GROUP BY e.fuente, e.organo_id, e.tipo_contrato, e.division
 ),
 
--- Adjudicatarios cuyo NIF está en el inventario de entes del sector público (INVENTE).
+-- Adjudicatarios que son entes del sector público: NIF en INVENTE y nombre compatible
+-- (tabla derivada que crea el ejecutor, D-036).
 entes_publicos AS (
-    SELECT d.adjudicatario_id
-    FROM adjudicatario AS d
-    JOIN entidad_sector_publico AS e ON e.nif = d.nif
+    SELECT adjudicatario_id FROM adjudicatario_ente_publico
 ),
 
 contratos_mercado AS (

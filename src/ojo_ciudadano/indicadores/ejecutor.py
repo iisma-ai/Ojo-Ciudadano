@@ -35,10 +35,32 @@ def crear_funciones(con: duckdb.DuckDBPyConnection, carpeta: Path = CARPETA_SQL)
 
 
 def asegurar_contexto(con: duckdb.DuckDBPyConnection) -> None:
-    """Crea vacías las tablas de contexto que falten (CONTEXTO)."""
+    """Crea vacías las tablas de contexto que falten (CONTEXTO) y la lista de adjudicatarios
+    que son entes del sector público."""
     for tabla, fichero in CONTEXTO.items():
         ddl = (CARPETA_ESQUEMA / fichero).read_text(encoding="utf-8")
         con.execute(ddl.replace(f"CREATE TABLE {tabla}", f"CREATE TABLE IF NOT EXISTS {tabla}"))
+    marcar_entes_publicos(con)
+
+
+def marcar_entes_publicos(con: duckdb.DuckDBPyConnection) -> None:
+    """Tabla derivada `adjudicatario_ente_publico`: adjudicatarios cuyo NIF está en INVENTE y
+    cuyo nombre se parece al del inventario (D-036). Si el nombre no cuadra, suele ser un NIF
+    de otra entidad puesto por error en la fuente (D-035), y la empresa se sigue tratando como
+    privada: un error de la fuente no debe apagar sus señales."""
+    from ojo_ciudadano.ingesta.invente import nombres_compatibles
+
+    candidatos = con.execute(
+        "SELECT d.adjudicatario_id, d.nif, d.nombre, e.nombre FROM adjudicatario AS d "
+        "JOIN entidad_sector_publico AS e ON e.nif = d.nif"
+    ).fetchall()
+    con.execute(
+        "CREATE OR REPLACE TABLE adjudicatario_ente_publico "
+        "(adjudicatario_id VARCHAR PRIMARY KEY, nif VARCHAR)"
+    )
+    filas = [(a, n) for a, n, d, e in candidatos if nombres_compatibles(d, e)]
+    if filas:
+        con.executemany("INSERT INTO adjudicatario_ente_publico VALUES (?, ?)", filas)
 
 
 def ejecutar(con: duckdb.DuckDBPyConnection, ruta_sql: Path) -> duckdb.DuckDBPyRelation:

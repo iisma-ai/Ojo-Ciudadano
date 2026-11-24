@@ -111,10 +111,13 @@ def test_importe_cero_no_rompe_la_media_ponderada(datos):
 def test_ente_del_sector_publico_sin_puntuacion_de_empresa(datos):
     contrato(datos, "a", 100, adjudicatario="E1")
     contrato(datos, "b", 100, adjudicatario="UNI")
-    datos.con.execute("UPDATE adjudicatario SET nif = 'Q2818014I' WHERE adjudicatario_id = 'UNI'")
+    datos.con.execute(
+        "UPDATE adjudicatario SET nif = 'Q2818014I', nombre = 'UNIVERSIDAD DE ALCALA' "
+        "WHERE adjudicatario_id = 'UNI'"
+    )
     datos.con.execute(
         "INSERT INTO entidad_sector_publico (nif, codigo_invente, nombre, fuente, url_origen, "
-        "fecha_descarga) VALUES ('Q2818014I', 'INV1', 'Universidad', 'invente', 'https://x.test', "
+        "fecha_descarga) VALUES ('Q2818014I', 'INV1', 'Universidad de Alcalá', 'invente', 'https://x.test', "
         "DATE '2026-11-23')"
     )
     resultado(datos, "a", "R-01", True)

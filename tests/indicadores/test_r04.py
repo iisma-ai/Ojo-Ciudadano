@@ -108,13 +108,15 @@ def test_en_placsp_el_mercado_se_separa_por_division_cpv(base):
     assert resultado["o1"]["activado"] is False
 
 
-def ente_publico(base, adjudicatario_id, nif):
+def ente_publico(base, adjudicatario_id, nif, nombre="UNIVERSIDAD COMPLUTENSE DE MADRID"):
     base.con.execute(
-        "UPDATE adjudicatario SET nif = ? WHERE adjudicatario_id = ?", [nif, adjudicatario_id]
+        "UPDATE adjudicatario SET nif = ?, nombre = ? WHERE adjudicatario_id = ?",
+        [nif, nombre, adjudicatario_id],
     )
     base.con.execute(
         "INSERT INTO entidad_sector_publico (nif, codigo_invente, nombre, fuente, url_origen, "
-        "fecha_descarga) VALUES (?, 'INV1', 'Ente', 'invente', 'https://x.test', DATE '2026-11-23')",
+        "fecha_descarga) VALUES (?, 'INV1', 'Universidad Complutense de Madrid', 'invente', "
+        "'https://x.test', DATE '2026-11-23')",
         [nif],
     )
 
@@ -126,3 +128,10 @@ def test_un_ente_del_sector_publico_no_activa_pero_cuenta_en_el_mercado(base):
     assert "c1" not in resultado  # su contrato no es aplicable
     # Los demás siguen midiéndose sobre todo el mercado (1.900), ente incluido.
     assert resultado["c2"]["valor"] == 100 / 1900
+
+
+def test_nif_de_ente_publico_con_otro_nombre_sigue_siendo_empresa(base):
+    # Un NIF de la fuente mal puesto (D-035): el nombre no cuadra y no se trata como ente.
+    mercado(base, [1000] + [100] * 9)
+    ente_publico(base, "E1", "Q2818014I", nombre="PIXELWARE SA")
+    assert base.resultado(SQL)["c1"]["activado"] is True

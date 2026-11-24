@@ -55,7 +55,8 @@ SELECT
     p.anio,
     p.puntuacion,
     p.n_activados,
-    EXISTS (SELECT 1 FROM entidad_sector_publico AS s WHERE s.nif = d.nif) AS sector_publico,
+    d.adjudicatario_id IN (SELECT adjudicatario_id FROM adjudicatario_ente_publico)
+        AS sector_publico,
     sum(coalesce(a.importe_sin_iva, a.importe_con_iva, 0)) AS importe
 FROM adjudicacion AS a
 JOIN puntuacion_contrato AS p USING (contrato_id)

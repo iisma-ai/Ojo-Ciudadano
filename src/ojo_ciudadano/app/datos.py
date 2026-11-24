@@ -982,7 +982,8 @@ def detalle_r04(con: duckdb.DuckDBPyConnection, contrato_id: str) -> dict | None
             FROM contrato_unico AS c JOIN adjudicacion AS a USING (contrato_id)
             JOIN adjudicatario AS d USING (adjudicatario_id)
             WHERE c.contrato_id = ? AND a.adjudicatario_id IS NOT NULL
-              AND NOT EXISTS (SELECT 1 FROM entidad_sector_publico AS s WHERE s.nif = d.nif)
+              AND a.adjudicatario_id NOT IN
+                  (SELECT adjudicatario_id FROM adjudicatario_ente_publico)
             ORDER BY coalesce(a.importe_sin_iva, a.importe_con_iva) DESC NULLS LAST
             LIMIT 1
         ),

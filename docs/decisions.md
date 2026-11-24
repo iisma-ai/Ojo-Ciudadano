@@ -476,7 +476,7 @@ Plantilla:
     - **ficha de contrato:** el objeto CPV con su sector;
     - **ficha de empresa:** si el NIF es de un ente público, aviso «Ente del sector público, no una empresa privada», con su forma jurídica y la administración de la que depende. Si el nombre del adjudicatario no se parece al del inventario, solo una nota: puede ser un nombre abreviado o un error de NIF en la fuente;
     - **asistente:** las dos tablas, en la lista permitida y con sus reglas.
-  - **No cambia ningún indicador.** Excluir los entes públicos de R-04 (concentración) o de la puntuación de empresa sería un cambio de metodología: queda para decidirlo en equipo.
+  - **No cambia ningún indicador** (lo hace después D-036). Excluir los entes públicos de R-04 (concentración) o de la puntuación de empresa sería un cambio de metodología: queda para decidirlo en equipo.
 - **Alternativas consideradas:**
   - DIR3, cuyo cruce era por nombre y no trae fundaciones ni sociedades.
   - Consultar INVENTE NIF a NIF: unas 2.000 peticiones, frente a una.
@@ -484,3 +484,49 @@ Plantilla:
 - **Consecuencias:**
   - **Datos:** `uv run python -m ojo_ciudadano.ingesta.cpv` y `uv run python -m ojo_ciudadano.ingesta.invente` bajan y cargan cada tabla en la base ya construida. `modelo.carga` las incluye si están en `data/raw/`.
   - **Resultado del cruce (23-nov):** 261 adjudicatarios con NIF de un ente público, con unas 4.200 adjudicaciones y unos 121 M€ con IVA y 40 M€ sin IVA. De ellos, 235 tienen el nombre compatible y 26 no: siglas, nombres abreviados o errores de NIF de la fuente, como «PIXELWARE, S.A.» con el NIF de Planifica Madrid.
+
+## D-036 · CPV y entes del sector público en R-04, en la puntuación de empresa y en los atípicos
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada (El Harrak: «haz la 1, la 2 y la 3. Además de llevar todo a las anomalías y a los indicadores»). Es un cambio de metodología el día de la demo H3: el equipo debe conocerlo antes de fusionarlo, y se puede deshacer revirtiendo la rama `feat/datos-nuevos-modelos`.
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** D-035 trajo los nombres de los CPV y el inventario INVENTE solo como contexto. R-04 decía en sus limitaciones que no distinguía mercados por CPV (D-013), y unos 200 entes públicos (universidades, fundaciones, sociedades públicas) tenían puntuación de empresa como si fueran empresas privadas.
+- **Decisión:**
+  - **R-04:**
+    - en PLACSP, el mercado es fuente + órgano + tipo + **división CPV** (dos primeras cifras); el portal regional no publica CPV y sigue con órgano + tipo;
+    - los entes del sector público **cuentan en el mercado** (se llevan parte del importe) pero **no activan** la señal: un contrato cuyos adjudicatarios son todos entes públicos no es aplicable;
+    - la ficha (E-04) dibuja el mismo mercado y nombra la división.
+  - **Qué es un ente público aquí:** un adjudicatario cuyo NIF está en INVENTE **y cuyo nombre se parece** al del inventario. El ejecutor de indicadores lo guarda en la tabla derivada `adjudicatario_ente_publico` (235 adjudicatarios). Si el nombre no cuadra, suele ser un NIF de otra entidad puesto por error en la fuente (D-035, como PIXELWARE con el NIF de Planifica Madrid), y se sigue tratando como empresa privada: un error de la fuente no debe apagar sus señales.
+  - **Puntuación de empresa:** los entes públicos conservan su ficha y sus contratos, pero `puntuacion_empresa[_anio]` les deja la puntuación vacía y los marca con `sector_publico`. Sus contratos siguen contando en el órgano.
+  - **Atípicos (D-021):**
+    - en las licitaciones de PLACSP, el grupo de pares se divide por división CPV;
+    - una división con menos de 50 contratos va a «otras divisiones CPV»; si ese resto no llega a 50, o ninguna división llega, el tipo no se divide.
+  - **Validación de atípicos:** grupo nuevo «Adjudicados a entes del sector público (INVENTE)» en `anomalia_validacion`. No es variable del modelo.
+  - **No se llevan al modelo ni a los indicadores:**
+    - las resoluciones del Tribunal, que son la única referencia externa para validar los atípicos (D-031);
+    - los pliegos, porque tener o no PDF depende de cómo publica cada portal y no del contrato.
+  - **Asistente:** preguntas B-35 a B-37 en la batería, y reglas sobre el CPV y los entes públicos.
+- **Alternativas consideradas:**
+  - Sacar los entes públicos del mercado de R-04. Inflaría la cuota de las demás empresas.
+  - Quitarles la ficha de empresa. Se perdía el aviso de D-035 y la lista de sus contratos.
+  - Dividir por CPV todos los grupos. El portal regional no lo trae, y las divisiones pequeñas se quedaban sin pares.
+  - Grupo CPV de 3 o 4 cifras. Haría mercados aún más pequeños.
+- **Consecuencias (recalculado el 24-nov con la base del 16-nov):**
+  - **R-04 en PLACSP:**
+    - de 14.537 a 11.686 contratos aplicables, porque más mercados quedan por debajo de 10 contratos o 3 adjudicatarios;
+    - de 29 a 92 activados, con 22 en común;
+    - en el portal regional, 54 antes y 54 después, todos los mismos;
+    - los entes públicos no activaban R-04 ni antes.
+  - **Puntuación de órgano:** cambia en 83 de 131 órganos, con 0,10 de diferencia máxima, porque cambia R-04.
+  - **Puntuación de empresa:** 209 entes públicos con contratos puntuados pasan a no tener puntuación. Antes algunos estaban arriba, como la Fábrica Nacional de Moneda y Timbre (0,42) o Renfe Viajeros (0,42).
+  - **Atípicos de PLACSP:**
+    - de 151 a 165, con 97 en común;
+    - 48 grupos en vez de 14;
+    - el total sigue en el 1 %.
+  - **Validación:**
+    - recursos estimados: 0 de 55 atípicos (igual que antes);
+    - solo desestimados o inadmitidos: 10 de 174 (5,7 %, antes 4,6 %);
+    - entes públicos: 5 de 3.961 (0,13 %).
+    - El CPV no hace que los atípicos se acerquen más a los recursos estimados.
+  - **Batería:** B-35 a B-37 con `openai/gpt-6.1-terra` (0,028 USD). Las tres bien, B-35 tras corregir su referencia para que use la misma definición de año que B-06.
+  - **Riesgo:** la comparación de nombres puede fallar en los dos sentidos. Por un lado, una sigla puede no cuadrar con el nombre completo: un ente público, como ASERPINTO o CEDEX, se tratará como empresa. Por otro, una empresa con una palabra en común con el ente se tratará como ente. El primer error es el más prudente, porque conserva las señales.
+  - **Instalaciones:** `ingesta.cpv` e `ingesta.invente` antes de `indicadores.ejecutor` y `anomalias.deteccion`. Sin esas tablas, el ejecutor las crea vacías y todo funciona como antes de D-036.

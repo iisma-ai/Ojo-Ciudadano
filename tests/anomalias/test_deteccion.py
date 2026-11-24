@@ -5,6 +5,7 @@ from datetime import date, timedelta
 import numpy as np
 
 from ojo_ciudadano.anomalias import deteccion
+from ojo_ciudadano.indicadores import ejecutor
 
 
 def _licitaciones(base, n=120, semilla=0, cpv=None, prefijo=""):
@@ -228,12 +229,16 @@ def test_resto_pequeno_no_divide_el_tipo(base):
 def test_validacion_con_entes_del_sector_publico(base):
     _licitaciones(base)
     deteccion.calcular(base.con)
-    base.con.execute("UPDATE adjudicatario SET nif = 'Q2818014I' WHERE adjudicatario_id = 'B1'")
+    base.con.execute(
+        "UPDATE adjudicatario SET nif = 'Q2818014I', nombre = 'CANAL DE ISABEL II SA' "
+        "WHERE adjudicatario_id = 'B1'"
+    )
     base.con.execute(
         "INSERT INTO entidad_sector_publico (nif, codigo_invente, nombre, fuente, url_origen, "
-        "fecha_descarga) VALUES ('Q2818014I', 'INV1', 'Ente', 'invente', 'https://x.test', "
-        "DATE '2026-11-23')"
+        "fecha_descarga) VALUES ('Q2818014I', 'INV1', 'Canal de Isabel II, S.A.', 'invente', "
+        "'https://x.test', DATE '2026-11-23')"
     )
+    ejecutor.marcar_entes_publicos(base.con)
     tabla = {f["grupo_validacion"]: f for f in deteccion.validar(base.con).to_dicts()}
     # B1 gana uno de cada 30 contratos: 4 de 120.
     assert tabla["Adjudicados a entes del sector público (INVENTE)"]["contratos"] == 4

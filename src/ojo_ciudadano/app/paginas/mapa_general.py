@@ -434,7 +434,7 @@ def gasto_por_consejeria(entidades: list[dict]) -> str:
 
 
 def fuentes(datos_anio: dict, anio: int, poblacion: dict | None) -> None:
-    """Todo lo que es fuente, matiz o límite de los datos, dentro del botón de información."""
+    """Todo lo que es fuente, matiz o límite de los datos, en el desplegable del final."""
     lineas = [
         f"- **Presupuesto y gasto:** [datos abiertos de la Comunidad de Madrid]"
         f"({datos_anio['url_origen']}), descargado el {datos_anio['fecha_descarga']}. "
@@ -473,8 +473,7 @@ def fuentes(datos_anio: dict, anio: int, poblacion: dict | None) -> None:
 
 # ------------------------------------------------------------------------------ pantalla
 con = conexion()
-cabecera, info = st.columns([6, 1], vertical_alignment="bottom")
-cabecera.header("A dónde va el dinero")
+st.header("A dónde va el dinero")
 
 periodos = datos_mapa.periodos(con)
 if not periodos:
@@ -505,9 +504,6 @@ if not entidades:
     st.stop()
 liquidado = datos_anio["liquidado"]
 poblacion = _poblacion()
-
-with info.popover("Fuentes", icon=":material/info:", width="stretch"):
-    fuentes(datos_anio, anio, poblacion)
 
 tarjeta_ciudadano(datos_anio, anio, poblacion)
 
@@ -604,3 +600,7 @@ with derecha:
 if liquidado:
     st.subheader("¿Cuánto ha gastado cada consejería?")
     st.html(gasto_por_consejeria(entidades))
+
+# Fuentes, matices y datos que no tenemos, abajo del todo (D-043).
+with st.expander("Fuentes y qué datos no tenemos", icon=":material/info:"):
+    fuentes(datos_anio, anio, poblacion)

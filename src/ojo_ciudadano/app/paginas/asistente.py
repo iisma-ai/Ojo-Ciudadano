@@ -369,4 +369,4 @@ if pregunta := st.chat_input("Escribe tu pregunta") or elegida or pendiente:
         mostrar_respuesta(pregunta, respuesta, clave=str(len(turnos)), nueva=True)
     turnos.append((pregunta, respuesta))
 
-st.caption(textos.FUENTES)
+# Las fuentes van en el pie de la página (D-043, main.pie).

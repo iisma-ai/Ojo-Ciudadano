@@ -1,15 +1,20 @@
 """Portada para el ciudadano (D-023, D-039).
 
-En cinco segundos: la mascota y una frase, un buscador que lleva a la ficha de una empresa o
+En cinco segundos: el logo y una frase, un buscador que lleva a la ficha de una empresa o
 de un organismo, cuatro puertas grandes y las cifras en una línea. Debajo, las señales que
 buscamos en formato «de cada 100 contratos», con la explicación en un botón. El aviso de que
-una señal no prueba nada queda visible; las fuentes, en el botón «Fuentes».
+una señal no prueba nada queda en el icono de las señales; las fuentes, en el pie (D-043).
 """
+
+from pathlib import Path
 
 import streamlit as st
 
-from ojo_ciudadano.app import billetes, buscador, datos, datos_contexto, textos
+from ojo_ciudadano.app import billetes, buscador, datos, textos
 from ojo_ciudadano.app.conexion import conexion
+
+# Solo el logo (D-043); la mascota con billetes queda en «A dónde va el dinero».
+LOGO = (Path(__file__).parents[1] / "static" / "logo.svg").read_text(encoding="utf-8")
 
 PUERTAS = [
     (
@@ -80,7 +85,6 @@ def _conteo() -> dict:
 def bienvenida() -> None:
     contenido = f"""
 <style>
-{billetes.CSS_OJO}
 .oc-bienvenida {{ display:flex; gap:26px; align-items:center; flex-wrap:wrap;
   font-family:Inter, sans-serif; color:#E7ECF3; }}
 .oc-bienvenida .texto {{ flex:1 1 380px; min-width:0; }}
@@ -88,11 +92,12 @@ def bienvenida() -> None:
   letter-spacing:-.02em; background:linear-gradient(180deg,#fff,#9FCBFF);
   -webkit-background-clip:text; background-clip:text; color:transparent; }}
 .oc-bienvenida p {{ font-size:1.15rem; color:#B9C6D8; margin:0; }}
-.oc-bienvenida .oc-ojo {{ width:190px; }}
+.oc-bienvenida .oc-logo {{ width:150px; height:auto; flex:0 0 auto; max-width:34vw;
+  filter:drop-shadow(0 0 26px rgba(56,189,248,.35)); }}
 @media (max-width:640px) {{ .oc-bienvenida h1 {{ font-size:1.9rem; }} }}
 </style>
 <div class="oc-bienvenida">
-  {billetes.svg_ojo()}
+  {LOGO.replace("<svg ", '<svg class="oc-logo" ', 1)}
   <div class="texto">
     <h1>Mira en qué se gasta tu dinero la Comunidad de Madrid</h1>
     <p>Contratos y subvenciones de 2023 a 2026, sacados de fuentes oficiales.</p>
@@ -148,15 +153,6 @@ def senales() -> None:
 # ------------------------------------------------------------------------------ pantalla
 con = conexion()
 st.html(ESTILO)
-
-_, info = st.columns([6, 1])
-with info.popover("Fuentes", icon=":material/info:", width="stretch"):
-    st.markdown(textos.AVISO)
-    st.markdown(textos.NOTA_SENAL)
-    st.markdown(textos.FUENTES)
-    st.caption(
-        textos.fechas_descarga(datos.fechas_datos(con) + datos_contexto.fechas_contexto(con))
-    )
 
 bienvenida()
 

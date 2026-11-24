@@ -715,3 +715,40 @@ Plantilla:
     - debajo, un icono de contrato por cada contrato menor de la ventana de 12 meses, el de este en azul con «este». Al pasar el ratón (o con el teclado) se ve su precio, su fecha y su título;
     - HTML propio (`billetes.html_menores`, con el componente de `billetes.pintar`); se quita `graficos.menores`;
     - la frase ya no repite la suma.
+
+## D-043 · Web ligera: sin barra lateral, barra de arriba con menú, avisos en el pie y entrada animada
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada por El Harrak como **versión alternativa** en la rama `feat/web-ligera`, que sale de `feat/mapa-billetes` (D-038 a D-042). Si el equipo la prefiere, sustituye a la navegación con barra lateral de D-023.
+- **Autor:** Claude (agente), a petición de El Harrak («simplificar el HTML aligerando un poco a la vista»)
+- **Contexto:** La web era pesada a la vista. Tenía cuatro problemas:
+  - **Barra lateral** con diez entradas, el aviso, las fechas y la metodología.
+  - **Avisos y fuentes** también arriba de algunas pantallas.
+  - **Dos mascotas:** el ojo con billetes salía en el Inicio y en el mapa.
+  - **Desplegables translúcidos:** su fondo se mezclaba con el mar y costaba leerlos.
+- **Decisión:**
+  - **Sin barra lateral.** Arriba hay una barra fija con el logo, cuatro botones (Inicio, A dónde va el dinero, Contratos a revisar y Asistente) y «Menú», que abre todas las pantallas por secciones (`st.navigation(position="hidden")` y `st.page_link`).
+  - **Pie en todas las pantallas**, abajo del todo:
+    - el aviso corto;
+    - el desplegable «Aviso legal, metodología y fuentes», con el aviso, la nota de las señales, qué mide cada indicador, las fuentes y el pie legal;
+    - las fechas de descarga.
+    - El pie se dibuja antes que la pantalla y el CSS lo coloca al final, así que sale aunque la pantalla se pare esperando una elección.
+  - **Notas de una pantalla, al final de esa pantalla:**
+    - «Cómo se calculan los contratos atípicos» pasa al pie de Atípicos;
+    - las fuentes del mapa del dinero pasan al desplegable final «Fuentes y qué datos no tenemos»;
+    - se quita el botón «Fuentes» de arriba del Inicio y del mapa, y las fuentes repetidas al final del Asistente.
+    - Siguen donde estaban los iconos de ayuda («una señal no prueba nada») de los títulos y los avisos ligados a una cifra concreta.
+  - **Inicio con solo el logo.** La mascota con billetes queda en «A dónde va el dinero».
+  - **Desplegables opacos.** Desplegables, ventanas emergentes, listas de opciones y ayudas tienen fondo azul marino opaco.
+  - **Entrada animada de 1,5 s**, la primera vez que se abre la web en la sesión (`static/intro.html`):
+    - mar muy oscuro con nieve marina;
+    - aparece el ojo de cristal y se le enciende la pupila;
+    - su luz aclara el mar y desvela la página, como en las escenas 2 y 3 de la presentación;
+    - solo anima opacidad y transformaciones, no bloquea los clics y no sale con «reducir movimiento».
+- **Alternativas consideradas:**
+  - Barra lateral plegada por defecto: seguía ahí y el aviso no se veía.
+  - Navegación nativa arriba (`position="top"`): con diez entradas se desborda.
+  - Entrada en cada cambio de pantalla: cansa.
+- **Consecuencias:**
+  - El aviso legal deja de estar siempre a la vista en la barra lateral: queda abajo, más los iconos de ayuda de los títulos. Conviene que `revisor-legal` lo valide antes de la entrega.
+  - Medido: scroll a 240 fotogramas por segundo, sin tareas largas; las nueve pantallas cargan sin errores y todas tienen pie.
+  - Tests en `tests/app/test_intro.py`.

@@ -637,3 +637,24 @@ Plantilla:
   - **Pantallas al volver a cargarlas:** entre 0,01 y 0,3 s (el mapa general, de 1,4 s a 0,04 s).
   - El cristal se ve algo menos esmerilado.
   - Quien quiera comprobar una consulta ya no ve el SQL; ve las tablas, las uniones y los pasos, los datos y el enlace oficial de cada fila.
+
+## D-041 · Web fluida con el Inicio y el mapa de billetes
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada (El Harrak: «En una nueva rama, coge lo que ha hecho Ignacio e intenta fluidificarlo más, como hicimos antes»). Ajusta D-038 y D-039 (mascota) y se suma a D-040.
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** La rama `feat/billetes-fluido` junta `feat/mapa-billetes` (D-038 y D-039, de Ignacio) con `feat/web-fluida` (D-040). Medido en el navegador y en el servidor:
+  - **Servidor:** las consultas nuevas ya tenían caché. Volver a cargar el Inicio tarda 0,03 s y el mapa, 0,07 s. Un año que no se había visto tarda unos 0,3 s más.
+  - **Scroll:** 240 fotogramas por segundo en las dos pantallas, sin tareas largas. El grafo de frascos se queda quieto unos 0,3 s después de cambiar de año.
+  - **Mascota:** el ojo con manos tenía 7 animaciones infinitas dentro del SVG. Las animaciones dentro de un SVG no pasan a la tarjeta gráfica, así que el navegador repintaba el dibujo en cada fotograma, sin parar, en el Inicio y en el mapa. En un portátil modesto es el único gasto continuo que quedaba aparte del fondo.
+- **Decisión:**
+  - La mascota se mueve unas vueltas al llegar (unos 10 a 25 s) y se queda quieta. Al pasar el ratón por encima vuelve a moverse.
+  - `contain: layout paint` limita el repintado a su recuadro.
+  - Con «reducir movimiento» sigue quieta.
+- **Alternativas consideradas:**
+  - Dejarla en bucle. Repinta siempre.
+  - Pasar el salto al SVG entero para que lo mueva la tarjeta gráfica. La sombra y los billetes que caen saltarían con ella.
+  - Quitar las animaciones.
+- **Consecuencias:**
+  - Ni el Inicio ni el mapa tienen animaciones que se repitan sin fin, salvo el fondo, que va por la tarjeta gráfica.
+  - Test en `tests/app/test_billetes.py`.
+  - Las demás pantallas de Ignacio no cambian.

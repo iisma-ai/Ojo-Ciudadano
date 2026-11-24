@@ -84,3 +84,14 @@ def svg_ambar(svg: str) -> int:
 def test_iconos_de_las_puertas():
     assert set(billetes.ICONOS_PUERTA) == {"dinero", "revisar", "buscar", "asistente"}
     assert all(svg.startswith("<svg") for svg in billetes.ICONOS_PUERTA.values())
+
+
+def test_la_mascota_se_mueve_unas_vueltas_y_al_pasar_el_raton():
+    """D-041: sin animaciones infinitas salvo con el ratón encima; quieta con «reducir
+    movimiento»."""
+    css = billetes.CSS_OJO
+    reglas = css.split("@keyframes")[0]
+    sin_raton = [r for r in reglas.split("}") if "animation" in r and ":hover" not in r]
+    assert sin_raton and not any("infinite" in r for r in sin_raton)
+    assert ":hover" in css and "infinite" in css
+    assert "prefers-reduced-motion" in css and "contain:layout paint" in css

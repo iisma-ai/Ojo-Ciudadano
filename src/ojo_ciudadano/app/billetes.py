@@ -195,24 +195,33 @@ def svg_ojo() -> str:
 
 # Animaciones de la mascota (en la tarjeta del mapa y en la portada). Quietas con «reducir
 # movimiento».
-CSS_OJO = """
-.oc-ojo { width:210px; max-width:42vw; height:auto; flex:0 0 auto; }
-.oc-salta { animation:salta 2.6s ease-in-out infinite; transform-origin:110px 210px; }
-.abanico { animation:abanico 2.6s ease-in-out infinite; transform-origin:40px 78px; }
-.saluda { animation:saluda 1.6s ease-in-out infinite; transform-origin:160px 150px; }
-.pupila { animation:mira 6s ease-in-out infinite; transform-box:fill-box;
-  transform-origin:center; }
-.cae { animation:cae 4.2s linear infinite; opacity:0; }
-@keyframes salta { 0%,100% { transform:translateY(0) } 50% { transform:translateY(-7px) } }
-@keyframes abanico { 0%,100% { transform:rotate(-4deg) } 50% { transform:rotate(4deg) } }
-@keyframes saluda { 0%,100% { transform:rotate(0) } 50% { transform:rotate(-12deg) } }
-@keyframes mira { 0%,30%,100% { transform:translate(0,0) }
-  40%,55% { transform:translate(-6px,-3px) } 65%,85% { transform:translate(7px,-4px) } }
-@keyframes cae { 0% { transform:translateY(-10px); opacity:0 } 15% { opacity:.9 }
-  85% { opacity:.9 } 100% { transform:translateY(150px); opacity:0 } }
-@media (prefers-reduced-motion: reduce) {
-  .oc-salta, .abanico, .saluda, .pupila { animation:none; }
-  .cae { animation:none; opacity:.8; } }
+# Fluidez (D-041): las animaciones dentro de un SVG no van a la tarjeta gráfica; el navegador
+# vuelve a pintar el dibujo en cada fotograma. Por eso la mascota se mueve unas vueltas al
+# llegar (unos 10 s) y se queda quieta; al pasar el ratón por encima vuelve a moverse.
+# `contain` limita el repintado a su recuadro.
+VUELTAS_OJO = 4
+CSS_OJO = f"""
+.oc-ojo {{ width:210px; max-width:42vw; height:auto; flex:0 0 auto; contain:layout paint; }}
+.oc-salta {{ animation:salta 2.6s ease-in-out {VUELTAS_OJO}; transform-origin:110px 210px; }}
+.abanico {{ animation:abanico 2.6s ease-in-out {VUELTAS_OJO}; transform-origin:40px 78px; }}
+.saluda {{ animation:saluda 1.6s ease-in-out {VUELTAS_OJO + 2}; transform-origin:160px 150px; }}
+.pupila {{ animation:mira 6s ease-in-out 2; transform-box:fill-box;
+  transform-origin:center; }}
+.cae {{ animation:cae 4.2s linear 2; opacity:0; }}
+.oc-ojo:hover .oc-salta, .oc-ojo:hover .abanico, .oc-ojo:hover .saluda,
+.oc-ojo:hover .pupila, .oc-ojo:hover .cae {{ animation-iteration-count:infinite; }}
+@keyframes salta {{ 0%,100% {{ transform:translateY(0) }} 50% {{ transform:translateY(-7px) }} }}
+@keyframes abanico {{ 0%,100% {{ transform:rotate(-4deg) }} 50% {{ transform:rotate(4deg) }} }}
+@keyframes saluda {{ 0%,100% {{ transform:rotate(0) }} 50% {{ transform:rotate(-12deg) }} }}
+@keyframes mira {{ 0%,30%,100% {{ transform:translate(0,0) }}
+  40%,55% {{ transform:translate(-6px,-3px) }} 65%,85% {{ transform:translate(7px,-4px) }} }}
+@keyframes cae {{ 0% {{ transform:translateY(-10px); opacity:0 }} 15% {{ opacity:.9 }}
+  85% {{ opacity:.9 }} 100% {{ transform:translateY(150px); opacity:0 }} }}
+@media (prefers-reduced-motion: reduce) {{
+  .oc-salta, .abanico, .saluda, .pupila,
+  .oc-ojo:hover .oc-salta, .oc-ojo:hover .abanico, .oc-ojo:hover .saluda,
+  .oc-ojo:hover .pupila {{ animation:none; }}
+  .cae, .oc-ojo:hover .cae {{ animation:none; opacity:.8; }} }}
 """
 
 

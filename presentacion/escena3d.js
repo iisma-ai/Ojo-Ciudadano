@@ -196,7 +196,7 @@ const radioMundo = (rpx, z = 0) => (rpx / K) * ((D0 - z) / D0);
 
 // ---------- Construccion ----------
 const items = [];
-const ojo = crearOjo();
+const ojo = crearOjo(colorAgua);
 escena.add(ojo.grupo);
 
 function texturaVacia() {

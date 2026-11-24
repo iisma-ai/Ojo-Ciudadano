@@ -1,15 +1,16 @@
 """Red del dinero: a quién adjudica cada organismo (D-023, A-07).
 
-1. Burbujas de los organismos que más adjudican (área = importe).
-2. Al elegir uno, su red: el organismo en el centro y sus empresas alrededor (área y grosor de
-   la línea = importe), con sus contratos o convocatorias.
+1. Burbujas de los organismos que más adjudican (tamaño y color = importe), con la misma
+   estética que el Mapa del dinero (lienzo de `app/burbujas.py`, D-050). Al pulsar uno, su red.
+2. Su red: el organismo en el centro y sus empresas alrededor, con las motas de luz que van del
+   organismo a cada empresa. Al pulsar una empresa, sus contratos o convocatorias debajo.
 3. El diagrama de flujos queda como vista avanzada.
 Una fuente cada vez: sus importes no se suman (P-10). Sin personas físicas con nombre (D-007).
 """
 
 import streamlit as st
 
-from ojo_ciudadano.app import datos, graficos, red, textos
+from ojo_ciudadano.app import burbujas, datos, graficos, red, textos
 from ojo_ciudadano.app.conexion import conexion
 
 FUENTES = {
@@ -60,6 +61,8 @@ if not organismos:
 
 # El organismo elegido se guarda para que la lista de la vista general pueda elegirlo.
 opciones = [TODOS, *(o["organo_id"] for o in organismos)]
+if st.session_state.get("mapa_organo_pulsado") in opciones:
+    st.session_state["mapa_organo"] = st.session_state.pop("mapa_organo_pulsado")
 if st.session_state.get("mapa_organo") not in opciones:
     st.session_state["mapa_organo"] = TODOS
 nombres = {o["organo_id"]: o["organo"] for o in organismos}
@@ -72,12 +75,45 @@ elegido = st.selectbox(
 )
 
 if elegido == TODOS:
-    principales = organismos[:15]
+    principales = organismos[:12]
     grafico, lista = st.columns([3, 2])
     with grafico:
-        st.plotly_chart(graficos.burbujas_organismos(principales), config=graficos.CONFIG)
+        # los organismos alrededor de un centro con el total, como el Mapa del dinero
+        total = sum(o["importe"] for o in principales)
+        nodos = [
+            red.NodoRed(
+                id="centro",
+                etiqueta="Los que más\nadjudican",
+                importe=total,
+                centro=True,
+                detalle=f"{len(principales)} organismos",
+                x=0,
+                y=0,
+            )
+        ]
+        orden = red.alternar_tamanos(list(enumerate(principales)))
+        for (_, o), (x, y) in zip(orden, red.posiciones_radiales(len(orden), 260), strict=True):
+            nodos.append(
+                red.NodoRed(
+                    id=o["organo_id"],
+                    etiqueta=red.envolver(o["organo"].replace("Consejería de ", "")[:34], 15)
+                    + chr(10)
+                    + textos.millones(o["importe"]),
+                    importe=o["importe"],
+                    titulo=o["organo"],
+                    x=x,
+                    y=y,
+                )
+            )
+        pulsado = burbujas.mapa(
+            nodos, [("centro", n.id) for n in nodos[1:]], alto=720, clave="red_organismos"
+        )
+        if pulsado and pulsado != "centro":
+            # el desplegable ya está dibujado: se elige en la siguiente ejecución, antes de él
+            st.session_state["mapa_organo_pulsado"] = pulsado
+            st.rerun()
     with lista:
-        st.caption("Pulsa un organismo para ver a quién adjudica.")
+        st.caption("Pulsa un organismo en el mapa o en la lista para ver a quién adjudica.")
         for n, o in enumerate(principales, start=1):
             st.button(
                 f"{n}. {o['organo']} · {textos.euros(o['importe'])}",
@@ -131,11 +167,16 @@ for (n, f), (x, y) in zip(orden, red.posiciones_radiales(len(orden), radio), str
             y=y,
         )
     )
-red.mapa(nodos_red, [("centro", n.id, radio) for n in nodos_red[1:]], alto=700)
+pulsada = burbujas.mapa(
+    nodos_red, [("centro", n.id) for n in nodos_red[1:]], alto=700, clave=f"red_{elegido}"
+)
+if pulsada and pulsada.startswith("emp:"):
+    # al pulsar una empresa, sus contratos salen en el desplegable de debajo
+    st.session_state["mapa_flujo"] = filas[int(pulsada.split(":")[1])]
 quien = "entidades" if es_subvencion else "empresas"
 st.caption(
     f"Las 10 {quien} con más importe de {organismo['organo']}. El tamaño y el color de cada "
-    "círculo son el dinero; todas las líneas son iguales y puedes arrastrar los círculos. "
+    "burbuja son el dinero; pulsa una para ver sus contratos debajo. "
     "Un flujo grande refleja el volumen de compras o ayudas del organismo y no es una señal de "
     "riesgo por sí mismo."
     + (
@@ -147,9 +188,12 @@ st.caption(
 
 # --- Detalle ---
 unidad = "concesiones" if es_subvencion else "contratos"
+if st.session_state.get("mapa_flujo") not in filas:  # de otro organismo o con otros filtros
+    st.session_state.pop("mapa_flujo", None)
 flujo = st.selectbox(
     "Ver los contratos de" if not es_subvencion else "Ver las convocatorias de",
     filas,
+    key="mapa_flujo",
     format_func=lambda f: (
         f"{f['empresa']} · {textos.euros(f['importe'])} "
         f"({textos.numero(f['n_contratos'])} {unidad})"

@@ -138,7 +138,10 @@ def leyenda_burbujas(vista: str, liquidado: bool, niveles: int) -> str:
         )
     if niveles == 2:
         texto += "Las pequeñas son sus contratos más grandes del año. "
-    return texto + "Pasa el ratón por una burbuja para ver sus cifras y púlsala para ver su ficha."
+    return texto + (
+        "Pasa el ratón por una burbuja para ver sus cifras. Pulsa una consejería para ponerla "
+        "en el centro con todos sus contratos, y un contrato para ver su ficha."
+    )
 
 
 def _hijos_agrupados(indice: int, entidad: dict, agregados: dict, destinos: dict) -> list:
@@ -265,7 +268,7 @@ def grafo_ampliado(entidad: dict, cuerpo: dict):
             y=0,
         )
     ]
-    destinos: dict[str, tuple] = {}
+    destinos: dict[str, tuple] = {CENTRO: ("ent", entidad["entidad"])}
     hijos: list[red.NodoRed] = []
     for c in cuerpo["contratos"]:
         id_con = f"con:{c['contrato_id']}"
@@ -764,6 +767,12 @@ with izquierda:
         nodos, enlaces, alto, clave=f"mg_burbujas_{ampliada or 'todas'}", seleccionado=sel_id
     )
     if seleccion and seleccion in destinos:
+        tipo_sel, referencia = destinos[seleccion]
+        entidad_sel = next((e for e in entidades if e["entidad"] == referencia), None)
+        if ampliada is None and tipo_sel == "ent" and entidad_sel and entidad_sel["organo_id"]:
+            # pulsar una consejería la pone en el centro con todo lo que conecta (D-050)
+            st.session_state.update(mg_ampliada=referencia, mg_sel=("ent", referencia))
+            st.rerun()
         st.session_state["mg_sel"] = destinos[seleccion]
 
 with derecha:

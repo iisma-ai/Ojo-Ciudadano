@@ -13,14 +13,12 @@ De arriba abajo, con poco texto:
 """
 
 import html
-from pathlib import Path
 
 import streamlit as st
 
 from ojo_ciudadano.app import billetes, burbujas, buscador, datos, datos_mapa, ojo_cristal, textos
 from ojo_ciudadano.app.conexion import conexion
 
-LOGO = (Path(__file__).parents[1] / "static" / "logo.svg").read_text(encoding="utf-8")
 OJO = ojo_cristal.imagenes()
 
 # Iconos de las puertas (SVG propios, sin emojis, D-022)
@@ -122,19 +120,16 @@ def _mapa() -> dict | None:
 
 # ------------------------------------------------------------------------------ 1. cabecera
 def bienvenida() -> None:
-    contenido = f"""
+    contenido = """
 <style>
-.oc-bienvenida {{ display:flex; flex-direction:column; align-items:center; text-align:center;
-  gap:18px; font-family:Inter, sans-serif; padding: 28px 0 22px; }}
-.oc-bienvenida h1 {{ font-size:clamp(2.3rem, 4.2vw, 3.9rem); line-height:1.08; margin:0;
+.oc-bienvenida { display:flex; flex-direction:column; align-items:center; text-align:center;
+  gap:18px; font-family:Inter, sans-serif; padding: 28px 0 22px; }
+.oc-bienvenida h1 { font-size:clamp(2.3rem, 4.2vw, 3.9rem); line-height:1.08; margin:0;
   font-weight:750; letter-spacing:-.03em; max-width: 16ch;
   background:linear-gradient(180deg,#fff 20%,#9FCBFF); -webkit-background-clip:text;
-  background-clip:text; color:transparent; }}
-.oc-bienvenida .oc-logo {{ width:clamp(70px, 7vw, 104px); height:auto;
-  filter:drop-shadow(0 0 26px rgba(56,189,248,.4)); }}
+  background-clip:text; color:transparent; }
 </style>
 <div class="oc-bienvenida">
-  {LOGO.replace("<svg ", '<svg class="oc-logo" ', 1)}
   <h1>Mira en qué se gasta tu dinero la Comunidad de Madrid</h1>
 </div>"""
     billetes.pintar(contenido, clave="inicio_bienvenida")
@@ -149,7 +144,8 @@ PUNTOS = [
 
 
 def que_hace() -> None:
-    izquierda, derecha = st.columns([5, 7], vertical_alignment="center", gap="large")
+    # el mapa a la izquierda y el texto a la derecha, juntos (D-050)
+    _, derecha, izquierda, _ = st.columns([1, 6, 5, 1], vertical_alignment="center", gap="small")
     puntos = "".join(
         f'<li><span class="n">{i}</span><div><b>{titulo}</b><p>{frase}</p></div></li>'
         for i, (titulo, frase) in enumerate(PUNTOS, start=1)
@@ -186,11 +182,6 @@ def que_hace() -> None:
             mapa["entidades"], mapa["principales"], textos.millones, n_entidades=8, con_contratos=3
         )
         pulsado = burbujas.mapa(nodos, enlaces, alto=560, clave="inicio_mapa")
-        st.caption(
-            f"Presupuesto de {mapa['anio']}: cada burbuja se llena hasta lo gastado. Pulsa una "
-            "para verla en el Mapa del dinero. Fuente: [datos abiertos de la Comunidad de "
-            f"Madrid]({mapa['url_origen']})."
-        )
         if pulsado and pulsado in destinos:
             tipo, referencia = destinos[pulsado]
             st.session_state["mg_sel"] = None if tipo == "todo" else (tipo, referencia)
@@ -265,23 +256,6 @@ html.oc-sin-gpu .oc-ojo .iris {{ animation:none; }}
 
 
 # ------------------------------------------------------------------------------ 5. destacados
-def _burbuja_svg(cx: float, cy: float, r: float, color: str, nivel: float) -> str:
-    """Burbuja de cristal con líquido (la misma idea que el mapa), en SVG."""
-    ny = cy + r - 2 * r * min(max(nivel, 0), 0.97)
-    return (
-        f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="#0e2a44" fill-opacity=".75"/>'
-        f'<clipPath id="cb{cx:.0f}"><circle cx="{cx}" cy="{cy}" r="{r - 0.5}"/></clipPath>'
-        f'<rect x="{cx - r}" y="{ny:.1f}" width="{2 * r}" height="{cy + r - ny:.1f}" '
-        f'fill="{color}" fill-opacity=".85" clip-path="url(#cb{cx:.0f})"/>'
-        f'<ellipse cx="{cx}" cy="{ny:.1f}" rx="{(max(r * r - (ny - cy) ** 2, 0)) ** 0.5:.1f}" '
-        f'ry="{r * 0.1:.1f}" fill="#fff" fill-opacity=".25" clip-path="url(#cb{cx:.0f})"/>'
-        f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="#e6f6ff" stroke-opacity=".45"/>'
-        f'<path d="M{cx - r * 0.62:.1f} {cy - r * 0.45:.1f} A{r * 0.8:.1f} {r * 0.8:.1f} 0 0 1 '
-        f'{cx - r * 0.1:.1f} {cy - r * 0.78:.1f}" fill="none" stroke="#fff" stroke-opacity=".3" '
-        f'stroke-width="{max(r * 0.07, 1.2):.1f}" stroke-linecap="round"/>'
-    )
-
-
 ESTILO_TARJETA = """
 <style>
 .oc-dest { font-family:Inter, sans-serif; color:#E7ECF3; display:flex; flex-direction:column;
@@ -328,24 +302,38 @@ def tarjeta_modificaciones(d: dict, comparada: dict | None, anio: int | None) ->
     dibujo, frase = "", ""
     if comparada:
         otra = comparada["credito"]
-        r_max = 38
-        r1 = r_max * (subida / max(subida, otra)) ** 0.5
-        r2 = r_max * (otra / max(subida, otra)) ** 0.5
         nombre = html.escape(
             comparada["entidad"].replace("Consejería de ", "").replace("Consejería ", "")
         )
+        # dos barras con la misma escala: lo que subieron frente al presupuesto de la consejería
+        maximo = max(subida, otra)
+        filas = []
+        for k, (valor, etiqueta, color) in enumerate(
+            (
+                (subida, "más por modificaciones", "url(#m1)"),
+                (otra, f"presupuesto de {nombre[:30]}", "url(#m2)"),
+            )
+        ):
+            y = 8 + k * 58
+            ancho = 300 * valor / maximo
+            cifra = ("+" if k == 0 else "") + textos.millones(valor)
+            filas.append(
+                f'<text x="0" y="{y + 12}" fill="#E7ECF3" font-size="13" font-weight="700" '
+                f'font-family="Inter">{cifra}<tspan fill="#9FB6CC" font-weight="400" '
+                f'font-size="11.5"> {etiqueta}</tspan></text>'
+                f'<rect x="0" y="{y + 20}" width="300" height="16" rx="8" fill="#cfeeff" '
+                'fill-opacity=".08" stroke="#aae1ff" stroke-opacity=".22"/>'
+                f'<rect x="0" y="{y + 20}" width="{ancho:.1f}" height="16" rx="8" fill="{color}"/>'
+            )
         dibujo = (
-            '<svg viewBox="0 0 300 136" role="img" aria-label="Comparación de dos cantidades">'
-            + _burbuja_svg(80, 44, r1, "#38bdf8", 0.95)
-            + _burbuja_svg(220, 44, r2, "#3d8bfd", 0.95)
-            + f'<text x="80" y="104" text-anchor="middle" fill="#E7ECF3" font-size="13" '
-            f'font-family="Inter" font-weight="700">+{textos.millones(subida)}</text>'
-            '<text x="80" y="121" text-anchor="middle" fill="#9FB6CC" font-size="11" '
-            'font-family="Inter">por modificaciones</text>'
-            f'<text x="220" y="104" text-anchor="middle" fill="#E7ECF3" font-size="13" '
-            f'font-family="Inter" font-weight="700">{textos.millones(otra)}</text>'
-            f'<text x="220" y="121" text-anchor="middle" fill="#9FB6CC" font-size="11" '
-            f'font-family="Inter">{nombre[:30]}</text></svg>'
+            '<svg viewBox="0 0 300 118" role="img" aria-label="'
+            f'{textos.millones(subida)} frente a {textos.millones(otra)}">'
+            '<defs><linearGradient id="m1" x1="0" x2="1"><stop offset="0" stop-color="#22b5d8"/>'
+            '<stop offset="1" stop-color="#7de3ff"/></linearGradient>'
+            '<linearGradient id="m2" x1="0" x2="1"><stop offset="0" stop-color="#1f5fbf"/>'
+            '<stop offset="1" stop-color="#3d8bfd"/></linearGradient></defs>'
+            + "".join(filas)
+            + "</svg>"
         )
         verbo = "casi todo lo que tuvo" if subida < otra else "más de lo que tuvo"
         frase = f"<p>Es {verbo} <b>{nombre}</b> en todo {anio}.</p>"
@@ -359,24 +347,33 @@ def tarjeta_modificaciones(d: dict, comparada: dict | None, anio: int | None) ->
 
 
 def tarjeta_concentracion(d: dict) -> str:
-    parte = d["parte"]
-    c = 2 * 3.1416 * 38
+    """Anillo en dos partes bien separadas: lo que se lleva una empresa y lo que queda para las
+    demás, con los extremos rectos para que se vea dónde acaba cada parte."""
+    p = round(100 * d["parte"])
+    hueco = 1.2  # separación entre las dos partes (en % de la circunferencia)
+    resto = 100 - p
     return (
         ESTILO_TARJETA
         + f"""<div class="oc-dest"><h3>Una empresa concentra el gasto</h3>
-<svg viewBox="0 0 300 120" role="img" aria-label="{round(100 * parte)} de cada 100 euros">
+<svg viewBox="0 0 300 124" role="img" aria-label="{p} de cada 100 euros a una sola empresa">
 <defs><linearGradient id="u3" x1="0" x2="1"><stop offset="0" stop-color="#2f7cf0"/>
 <stop offset="1" stop-color="#38bdf8"/></linearGradient></defs>
-<g transform="translate(60 60) rotate(-90)">
-<circle r="38" fill="none" stroke="#cfeeff" stroke-opacity=".12" stroke-width="14"/>
-<circle r="38" fill="none" stroke="url(#u3)" stroke-width="14" stroke-linecap="round"
-  stroke-dasharray="{c * parte:.1f} {c:.1f}"/></g>
-<text x="60" y="66" text-anchor="middle" fill="#fff" font-size="20" font-weight="750"
-  font-family="Inter">{round(100 * parte)} %</text>
-<text x="122" y="52" fill="#E7ECF3" font-size="13" font-family="Inter" font-weight="600">
-{round(100 * parte)} de cada 100 €</text>
-<text x="122" y="72" fill="#9FB6CC" font-size="12" font-family="Inter">van a una sola
-empresa</text></svg>
+<g transform="translate(62 62) rotate(-90)">
+<circle r="44" fill="none" stroke="url(#u3)" stroke-width="18" pathLength="100"
+  stroke-dasharray="{p - hueco:.1f} {100 - p + hueco:.1f}" stroke-dashoffset="{-hueco / 2:.1f}"/>
+<circle r="44" fill="none" stroke="#F2B544" stroke-width="18" pathLength="100"
+  stroke-dasharray="{max(resto - hueco, 0.6):.1f} {100 - resto + hueco:.1f}"
+  stroke-dashoffset="{-(p + hueco / 2):.1f}"/></g>
+<text x="62" y="69" text-anchor="middle" fill="#fff" font-size="21" font-weight="750"
+  font-family="Inter">{p} %</text>
+<rect x="132" y="38" width="12" height="12" rx="3" fill="url(#u3)"/>
+<text x="152" y="48" fill="#E7ECF3" font-size="13" font-family="Inter" font-weight="600">
+{p} € para una empresa</text>
+<rect x="132" y="66" width="12" height="12" rx="3" fill="#F2B544"/>
+<text x="152" y="76" fill="#9FB6CC" font-size="13" font-family="Inter">
+{resto} € para el resto</text>
+<text x="132" y="104" fill="#8FA7BF" font-size="11" font-family="Inter">de cada 100 €
+adjudicados</text></svg>
 <p>En <b>{html.escape(d["organo"])}</b>, una sola empresa se lleva casi todo lo adjudicado en
 un mismo tipo de contrato.</p></div>"""
     )

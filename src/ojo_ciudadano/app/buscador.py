@@ -170,6 +170,8 @@ def todo(clave: str, etiqueta: str = "") -> tuple[str, str] | None:
         key=clave,
         debounce=PAUSA_MS,
         style_overrides=ESTILO_BARRA,
+        # la lista de sugerencias sale por encima de la página, sin empujar lo de debajo
+        style_absolute=True,
     )
     if not elegido:
         return None

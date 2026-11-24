@@ -56,3 +56,20 @@
   - 5.999 M€ con una sola oferta, de 26.488 M€ comprobados;
   - +226 M€ por modificaciones en 396 contratos;
   - Metro de Madrid, 96 %.
+
+## Cuarta tanda, 25-nov (D-050)
+
+- Logo arriba también en el Inicio, sin el logo grande encima del título.
+- Inicio:
+  - mapa a la izquierda y texto a la derecha, sin el texto de debajo del mapa;
+  - la lista del buscador por encima de la página;
+  - barras para las modificaciones y anillo partido para la concentración.
+- Mapa del dinero: pulsar una consejería la pone en el centro con sus 15 contratos, menores y subvenciones.
+- Red del dinero con las burbujas del lienzo. Arreglado el error `StreamlitWidgetAlreadyInstantiatedError` al pulsar un organismo: la elección se guarda y se aplica antes del desplegable.
+- Comprobado en Chrome:
+  - el buscador del Inicio, escribiendo «hospital»;
+  - las tarjetas;
+  - Sanidad al centro;
+  - Metro de Madrid en la Red del dinero.
+
+  `pytest`: 476 en verde.

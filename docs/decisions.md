@@ -940,3 +940,27 @@ Plantilla:
 - **Consecuencias:**
   - `billetes.svg_frasco` queda solo para su test y para el icono antiguo de la puerta, que ya no se usa en el Inicio. Se puede borrar más adelante.
   - Las cifras de la ficha lateral se achican para que no se corten.
+
+## D-050 · Logo arriba también en el Inicio, consejería al centro al pulsarla y Red del dinero con las burbujas del lienzo
+
+- **Fecha:** 2026-11-25
+- **Estado:** Aceptada (Lucas). En la rama `feat/web-retoques`, sobre D-047 a D-049.
+- **Autor:** Claude (agente), a petición de Lucas
+- **Decisión:**
+  - **Logo:** sale arriba con el nombre en todas las pantallas, también en el Inicio. Se quita el logo grande de encima del título del Inicio.
+  - **Inicio:**
+    - el mapa de burbujas a la izquierda y el texto a la derecha, más juntos, sin el texto de debajo del mapa;
+    - la lista del buscador sale por encima de la página (`style_absolute`), sin empujar lo de debajo;
+    - las modificaciones, en dos barras con la misma escala en lugar de dos burbujas;
+    - el anillo de la concentración, en dos partes con extremos rectos y un hueco (lo de una empresa en azul y el resto en ámbar), con su leyenda.
+  - **Mapa del dinero:**
+    - pulsar una consejería la pone en el centro con todo lo que conecta: sus 15 contratos más grandes, los menores y las subvenciones;
+    - pulsar el centro abre su ficha;
+    - por defecto, dos contratos por consejería, ajustable hasta cinco.
+  - **Red del dinero** (Explorar): no es lo mismo que el Mapa del dinero, porque va por organismo de contratación y empresa, con filtros de fuente, año, tipo y menores. Se mantiene con las burbujas del lienzo (`app/burbujas.py`) en lugar de Plotly y `streamlit-agraph`:
+    - los 12 organismos que más adjudican, alrededor de un centro;
+    - al pulsar uno, su red con sus empresas;
+    - al pulsar una empresa, sus contratos debajo.
+
+    El diagrama de flujos sigue en la vista avanzada.
+- **Consecuencias:** `streamlit-agraph` ya no se usa en ninguna pantalla. `graficos.burbujas_organismos` y `red.mapa` quedan solo para sus tests; se pueden borrar más adelante.

@@ -3,8 +3,9 @@
 Usa el mismo código que la presentación (`presentacion/ojo3d.js`, bola de cristal con refracción,
 iris de luz y pupila, y `presentacion/agua.js` para el entorno de reflejos y el color del agua)
 con Three.js y la misma iluminación y tono de imagen que la presentación. El ojo es la fuente de
-luz: lleva un núcleo blanco. En 3 s aparece, se acerca un poco y sube alejándose hasta salir
-por arriba de la pantalla (así también se ve en el móvil); al apartarse, su núcleo se enciende y
+luz: lleva un núcleo blanco. En 3 s aparece, se acerca un poco y sube alejándose hasta cerca
+del borde de arriba, donde se desvanece poco a poco (así también se ve en el móvil); al
+apartarse, su núcleo se enciende y
 despliega rayos de luz que bajan sobre la página y la aclaran poco a poco, como los rayos del
 fondo, que vienen de arriba.
 
@@ -211,19 +212,18 @@ async function arrancar(data, capa, empezar) {
   luz.add(cono.cono, haces.grupo);
   escena.add(luz);
 
-  // el mar de la presentación (presentacion/agua.js), de principio a fin: superficie vista desde
-  // abajo, rayos de sol y burbujas que suben; se ven más al aclararse. La nieve marina es la capa
+  // el mar de la presentación (presentacion/agua.js), de principio a fin: rayos de sol muy
+  // tenues y burbujas que suben; se ven más al aclararse. No se ve la superficie: estamos en el
+  // fondo, donde todo es oscuro y la luz la pone el ojo. La nieve marina es la capa
   // CSS de static/intro.html: la de la presentación usa puntos de WebGL, que en algunas tarjetas
   // gráficas (comprobado en Windows) salen como cuadrados llenos.
   const mar = Agua ? {
-    superficie: Agua.crearSuperficie(8.5),
     rayosSol: Agua.crearRayos(),
     burbujas: Agua.crearBurbujitas(),
   } : null;
   if (mar) {
     mar.rayosSol.grupo.position.set(0, 6, 0);
     mar.burbujas.malla.position.z = -8;  // que no pasen pegadas a la cámara
-    mar.superficie.uniforms.uCam.value.copy(camara.position);
     // Burbujas: el sombreador de la presentación usa pow() y, en Windows (ANGLE), daba valores no
     // válidos que el brillo convertía en bloques cuadrados. El mismo dibujo (borde plateado y
     // reflejo arriba a la izquierda) sin pow(), con la normal normalizada y todo acotado; el
@@ -241,7 +241,7 @@ async function arrancar(data, capa, empezar) {
         gl_FragColor = vec4(mix(vec3(.55, .75, 1.), vec3(.85), brillo), a);
       }`;
     materialBurbujas.needsUpdate = true;
-    escena.add(mar.rayosSol.grupo, mar.superficie.malla, mar.burbujas.malla);
+    escena.add(mar.rayosSol.grupo, mar.burbujas.malla);
   }
 
   let dibujar = () => render.render(escena, camara);
@@ -288,13 +288,16 @@ async function arrancar(data, capa, empezar) {
       lienzo.remove();
       return;
     }
-    // aparece (0-0,9 s), se acerca (0,9-1,5 s) y sube alejándose, cada vez más deprisa, hasta
-    // salir por arriba de la pantalla (hacia 2,85 s)
+    // aparece (0-0,9 s), se acerca (0,9-1,5 s) y sube alejándose hasta cerca del borde de
+    // arriba (1,4-2,4 s); allí se desvanece poco a poco (1,95-3 s)
     const aparece = tramo(t, 0, 0.9), acerca = tramo(t, 0.9, 1.5);
-    const lineal = Math.min(Math.max((t - 1.4) / 1.6, 0), 1), sube = lineal * lineal;
+    const sube = tramo(t, 1.4, 2.4);  // sube suave y llega arriba hacia 2,4 s
     const enciende = tramo(t, 1.3, 2.2), abre = tramo(t, 1.45, 2.75), apaga = tramo(t, 2.55, 3.0);
     ojo.grupo.scale.setScalar(0.47 * (0.75 + 0.25 * aparece));  // algo más pequeño
-    ojo.grupo.position.set(0, 3.9 * sube, 1.1 * acerca - 3.1 * sube);
+    // aparece y, ya arriba, se desvanece poco a poco (de 1,95 a 3 s) con su luz; con el
+    // mismo reloj que el movimiento, para que se vea cómo se va apagando
+    lienzo.style.opacity = (tramo(t, 0, 0.35) * (1 - tramo(t, 1.95, 3.0))).toFixed(3);
+    ojo.grupo.position.set(0, 1.75 * sube, 1.1 * acerca - 3.1 * sube);  // visible sobre el título
     mirada.copy(alEspectador).lerp(alaPagina, tramo(t, 1.3, 2.3));  // mira hacia la página
     ojo.dilatar(1 + 0.35 * enciende);
     nucleo.malla.scale.setScalar(1.3 + 0.6 * enciende);
@@ -319,10 +322,8 @@ async function arrancar(data, capa, empezar) {
       // de oscuro (0,2) a claro (1) mientras la página se desvela; se funde al final con el
       // fondo de la web, que tiene sus propios rayos y burbujas
       const claridad = (0.2 + 0.8 * tramo(t, 1.2, 2.8)) * (1 - tramo(t, 2.6, 3.0));
-      mar.superficie.uniforms.uT.value = t;
-      mar.superficie.uniforms.uI.value = claridad;
       mar.rayosSol.uniforms.uT.value = t;
-      mar.rayosSol.uniforms.uI.value = 0.05 + 0.13 * claridad;
+      mar.rayosSol.uniforms.uI.value = 0.02 + 0.06 * claridad;  // del fondo: apenas llegan
       mar.burbujas.uniforms.uI.value = (0.55 + 0.45 * claridad) * (1 - tramo(t, 2.6, 3.0));
       mar.burbujas.actualizar(dt, t, 0);
     }

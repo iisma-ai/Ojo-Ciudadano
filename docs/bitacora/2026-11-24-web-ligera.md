@@ -151,6 +151,15 @@ Pedido: el fondo no daba la impresión de estar bajo el mar. Tenía que verse de
   - las burbujas de la web tienen reflejo;
   - scroll a 240 fotogramas por segundo y el más lento de 4,4 ms.
 
+## Décima ronda: el fondo del mar y un ojo que se desvanece
+Pedido: que no se vea la superficie del mar, porque estamos en el fondo y todo es oscuro, y que el ojo desaparezca de forma progresiva para que se note.
+- **Mar:** fuera la superficie (`crearSuperficie`). Los rayos de sol bajan a 0,02-0,08: del fondo apenas llegan. Las burbujas siguen.
+- **Ojo:**
+  - sube suave (1,4-2,4 s) hasta y 1,75, visible sobre el título, en vez de salirse por el borde;
+  - se desvanece de 1,95 a 3 s.
+- **Ajuste en la primera prueba:** la opacidad iba con una animación CSS que empezaba antes que el bucle 3D, y el ojo se apagaba antes de llegar arriba. Ahora la pone el propio bucle (`lienzo.style.opacity`), con el mismo reloj que el movimiento.
+- **Comprobado en el navegador con capturas seguidas:** el ojo sube con su luz, queda semitransparente arriba con la página ya clara, se vuelve una sombra y desaparece.
+
 ## Siguiente paso
 - Que el equipo compare con `feat/mapa-billetes`: https://github.com/iisma-ai/Ojo-Ciudadano/compare/main...feat/web-ligera
 - Pasar `revisor-legal` por el aviso en el pie, que antes estaba siempre a la vista.

@@ -76,10 +76,8 @@
 /* lienzo del ojo 3D (lo pone app/intro3d.py) */
 .oc-intro-3d { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0;
   will-change: opacity; }
-.en-marcha .oc-intro-3d { animation: oc-intro-lienzo 3s ease forwards; }
-@keyframes oc-intro-lienzo {
-  0% { opacity: 0; }
-  12%, 100% { opacity: 1; } }
+/* la opacidad del lienzo la lleva app/intro3d.py con el mismo reloj que el ojo: aparece y,
+   ya arriba, se desvanece poco a poco (una animación CSS mandaría sobre ella) */
 
 /* ojo plano de reserva: solo si el 3D no carga */
 .oc-intro-ojo { display: none; position: relative; width: 190px; height: 190px;

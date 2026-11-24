@@ -147,8 +147,8 @@ def de_llamada(con, llamada) -> str:
     if isinstance(llamada, agente.LlamadaBuscarResoluciones):
         return documento(
             "Leyendo las resoluciones del Tribunal",
-            f"Buscando «{llamada.consulta}» en las resoluciones del Tribunal de Contratación "
-            "Pública de la Comunidad.",
+            f"Buscando «{llamada.consulta}» en las resoluciones del Tribunal Administrativo de "
+            "Contratación Pública de la Comunidad de Madrid.",
         )
     if isinstance(llamada, agente.LlamadaBuscarTexto):
         return documento(

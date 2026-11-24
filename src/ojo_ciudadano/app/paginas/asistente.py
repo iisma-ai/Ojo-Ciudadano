@@ -1,12 +1,12 @@
 """Asistente: una sola pantalla para preguntar en lenguaje natural (D-037, docs/05-asistente.md).
 
-Cada pregunta se intenta primero con las respuestas preparadas (consulta SQL verificada y texto
-escrito de antemano, sin modelo de lenguaje). Si no hay una que encaje, contesta el modelo
-elegido (D-010) con sus herramientas: SQL sobre la base, catálogo de datos abiertos, pliegos y
-resoluciones del Tribunal. Mientras se consulta se anima lo que se está haciendo (las tablas y
-sus uniones, o los documentos que se leen) y la respuesta aparece como si se escribiera. Si la
-respuesta no necesita datos, solo se escribe el texto. Cada respuesta con datos enseña la
-consulta, los resultados y el enlace a la fuente.
+Cada pregunta se intenta primero con las respuestas preparadas (consulta SQL revisada por el
+equipo y texto escrito de antemano, sin modelo de lenguaje). Si no hay una que encaje, contesta
+el modelo elegido (D-010) con sus herramientas: SQL sobre la base, catálogo de datos abiertos,
+pliegos y resoluciones del Tribunal. Mientras se consulta se anima lo que se está haciendo
+(las tablas y sus uniones, o los documentos que se leen) y la respuesta aparece como si se
+escribiera. Si la respuesta no necesita datos, solo se escribe el texto. Cada respuesta con
+datos enseña la consulta, los resultados y el enlace a la fuente.
 """
 
 import time
@@ -136,7 +136,7 @@ def mostrar_documento(numero: int, consulta: dict) -> None:
             st.caption(f"No se ha podido leer: {fallo}")
 
 
-def mostrar_datos(respuesta: agente.Respuesta, clave: str) -> None:
+def mostrar_datos(respuesta: agente.Respuesta, clave: str) -> None:  # noqa: C901
     """Gráfico de la primera consulta que se pueda dibujar y los datos de cada consulta."""
     for numero, consulta in enumerate(respuesta.consultas, start=1):
         if consulta.get("documento"):
@@ -155,15 +155,22 @@ def mostrar_datos(respuesta: agente.Respuesta, clave: str) -> None:
         if consulta.get("documento"):
             mostrar_documento(numero, consulta)
             continue
+        columnas = consulta["columnas"]
+        sin_fuente = "fuente" not in columnas or "fecha_descarga" not in columnas
+        sin_enlace = "contrato_id" in columnas and "url_origen" not in columnas
+        if (sin_fuente or sin_enlace) and not respuesta.preparada:  # las preparadas la citan
+            # Regla 5 de CLAUDE.md: una cifra sin su origen no se puede comprobar desde aquí.
+            st.warning(
+                f"Las cifras de la consulta {numero} no llevan "
+                + ("su fuente y su fecha de descarga" if sin_fuente else "")
+                + (" ni " if sin_fuente and sin_enlace else "")
+                + ("el enlace oficial de cada contrato" if sin_enlace else "")
+                + ", así que no se pueden comprobar desde aquí. Tómalas como orientativas o "
+                "repite la pregunta pidiendo la fuente y el enlace oficial.",
+                icon=":material/warning:",
+            )
         with st.expander(f"Datos de la consulta {numero}"):
             mostrar_resultado(consulta)
-            if "fuente" not in consulta["columnas"]:
-                st.caption(
-                    "Esta consulta no incluye la columna de fuente: consulta las fuentes al pie "
-                    "de la página."
-                )
-            if "contrato_id" in consulta["columnas"] and "url_origen" not in consulta["columnas"]:
-                st.caption("Esta consulta no incluye el enlace oficial de cada contrato.")
             st.code(consulta["sql"].strip(), language="sql")
 
 
@@ -182,7 +189,7 @@ def mostrar_respuesta(
         interpretado = "; ".join(f"{k}: {v}" for k, v in respuesta.interpretacion.items())
         st.caption(
             "Respuesta preparada"
-            + (" con una consulta verificada" if respuesta.consultas else "")
+            + (" con una consulta revisada por el equipo" if respuesta.consultas else "")
             + f", sin modelo de lenguaje, para la pregunta «{respuesta.pregunta_preparada}»"
             + (f" ({interpretado})" if interpretado else "")
             + "."
@@ -262,7 +269,8 @@ st.caption(
     "sobre los datos de su catálogo de datos abiertos (sanidad, educación, presupuestos…), sobre "
     "lo que dicen los pliegos de una licitación o sobre las resoluciones del Tribunal "
     "Administrativo de Contratación Pública. Las preguntas frecuentes tienen una respuesta "
-    "preparada con una consulta verificada; las demás las redacta un modelo de lenguaje, que "
+    "preparada con una consulta revisada por el equipo; las demás las redacta un modelo de "
+    "lenguaje, que "
     "puede equivocarse: comprueba siempre la consulta, los datos y el enlace oficial que se "
     "muestran con cada respuesta. No escribas datos personales en tus preguntas."
 )
@@ -295,9 +303,12 @@ with st.expander("Preguntas con respuesta preparada", icon=":material/quiz:"):
             continue
         st.markdown(f"**{grupo}**")
         for fija in grupos[grupo]:
+            if "empresa" in fija.parametros:
+                continue  # necesita el nombre de una empresa: va como pista, abajo
             if st.button(fija.pregunta, key=f"fija-{fija.id}", type="tertiary"):
                 elegida = fija.pregunta
     st.caption(
+        "Para una empresa o entidad, escribe «¿Qué ha recibido …?» con su nombre o su NIF. "
         "Se pueden preguntar con otras palabras, y con otro año, consejería o empresa. Las "
         "demás preguntas (por ejemplo, sobre un pliego concreto o el catálogo de datos "
         "abiertos) las contesta el modelo."

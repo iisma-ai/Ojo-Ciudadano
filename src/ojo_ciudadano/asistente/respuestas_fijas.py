@@ -107,17 +107,41 @@ MESES = [
 ]
 
 
+ENLACES = {
+    "Plataforma de Contratación del Sector Público": "https://contrataciondelestado.es",
+    "Portal de la Contratación Pública de la Comunidad de Madrid": (
+        "https://contratos-publicos.comunidad.madrid/contratos"
+    ),
+    "Base de Datos Nacional de Subvenciones": (
+        "https://www.infosubvenciones.es/bdnstrans/GE/es/concesiones"
+    ),
+    "Tribunal Administrativo de Contratación Pública de la Comunidad de Madrid": (
+        "https://www.comunidad.madrid/tacp/busquedaresoluciones"
+    ),
+    "INVENTE (IGAE)": "https://www.pap.hacienda.gob.es/invente2/pagMenuPrincipalV2.aspx",
+}
+SIN_FECHA = "fechas de descarga de cada fuente en la barra lateral"
+
+
 def _cita(resultado: dict) -> str:
-    """«Fuente: …, datos descargados el …», a partir de las columnas del resultado."""
-    filas = _filas(resultado)
-    fuentes = list(dict.fromkeys(str(f["fuente"]) for f in filas if f.get("fuente")))
-    fechas = [f["fecha_descarga"] for f in filas if f.get("fecha_descarga")]
-    if not fuentes:
-        return "Fuente: cálculo de Ojo Ciudadano sobre los datos oficiales."
-    texto = "Fuente: " + "; ".join(fuentes)
-    if fechas:
-        texto += f", datos descargados el {max(fechas)}"
-    return texto + "."
+    """«Fuente: [fuente](enlace), datos descargados el …; …», con la fecha de cada fuente. Los
+    resultados de cálculo propio (indicadores, atípicos) remiten a la barra lateral."""
+    fechas: dict[str, object] = {}
+    for f in _filas(resultado):
+        if f.get("fuente"):
+            fuente = str(f["fuente"])
+            fecha = f.get("fecha_descarga")
+            if fuente not in fechas or (
+                fecha and (fechas[fuente] is None or fecha > fechas[fuente])
+            ):
+                fechas[fuente] = fecha
+    if not fechas:
+        return f"Fuente: cálculo propio de Ojo Ciudadano sobre los datos oficiales ({SIN_FECHA})."
+    partes = []
+    for fuente, fecha in fechas.items():
+        nombre = f"[{fuente}]({ENLACES[fuente]})" if fuente in ENLACES else fuente
+        partes.append(nombre + (f", datos descargados el {fecha}" if fecha else f" ({SIN_FECHA})"))
+    return "Fuente: " + "; ".join(partes) + "."
 
 
 # --- Preguntas preparadas ---
@@ -168,7 +192,7 @@ def _menores_consejeria(f: list[dict], p: dict) -> str:
     empresas = [x for x in f if x["nif"]]
     texto = (
         f"En los dos años anteriores al último contrato publicado, los organismos de la "
-        f"Consejería de {p['consejeria']} dieron más contratos menores a "
+        f"Consejería de {p['consejeria']} adjudicaron más contratos menores a "
         + _lista(
             [
                 f"**{x['adjudicatario']}** ({_num(x['n_contratos'])} contratos, "
@@ -192,9 +216,10 @@ def _menores_consejeria(f: list[dict], p: dict) -> str:
 def _sin_publicidad(f: list[dict], p: dict) -> str:
     x = f[0]
     return (
-        f"El organismo con mayor proporción de su importe adjudicado sin publicidad (señal "
-        f"R-02) es **{x['organo']}**: un {textos.porcentaje(x['proporcion_importe_alerta_r02'])} "
-        f"de su importe ({x['base_importe']}) en {_num(x['n_alerta_r02'])} de sus "
+        f"El organismo con mayor proporción de su importe adjudicado por negociado sin "
+        f"publicidad u «otro procedimiento» (señal R-02) es **{x['organo']}**: un "
+        f"{textos.porcentaje(x['proporcion_importe_alerta_r02'])} de su importe "
+        f"({x['base_importe']}) en {_num(x['n_alerta_r02'])} de sus "
         f"{_num(x['n_contratos'])} contratos. Le siguen "
         + _lista(
             [
@@ -248,8 +273,9 @@ def _empresa(f: list[dict], p: dict) -> str:
         )
     alertas = sum(x.get("n_con_indicadores_activados") or 0 for x in contratos)
     return (
-        f"**{nombre}** ({p['nif']}) ha recibido de 2023 a 2026: {_lista(partes)}. Son bases "
-        f"distintas y no se suman. {_num(alertas)} de sus contratos tienen alguna señal de "
+        f"**{nombre}** ({p['nif']}) ha recibido de 2023 a 2026 (más los contratos sin fecha "
+        f"en la fuente): {_lista(partes)}. Son bases distintas y no se suman. "
+        f"{_num(alertas)} de sus contratos tienen alguna señal de "
         "riesgo, que indica que merecen revisión y no prueba nada. El detalle está en su ficha "
         "de empresa."
     )
@@ -298,14 +324,23 @@ def _licitador_unico(f: list[dict], p: dict) -> str:
     )
 
 
+def _de(x: dict) -> str:
+    """«8.924 de sus 27.713 contratos (32 %)»."""
+    total = x["n_contratos"] or 0
+    parte = f" ({textos.porcentaje(x['n_con_alertas'] / total)})" if total else ""
+    return f"{_num(x['n_con_alertas'])} de sus {_num(total)} contratos{parte}"
+
+
 def _empresas_alertas(f: list[dict], p: dict) -> str:
     x = f[0]
     return (
-        f"La empresa con más contratos con alguna señal es **{x['empresa']}**: "
-        f"{_num(x['n_con_alertas'])} de sus {_num(x['n_contratos'])} contratos. Le siguen "
-        + _lista([f"{y['empresa']} ({_num(y['n_con_alertas'])})" for y in f[1:3]])
-        + ". Quien más contratos tiene acumula más señales en números absolutos, y una señal "
-        "indica que un contrato merece revisión, no que haya nada irregular."
+        f"La empresa con más contratos con al menos un indicador de riesgo activado es "
+        f"**{x['empresa']}**: {_de(x)}. Le siguen "
+        + _lista([f"{y['empresa']} ({_de(y)})" for y in f[1:3]])
+        + ". Quien más contratos tiene acumula más señales en números absolutos. Una señal "
+        "indica que un contrato merece revisión y no prueba ninguna irregularidad. Qué "
+        "indicador se activó en cada contrato, con qué valor y el enlace al expediente están "
+        "en su ficha de empresa."
     )
 
 
@@ -320,7 +355,9 @@ def _organos_puntuacion(f: list[dict], p: dict) -> str:
             ]
         )
         + ". La puntuación es la proporción de indicadores activados entre los que se pueden "
-        "aplicar a cada contrato (de 0 a 1). Es orientativa y no prueba nada."
+        "aplicar a cada contrato (de 0 a 1); la de un organismo es la media de sus contratos "
+        "ponderada por importe. Organismos con compras distintas (un hospital, una consejería, "
+        "una empresa pública) no son del todo comparables. Es orientativa y no prueba nada."
     )
 
 
@@ -372,8 +409,8 @@ def _contratos_y_subvenciones(f: list[dict], p: dict) -> str:
                 for x in f[:3]
             ]
         )
-        + ". Recibir las dos cosas es legal y habitual, sobre todo en universidades y "
-        "fundaciones. Contratos y subvenciones no se suman."
+        + ". Recibir las dos cosas es habitual, sobre todo en universidades y fundaciones, y "
+        "no es una señal de riesgo. Contratos y subvenciones no se suman."
     )
 
 
@@ -427,14 +464,17 @@ def _encargos(f: list[dict], p: dict) -> str:
                 for x in f[:3]
             ]
         )
-        + ". Un encargo a un medio propio no es un contrato licitado: la ley permite que la "
-        "Administración encargue trabajos a sus propias empresas y entes."
+        + ". Un encargo a un medio propio no es un contrato licitado: la ley permite encargar "
+        "trabajos a entidades de la propia Administración que cumplan los requisitos de medio "
+        "propio (artículo 32 de la Ley 9/2017), sin licitarlos."
     )
 
 
 def _recursos(f: list[dict], p: dict) -> str:
     return (
-        "Resoluciones del Tribunal de Contratación Pública de la Comunidad por acto recurrido: "
+        "Resoluciones del Tribunal Administrativo de Contratación Pública de la Comunidad de "
+        "Madrid por acto recurrido (pueden incluir recursos de otros poderes adjudicadores de "
+        "la región que el Tribunal también resuelve): "
         + _lista(
             [
                 f"{x['acto_recurrido']}, {_num(x['n_resoluciones'])} resoluciones, "
@@ -442,9 +482,11 @@ def _recursos(f: list[dict], p: dict) -> str:
                 for x in f[:4]
             ]
         )
-        + ". Presentar un recurso no es una señal. Que se estime significa que el Tribunal dio "
-        "la razón, total o parcialmente, a quien recurrió ese acto. No es una sanción ni dice "
-        "nada de la empresa adjudicataria."
+        + ". Presentar un recurso no es una señal. Que se estime un recurso especial significa "
+        "que el Tribunal dio la razón, total o parcialmente, a quien recurrió ese acto (un "
+        "pliego, una exclusión o una adjudicación), y puede obligar a anular o repetir ese "
+        "trámite. No es una sanción ni implica una conducta reprochable de la empresa "
+        "adjudicataria."
     )
 
 
@@ -697,7 +739,7 @@ DATOS = [
     ),
     Fija(
         "B-04",
-        "¿Qué ha recibido CLECE de la Comunidad entre contratos y subvenciones?",
+        "¿Qué ha recibido una empresa de la Comunidad entre contratos y subvenciones?",
         (("recib", "cobrad", "ha ganado", "que tiene", "contratos y subvenc", "cuanto ha"),),
         _empresa,
         sql=consultas_demo.RECIBIDO_POR_EMPRESA.sql,
@@ -1050,34 +1092,38 @@ def _texto(texto: str) -> Callable[[list[dict], dict], str]:
 AYUDA = (
     "Puedes preguntarme por los contratos y las subvenciones de la Comunidad de Madrid de 2023 "
     "a 2026: qué organismos y empresas reciben más, qué señales de riesgo aparecen, qué dice "
-    "el pliego de una licitación, qué ha resuelto el Tribunal de Contratación Pública o qué "
+    "el pliego de una licitación, qué ha resuelto el Tribunal Administrativo de Contratación "
+    "Pública o qué "
     "hay en el catálogo de datos abiertos de la Comunidad. Las preguntas frecuentes tienen una "
-    "respuesta preparada con una consulta verificada; las demás las contesta un modelo de "
+    "respuesta preparada con una consulta revisada por el equipo; las demás las contesta un "
+    "modelo de "
     "lenguaje con consultas a la base. Cada respuesta enseña los datos, la consulta y el enlace "
     "a la fuente oficial."
 )
 
 CORRUPCION = (
-    "La plataforma no determina irregularidades de empresas ni de organismos: calcula "
-    "**indicadores de riesgo**, que señalan contratos que merecen revisión con reglas públicas "
-    "y no prueban nada. Una señal puede tener explicaciones legítimas, como la exclusividad "
-    "técnica o un mercado pequeño. Puedo enseñarte qué contratos tienen más señales y por qué, "
-    "con el enlace a cada expediente. Esa valoración corresponde a los órganos de control, "
-    "como la Cámara de Cuentas, y a los tribunales."
+    "La plataforma no determina si hay irregularidades ni delitos: eso corresponde a los "
+    "órganos de control, como la Intervención General o la Cámara de Cuentas, y a la Fiscalía "
+    "y los tribunales. Lo que calcula son **indicadores de riesgo**: reglas públicas que "
+    "señalan contratos que merecen revisión y no prueban nada. Una señal puede tener "
+    "explicaciones legítimas, como la exclusividad técnica o un mercado pequeño. Si me dices un "
+    "contrato, una empresa o un organismo, te explico qué señales tiene, qué regla las activa y "
+    "el enlace a cada expediente."
 )
 
 PERSONAS = (
-    "La plataforma no muestra datos de personas físicas (nombres, DNI o NIE) por protección de "
-    "datos: los autónomos y los particulares aparecen agregados en una sola fila. Tampoco da "
-    "los nombres de quienes firman documentos o representan a empresas, aunque aparezcan en un "
-    "PDF oficial. Puedo darte los datos agregados o los de empresas y entidades."
+    "La plataforma no publica datos de personas físicas (nombres, DNI o NIE) por protección de "
+    "datos: los autónomos y los particulares se sustituyen por un código interno y se muestran "
+    "agregados. En los extractos de pliegos y resoluciones se tapan los nombres de personas y "
+    "los documentos de identidad; si alguno se escapa, es un error que corregimos. Puedo darte "
+    "los datos agregados o los de empresas y entidades."
 )
 
 OTRAS_ADMINISTRACIONES = (
     "La plataforma cubre solo la Comunidad de Madrid: sus consejerías, hospitales, empresas y "
     "entes públicos. Los ayuntamientos, el Estado y otras comunidades autónomas no están en la "
-    "base. Sus contratos están en la [Plataforma de Contratación del Sector Público]"
-    "(https://contrataciondelestado.es)."
+    "base. La mayoría de sus licitaciones se publican, o se agregan, en la [Plataforma de "
+    "Contratación del Sector Público](https://contrataciondelestado.es)."
 )
 
 INSTRUCCIONES = (
@@ -1087,18 +1133,20 @@ INSTRUCCIONES = (
 )
 
 MENOR = (
-    "Un **contrato menor** es un contrato de menos de 15.000 € (40.000 € en obras), sin IVA, que "
-    "la Administración puede dar directamente a una empresa sin concurso (artículo 118 de la "
-    "Ley 9/2017 de Contratos del Sector Público). Se publican al menos cada trimestre, así que "
-    "los meses más recientes llegan con retraso. Son la gran mayoría de los contratos de la "
-    "base, sobre todo compras de hospitales."
+    "Un **contrato menor** es un contrato con un valor estimado de menos de 15.000 € en "
+    "servicios y suministros o de 40.000 € en obras, sin IVA, que la Administración puede "
+    "adjudicar directamente, sin licitación, a un empresario con capacidad para contratar "
+    "(artículo 118 de la Ley 9/2017 de Contratos del Sector Público). Se publican al menos cada "
+    "trimestre (artículo 63.4), salvo los de menos de 5.000 € pagados mediante anticipo de caja "
+    "fija, así que esos no están en la base y los meses más recientes llegan con retraso. Son "
+    "la gran mayoría de los contratos de la base, sobre todo compras de hospitales."
 )
 
 SENAL = (
     "Una **señal** o **alerta** es un indicador de riesgo: una regla pública calculada sobre "
     "datos oficiales que indica que un contrato merece revisión. No prueba ninguna "
-    "irregularidad y puede tener explicaciones legítimas. Ojo Ciudadano calcula seis:\n\n"
-    + textos.lista_indicadores()
+    "irregularidad y puede tener explicaciones legítimas. Un contrato sin señales tampoco "
+    "queda avalado. Ojo Ciudadano calcula seis:\n\n" + textos.lista_indicadores()
 )
 
 PUNTUACION = (
@@ -1115,7 +1163,9 @@ ATIPICO = (
     "sus ofertas, su baja, sus modificaciones o la cuota del adjudicatario. Lo calcula un "
     "modelo de aprendizaje automático no supervisado (Isolation Forest), que marca el 1 % más "
     "alejado de cada grupo. Atípico no es irregular: un contrato grande o un mercado con un "
-    "único proveedor posible también se salen de lo normal. No entra en la puntuación de riesgo."
+    "único proveedor posible también se salen de lo normal. No entra en la puntuación de "
+    "riesgo. Puede contener errores, y que un contrato no salga como atípico no lo avala: los "
+    "grupos de menos de 50 contratos no se analizan."
 )
 
 FUENTES = (
@@ -1124,7 +1174,9 @@ FUENTES = (
     "(sin IVA), la Base de Datos Nacional de Subvenciones, el Tribunal Administrativo de "
     "Contratación Pública de la Comunidad, el catálogo de datos abiertos y el Portal de "
     "Transparencia de la Comunidad, y el inventario de entes del sector público (INVENTE). "
-    "Cada cifra enlaza a su origen y lleva su fecha de descarga, que se ve en la barra lateral."
+    "Cada respuesta indica su fuente y su fecha de descarga; las fechas de cada fuente están "
+    "también en la barra lateral. Los indicadores y las puntuaciones son cálculo propio de Ojo "
+    "Ciudadano."
 )
 
 IVA = (
@@ -1150,7 +1202,7 @@ QUE_ES = (
 TEXTOS = [
     Fija(
         "L-01",
-        "¿Qué empresas son corruptas o se llevan contratos amañados?",
+        "¿La plataforma dice qué empresas cometen irregularidades?",
         (
             (
                 "corrup",
@@ -1178,7 +1230,7 @@ TEXTOS = [
     ),
     Fija(
         "L-02",
-        "¿Qué autónomos reciben más contratos? Dame su nombre y DNI.",
+        "¿Puedo ver el nombre y el DNI de los autónomos que reciben contratos?",
         (
             (
                 "dni",

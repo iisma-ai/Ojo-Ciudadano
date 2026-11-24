@@ -32,7 +32,17 @@ El Harrak pidió juntar en una sola pantalla las preguntas guiadas (SQL verifica
 - `ruff` sin avisos.
 - **Pantalla sin navegador (AppTest) con la base real:** respuesta preparada con su nota, concepto sin consulta y pregunta de pliego contestada por el modelo (unos céntimos).
 - **En el navegador:** se ve la animación de la consulta (tablas, uniones y pasos) y la respuesta escribiéndose.
-- Revisión de `revisor-legal` de los textos nuevos.
+- **Revisión de `revisor-legal` de los textos nuevos, aplicada:**
+  - las preguntas de ejemplo de límites, sin términos acusatorios;
+  - el ranking de empresas por señales, con proporción y remisión a la ficha;
+  - R-02 con «otro procedimiento»;
+  - alcance de una estimación del Tribunal y su nombre oficial;
+  - definición legal del contrato menor y de los medios propios;
+  - cita con fecha y enlace por fuente;
+  - aviso destacado cuando una respuesta del modelo no trae fuente, fecha o enlace;
+  - «consulta revisada por el equipo» en vez de «verificada»;
+  - el Tribunal y la IGAE en el pie de fuentes;
+  - B-04 sale de la botonera, porque necesita el nombre de una empresa.
 
 ## Siguiente paso
 - **Orden de fusión:** `feat/cpv-invente`, `feat/datos-nuevos-modelos` y `feat/asistente-unico`.

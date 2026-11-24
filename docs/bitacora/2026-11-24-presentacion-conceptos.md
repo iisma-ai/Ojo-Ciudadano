@@ -28,3 +28,8 @@
 - Guion definitivo (lo da Lucas) para ordenar las escenas.
 - Capturas o vídeos de la web en la escena 9.
 - Revisión de textos con `revisor-legal`.
+
+## Salto desde las rocas
+
+- La bajada de la escena 1 a la 2 atravesaba la roca desde la que se salta (la cámara iba en línea recta hacia abajo). Ahora es un salto: impulso hacia arriba y adelante, pasa por delante de la roca, cae al agua y baja hasta la escena 2 (`zambullida` en `escena3d.js`, curva Catmull-Rom de 2,8 s). Al volver atrás hace el mismo camino al revés.
+- Las dos rocas de debajo del salto se han apartado a los lados para dejar libre la caída. Comprobado en Chrome muestreando la cámara en cada fotograma: ningún punto del camino entra en una roca, ni a la ida ni a la vuelta.

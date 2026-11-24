@@ -160,6 +160,13 @@ Pedido: que no se vea la superficie del mar, porque estamos en el fondo y todo e
 - **Ajuste en la primera prueba:** la opacidad iba con una animación CSS que empezaba antes que el bucle 3D, y el ojo se apagaba antes de llegar arriba. Ahora la pone el propio bucle (`lienzo.style.opacity`), con el mismo reloj que el movimiento.
 - **Comprobado en el navegador con capturas seguidas:** el ojo sube con su luz, queda semitransparente arriba con la página ya clara, se vuelve una sombra y desaparece.
 
+## Undécima ronda: sin luz interior
+Pedido: el ojo se veía raro por la luz de dentro. Debe dar luz, pero no tener tanta por dentro.
+- **Fuera el núcleo y el destello:** eran brillos pintados delante del iris.
+- **El halo** pasa detrás del cristal (z -1,2, con prueba de profundidad): el propio cristal lo tapa y solo se ve alrededor.
+- La luz que sale (cono y haces) no cambia.
+- **Comprobado en el navegador:** el iris azul, la pupila oscura y los brillos del cristal se ven como en la presentación, con la luz saliendo hacia abajo.
+
 ## Siguiente paso
 - Que el equipo compare con `feat/mapa-billetes`: https://github.com/iisma-ai/Ojo-Ciudadano/compare/main...feat/web-ligera
 - Pasar `revisor-legal` por el aviso en el pie, que antes estaba siempre a la vista.

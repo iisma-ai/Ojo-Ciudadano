@@ -62,7 +62,7 @@ const modulo = async (fuente) => {
 const VS = `varying vec2 vUv;
   void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`;
 
-// Brillo redondo (núcleo, aura y destello del ojo)
+// Brillo redondo (el halo de detrás del ojo)
 function crearBrillo(THREE, color, caida) {
   const uniforms = { uI: { value: 0 }, uC: { value: new THREE.Color(color) } };
   const malla = new THREE.Mesh(
@@ -199,12 +199,15 @@ async function arrancar(data, capa, empezar) {
   const ojo = crearOjo(agua);
   escena.add(ojo.grupo);
 
-  // el ojo es la fuente de luz: núcleo y aura desde que aparece, destello al encenderse
-  const nucleo = crearBrillo(THREE, 0xeaf7ff, 2.4);
+  // El ojo da luz hacia fuera (cono y haces), pero por dentro se ve como en la presentación:
+  // sin núcleo ni destello pintados encima del iris. Solo un halo suave por detrás del cristal,
+  // que el propio cristal tapa, así que se ve alrededor y no dentro.
   const aura = crearBrillo(THREE, 0x8cc8ff, 1.6);
-  const destello = crearBrillo(THREE, 0xc8ebff, 2.0);
   aura.malla.scale.setScalar(4.2);
-  ojo.grupo.add(aura.malla, destello.malla, nucleo.malla);
+  aura.malla.position.z = -1.2;
+  aura.malla.material.depthTest = true;
+  aura.malla.renderOrder = -2;
+  ojo.grupo.add(aura.malla);
   // la luz que despliega hacia abajo: cono y haces, en la posición del ojo (sin su escala)
   const luz = new THREE.Group();
   const cono = crearCono(THREE);
@@ -300,11 +303,7 @@ async function arrancar(data, capa, empezar) {
     ojo.grupo.position.set(0, 1.75 * sube, 1.1 * acerca - 3.1 * sube);  // visible sobre el título
     mirada.copy(alEspectador).lerp(alaPagina, tramo(t, 1.3, 2.3));  // mira hacia la página
     ojo.dilatar(1 + 0.35 * enciende);
-    nucleo.malla.scale.setScalar(1.3 + 0.6 * enciende);
-    nucleo.uniforms.uI.value = (0.4 + 0.3 * enciende) * aparece;
-    aura.uniforms.uI.value = (0.07 + 0.08 * enciende) * aparece;  // halo discreto
-    destello.malla.scale.setScalar(1.5 + 5 * enciende);
-    destello.uniforms.uI.value = 0.3 * enciende * (1 - apaga);
+    aura.uniforms.uI.value = (0.12 + 0.12 * enciende) * aparece;  // halo discreto, alrededor
     // la luz hacia abajo: empieza estrecha, recta hacia la página, y se abre a los lados
     luz.position.copy(ojo.grupo.position);
     luz.position.z -= 0.05;  // un poco detrás: el cristal tapa la raíz y parece salir del ojo

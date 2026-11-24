@@ -51,7 +51,7 @@ Cada contrato es una tarjeta (`senales.tarjeta_contrato`, también en las fichas
 - **cabecera:** el título sin fórmulas administrativas (`textos.titulo_limpio`), el importe en grande, la adjudicataria (personas físicas agregadas), el organismo, el año y las señales en etiquetas ámbar con icono;
 - **dentro:**
   - el enlace al expediente arriba;
-  - por señal, la frase con las cifras del contrato y su gráfico, con la explicación general en «¿Qué significa?»;
+  - cada señal en su propia subcaja (de dos en dos, misma altura, borde ámbar), con la frase con las cifras del contrato, su gráfico y «¿Qué significa?» abajo;
   - el atípico, en una frase llana con «Ver el detalle».
 
 ## Presupuesto y contexto (D-024)

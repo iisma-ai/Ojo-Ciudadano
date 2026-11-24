@@ -4,6 +4,8 @@ Cada señal se muestra con su nombre en lenguaje claro, una frase con las cifras
 (que hace de texto alternativo del gráfico) y el gráfico pensado para ella.
 """
 
+import hashlib
+
 import duckdb
 import streamlit as st
 
@@ -100,12 +102,24 @@ def frase_y_grafico(con: duckdb.DuckDBPyConnection, indicador: str, contrato_id:
     return None, None
 
 
-def mostrar(con: duckdb.DuckDBPyConnection, indicador: str, contrato_id: str) -> None:
+def _clave_caja(prefijo: str, fila: dict, indicador: str) -> str:
+    """Clave de la subcaja de una señal; el CSS (`estilo.css`) la reconoce por «cajasenal_»."""
+    contrato = hashlib.md5(fila["contrato_id"].encode()).hexdigest()[:12]
+    return f"cajasenal_{prefijo}_{contrato}_{indicador}"
+
+
+def mostrar(
+    con: duckdb.DuckDBPyConnection, indicador: str, contrato_id: str, en_caja: bool = False
+) -> None:
     """Bloque de una señal: su nombre con icono, la frase con las cifras de este contrato y su
-    gráfico. La explicación general va en «¿Qué significa?» (D-042)."""
-    st.markdown(f"{textos.ICONO_SENAL[indicador]} **{textos.SENAL_CORTA[indicador]}**")
+    gráfico. La explicación general va en «¿Qué significa?» (D-042). `en_caja`: dentro de la
+    subcaja de la tarjeta, con el nombre en ámbar y la etiqueta «En este contrato»."""
+    nombre = f"{textos.ICONO_SENAL[indicador]} **{textos.SENAL_CORTA[indicador]}**"
+    st.markdown(f":orange[{nombre}]" if en_caja else nombre)
     frase, figura = frase_y_grafico(con, indicador, contrato_id)
     if frase:
+        if en_caja:
+            st.caption("En este contrato")
         st.markdown(frase)
     if figura is not None:
         st.plotly_chart(figura, config=graficos.CONFIG, key=f"{indicador}-{contrato_id}")
@@ -177,10 +191,14 @@ def tarjeta_contrato(con: duckdb.DuckDBPyConnection, fila: dict, prefijo: str) -
                 "Contratación del Sector Público."
             )
         if encontradas:
-            columnas = st.columns(2) if len(encontradas) > 1 else [st.container()]
-            for n, indicador in enumerate(encontradas):
-                with columnas[n % len(columnas)]:
-                    mostrar(con, indicador, fila["contrato_id"])
+            # Cada señal en su propia subcaja, de dos en dos y de la misma altura (D-042).
+            for inicio in range(0, len(encontradas), 2):
+                columnas = st.columns(2)
+                pareja = encontradas[inicio : inicio + 2]
+                for columna, indicador in zip(columnas, pareja, strict=False):
+                    clave = _clave_caja(prefijo, fila, indicador)
+                    with columna.container(border=True, key=clave):
+                        mostrar(con, indicador, fila["contrato_id"], en_caja=True)
         else:
             st.markdown("En este contrato no hemos encontrado ninguna señal.")
         anomalia = datos.anomalia_contrato(con, fila["contrato_id"])

@@ -311,3 +311,17 @@ iframe[title^="streamlit_agraph"] {
   max-width: 46rem;
   margin-bottom: 1.5rem;
 }
+
+/* Subcajas de cada señal dentro de la tarjeta de un contrato (D-042): borde ámbar a la izquierda,
+   la misma altura en las dos columnas y el botón «¿Qué significa?» abajo. */
+div[class*="st-key-cajasenal_"][class*="st-key-cajasenal_"] {
+  height: 100%;
+  border-left: 3px solid var(--oc-ambar) !important;
+  box-shadow: inset 3px 0 0 var(--oc-ambar), var(--oc-cristal-sombra) !important;
+}
+[data-testid="stLayoutWrapper"]:has(> [class*="st-key-cajasenal_"]) {
+  flex: 1 1 auto;
+}
+[class*="st-key-cajasenal_"] > div:last-child {
+  margin-top: auto;
+}

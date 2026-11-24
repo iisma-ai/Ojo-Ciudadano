@@ -45,3 +45,17 @@ Tercera pantalla del repaso. Ignacio aceptó las cuatro propuestas:
 ## Siguiente paso
 - Que el equipo vea la rama: `https://github.com/iisma-ai/Ojo-Ciudadano/compare/main...feat/mapa-billetes`.
 - Seguir con **Contratos atípicos**.
+
+## Ajuste: una subcaja por señal
+Ignacio pidió más explicabilidad dentro de cada contrato, para que se distingan mejor las explicaciones de cada señal, con dos subcajas que encajen con el formato.
+
+Cada señal va ahora en su propia caja con borde:
+- de dos en dos y con la misma altura, que con tres señales pasan a dos filas;
+- con borde ámbar a la izquierda;
+- con el nombre en ámbar y su icono, la etiqueta «En este contrato», la frase con las cifras, el gráfico y «¿Qué significa?» abajo, alineado.
+
+Detalles técnicos:
+- en `senales.py`, la clave `cajasenal_…` de cada caja usa un resumen del `contrato_id`;
+- en `estilo.css`, hay que reforzar el selector y usar una sombra interior para que el borde ámbar gane al estilo de cristal.
+
+Comprobado en el navegador: las dos cajas del contrato de la vacuna miden 546 px.

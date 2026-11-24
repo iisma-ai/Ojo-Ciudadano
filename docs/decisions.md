@@ -678,7 +678,7 @@ Plantilla:
     - señales en etiquetas ámbar con icono (`:orange-badge[]`).
   - **Interior:**
     - el expediente oficial arriba;
-    - por señal, la frase con cifras y el gráfico, con la explicación general y el contexto en «¿Qué significa?»;
+    - **cada señal en su propia subcaja** (a petición de Ignacio, para distinguir mejor las explicaciones): de dos en dos, con la misma altura y un borde ámbar a la izquierda. Dentro, el nombre en ámbar con su icono, «En este contrato», la frase con cifras, el gráfico y, abajo, «¿Qué significa?» con la explicación general y el contexto;
     - el atípico en una frase llana («sus cifras se salen de lo habitual en N contratos parecidos; atípico no significa irregular») y el motivo técnico en «Ver el detalle».
   - **Aviso legal:** en el icono de información del título, como en el Inicio (D-039). El aviso corto de la barra lateral sigue visible.
 - **Alternativas:** dejar «Mayor puntuación» con otro nombre; agrupar los contratos de un mismo acuerdo marco (descartado: son registros distintos en origen).

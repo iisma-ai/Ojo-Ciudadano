@@ -42,7 +42,17 @@ Segunda pantalla, después del Inicio, pensada para un ciudadano cualquiera.
 
 ## Búsqueda y filtros (D-025)
 
-Las búsquedas de empresa y de organismo se autocompletan (primero lo que empieza por lo escrito). «Contratos atípicos» ordena por lejanía o importe, filtra por nivel mínimo y variable, y oculta por defecto los posibles errores de introducción de datos (interruptor para verlos). «Contratos a revisar» permite elegir varias señales (cualquiera o todas), año, tipo, orden, mínimo de señales y organismo o empresa concretos.
+Las búsquedas de empresa y de organismo se autocompletan (primero lo que empieza por lo escrito). «Contratos atípicos» ordena por lejanía o importe, filtra por nivel mínimo y variable, y oculta por defecto los posibles errores de introducción de datos (interruptor para verlos). «Contratos a revisar» (D-042) tiene:
+- un buscador y las seis señales como botones con icono y recuento (se puede elegir más de una);
+- en «Más filtros»: cualquiera o todas las señales, orden («Más señales primero» por defecto), año, tipo, mínimo de señales, contratos menores y organismo o empresa concretos;
+- «Ver más contratos» al final, de 30 en 30 hasta 300.
+
+Cada contrato es una tarjeta (`senales.tarjeta_contrato`, también en las fichas de empresa y de organismo):
+- **cabecera:** el título sin fórmulas administrativas (`textos.titulo_limpio`), el importe en grande, la adjudicataria (personas físicas agregadas), el organismo, el año y las señales en etiquetas ámbar con icono;
+- **dentro:**
+  - el enlace al expediente arriba;
+  - por señal, la frase con las cifras del contrato y su gráfico, con la explicación general en «¿Qué significa?»;
+  - el atípico, en una frase llana con «Ver el detalle».
 
 ## Presupuesto y contexto (D-024)
 

@@ -326,8 +326,8 @@ ORDEN_ATIPICOS = {
     "importe_asc": "Menor importe primero",
 }
 ORDEN_ALERTAS = {
-    "puntuacion": "Mayor puntuación primero",
     "senales": "Más señales primero",
+    "puntuacion": "Mayor puntuación primero",
     "importe_desc": "Mayor importe primero",
     "importe_asc": "Menor importe primero",
     "reciente": "Más recientes primero",
@@ -399,3 +399,34 @@ AVISO_RECURSOS = (
     "dio la razón al recurrente sobre ese acto; no es una señal sobre la empresa adjudicataria "
     "ni sobre el organismo."
 )
+
+
+# --- Títulos de contrato legibles (D-042) ---
+
+# Fórmulas administrativas con las que empiezan muchos títulos y que no dicen nada del objeto.
+_ENTRADAS_TITULO = (
+    "el presente contrato tiene por objeto",
+    "el presente contrato tiene por finalidad",
+    "este contrato tiene por objeto",
+    "el contrato tiene por objeto",
+    "el objeto del contrato es",
+    "procedimiento de adjudicación de",
+    "procedimiento para la adjudicación de",
+)
+
+
+def titulo_limpio(titulo: str | None) -> str:
+    """Título sin las fórmulas administrativas del principio ni comillas sueltas: «Este contrato
+    tiene por objeto “La adquisición de vacunas…”» → «La adquisición de vacunas…»."""
+    texto = " ".join((titulo or "").split())
+    cambiado = True
+    while cambiado:
+        cambiado = False
+        texto = texto.strip(" :.,-\"'“”«»")
+        for entrada in _ENTRADAS_TITULO:
+            if texto.lower().startswith(entrada):
+                texto = texto[len(entrada) :]
+                cambiado = True
+    if not texto:
+        return (titulo or "").strip() or "Contrato sin título"
+    return texto[0].upper() + texto[1:]

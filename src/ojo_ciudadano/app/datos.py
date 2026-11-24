@@ -285,7 +285,14 @@ def alertas(
         f"""
         SELECT p.contrato_id, c.titulo, c.tipo_contrato, c.procedimiento, o.nombre AS organo,
                p.anio, p.importe, c.fuente, p.puntuacion, p.n_aplicables, p.n_activados,
-               p.indicadores_activados, c.url_origen
+               p.indicadores_activados, c.url_origen,
+               -- quién lo recibe, con las personas físicas agregadas (D-007)
+               (SELECT array_to_string(list_sort(list_distinct(list(
+                           CASE WHEN {_beneficiario_visible("d")} THEN d.nombre
+                                ELSE '{AGREGADO_PERSONAS}' END))), ' ; ')
+                FROM adjudicacion AS ad2
+                JOIN adjudicatario AS d ON d.adjudicatario_id = ad2.adjudicatario_id
+                WHERE ad2.contrato_id = p.contrato_id) AS adjudicatarios
         FROM puntuacion_contrato AS p
         JOIN contrato_unico AS c USING (contrato_id)
         JOIN organo AS o ON o.organo_id = p.organo_id

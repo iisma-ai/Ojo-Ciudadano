@@ -658,3 +658,28 @@ Plantilla:
   - Ni el Inicio ni el mapa tienen animaciones que se repitan sin fin, salvo el fondo, que va por la tarjeta gráfica.
   - Test en `tests/app/test_billetes.py`.
   - Las demás pantallas de Ignacio no cambian.
+
+## D-042 · «Contratos a revisar» para el ciudadano: filtros sencillos, tarjeta clara y más señales primero
+- **Fecha:** 2026-11-24
+- **Estado:** Aceptada por Ignacio («1 sí, 2 sí, 3 sí, 4 más señales primero»). Rama `feat/mapa-billetes`, que ya incluye `feat/billetes-fluido` de Ismael (D-040 y D-041). Falta que el equipo lo vea antes de fusionarlo.
+- **Autor:** Claude (agente), a petición de Ignacio, en el repaso «dashboard a dashboard»
+- **Contexto:** La lista tenía estos problemas:
+  - 30 desplegables casi iguales, con títulos administrativos cortados («Este contrato tiene por objeto…», «Procedimiento de adjudicación de…»);
+  - sin importe ni adjudicataria en la fila;
+  - las señales en texto azul, como si fueran enlaces;
+  - siete filtros técnicos («Mínimo de señales», «Cuántos mostrar», «Mayor puntuación»);
+  - dentro, una explicación general repetida en cada señal y un párrafo técnico de atípico.
+- **Decisión:**
+  - **Filtros:** buscador y las seis señales como botones (`st.pills`, con icono y recuento). El resto va en «Más filtros», y «Cuántos mostrar» se sustituye por «Ver más contratos» (de 30 en 30, hasta 300; al cambiar los filtros se vuelve a 30).
+  - **Orden por defecto: «Más señales primero».** La puntuación sigue como opción.
+  - **Tarjeta:**
+    - título limpio (`textos.titulo_limpio`);
+    - importe en grande y adjudicataria (`datos.alertas` la trae, con las personas físicas agregadas como en D-007), organismo y año;
+    - señales en etiquetas ámbar con icono (`:orange-badge[]`).
+  - **Interior:**
+    - el expediente oficial arriba;
+    - por señal, la frase con cifras y el gráfico, con la explicación general y el contexto en «¿Qué significa?»;
+    - el atípico en una frase llana («sus cifras se salen de lo habitual en N contratos parecidos; atípico no significa irregular») y el motivo técnico en «Ver el detalle».
+  - **Aviso legal:** en el icono de información del título, como en el Inicio (D-039). El aviso corto de la barra lateral sigue visible.
+- **Alternativas:** dejar «Mayor puntuación» con otro nombre; agrupar los contratos de un mismo acuerdo marco (descartado: son registros distintos en origen).
+- **Consecuencias:** la tarjeta cambia también en las fichas de empresa y de organismo (comprobado sin errores). Ningún indicador ni cifra cambia. Docs: 03 y 08.

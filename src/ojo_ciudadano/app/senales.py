@@ -101,40 +101,74 @@ def frase_y_grafico(con: duckdb.DuckDBPyConnection, indicador: str, contrato_id:
 
 
 def mostrar(con: duckdb.DuckDBPyConnection, indicador: str, contrato_id: str) -> None:
-    """Bloque de una señal: título, frase y gráfico."""
-    st.markdown(f"**{textos.SENAL_CORTA[indicador]}**")
-    st.caption(textos.SENAL_FRASE[indicador])
+    """Bloque de una señal: su nombre con icono, la frase con las cifras de este contrato y su
+    gráfico. La explicación general va en «¿Qué significa?» (D-042)."""
+    st.markdown(f"{textos.ICONO_SENAL[indicador]} **{textos.SENAL_CORTA[indicador]}**")
     frase, figura = frase_y_grafico(con, indicador, contrato_id)
     if frase:
         st.markdown(frase)
     if figura is not None:
         st.plotly_chart(figura, config=graficos.CONFIG, key=f"{indicador}-{contrato_id}")
+    with st.popover("¿Qué significa?", icon=":material/help:"):
+        st.markdown(textos.SENAL_FRASE[indicador])
+        if indicador in textos.CONTEXTO_SENAL:
+            st.caption(textos.CONTEXTO_SENAL[indicador])
+
+
+def etiquetas_senales(indicadores: list[str]) -> str:
+    """Señales como etiquetas ámbar con su icono (Markdown de Streamlit)."""
+    return " ".join(
+        f":orange-badge[{textos.ICONO_SENAL[i]} {textos.SENAL_CORTA[i]}]" for i in indicadores
+    )
+
+
+def cabecera_contrato(fila: dict) -> str:
+    """Cabecera de la tarjeta: título limpio; cuánto, a quién, quién lo adjudica y cuándo; y
+    las señales. `adjudicatarios` es opcional (en la ficha de empresa ya se sabe quién es)."""
+    titulo = textos.titulo_limpio(fila["titulo"] or fila["contrato_id"])
+    if len(titulo) > 120:
+        titulo = titulo[:117].rstrip() + "…"
+    datos_fila = [f"**{textos.millones(fila['importe'])}**"] if fila.get("importe") else []
+    quien = (fila.get("adjudicatarios") or "").split(" ; ")
+    if quien[0]:
+        datos_fila.append(quien[0] + (f" y {len(quien) - 1} más" if len(quien) > 1 else ""))
+    datos_fila.append(fila["organo"])
+    if fila.get("anio"):
+        datos_fila.append(str(fila["anio"]))
+    encontradas = [i for i in (fila["indicadores_activados"] or "").split(", ") if i]
+    cabecera = f"**{titulo}**  \n" + " · ".join(datos_fila)
+    if encontradas:
+        cabecera += "  \n" + etiquetas_senales(encontradas)
+    return cabecera
 
 
 def tarjeta_contrato(con: duckdb.DuckDBPyConnection, fila: dict, prefijo: str) -> None:
-    """Contrato como desplegable: título, organismo y señales en la cabecera; al pulsar en
-    cualquier parte se abre con un gráfico por señal (que solo se calcula entonces), el aviso
-    de contrato atípico y el enlace al expediente. `fila` lleva los campos de
-    `datos.alertas` o `datos.contratos_empresa`."""
-    titulo = fila["titulo"] or fila["contrato_id"]
-    if len(titulo) > 110:
-        titulo = titulo[:107].rstrip() + "…"
+    """Contrato como desplegable (D-042). En la cabecera, el título limpio, cuánto, a quién,
+    quién lo adjudica y las señales en etiquetas ámbar. Al pulsar en cualquier parte se abre con
+    el enlace al expediente arriba, un gráfico por señal (que solo se calcula entonces) y el
+    aviso de contrato atípico. `fila` lleva los campos de `datos.alertas` o
+    `datos.contratos_empresa`."""
     encontradas = [i for i in (fila["indicadores_activados"] or "").split(", ") if i]
-    nombres = " · ".join(textos.SENAL_CORTA[i] for i in encontradas)
-    cabecera = f"**{titulo}**  \n:gray[{fila['organo']}]"
-    if nombres:
-        cabecera += f"  ·  :blue[{nombres}]"
-    desplegable = st.expander(cabecera, key=f"{prefijo}-{fila['contrato_id']}", on_change="rerun")
+    desplegable = st.expander(
+        cabecera_contrato(fila), key=f"{prefijo}-{fila['contrato_id']}", on_change="rerun"
+    )
     with desplegable:
+        if not desplegable.open:
+            return
         comprobadas = fila["n_aplicables"] or 0
-        st.caption(
-            f"{fila['anio'] or 'Sin fecha'} · "
+        arriba = st.columns([3, 2], vertical_alignment="center")
+        arriba[0].caption(
             f"{textos.euros(fila['importe'], textos.iva_fuente(fila['fuente']))} · "
             f"{len(encontradas)} de {comprobadas} "
             f"{'señal comprobada' if comprobadas == 1 else 'señales comprobadas'}"
         )
-        if not desplegable.open:
-            return
+        if fila.get("url_origen"):
+            arriba[1].link_button(
+                "Ver el expediente oficial",
+                fila["url_origen"],
+                icon=":material/open_in_new:",
+                width="stretch",
+            )
         objeto = datos_flujos.cpv_contrato(con, fila["contrato_id"])
         if objeto:
             st.caption(
@@ -152,10 +186,12 @@ def tarjeta_contrato(con: duckdb.DuckDBPyConnection, fila: dict, prefijo: str) -
         anomalia = datos.anomalia_contrato(con, fila["contrato_id"])
         if anomalia:
             st.markdown(
-                f"**Contrato atípico** respecto a {textos.numero(anomalia['n_grupo'])} "
-                "contratos similares (señal experimental, no suma a las demás; atípico no "
-                f"significa irregular): {anomalia['motivo']}"
+                f":material/scatter_plot: **Contrato atípico:** sus cifras se salen de lo "
+                f"habitual en {textos.numero(anomalia['n_grupo'])} contratos parecidos. Es una "
+                "señal experimental: atípico no significa irregular."
             )
+            with st.popover("Ver el detalle", icon=":material/info:"):
+                st.markdown(anomalia["motivo"])
         fondos = datos_flujos.financiacion_contrato(con, fila["contrato_id"])
         if fondos and fondos["financiado_ue"]:
             programas = ", ".join(
@@ -209,9 +245,5 @@ def tarjeta_contrato(con: duckdb.DuckDBPyConnection, fila: dict, prefijo: str) -
                     pliegos[0]["contrato_id"], encontradas
                 )
                 st.switch_page("paginas/asistente.py")
-        if fila["url_origen"]:
-            st.link_button(
-                "Ver el expediente oficial", fila["url_origen"], icon=":material/open_in_new:"
-            )
-        else:
+        if not fila["url_origen"]:
             st.caption("Sin enlace oficial disponible para este contrato.")

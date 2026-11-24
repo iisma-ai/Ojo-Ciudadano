@@ -11,20 +11,20 @@ formatos técnicos, APIs. El ojo de cristal (Ojo Ciudadano) acompaña todo el re
 oculto. Las burbujas son el dinero: cada contrato es una burbuja de cristal llena de líquido hasta lo que
 se ha gastado, y se unen en consejerías y en la Comunidad de Madrid. Poco texto: se enseña, no se lee.
 
-| # | Escena | Qué se cuenta |
+| # | Escena | Guion |
 | --- | --- | --- |
-| 1 | Portada bajo la superficie, el ojo grande | Ojo Ciudadano |
-| 2 | Bajamos; el ojo va a la esquina y aparecen burbujas | Cada burbuja es un contrato; cuanto más llena, más gastado |
-| 3 | Las burbujas se unen a consejerías y a la Comunidad | 22.857 M€ adjudicados (Plataforma de Contratación, sin IVA, 2023-2026) |
-| 4 | Una cifra enorme y la niebla lo tapa todo | 1,35 millones de contratos públicos, pero no accesibles |
-| 5 | El ojo enciende un haz de luz | Ojo Ciudadano lo hace transparente |
-| 6 | El reparto real de 2025; la cámara entra en Sanidad y luego en un contrato | Ficha de la consejería (gasto, a quién adjudica, cómo contrata) y ficha del contrato con sus señales |
-| 7 | Señales de cada 100 | 39 de cada 100 licitaciones con una sola oferta, 31 sin anuncio público, 17 menores con posible fraccionamiento |
-| 8 | El asistente | Escribe tres preguntas reales de la app y contesta con gráficas (barras y una tarta de los recursos ante el Tribunal) y fuentes |
-| 9 | Burbujas con la aplicación dentro | Mapa del dinero, ficha de empresa, ficha de organismo (faltan capturas) |
-| 10 | Cierre, el ojo de nuevo grande | Lo público, a la vista de todos |
+| 1 | Fuera del agua, sin ojo: atardecer, mar y las rocas desde las que se salta; al pulsar, nos asomamos al borde y no se ve lo que hay debajo | Ignacio: Málaga, las rocas, saltar |
+| 2 | Bajo el agua, oscuro: las rocas están pero no se ven | Datos «transparentes» que no se pueden ver |
+| 3 | Aparece el ojo de cristal, «Ojo Ciudadano», y su luz ilumina | La plataforma accesible |
+| 4 | Reparto real de 2025; la cámara entra en Sanidad y en un contrato (anuncio, ofertas, peso en el gasto de la consejería) | Isma: el mapa interactivo |
+| 5 | Enjambre de burbujas y 1.354.441 contratos | Más de un millón de contratos abruma |
+| 6 | Señales de cada 100 y, al pulsar, un contrato atípico | Los 6 indicadores y el buscador de atípicos |
+| 7 | El asistente: tres preguntas reales (barras, comparación y tarta del Tribunal) | La IA busca, compara, relaciona y visualiza |
+| 8 | El ojo y un QR de cristal | Ignacio: ya está en marcha, pruébalo |
+| 9 | Burbujas con las tecnologías | El stack |
+| 10 | Cierre | Democratizar los datos. Gracias |
 
-Estado: prueba de concepto completa. Faltan las capturas o vídeos de la aplicación (burbujas de las
+Estado: adaptada al guion del 24-nov. Para el QR, pon la dirección pública de la web en `DATOS.urlApp` (`diapositivas.js`). Faltan las capturas o vídeos de la aplicación (burbujas de las
 escenas 6 y 7), revisar los textos con `revisor-legal` y probarla en el ordenador y el proyector de la demo.
 
 ## Cómo verla

@@ -28,6 +28,11 @@
  *                    {chips:[...]} {texto}
  *   {tipo:"chat",    x, y, ancho, pregunta, respuesta:[bloques], paso, hasta}
  *                    el asistente escribe la pregunta, piensa y contesta con esos bloques
+ *   {tipo:"vista",   pos:[x,y,z], mira:[x,y,z], paso, hasta}       camara libre (escena fuera del agua)
+ *   {tipo:"qr",      x, y, ancho, url, texto, paso}                codigo QR en un panel de cristal
+ *
+ * En la diapositiva: `arriba: true` = fuera del agua (cielo, mar visto desde arriba y rocas);
+ * `ojo: null` = sin ojo.
  */
 
 // Cifras reales de la base de datos (23-nov-2026). Cambialas aqui si se regenera.
@@ -37,7 +42,26 @@ const DATOS = {
   subvenciones: 863510, // concesiones de subvenciones (BDNS)
   organismos: 132,
   indicadores: 6,
+  urlApp: "", // direccion publica de la web para el QR de la escena 8 (vacia: sale un hueco)
 };
+
+// Muchas burbujas pequeñas para la escena del millon de contratos (siempre las mismas)
+const ENJAMBRE = (() => {
+  let s = 7;
+  const azar = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  return Array.from({ length: 70 }, () => [80 + azar() * 1760, 80 + azar() * 920, 8 + azar() * 22, azar()]);
+})();
+
+// Tecnologias de Ojo Ciudadano (nombre, x, y, radio)
+const TECNOLOGIAS = [
+  ["Python", 960, 170, 70],
+  ["DuckDB", 1340, 300, 62],
+  ["Polars", 1440, 640, 54],
+  ["Streamlit", 1160, 900, 64],
+  ["Plotly", 760, 900, 50],
+  ["scikit-learn", 480, 640, 58],
+  ["OpenRouter · IA", 580, 300, 66],
+];
 
 // Tamano y llenado de las burbujas de contratos de la escena 2 (x, y, r, llenado)
 const CONTRATOS = [
@@ -82,78 +106,46 @@ const CONTRATOS_SANIDAD = [
 ];
 
 const DIAPOSITIVAS = [
-  // 1. Portada
+  // 1. Fuera del agua, sin ojo: las rocas desde las que se salta (Ignacio cuenta la historia)
   {
-    id: "portada",
+    id: "rocas",
+    arriba: true,
     profundidad: 0,
-    ojo: { x: 960, y: 400, escala: 2.4, mira: { x: 960, y: 520 } },
+    ojo: null,
     elementos: [
-      { tipo: "texto", x: 960, y: 770, texto: "Ojo Ciudadano", tam: 128, clase: "titulo", paso: 0 },
-      { tipo: "texto", x: 960, y: 880, texto: "El gasto público de Madrid, a la vista", tam: 40, clase: "subtitulo", paso: 1 },
+      { tipo: "vista", pos: [0, 12.9, 15.5], mira: [0, 9.6, -40], paso: 0, hasta: 0 },
+      // paso 1: asomarse al borde y mirar el agua: no se ve lo que hay debajo
+      { tipo: "vista", pos: [0, 12.6, 10.4], mira: [0, 7.2, 0], paso: 1 },
     ],
   },
 
-  // 2. Bajamos: un contrato es una burbuja
+  // 2. Bajo el agua: oscuro, las rocas estan pero no se ven
   {
-    id: "contratos",
-    profundidad: 0.3,
-    ojo: { x: 170, y: 160, escala: 0.8, mira: { x: 900, y: 560 } },
+    id: "oscuro",
+    profundidad: 0.75,
+    ojo: null,
     elementos: [
-      ...CONTRATOS.map(([x, y, r, llenado], i) => ({
-        tipo: "burbuja", id: `c${i}`, x, y, r, llenado, tono: "agua", paso: 1,
-      })),
-      { tipo: "texto", x: 960, y: 960, texto: "Cada burbuja es un contrato.", tam: 44, clase: "subtitulo", paso: 2 },
-      { tipo: "texto", x: 960, y: 1020, texto: "Cuanto más llena, más se ha gastado.", tam: 30, clase: "nota", paso: 3 },
+      { tipo: "niebla", paso: 0 },
+      { tipo: "texto", x: 960, y: 540, texto: "Públicos. Pero no accesibles.", tam: 76, clase: "titulo", paso: 1 },
     ],
   },
 
-  // 3. Se juntan en consejerias y en la Comunidad
+  // 3. Aparece el ojo: Ojo Ciudadano ilumina lo que estaba oculto
   {
-    id: "comunidad",
+    id: "ojo",
     profundidad: 0.5,
-    ojo: { x: 170, y: 160, escala: 0.8, mira: { x: 960, y: 540 } },
-    elementos: [
-      ...CONSEJERIAS.map(([id, etiqueta, x, y, r, llenado]) => ({
-        tipo: "burbuja", id, x, y, r, llenado, etiqueta, tono: "azul", paso: 0,
-      })),
-      { tipo: "burbuja", id: "cm", x: 960, y: 560, r: 190, llenado: 0.7, etiqueta: "Comunidad de Madrid", valor: `${DATOS.adjudicadoMillones.toLocaleString("es-ES")} M€`, tono: "azul", paso: 1 },
-      ...CONSEJERIAS.map(([id]) => ({ tipo: "enlace", de: id, a: "cm", paso: 1 })),
-      { tipo: "texto", x: 960, y: 1040, texto: "Adjudicado en contratos, sin IVA. Datos de 2023 a 2026.", tam: 26, clase: "nota", paso: 2 },
-    ],
-  },
-
-  // 4. Es publico, pero no se ve
-  {
-    id: "opaco",
-    profundidad: 0.7,
-    ojo: { x: 170, y: 160, escala: 0.8, mira: { x: 960, y: 540 } },
-    elementos: [
-      ...CONTRATOS.map(([x, y, r, llenado], i) => ({
-        tipo: "burbuja", id: `o${i}`, x, y, r: r * 1.7, llenado, tono: "agua", paso: 0,
-      })),
-      { tipo: "niebla", paso: 1 },
-      { tipo: "cifra", x: 960, y: 400, valor: DATOS.contratosPortal, texto: "contratos públicos", paso: 0 },
-      { tipo: "texto", x: 960, y: 700, texto: "Públicos. Pero no accesibles.", tam: 76, clase: "titulo", paso: 1 },
-      { tipo: "texto", x: 960, y: 810, texto: "Hay que saber programar para leerlos.", tam: 38, clase: "subtitulo", paso: 2 },
-    ],
-  },
-
-  // 5. El ojo ilumina
-  {
-    id: "luz",
-    profundidad: 0.55,
-    ojo: { x: 960, y: 150, escala: 1.7, mira: { x: 960, y: 700 } },
+    ojo: { x: 960, y: 380, escala: 2.2, mira: { x: 960, y: 560 } },
     elementos: [
       ...ORBITA.map(([x, y, r, llenado], i) => ({
         tipo: "burbuja", id: `l${i}`, x, y, r, llenado, tono: i % 3 === 0 ? "azul" : "agua", paso: 0,
       })),
-      { tipo: "luz", paso: 1 },
-      { tipo: "texto", x: 960, y: 640, texto: "Ojo Ciudadano lo hace transparente", tam: 76, clase: "titulo", paso: 2 },
-      { tipo: "texto", x: 960, y: 750, texto: "Los mismos datos públicos, para cualquiera.", tam: 38, clase: "subtitulo", paso: 3 },
+      { tipo: "texto", x: 960, y: 770, texto: "Ojo Ciudadano", tam: 128, clase: "titulo", paso: 0 },
+      { tipo: "texto", x: 960, y: 880, texto: "El gasto público de Madrid, a la vista", tam: 40, clase: "subtitulo", paso: 1 },
+      { tipo: "luz", paso: 2 },
     ],
   },
 
-  // 6. Sanidad de cerca: el reparto real de 2025, la camara entra en una consejeria y en un contrato
+  // 4. El mapa: el reparto de 2025, una consejería y un contrato: el reparto real de 2025, la camara entra en una consejeria y en un contrato
   {
     id: "sanidad",
     profundidad: 0.6,
@@ -211,6 +203,7 @@ const DIAPOSITIVAS = [
             ["Empresa", "Merck Sharp & Dohme de España"],
             ["Cómo se contrató", "Negociado sin publicidad"],
             ["Ofertas recibidas", "1"],
+            ["Del gasto de la consejería", "0,1 %"],
           ] },
           { titulo: "Indicadores de riesgo", senales: [
             ["Sin anuncio público", true, "Adjudicado por procedimiento negociado sin publicidad. La ley lo permite en supuestos concretos; los datos publicados no indican cuál se alegó."],
@@ -224,7 +217,21 @@ const DIAPOSITIVAS = [
     ],
   },
 
-  // 7. Señales de cada 100
+
+  // 5. Mas de un millon de contratos: abruma
+  {
+    id: "millon",
+    profundidad: 0.65,
+    ojo: { x: 150, y: 140, escala: 0.7, mira: { x: 960, y: 540 } },
+    elementos: [
+      ...ENJAMBRE.map(([x, y, r, llenado], i) => ({
+        tipo: "burbuja", id: `e${i}`, x, y, r, llenado, tono: i % 4 ? "agua" : "azul", paso: 0,
+      })),
+      { tipo: "cifra", x: 960, y: 540, valor: DATOS.contratosPortal, texto: "contratos públicos", paso: 1 },
+    ],
+  },
+
+  // 6. Señales de cada 100 y contratos atípicos
   {
     id: "senales",
     profundidad: 0.7,
@@ -233,9 +240,9 @@ const DIAPOSITIVAS = [
       ...CONTRATOS.map(([x, y, r, llenado], i) => ({
         tipo: "burbuja", id: `s${i}`, x, y: y + 40, r: r * 0.8, llenado, tono: i % 3 ? "agua" : "ambar", paso: 0,
       })),
-      { tipo: "texto", x: 960, y: 140, texto: "Señales, no acusaciones", tam: 64, clase: "titulo", paso: 0 },
+      { tipo: "texto", x: 960, y: 140, texto: "Señales, no acusaciones", tam: 64, clase: "titulo", paso: 0, hasta: 1 },
       {
-        tipo: "panel", x: 560, y: 590, ancho: 800, paso: 1,
+        tipo: "panel", x: 560, y: 590, ancho: 800, paso: 1, hasta: 1,
         etiqueta: "Indicadores de riesgo · 2023 a 2026",
         bloques: [
           { puntos: { valor: 39, texto: "de cada 100 licitaciones recibieron una sola oferta" } },
@@ -245,10 +252,13 @@ const DIAPOSITIVAS = [
         ],
         fuente: "Indicadores R-01, R-02 y R-03 sobre la Plataforma de Contratación y el portal de la Comunidad de Madrid (noviembre de 2026).",
       },
+      // paso 2: un contrato que se separa de los de su grupo (buscador de atipicos)
+      { tipo: "burbuja", id: "atipico", x: 1700, y: 250, r: 34, llenado: 0.9, etiqueta: "Atípico", tono: "ambar", paso: 2 },
+      { tipo: "foco", de: "atipico", zoom: 1.6, x: 1250, y: 420, paso: 2 },
     ],
   },
 
-  // 8. El asistente: preguntar, relacionar y comparar, con fuentes
+  // 7. El asistente: preguntar, relacionar y comparar, con fuentes
   {
     id: "asistente",
     profundidad: 0.78,
@@ -301,17 +311,27 @@ const DIAPOSITIVAS = [
     ],
   },
 
-  // 9. Los modulos (capturas de la aplicacion)
+  // 8. Ya esta en marcha: el QR para entrar
   {
-    id: "modulos",
-    profundidad: 0.6,
-    ojo: { x: 170, y: 160, escala: 0.8, mira: { x: 960, y: 560 } },
+    id: "en-marcha",
+    profundidad: 0.55,
+    ojo: { x: 560, y: 540, escala: 1.6, mira: { x: 1300, y: 540 } },
     elementos: [
-      { tipo: "captura", id: "m1", x: 410, y: 450, r: 190, src: "", etiqueta: "Mapa del dinero", paso: 1 },
-      { tipo: "captura", id: "m2", x: 960, y: 700, r: 190, src: "", etiqueta: "Ficha de empresa", paso: 2 },
-      { tipo: "captura", id: "m3", x: 1510, y: 450, r: 190, src: "", etiqueta: "Ficha de organismo", paso: 3 },
-      { tipo: "texto", x: 960, y: 150, texto: "Todo el dinero, a un vistazo", tam: 60, clase: "titulo", paso: 0 },
+      ...ORBITA.map(([x, y, r, llenado], i) => ({
+        tipo: "burbuja", id: `q${i}`, x, y, r: r * 0.8, llenado, tono: "azul", paso: 0,
+      })),
+      { tipo: "qr", x: 1100, y: 540, ancho: 420, url: DATOS.urlApp, texto: "Pruébalo", paso: 1 },
     ],
+  },
+
+  // 9. Con qué está hecho
+  {
+    id: "tecnologias",
+    profundidad: 0.45,
+    ojo: { x: 960, y: 540, escala: 1.2, mira: { x: 960, y: 600 } },
+    elementos: TECNOLOGIAS.map(([nombre, x, y, r], i) => ({
+      tipo: "burbuja", id: `t${i}`, x, y, r, llenado: 0.6 + (i % 3) * 0.12, etiqueta: nombre, tono: i % 2 ? "agua" : "azul", paso: 0,
+    })),
   },
 
   // 10. Cierre

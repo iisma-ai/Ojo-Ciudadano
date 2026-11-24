@@ -51,6 +51,26 @@ const superficie = Agua.crearSuperficie(8.5);
 const nieve = Agua.crearNieve();
 const burbujitas = Agua.crearBurbujitas();
 escena.add(rayos.grupo, superficie.malla, nieve.puntos, burbujitas.malla);
+const SUPERFICIE = 8.5;
+const cieloArriba = Agua.crearCielo();
+// rocas: las de arriba (desde donde se salta), las de debajo del salto y las del fondo, que no se ven
+const rocas = Agua.crearRocas([
+  [0, 9.0, 12.5, 4.5, 2.6, 3.2, 1],
+  [-20, 9, -14, 7, 7.5, 6, 2],
+  [-10, 8.4, -8, 2.6, 2.2, 2.6, 3],
+  [17, 8.4, -30, 4, 3, 4, 4],
+  [-32, 8.4, -75, 9, 4.5, 6, 5],
+  [38, 8.4, -95, 11, 5, 7, 6],
+  [2, 4.5, 1, 4, 3, 3, 7],
+  [-5, 3.5, -6, 5, 3, 4, 8],
+  [-6, -21, -6, 5, 3, 4, 9],
+  [7, -23, -3, 6, 4, 5, 10],
+  [0, -27, -12, 10, 5, 8, 11],
+  [-13, -18, -10, 5, 4, 4, 12],
+  [14, -19, -14, 6, 5, 5, 13],
+]);
+escena.add(cieloArriba, rocas);
+const NEBLINA = new THREE.Color("#d9a585");
 
 const compositor = new EffectComposer(renderer);
 compositor.addPass(new RenderPass(escena, camara));
@@ -427,6 +447,19 @@ function crearChat(e, i) {
   return { tipo: "chat", i, dom, fijo: { x: e.x, y: e.y, ancho: e.ancho || 760 }, tam: 19, pregunta: e.pregunta };
 }
 
+// Codigo QR para entrar en la web (sin direccion, un hueco que lo recuerda)
+function crearQR(e, i) {
+  let dentro = '<div class="qr-vacio">QR</div>';
+  if (e.url && window.qrcode) {
+    const q = window.qrcode(0, "M");
+    q.addData(e.url);
+    q.make();
+    dentro = `<img src="${q.createDataURL(10, 1)}" alt="QR">`;
+  }
+  const dom = etiquetaHtml(`<div class="qr-caja">${dentro}</div>${e.texto ? `<div class="qr-texto">${e.texto}</div>` : ""}`, "panel qr");
+  return { tipo: "qr", i, dom, fijo: { x: e.x, y: e.y, ancho: e.ancho || 420 }, tam: 18 };
+}
+
 // El chat escribe la pregunta, piensa y contesta; se reinicia si se vuelve atras
 function animarChat(it, mostrar) {
   clearInterval(it.reloj1);
@@ -468,6 +501,8 @@ const diapositivas = DIAPOSITIVAS.map((d, i) => {
     else if (e.tipo === "foco") it = { tipo: "foco", i, de: porId[e.de], zoom: e.zoom || 1.6, sx: e.x ?? 600, sy: e.y ?? 540 };
     else if (e.tipo === "panel") it = crearPanel(e, i);
     else if (e.tipo === "chat") it = crearChat(e, i);
+    else if (e.tipo === "vista") it = { tipo: "vista", i, pos: new THREE.Vector3(...e.pos), mira: new THREE.Vector3(...e.mira) };
+    else if (e.tipo === "qr") it = crearQR(e, i);
     else if (e.tipo === "texto") {
       it = { tipo: "texto", i, dom: etiquetaHtml(e.texto, e.clase || ""), ancla: aMundo(i, e.x, e.y), tam: e.tam || 40 };
       if (e.clase === "nota") it.tam *= 0.62;
@@ -618,6 +653,8 @@ ajustar();
 
 // ---------- Bucle ----------
 let camX = 0;
+const miraObj = new THREE.Vector3();
+const miraCam = new THREE.Vector3();
 let camY = yDiapo(actual);
 let camZ = D;
 let velX = 0;
@@ -655,6 +692,15 @@ function cuadro() {
     objX = B.x - (foco.sx - 960) * k;
     objY = B.y + (foco.sy - 540) * k;
   }
+  const vista = d.items.filter((it) => it.tipo === "vista" && it.activo).pop();
+  if (vista) {
+    objX = vista.pos.x;
+    objY = vista.pos.y;
+    objZ = vista.pos.z;
+    miraObj.copy(vista.mira);
+  } else {
+    miraObj.set(objX, objY, objZ - D);
+  }
   velX += ((objX - camX) * 6 - velX * 4.9) * dt;
   velY += ((objY - camY) * 7 - velY * 5.2) * dt;
   velZ += ((objZ - camZ) * 6 - velZ * 4.9) * dt;
@@ -662,7 +708,9 @@ function cuadro() {
   camY += velY * dt;
   camZ += velZ * dt;
   camara.position.set(camX + Math.sin(t * 0.21) * 0.12, camY + Math.sin(t * 0.17) * 0.08, camZ);
-  camara.lookAt(camX + Math.sin(t * 0.21) * 0.08, camY, camZ - D);
+  if (miraCam.lengthSq() === 0) miraCam.copy(miraObj);
+  miraCam.lerp(miraObj, suave(dt, 2.2));
+  camara.lookAt(miraCam.x + Math.sin(t * 0.21) * 0.08, miraCam.y, miraCam.z);
   camara.rotation.z = Math.sin(t * 0.13) * 0.006;
 
   // agua, niebla y luz segun la diapositiva y el paso
@@ -671,29 +719,36 @@ function cuadro() {
   const tieneLuz = d.items.find((it) => it.tipo === "luz");
   niebla += ((hayNiebla ? 1 : 0) - niebla) * suave(dt, 1.4);
   luz += ((tieneLuz && !tieneLuz.objetivo ? 0.18 : 1) - luz) * suave(dt, 1.6);
+  const fuera = camara.position.y > SUPERFICIE;
   Agua.colorProfundidad(profundidad, colorAgua);
   colorAgua.multiplyScalar(0.45 + 0.55 * luz);
-  escena.fog.density = 0.013 + 0.012 * profundidad + niebla * 0.085;
+  if (fuera) colorAgua.copy(NEBLINA);
+  escena.fog.color.copy(colorAgua); // la niebla de Three.js guarda una copia: hay que actualizarla
+  brillo.strength = fuera ? 0.12 : 0.55;
+  escena.fog.density = fuera ? 0.0022 : 0.013 + 0.012 * profundidad + niebla * 0.085;
+  cieloArriba.visible = fuera;
+  cieloArriba.position.copy(camara.position);
   U.uFogDensity.value = escena.fog.density;
   U.uLuz.value = luz;
   U.uT.value = t;
   escena.environmentIntensity = 0.25 + 0.75 * luz;
   cielo.intensity = 1.1 * luz * (1.1 - profundidad * 0.5);
-  sol.intensity = 2.6 * luz * (1 - profundidad * 0.6);
-  sol.position.set(4, camY + 20, 10);
+  sol.intensity = fuera ? 3.2 : 2.6 * luz * (1 - profundidad * 0.6);
+  sol.color.set(fuera ? 0xffc9a0 : 0xe6f9ff);
+  sol.position.set(fuera ? -12 : 4, camY + (fuera ? 6 : 20), fuera ? -30 : 10);
   sol.target.position.set(0, camY, 0);
   final.uniforms.uT.value = t;
   final.uniforms.uNiebla.value = niebla;
 
   rayos.uniforms.uT.value = t;
-  rayos.uniforms.uI.value = (0.02 + 0.11 * Math.pow(1 - profundidad, 1.5)) * luz;
+  rayos.uniforms.uI.value = fuera ? 0 : (0.02 + 0.11 * Math.pow(1 - profundidad, 1.5)) * luz;
   rayos.grupo.position.set(0, camY + 6, 0);
   superficie.uniforms.uT.value = t;
   superficie.uniforms.uCam.value.copy(camara.position);
   nieve.uniforms.uT.value = t;
   nieve.uniforms.uCam.value.copy(camara.position);
-  nieve.uniforms.uI.value = 0.6 + 0.4 * luz;
-  burbujitas.uniforms.uI.value = 0.5 + 0.5 * luz;
+  nieve.uniforms.uI.value = fuera ? 0 : 0.6 + 0.4 * luz;
+  burbujitas.uniforms.uI.value = fuera ? 0 : 0.5 + 0.5 * luz;
   burbujitas.actualizar(dt, t, camY);
 
   // elementos: aparecen con un pequeño rebote; las burbujas se llenan
@@ -745,7 +800,7 @@ function cuadro() {
   }
 
   // el ojo viaja con la camara y mira a donde dice la diapositiva (o al cursor)
-  const o = d.cfg.ojo;
+  const o = d.cfg.ojo || { x: ojoPant.x ?? 960, y: ojoPant.y ?? 540, escala: 0, mira: { x: 960, y: 540 } };
   // el ojo va a una distancia fija delante de la camara: siempre en su sitio de la pantalla
   const dist = D0 - Z_OJO;
   const radio = o.escala * 0.8 * (dist / D0);
@@ -759,7 +814,8 @@ function cuadro() {
     camY - (ojoPant.y - 540) * u + Math.sin(t * 0.8) * 0.06,
     camZ - dist,
   );
-  ojo.grupo.scale.setScalar(ojoEscala);
+  ojo.grupo.scale.setScalar(Math.max(ojoEscala, 0.0001));
+  ojo.grupo.visible = ojoEscala > 0.01;
   if (t > proximoVistazo) {
     // la mitad de las veces vuelve al centro; si no, echa un vistazo a un lado
     if (Math.random() < 0.5) vistazoObj.set(0, 0);
@@ -782,10 +838,17 @@ const inicial = Number(location.hash.slice(1)) - 1;
 actual = Number.isInteger(inicial) && inicial >= 0 && inicial < diapositivas.length ? inicial : 0;
 camY = yDiapo(actual);
 camZ = D;
+if (!diapositivas[actual].cfg.ojo) ojoEscala = 0;
 estado();
+// si se empieza en una escena con camara libre, la camara arranca ya ahi
+const vistaInicial = diapositivas[actual].items.find((it) => it.tipo === "vista" && it.activo);
+if (vistaInicial) {
+  ({ x: camX, y: camY, z: camZ } = vistaInicial.pos);
+  miraCam.copy(vistaInicial.mira);
+}
 requestAnimationFrame(cuadro);
 setTimeout(() => document.getElementById("cortina").classList.add("fuera"), 400);
 setTimeout(() => document.getElementById("ayuda").classList.add("oculta"), 5000);
 
 // acceso para depurar desde la consola
-window.__oc = { escena, brillo, final, VIDRIO, items, compositor };
+window.__oc = { ojo, escena, brillo, final, VIDRIO, items, compositor };

@@ -15,6 +15,11 @@
 - La pregunta de tipos de objeto (CPV) necesitaba la tabla `cpv` (D-035), pero el portal rechazó la descarga automática («Request Rejected»); no se forzó y se borró de la caché la respuesta vacía.
 - El ojo ya no sigue el ratón (en la presentación nadie lo mueve): mira al centro y echa vistazos a los lados cada pocos segundos.
 
+## Adaptada al guion
+- Orden nuevo (ver `presentacion/README.md`): fuera del agua sin ojo (atardecer, mar visto desde arriba, rocas; cámara libre con `vista` para asomarse), bajada a la oscuridad, aparición del ojo, mapa (Sanidad y contrato, con su peso en el gasto de la consejería), millón de contratos, señales y atípico, asistente, QR (`qr`, librería qrcode-generator 1.4.4), tecnologías y cierre. Se quitan la escena de capturas vacías y la del total adjudicado.
+- Arreglo: la niebla de Three.js guarda una copia del color; ahora se actualiza cada fotograma (las rocas salían blancas).
+- El guion cita tecnologías que no usamos (Node, Vercel, PostgreSQL) y datos «desde 2016»; la escena de tecnologías usa las reales (Python, DuckDB, Polars, Streamlit, Plotly, scikit-learn, OpenRouter).
+
 ## Pendiente
 - Guion definitivo (lo da Lucas) para ordenar las escenas.
 - Capturas o vídeos de la web en la escena 9.

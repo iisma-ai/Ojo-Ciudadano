@@ -227,3 +227,10 @@ body.quieto { cursor: none; }
 .panel.on:not(.chat) .ley, .chat.respondido .ley { opacity: 1; transform: none; }
 .ley i { width: 0.75em; height: 0.75em; border-radius: 50%; box-shadow: 0 0 8px currentColor; }
 .ley span { color: #cfe2ff; font-variant-numeric: tabular-nums; font-size: 0.92em; }
+
+/* ---------- QR ---------- */
+.t.panel.qr { text-align: center; padding: 1.4em; }
+.qr-caja { background: #f4f8ff; border-radius: 1em; padding: 1em; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05); }
+.qr-caja img { display: block; width: 100%; image-rendering: pixelated; }
+.qr-vacio { aspect-ratio: 1; display: grid; place-items: center; color: #8aa0c0; font-size: 3em; font-weight: 200; border: 2px dashed #b8c8e0; border-radius: 0.5em; }
+.qr-texto { margin-top: 0.8em; font-size: 1.3em; font-weight: 300; letter-spacing: 0.02em; }

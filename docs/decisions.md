@@ -605,6 +605,7 @@ Plantilla:
   - **Cuatro puertas grandes, pulsables enteras:** dinero, contratos a revisar, buscar empresa u organismo, y asistente. Cada una con su icono SVG propio en `billetes.ICONOS_PUERTA`.
   - **Cifras en una línea discreta.** Se quita «contratos con alguna señal» de la portada.
   - **Señales «X de cada 100 contratos …»:** cuadrícula de 100 con los que tienen la señal en ámbar, el color de las señales (nunca rojo). Si hay alguno pero no llega a 1 de cada 100, se pinta medio cuadrado y se dice «menos de 1». La explicación va en «¿Qué significa?», con los recuentos exactos.
-  - **Aviso legal:** una línea visible («Una señal no prueba nada irregular») y el texto completo en «Fuentes».
+  - **Aviso legal:** «Una señal no prueba nada irregular» en el icono de información junto al título «Qué señales buscamos», a petición de Ignacio. El aviso corto de la barra lateral sigue siempre visible y el texto completo está en «Fuentes».
+  - **Todas las tarjetas del mismo tamaño:** las puertas rellenan la altura de su fila, y las seis señales van en una sola rejilla CSS con filas iguales (3, 2 o 1 columnas según el ancho), con el botón abajo.
 - **Alternativas:** frascos también para las señales (descartado: los frascos significan euros y aquí se cuentan contratos); mantener las cifras grandes.
 - **Consecuencias:** cambia la portada; las fichas de empresa y de órgano aceptan el elegido por la dirección; sin dependencias nuevas. Docs: 03 y 08.

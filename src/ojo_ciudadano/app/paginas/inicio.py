@@ -49,7 +49,17 @@ ESTILO = """
 [class*="st-key-puerta_"] [data-testid="stPageLink"] a p { font-size: 1.12rem;
   font-weight: 650; white-space: normal; overflow: visible; text-overflow: clip;
   line-height: 1.3; }
-[class*="st-key-puerta_"] { height: 100%; }
+/* Todas las tarjetas, del mismo tamaño: rellenan la altura de su fila (la columna ya se estira)
+   y el botón de cada señal queda abajo. */
+[data-testid="stLayoutWrapper"]:has(> [class*="st-key-puerta_"]) { flex: 1 1 auto; }
+.st-key-senales { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: 1fr; gap: 1rem; align-items: stretch !important; }
+.st-key-senales > [data-testid="stLayoutWrapper"] { align-self: stretch !important;
+  height: auto !important; }
+@media (max-width: 900px) { .st-key-senales { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .st-key-senales { grid-template-columns: 1fr; } }
+[class*="st-key-puerta_"], [class*="st-key-senal_"] { height: 100%; }
+[class*="st-key-senal_"] > div:last-child { margin-top: auto; }
 [class*="st-key-puerta_"] [data-testid="stPageLink"] a { padding-left: 0; }
 .oc-cifras { color: #9FB6CC; font-size: .98rem; margin: .2rem 0 .4rem; }
 .oc-cifras b { color: #E7ECF3; }
@@ -101,25 +111,27 @@ def puertas() -> None:
 
 
 def senales() -> None:
-    st.subheader("Qué señales buscamos")
-    st.markdown(
-        "**Una señal no prueba nada irregular:** indica dónde merece la pena mirar con más detalle."
+    st.subheader(
+        "Qué señales buscamos",
+        help="**Una señal no prueba nada irregular:** indica dónde merece la pena mirar con "
+        "más detalle.",
+        anchor=False,
     )
     conteo = _conteo()
-    indicadores = list(textos.SENAL_CORTA)
-    for inicio in range(0, len(indicadores), 3):
-        columnas = st.columns(3)
-        for columna, indicador in zip(columnas, indicadores[inicio : inicio + 3], strict=False):
+    # Las seis tarjetas van en una sola rejilla (CSS) con filas iguales: así miden lo mismo.
+    with st.container(key="senales"):
+        for indicador in textos.SENAL_CORTA:
             c = conteo.get(indicador)
             if not c or not c["comprobados"]:
                 continue
             n = 100 * c["encontrados"] / c["comprobados"]
-            with columna.container(border=True, key=f"senal_{indicador}"):
+            with st.container(border=True, key=f"senal_{indicador}"):
                 st.markdown(f"{textos.ICONO_SENAL[indicador]} **{textos.SENAL_CORTA[indicador]}**")
                 que = textos.SENAL_DE_100[indicador]
                 billetes.pintar(
                     billetes.svg_cuadricula(n, que)
                     + '<p style="font-family:Inter,sans-serif;color:#E7ECF3;font-size:1.05rem;'
+                    "line-height:1.5;"
                     f'margin:.5rem 0 0"><b style="font-size:1.6rem;color:{billetes.AMBAR}">'
                     f"{billetes.cifra_de_100(n)}</b> de cada 100 contratos {que}</p>",
                     clave=f"cuadricula_{indicador}",

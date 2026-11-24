@@ -41,3 +41,11 @@ Ignacio aceptó las cuatro propuestas: quitar esa cifra, cuadrícula de 100 cont
 
 ## Ajuste: qué dice el «de cada 100»
 Ignacio preguntó si «39 de cada 100 contratos comprobados» significaba que 39 cumplen la condición o que solo se pudieron comprobar 39. Significa lo primero: de los contratos en los que se puede comprobar (por ejemplo, 20.763 publican cuántas ofertas hubo), 8.178 tienen una sola oferta, es decir, 39 de cada 100. Para que no haya duda, cada tarjeta dice ahora qué cumplen esos contratos («39 de cada 100 contratos tienen una sola oferta», `textos.SENAL_DE_100`), y «¿Qué significa?» da los dos números: en cuántos se pudo comprobar y cuántos tienen la señal.
+
+## Ajuste: icono de información y tarjetas iguales
+- La frase «Una señal no prueba nada irregular…» pasa al icono de información del título «Qué señales buscamos» (`help=`). El aviso corto de la barra lateral sigue visible en todas las pantallas.
+- Todas las tarjetas miden lo mismo:
+  - las puertas rellenan la altura de la fila;
+  - las seis señales van en una sola rejilla CSS (`.st-key-senales`, `grid-auto-rows: 1fr`), con 3, 2 o 1 columnas según el ancho, y el botón «¿Qué significa?» abajo. Hubo que forzar `align-self: stretch` porque Streamlit no estira los elementos.
+- Medido en el navegador: puertas iguales y señales iguales a 1440, 1100, 820 y 500 px de ancho.
+- La frase de R-03 se acorta: «son menores a la misma empresa que, juntos, pasan del máximo de un contrato menor».

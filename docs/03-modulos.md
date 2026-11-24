@@ -19,7 +19,7 @@ Primera pantalla. En cinco segundos:
 - las cifras en una línea (contratos, subvenciones, organismos).
 
 Debajo, **«Qué señales buscamos»**:
-- una línea visible: «Una señal no prueba nada irregular»;
+- un icono de información junto al título con «Una señal no prueba nada irregular» (el aviso corto de la barra lateral sigue visible);
 - seis tarjetas, cada una con una **cuadrícula de 100 contratos** (en ámbar, los que tienen la señal), la frase «39 de cada 100 contratos tienen una sola oferta» (una por señal, `textos.SENAL_DE_100`; el «de cada 100» se cuenta sobre los contratos en los que se pudo comprobar, como explica «¿Qué significa?») y la explicación en «¿Qué significa?».
 
 El aviso completo, las fuentes y las fechas van en el botón «Fuentes». Ya no se muestra el total de «contratos con alguna señal».

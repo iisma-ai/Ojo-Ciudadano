@@ -216,8 +216,7 @@ SENAL_FRASE = {
 SENAL_DE_100 = {
     "R-01": "tienen una sola oferta",
     "R-02": "se adjudicaron sin anuncio público",
-    "R-03": "son contratos menores que, sumados con otros a la misma empresa, pasan del "
-    "máximo de un contrato menor",
+    "R-03": "son menores a la misma empresa que, juntos, pasan del máximo de un contrato menor",
     "R-04": "son de una empresa que concentra el gasto del organismo",
     "R-05": "tienen modificaciones de más del 20 %",
     "R-06": "tienen una rebaja nula o muy alta",

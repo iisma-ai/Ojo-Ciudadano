@@ -517,3 +517,8 @@ div[class*="st-key-cajasenal_"][class*="st-key-cajasenal_"] {
 [data-testid="stExpander"] details[open] > summary {
   border-bottom: 1px solid var(--oc-cristal-borde);
 }
+
+/* el componente que deja transparente el buscador (buscador.py) no ocupa sitio */
+[data-testid="stElementContainer"]:has(.st-key-oc_buscador_transparente) {
+  display: none;
+}

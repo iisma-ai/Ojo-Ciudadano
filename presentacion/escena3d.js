@@ -6,6 +6,7 @@ import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
+import { FXAAShader } from "three/addons/shaders/FXAAShader.js";
 import * as Agua from "./agua.js";
 import { crearOjo } from "./ojo3d.js";
 
@@ -79,6 +80,9 @@ compositor.addPass(brillo);
 compositor.addPass(new OutputPass());
 const final = new ShaderPass(Agua.PasoFinal);
 compositor.addPass(final);
+// El compositor pinta sin antialiasing: FXAA suaviza los bordes del ojo y de las burbujas y casi no gasta
+const suavizado = new ShaderPass(FXAAShader);
+compositor.addPass(suavizado);
 
 // ---------- Materiales compartidos ----------
 const GEO = new THREE.SphereGeometry(1, 72, 54);
@@ -198,8 +202,8 @@ const MAT_ENLACE = () =>
       void main(){
         if (vUv.x > uProg) discard;
         float pulso = smoothstep(.82, 1., sin(vUv.x * 36. - uT * 4.) * .5 + .5);
-        float a = .55 + pulso * .9;
-        gl_FragColor = vec4(vec3(.65, .9, 1.) * (1. + pulso * 2.5) * a, a);
+        float a = .22 + pulso * .3;
+        gl_FragColor = vec4(vec3(.6, .82, 1.) * (1. + pulso * .8) * a, a);
       }`,
     transparent: true,
     depthWrite: false,
@@ -364,7 +368,7 @@ function crearEnlace(e, i, porId) {
   const p2 = pb.clone().addScaledVector(dir, -rb * 1.02);
   const medio = p1.clone().lerp(p2, 0.5).add(new THREE.Vector3(0, -0.35, 0.4));
   const curva = new THREE.QuadraticBezierCurve3(p1, medio, p2);
-  const malla = new THREE.Mesh(new THREE.TubeGeometry(curva, 90, 0.022, 10), MAT_ENLACE());
+  const malla = new THREE.Mesh(new THREE.TubeGeometry(curva, 90, 0.016, 10), MAT_ENLACE());
   escena.add(malla);
   return { tipo: "enlace", e, i, malla, prog: 0 };
 }
@@ -464,7 +468,7 @@ function crearPanel(e, i) {
   let k = 0;
   for (const b of e.bloques || []) h += `<div class="bloque" style="--i:${k++}">${bloque(b)}</div>`;
   if (e.fuente) h += `<div class="bloque p-fuente" style="--i:${k}">${e.fuente}</div>`;
-  return { tipo: "panel", i, dom: etiquetaHtml(h, "panel"), fijo: { x: e.x, y: e.y, ancho: e.ancho || 560 }, tam: 18 };
+  return { tipo: "panel", i, dom: etiquetaHtml(h, "panel"), fijo: { x: e.x, y: e.y, ancho: e.ancho || 560 }, tam: e.tam || 18 };
 }
 
 function crearChat(e, i) {
@@ -529,7 +533,7 @@ const diapositivas = DIAPOSITIVAS.map((d, i) => {
     else if (e.tipo === "captura") it = crearCaptura(e, i);
     else if (e.tipo === "enlace") it = crearEnlace(e, i, porId);
     else if (e.tipo === "luz") it = crearLuz(i, d.ojo);
-    else if (e.tipo === "niebla") it = { tipo: "niebla", i };
+    else if (e.tipo === "niebla") it = { tipo: "niebla", i, fuerza: e.fuerza ?? 1 };
     else if (e.tipo === "foco") it = { tipo: "foco", i, de: porId[e.de], zoom: e.zoom || 1.6, sx: e.x ?? 600, sy: e.y ?? 540 };
     else if (e.tipo === "panel") it = crearPanel(e, i);
     else if (e.tipo === "chat") it = crearChat(e, i);
@@ -545,9 +549,9 @@ const diapositivas = DIAPOSITIVAS.map((d, i) => {
         tipo: "cifra",
         i,
         valor: e.valor,
-        dom: etiquetaHtml(`<div class="num">0</div><div class="cap">${e.texto || ""}</div>`, "cifra"),
+        dom: etiquetaHtml(`<div class="num">0</div><div class="cap">${e.texto || ""}</div>`, `cifra ${e.clase || ""}`),
         ancla: aMundo(i, e.x, e.y),
-        tam: 40,
+        tam: e.tam || 40,
       };
     }
     if (!it) continue;
@@ -671,7 +675,9 @@ function ajustar() {
   camara.updateProjectionMatrix();
   renderer.setSize(W, H);
   compositor.setSize(W, H);
-  final.uniforms.uRes.value.set(W, H);
+  const pr = renderer.getPixelRatio();
+  final.uniforms.uRes.value.set(W * pr, H * pr);
+  suavizado.uniforms.resolution.value.set(1 / (W * pr), 1 / (H * pr));
   nieve.uniforms.uPx.value = H * 0.045;
   escalaTexto = (H / 1080) * (D0 / D);
   for (const it of items) {
@@ -777,9 +783,9 @@ function cuadro() {
 
   // agua, niebla y luz segun la diapositiva y el paso
   profundidad += (d.cfg.profundidad - profundidad) * suave(dt, 1.2);
-  const hayNiebla = d.items.some((it) => it.tipo === "niebla" && it.objetivo);
+  const nieblaMeta = Math.max(0, ...d.items.filter((it) => it.tipo === "niebla" && it.objetivo).map((it) => it.fuerza));
   const tieneLuz = d.items.find((it) => it.tipo === "luz");
-  niebla += ((hayNiebla ? 1 : 0) - niebla) * suave(dt, 1.4);
+  niebla += (nieblaMeta - niebla) * suave(dt, 1.4);
   luz += ((tieneLuz && !tieneLuz.objetivo ? 0.18 : 1) - luz) * suave(dt, 1.6);
   const fuera = camara.position.y > SUPERFICIE;
   Agua.colorProfundidad(profundidad, colorAgua);

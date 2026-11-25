@@ -62,13 +62,13 @@ function texturaIris() {
 
 // Segunda capa, más al fondo y girando al revés: da profundidad
 function texturaAnillos() {
-  const [c, g] = lienzo(512);
-  const C = 256;
+  const [c, g] = lienzo(1024);
+  const C = 512;
   for (let i = 0; i < 60; i++) {
     const a0 = Math.random() * Math.PI * 2;
-    const r = 120 + Math.random() * 120;
+    const r = 240 + Math.random() * 240;
     g.strokeStyle = `rgba(110,170,255,${0.08 + Math.random() * 0.25})`;
-    g.lineWidth = 1 + Math.random() * 2.5;
+    g.lineWidth = 2 + Math.random() * 5;
     g.beginPath();
     g.arc(C, C, r, a0, a0 + 0.3 + Math.random() * 1.2);
     g.stroke();

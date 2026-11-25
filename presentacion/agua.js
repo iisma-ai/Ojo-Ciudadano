@@ -272,7 +272,7 @@ export const PasoFinal = {
       float l = dot(c, vec3(.299, .587, .114));
       c = mix(c, vec3(l) * vec3(.45, .6, .8), uNiebla * .3) * (1. - uNiebla * .35);
       c *= mix(.3, 1., smoothstep(1.08, .28, length(d * vec2(1.2, 1.))));
-      c += (azar(uv * uRes + fract(uT) * 91.) - .5) * .04;
+      c += (azar(uv * uRes + fract(uT) * 91.) - .5) * .02;
       gl_FragColor = vec4(c, 1.);
     }`,
 };

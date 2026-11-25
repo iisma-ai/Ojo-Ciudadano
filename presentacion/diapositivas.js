@@ -11,12 +11,14 @@
  *
  * Elementos:
  *   {tipo:"texto",   x, y, texto, tam, clase, paso}              clase: "titulo" | "subtitulo" | "nota"
- *   {tipo:"cifra",   x, y, valor, formato, texto, paso}          numero que sube hasta `valor`
+ *   {tipo:"cifra",   x, y, valor, formato, texto, tam, clase, paso}  numero que sube hasta `valor`
+ *                    clase "resalte": numero en ambar, el color de las señales
  *   {tipo:"burbuja", id, x, y, r, llenado, etiqueta, valor, tono, paso}
  *                    llenado 0..1 = lo gastado; tono: "azul" | "ambar" | "agua"
  *   {tipo:"enlace",  de, a, paso}                                 linea de agua entre dos burbujas
  *   {tipo:"captura", id, x, y, r, src, etiqueta, paso}           burbuja con una imagen o video dentro
- *   {tipo:"niebla",  paso}                                        capa turbia (lo que no se ve)
+ *   {tipo:"niebla",  fuerza, paso, hasta}                         capa turbia (lo que no se ve); fuerza 0..1
+ *                    (por defecto 1; con menos, solo apaga el fondo para que se lean los textos)
  *   {tipo:"luz",     paso}                                        el ojo ilumina la escena
  *   {tipo:"foco",    de, zoom, x, y, paso, hasta}                 la camara se acerca a la burbuja `de`
  *                    y la deja en (x, y) de la pantalla; `hasta` = ultimo paso en que dura
@@ -167,33 +169,19 @@ const DIAPOSITIVAS = [
       ...REPARTO_2025.map(([id, etiqueta, x, y, r, llenado]) => ({
         tipo: "burbuja", id, x, y, r, llenado, etiqueta, tono: "azul", paso: 0,
       })),
-      { tipo: "burbuja", id: "cm25", x: 960, y: 540, r: 150, llenado: 0.954, etiqueta: "Comunidad de Madrid · 2025", valor: "33.296 M€", tono: "azul", paso: 0 },
+      { tipo: "burbuja", id: "cm25", x: 960, y: 540, r: 210, llenado: 0.954, etiqueta: "Comunidad de Madrid · 2025", valor: "33.296 M€", tono: "azul", paso: 0 },
       ...REPARTO_2025.map(([id]) => ({ tipo: "enlace", de: id, a: "cm25", paso: 0 })),
-      { tipo: "texto", x: 960, y: 1040, texto: "Presupuesto de 2025 de cada consejería. El líquido es lo gastado.", tam: 26, clase: "nota", paso: 0, hasta: 0 },
 
       // paso 1: la camara se acerca a Sanidad y sale su ficha
       { tipo: "foco", de: "san", zoom: 1.7, x: 560, y: 540, paso: 1, hasta: 1 },
       {
-        tipo: "panel", x: 1130, y: 540, ancho: 680, paso: 1, hasta: 2,
-        etiqueta: "Consejería de Sanidad · 2025",
+        tipo: "panel", x: 1080, y: 310, ancho: 700, paso: 1, hasta: 2,
+        tam: 28,
+        etiqueta: "Sanidad · 2025",
         titulo: "40 de cada 100 € que gastó la Comunidad",
         bloques: [
-          { kpis: [["12.935 M€", "disponible"], ["12.833 M€", "gastado"], ["99,2 %", "del disponible"]] },
-          { barras: { titulo: "A quién adjudica · Plataforma, sin IVA", filas: [
-            ["OXIMESA, S.L.", 66.1, "66,1 M€"],
-            ["Air Liquide Healthcare", 41.9, "41,9 M€"],
-            ["UTE Clínico San Carlos", 17.1, "17,1 M€"],
-            ["Sanofi Aventis", 15.1, "15,1 M€"],
-            ["Merck Sharp & Dohme", 14.5, "14,5 M€"],
-          ] } },
-          { barras: { titulo: "Cómo contrata · 1.290 contratos", filas: [
-            ["Abierto simplificado", 482, "482"],
-            ["Abierto", 375, "375"],
-            ["Negociado sin publicidad", 246, "246"],
-            ["Otros", 186, "186"],
-          ] } },
+          { kpis: [["12.833 M€", "gastados"], ["1.290", "contratos"]] },
         ],
-        fuente: "Presupuesto liquidado: Datos abiertos de la Comunidad de Madrid (23-nov-2026). Contratos: Plataforma de Contratación del Sector Público (16-nov-2026), 54 órganos de la consejería.",
       },
 
       // paso 2: aparecen sus contratos mayores
@@ -206,26 +194,15 @@ const DIAPOSITIVAS = [
       // paso 3: la camara entra en un contrato y sale su ficha con sus señales
       { tipo: "foco", de: "vph", zoom: 3.4, x: 600, y: 540, paso: 3 },
       {
-        tipo: "panel", x: 1080, y: 540, ancho: 700, paso: 3,
-        etiqueta: "Contrato · Consejería de Sanidad",
-        titulo: "Vacuna del papiloma humano (VPH), 2025-2026",
+        tipo: "panel", x: 1060, y: 540, ancho: 680, paso: 3,
+        tam: 28,
+        etiqueta: "Contrato · Sanidad",
+        titulo: "Vacuna del papiloma humano",
         bloques: [
-          { filas: [
-            ["Adjudicado", "14,4 M€ sin IVA"],
-            ["Presupuesto de licitación", "14,4 M€ sin IVA"],
-            ["Empresa", "Merck Sharp & Dohme de España"],
-            ["Cómo se contrató", "Negociado sin publicidad"],
-            ["Ofertas recibidas", "1"],
-            ["Del gasto de la consejería", "0,1 %"],
-          ] },
-          { titulo: "Indicadores de riesgo", senales: [
-            ["Sin anuncio público", true, "Adjudicado por procedimiento negociado sin publicidad. La ley lo permite en supuestos concretos; los datos publicados no indican cuál se alegó."],
-            ["Una empresa concentra el gasto", false],
-            ["Modificaciones de más del 20 %", false],
-          ] },
-          { texto: "Una señal no demuestra nada irregular: indica dónde merece la pena mirar, y cada una enlaza al expediente oficial." },
+          { kpis: [["14,4 M€", "adjudicados"], ["1", "oferta"]] },
+          { senales: [["Sin anuncio público", true]], titulo: "Señal" },
         ],
-        fuente: "Plataforma de Contratación del Sector Público, expediente placsp:17910499 (16-nov-2026).",
+        fuente: "Plataforma de Contratación del Sector Público, expediente placsp:17910499.",
       },
     ],
   },
@@ -254,17 +231,12 @@ const DIAPOSITIVAS = [
         tipo: "burbuja", id: `s${i}`, x, y: y + 40, r: r * 0.8, llenado, tono: i % 3 ? "agua" : "ambar", paso: 0,
       })),
       { tipo: "texto", x: 960, y: 140, texto: "Señales, no acusaciones", tam: 64, clase: "titulo", paso: 0, hasta: 1 },
-      {
-        tipo: "panel", x: 560, y: 590, ancho: 800, paso: 1, hasta: 1,
-        etiqueta: "Indicadores de riesgo · 2023 a 2026",
-        bloques: [
-          { puntos: { valor: 39, texto: "de cada 100 licitaciones recibieron una sola oferta" } },
-          { puntos: { valor: 31, texto: "de cada 100 contratos se adjudicaron sin anuncio público" } },
-          { puntos: { valor: 17, texto: "de cada 100 contratos menores, con posible fraccionamiento" } },
-          { texto: "Cada contrato con señal explica por qué la tiene y enlaza a su expediente. Puede haber razones legítimas: mercados con pocas empresas, urgencias o requisitos técnicos." },
-        ],
-        fuente: "Indicadores R-01, R-02 y R-03 sobre la Plataforma de Contratación y el portal de la Comunidad de Madrid (noviembre de 2026).",
-      },
+      // paso 1: tres cifras grandes, una idea cada una; el fondo se apaga un poco para que se lean
+      { tipo: "niebla", fuerza: 0.45, paso: 1, hasta: 1 },
+      ...[[480, 39, "Una sola oferta"], [960, 31, "Sin anuncio público"], [1440, 17, "Posible fraccionamiento"]].flatMap(([x, valor, texto]) => [
+        { tipo: "cifra", x, y: 500, valor, texto: "de cada 100", tam: 34, clase: "resalte", paso: 1, hasta: 1 },
+        { tipo: "texto", x, y: 690, texto, tam: 36, clase: "subtitulo resalte", paso: 1, hasta: 1 },
+      ]),
       // paso 2: un contrato que se separa de los de su grupo (buscador de atipicos)
       { tipo: "burbuja", id: "atipico", x: 1700, y: 250, r: 34, llenado: 0.9, etiqueta: "Atípico", tono: "ambar", paso: 2 },
       { tipo: "foco", de: "atipico", zoom: 1.6, x: 1250, y: 420, paso: 2 },
@@ -353,7 +325,7 @@ const DIAPOSITIVAS = [
     profundidad: 0.15,
     ojo: { x: 960, y: 400, escala: 2, mira: { x: 960, y: 560 } },
     elementos: [
-      { tipo: "texto", x: 960, y: 740, texto: "Lo público, a la vista de todos", tam: 84, clase: "titulo", paso: 0 },
+      { tipo: "texto", x: 960, y: 740, texto: "Ojo, ciudadano", tam: 84, clase: "titulo", paso: 0 },
       { tipo: "imagen", x: 790, y: 870, ancho: 340, src: LOGO_OJO, paso: 1 },
     ],
   },

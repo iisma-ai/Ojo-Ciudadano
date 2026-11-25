@@ -549,7 +549,7 @@ const diapositivas = DIAPOSITIVAS.map((d, i) => {
         tipo: "cifra",
         i,
         valor: e.valor,
-        dom: etiquetaHtml(`<div class="num">0</div><div class="cap">${e.texto || ""}</div>`, "cifra"),
+        dom: etiquetaHtml(`<div class="num">0</div><div class="cap">${e.texto || ""}</div>`, `cifra ${e.clase || ""}`),
         ancla: aMundo(i, e.x, e.y),
         tam: e.tam || 40,
       };

@@ -11,7 +11,8 @@
  *
  * Elementos:
  *   {tipo:"texto",   x, y, texto, tam, clase, paso}              clase: "titulo" | "subtitulo" | "nota"
- *   {tipo:"cifra",   x, y, valor, formato, texto, paso}          numero que sube hasta `valor`
+ *   {tipo:"cifra",   x, y, valor, formato, texto, tam, clase, paso}  numero que sube hasta `valor`
+ *                    clase "resalte" (tambien en textos): halo oscuro difuminado detras, sin caja
  *   {tipo:"burbuja", id, x, y, r, llenado, etiqueta, valor, tono, paso}
  *                    llenado 0..1 = lo gastado; tono: "azul" | "ambar" | "agua"
  *   {tipo:"enlace",  de, a, paso}                                 linea de agua entre dos burbujas
@@ -231,8 +232,8 @@ const DIAPOSITIVAS = [
       { tipo: "texto", x: 960, y: 140, texto: "Señales, no acusaciones", tam: 64, clase: "titulo", paso: 0, hasta: 1 },
       // paso 1: tres cifras grandes, una idea cada una
       ...[[480, 39, "Una sola oferta"], [960, 31, "Sin anuncio público"], [1440, 17, "Posible fraccionamiento"]].flatMap(([x, valor, texto]) => [
-        { tipo: "cifra", x, y: 500, valor, texto: "de cada 100", tam: 34, paso: 1, hasta: 1 },
-        { tipo: "texto", x, y: 690, texto, tam: 36, clase: "subtitulo", paso: 1, hasta: 1 },
+        { tipo: "cifra", x, y: 500, valor, texto: "de cada 100", tam: 34, clase: "resalte", paso: 1, hasta: 1 },
+        { tipo: "texto", x, y: 690, texto, tam: 36, clase: "subtitulo resalte", paso: 1, hasta: 1 },
       ]),
       // paso 2: un contrato que se separa de los de su grupo (buscador de atipicos)
       { tipo: "burbuja", id: "atipico", x: 1700, y: 250, r: 34, llenado: 0.9, etiqueta: "Atípico", tono: "ambar", paso: 2 },

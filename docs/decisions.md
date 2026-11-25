@@ -1132,3 +1132,16 @@ Plantilla:
     - Puede dejar fuera a quien use una SIM extranjera en itinerancia o una VPN.
   - Con 4,94 USD de margen en la clave (unos 0,008 USD por pregunta) hay para unas 600 preguntas.
 
+
+## D-058 · La ficha de empresa u organismo enseña lo que llega por la dirección
+
+- **Fecha:** 2026-11-25
+- **Estado:** Aceptada (fallo que vio Lucas: «te saca los mismos datos en todos los paneles»).
+- **Autor:** Claude (agente), a petición de Lucas
+- **Contexto:** las fichas decidían qué enseñar con `buscador or dirección`. El buscador de la ficha guarda en la sesión lo último que se eligió en él. Al elegir allí una empresa una vez (por ejemplo, Fresenius Kabi), todas las que llegaban después desde el Inicio (`?empresa=…`) seguían enseñando esa.
+- **Decisión:** `buscador.con_direccion`:
+  - si se acaba de elegir algo nuevo en el buscador de la ficha, se enseña eso y se pone en la dirección;
+  - si no, manda la dirección.
+
+  Se aplica en la ficha de empresa y en la de organismo, con un test que reproduce el caso.
+- **Consecuencias:** la dirección siempre dice qué ficha se ve; se puede compartir el enlace.

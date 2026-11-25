@@ -31,9 +31,10 @@ st.caption(
     "organismos."
 )
 
-# Desde el buscador de la portada se llega con la empresa en la dirección (?empresa=…).
-elegida = buscador.empresa("buscar_empresa", "Buscar empresa o entidad") or st.query_params.get(
-    "empresa"
+# Desde el buscador de la portada se llega con la empresa en la dirección (?empresa=…); lo que
+# se elija aquí manda solo si se acaba de elegir (D-058).
+elegida = buscador.con_direccion(
+    buscador.empresa("buscar_empresa", "Buscar empresa o entidad"), "empresa", "buscar_empresa"
 )
 buscador.esperar(
     elegida,

@@ -74,7 +74,11 @@ def esperar(elegido: str | None, mensaje: str) -> None:
 
 
 def _todo(texto: str) -> list[tuple[str, str]]:
-    """Organismos y empresas a la vez (primero los organismos, que son pocos)."""
+    """Organismos y empresas a la vez (primero los organismos, que son pocos). Sin texto, una
+    muestra variada para empezar: consejerías, hospitales y las empresas con más contratos (si no,
+    solo saldrían hospitales, que son los que más contratan)."""
+    if not texto.strip():
+        return _sugerencias_iniciales()
     organos = [
         (f"Organismo · {o['nombre']}", f"organo:{o['organo_id']}")
         for o in datos.sugerir_organos(conexion(), texto, limite=5)
@@ -84,6 +88,23 @@ def _todo(texto: str) -> list[tuple[str, str]]:
         for e in datos.sugerir_empresas(conexion(), texto, limite=10)
     ]
     return organos + empresas
+
+
+def _sugerencias_iniciales() -> list[tuple[str, str]]:
+    """Lo que sale al pulsar el buscador sin haber escrito nada."""
+    con = conexion()
+    opciones = []
+    for prefijo in ("Consejería", "Hospital"):
+        opciones += [
+            (f"Organismo · {o['nombre']}", f"organo:{o['organo_id']}")
+            for o in datos.sugerir_organos(con, prefijo, limite=4)
+            if o["nombre"].startswith(prefijo)
+        ]
+    opciones += [
+        (f"Empresa · {e['nombre']} · {e['nif'] or 'UTE'}", f"empresa:{e['adjudicatario_id']}")
+        for e in datos.sugerir_empresas(con, "", limite=6)
+    ]
+    return opciones
 
 
 # Barra de búsqueda de la portada con la estética de la web: cápsula de cristal con una lupa a la
@@ -168,6 +189,8 @@ def todo(clave: str, etiqueta: str = "") -> tuple[str, str] | None:
         label=etiqueta,
         placeholder="Busca una empresa, un hospital o una consejería",
         key=clave,
+        # al pulsarlo sin escribir nada ya salen opciones para empezar
+        default_options=_sugerencias_iniciales(),
         debounce=PAUSA_MS,
         style_overrides=ESTILO_BARRA,
         # la lista de sugerencias sale por encima de la página, sin empujar lo de debajo

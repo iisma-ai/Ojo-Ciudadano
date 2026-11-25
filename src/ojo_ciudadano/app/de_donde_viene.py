@@ -5,7 +5,7 @@ Para un ciudadano cualquiera:
 - el mapa de burbujas con la misma estética que el de gastos: una burbuja por tipo de ingreso
   que, con el año cerrado, se llena hasta lo que entró respecto a lo previsto;
 - al lado, una caja de información con el saldo con el sistema común de financiación, que en
-  el presupuesto consolidado sale como transferencias corrientes en negativo (D-063);
+  el presupuesto consolidado sale como transferencias corrientes en negativo (D-064);
 - lo que supone por habitante, las ayudas de la UE y las fuentes al final.
 
 Todas las cifras salen de las series del catálogo de datos abiertos de la Comunidad

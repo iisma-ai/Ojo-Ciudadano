@@ -173,14 +173,13 @@ const DIAPOSITIVAS = [
       // paso 1: la camara se acerca a Sanidad y sale su ficha
       { tipo: "foco", de: "san", zoom: 1.7, x: 560, y: 540, paso: 1, hasta: 1 },
       {
-        tipo: "panel", x: 1080, y: 540, ancho: 700, paso: 1, hasta: 2,
+        tipo: "panel", x: 1080, y: 310, ancho: 700, paso: 1, hasta: 2,
         tam: 28,
         etiqueta: "Sanidad · 2025",
         titulo: "40 de cada 100 € que gastó la Comunidad",
         bloques: [
           { kpis: [["12.833 M€", "gastados"], ["1.290", "contratos"]] },
         ],
-        fuente: "Datos abiertos de la Comunidad de Madrid y Plataforma de Contratación del Sector Público.",
       },
 
       // paso 2: aparecen sus contratos mayores

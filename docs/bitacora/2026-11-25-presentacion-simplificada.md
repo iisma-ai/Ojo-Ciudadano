@@ -9,7 +9,8 @@
 - **Diapositiva del reparto de 2025.** Fuera la nota «Presupuesto de 2025 de cada consejería…»; la burbuja de la
   Comunidad de Madrid pasa de radio 150 a 210 y su etiqueta puede partirse en dos líneas.
 - **Fichas de Sanidad y del contrato de la vacuna del VPH.** Reducidas a título, dos cifras grandes y, en el contrato,
-  su única señal. Letra de 28 en lugar de 18. Se mantiene una línea corta de fuente.
+  su única señal. Letra de 28 en lugar de 18. La de Sanidad sube a la parte de arriba (y = 310) para no pisar las
+  burbujas del fondo y va sin línea de fuente; la del contrato mantiene una corta.
 - **«Señales, no acusaciones».** El panel con rejillas de puntos, texto explicativo y fuente se cambia por tres cifras
   grandes (39, 31 y 17 de cada 100) con un rótulo legible cada una.
 

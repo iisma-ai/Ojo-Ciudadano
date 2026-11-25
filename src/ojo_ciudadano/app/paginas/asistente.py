@@ -295,6 +295,14 @@ LOGO = str(Path(__file__).parents[1] / "static" / "logo.svg")
 OJO = ojo_cristal.imagenes()
 N_SUGERIDAS = 3
 
+# silueta de persona, clara y sin fondo, para tus mensajes (D-061)
+ICONO_PERSONA = (
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' "
+    "fill='none' stroke='%23E8F2FF' stroke-width='1.8' stroke-linecap='round'%3E"
+    "%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6'/%3E"
+    '%3C/svg%3E")'
+)
+
 ESTILO = """
 <style>
 /* El panel del chat: cristal azul vivo como el de la presentación (D-060): teñido de azul,
@@ -320,9 +328,22 @@ ESTILO = """
 .st-key-chat [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {
   flex-direction: row-reverse; text-align: right; }
 .st-key-chat [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"])
-  [data-testid="stMarkdownContainer"] { display: inline-block; padding: .65rem 1rem;
-  border-radius: 18px 18px 4px 18px; background: linear-gradient(135deg,#3d8bfd,#22b5d8);
-  color: #fff; }
+  [data-testid="stMarkdownContainer"] { width: fit-content; max-width: 85%; margin-left: auto;
+  text-align: left; padding: .65rem 1rem;
+  border-radius: 18px 18px 4px 18px; color: #fff;
+  /* cristal claro translúcido, a juego con el panel (D-061) */
+  background: linear-gradient(135deg, rgba(255,255,255,.16), rgba(160,205,255,.08));
+  border: 1px solid rgba(190, 220, 255, 0.32);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18); }
+/* el icono de la persona: solo la silueta, casi blanca, sin el cuadrado de color */
+.st-key-chat [data-testid="stChatMessageAvatarUser"] { background: transparent !important;
+  color: rgba(232, 242, 255, 0.85) !important; border: 1.5px solid rgba(232, 242, 255, 0.5);
+  border-radius: 50% !important; }
+.st-key-chat [data-testid="stChatMessageAvatarUser"] > span { display: none; }
+.st-key-chat [data-testid="stChatMessageAvatarUser"] { background-repeat: no-repeat !important;
+  background-position: center !important; background-size: 62% !important;
+  background-image: ICONO_PERSONA  !important; }
+
 /* sugerencias: cápsulas de cristal pequeñas */
 .st-key-sugerencias { gap: .5rem !important; flex-wrap: wrap; justify-content: center; }
 .st-key-sugerencias button p { font-size: .9rem !important; }
@@ -399,7 +420,7 @@ def otras_sugerencias() -> None:
 
 
 st.html(animacion.CSS)  # una vez por página, para todas las animaciones
-st.html(ESTILO)
+st.html(ESTILO.replace("ICONO_PERSONA", ICONO_PERSONA))
 
 modelo = agente.modelo_configurado()
 turnos = st.session_state.setdefault("turnos_asistente", [])

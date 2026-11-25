@@ -1,0 +1,19 @@
+# Lo que no entra en la imagen del despliegue (despliegue/Dockerfile).
+# Los datos y los secretos se montan aparte; nunca van dentro de la imagen.
+data/
+*.rar
+*.duckdb
+*.duckdb.wal
+.env
+.env.*
+despliegue/*.env
+.git/
+.venv/
+.pytest_cache/
+.ruff_cache/
+**/__pycache__/
+.claude/
+tests/
+docs/
+portada/
+Plataforma de transparencia del gasto público de la Comunidad de Madrid.md

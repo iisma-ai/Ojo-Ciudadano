@@ -46,3 +46,7 @@ Thumbs.db
 *.rar
 *.zip
 *.7z
+
+# Despliegue (D-056): token del túnel de Cloudflare y registros locales
+despliegue/*.env
+despliegue/registros/

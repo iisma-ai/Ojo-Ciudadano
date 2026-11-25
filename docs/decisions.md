@@ -1079,3 +1079,32 @@ Plantilla:
   - En los gráficos, el ámbar queda solo para lo atípico. Actualizados `docs/marca.md` y `docs/11-accesibilidad.md`.
   - Contrapartida: con siete tonos de la misma familia, distinguir muchas entidades cuesta algo más. Por eso cada rectángulo y cada burbuja lleva su nombre escrito.
 
+
+## D-056 · Despliegue para la entrega: ordenador fijo con Docker y túnel de Cloudflare, detrás de una portada en Cloudflare Pages
+
+- **Fecha:** 2026-11-25
+- **Estado:** Aceptada (El Harrak: «vamos a hacer lo de la portada con marco», tras comparar las opciones).
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** la web tiene que funcionar mañana, estable, fluida y con poca latencia, y actualizarse sola desde GitHub; no hace falta que dure. La app de Streamlit es a la vez la página y el servidor de datos y del asistente, así que separar la página de los datos exigiría reescribir las consultas. El Harrak tiene un ordenador fijo encendido de forma continua, con Docker y un túnel de Cloudflare de otro proyecto sobre su dominio `sourcia.solutions`, y quiere un nombre neutro.
+- **Decisión:**
+  - **Servidor:** la app entera en Docker en el ordenador fijo (`despliegue/`), con los datos en un volumen de Docker. En Windows es mucho más rápido que leer la base desde una carpeta de Windows.
+  - **Túnel:** uno propio, independiente del de Sourcia, con un subdominio neutro (`oc-origen.sourcia.solutions`).
+  - **Portada:** un HTML estático en Cloudflare Pages (`ojo-ciudadano.pages.dev`), que es la dirección que se comparte.
+    - Prueba los servidores de `portada/config.js`, abre el que responde en un marco y lo vigila.
+    - Si deja de responder, avisa y salta a otro o reintenta sola.
+    - Conserva la ruta del enlace.
+  - **Actualización:** una tarea programada mira `main` cada minuto en una carpeta de despliegue aparte. Construye la imagen nueva antes de tocar la que está en marcha y vuelve sola a la anterior si la nueva no queda sana.
+  - **Configuración de Streamlit:**
+    - sin CORS ni XSRF, porque dentro del marco de otro dominio Safari bloquea su cookie;
+    - sin vigilancia de ficheros;
+    - sin detalles de los errores para el visitante.
+- **Alternativas consideradas:**
+  - **Streamlit Community Cloud** (memoria justa, se duerme, la base no cabe en GitHub): queda como reserva opcional.
+  - **Hugging Face Spaces:** el plan gratuito para Docker ya no es fiable.
+  - **Un servidor alquilado:** coste y poco margen para montarlo.
+  - **La portada que reenvía con una función de Cloudflare:** el mismo resultado en la barra del navegador, pero el doble de trabajo y más piezas que puedan fallar.
+  - **Un dominio propio de pago:** el tiempo de propagación.
+- **Consecuencias:**
+  - La web depende de que el ordenador fijo esté encendido, con sesión iniciada y con internet. Mitigado con reinicio automático de los contenedores, la tarea programada, los ajustes de energía y Windows Update, y AnyDesk.
+  - Los datos no pasan por GitHub: si se regenera la base, se copia con `despliegue/cargar_datos.ps1`.
+  - Guía y operación en `docs/15-despliegue.md`.

@@ -266,17 +266,16 @@ const DIAPOSITIVAS = [
       },
       {
         tipo: "chat", x: 700, y: 540, ancho: 960, paso: 2, hasta: 2,
-        pregunta: "¿Qué organismos adjudicaron más importe en la Plataforma de Contratación en 2025?",
+        pregunta: "¿Qué proporción de los recursos ante el Tribunal de Contratación Pública se estima, según el acto recurrido?",
         respuesta: [
-          { barras: { titulo: "Millones de euros sin IVA · 2025", filas: [
-            ["Consejería de Familia, Juventud y Asuntos Sociales", 594.3, "594,3"],
-            ["Metro de Madrid", 451.8, "451,8"],
-            ["Canal de Isabel II", 432.6, "432,6"],
-            ["Consejería de Presidencia, Justicia y Adm. Local", 234.0, "234,0"],
-            ["Agencia de Contratación Sanitaria", 203.3, "203,3"],
+          { tarta: { titulo: "Resoluciones del Tribunal por acto recurrido", centro: ["1.104", "resoluciones"], filas: [
+            ["Adjudicación", 452, "452 · 24,8 % estimadas", "#3d8bfd"],
+            ["Exclusión", 389, "389 · 18,3 % estimadas", "#7db3ff"],
+            ["Pliegos", 209, "209 · 30,6 % estimadas", "#1f5fd6"],
+            ["Otros actos", 54, "54 · 14,8 % estimadas", "#f2b544"],
           ] } },
-          { texto: "El año es el de formalización. Solo incluye la Plataforma, con importes sin IVA." },
-          { chips: ["Plataforma de Contratación del Sector Público · 16-nov-2026"] },
+          { texto: "Presentar un recurso no es una señal. Que se estime significa que el Tribunal dio la razón a quien recurrió ese acto; no implica una conducta reprochable de la empresa adjudicataria." },
+          { chips: ["Tribunal Administrativo de Contratación Pública de la Comunidad de Madrid · 23-nov-2026"] },
         ],
       },
       {

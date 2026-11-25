@@ -4,7 +4,10 @@
 
 - **Diapositiva 7, tercera pregunta.** La pregunta sobre los recursos ante el Tribunal (tarta) se cambia por una
   pregunta de alguien que no sabe nada del tema: «Oye, ¿es verdad que la Comunidad de Madrid tiene helicópteros?».
-  La idea es enseñar que no hace falta saber de contratación para preguntar. Las preguntas 1 y 2 no cambian.
+  La idea es enseñar que no hace falta saber de contratación para preguntar.
+- **Corrección a petición de Isma:** la pregunta que se quita es la de los organismos con más importe en 2025 (barras),
+  no la del Tribunal. Orden final: 1) licitador único por año (barras), 2) recursos ante el Tribunal por acto
+  recurrido (tarta), 3) helicópteros. La tarta compara tipos de acto recurrido, no organismos.
 - **Cifras de la respuesta**, sacadas con la búsqueda por palabras en los títulos (`asistente/texto.py`,
   consulta «helicoptero», base del 16-nov):
   - 12 contratos: 4 licitaciones de la Plataforma de Contratación, con 52,8 M€ sin IVA, y 8 contratos del portal

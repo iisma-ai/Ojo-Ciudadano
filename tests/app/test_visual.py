@@ -4,7 +4,7 @@ from datetime import date, timedelta
 
 import pytest
 
-from ojo_ciudadano.app import datos, graficos, senales, textos
+from ojo_ciudadano.app import datos, dibujos_senales, graficos, senales, textos
 from ojo_ciudadano.indicadores import ejecutor
 
 
@@ -203,10 +203,32 @@ def test_grafico_automatico_ranking_y_por_anio():
     assert graficos.automatico({"columnas": ["a"], "filas": []}) == (None, None)
 
 
-def test_graficos_de_modificaciones_y_rebaja():
-    subida = graficos.subida({"adjudicado": 100.0, "modificaciones": 40.0})
-    tramos = [traza.y[1] for traza in subida.data]
-    assert tramos == [100.0, 20.0, 20.0]  # precio, hasta el 20 % y lo que pasa del 20 %
-    regla = graficos.rebaja({"presupuesto": 100.0, "adjudicado": 170.0}, habitual=0.17)
-    assert regla.data[-1].x[0] == pytest.approx(-0.7)  # 70 % por encima del precio de salida
-    assert "por encima" in regla.data[-1].text[0]
+def test_dibujos_de_modificaciones_y_rebaja():
+    # precio, hasta el 20 % y lo que pasa del 20 %
+    assert dibujos_senales.tramos_subida(100.0, 40.0) == (20.0, 20.0)
+    assert dibujos_senales.tramos_subida(100.0, 10.0) == (10.0, 0)
+    vasos = dibujos_senales.subida({"adjudicado": 100.0, "modificaciones": 40.0})
+    assert "+40 %" in vasos and "Por encima del 20 %" in vasos
+    regla = dibujos_senales.rebaja({"presupuesto": 100.0, "adjudicado": 170.0}, habitual=0.17)
+    assert "Este contrato: 70 % por encima" in regla
+    assert "Lo habitual: 17 %" in regla
+
+
+def test_dibujos_de_senales_con_cristal_y_texto_alternativo():
+    tubos = dibujos_senales.ofertas({"ofertas": 1, "distribucion": [(1, 3), (2, 5), (10, 1)]})
+    assert tubos.count('class="oc-vidrio"') == 3  # un tubo por número de ofertas
+    assert "Este contrato" in tubos and 'role="img"' in tubos
+    assert "10 o más ofertas: 1 contratos" in tubos
+    burbuja = dibujos_senales.sin_anuncio({"sin_anuncio": 31.0, "con_anuncio": 69.0})
+    assert "31 €" in burbuja and "69 € con anuncio público" in burbuja
+    reparto = dibujos_senales.reparto(
+        {
+            "total": 100.0,
+            "partes": [
+                {"nombre": "Obras <y> Servicios", "importe": 70.0, "es_este": True},
+                {"nombre": "Otra", "importe": 30.0, "es_este": False},
+            ],
+        }
+    )
+    assert "la mitad" in reparto and "70 €" in reparto
+    assert "<y>" not in reparto  # los nombres de la base se escapan

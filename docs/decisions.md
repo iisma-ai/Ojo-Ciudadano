@@ -1196,6 +1196,25 @@ Plantilla:
 - **Consecuencias:**
   - Los logos en SVG que llevan texto no pueden cargar la letra web desde una imagen y siguen con su lista de respaldo.
   - La presentación no cambia.
+
+## D-062 · Los gráficos de las señales de un contrato, como dibujos de cristal propios
+
+- **Fecha:** 2026-11-25
+- **Estado:** Aceptada (Ignacio pidió el cambio de estilo y, el mismo día, que se integre: «vuelve a implementarlo como aparecía antes»). Rama `feat/graficos-alertas`.
+- **Autor:** Claude (agente), a petición de Ignacio
+- **Contexto:** en «Contratos a revisar» (y en todas las tarjetas de contrato: fichas de empresa y organismo, Mapa del dinero) cada señal lleva un gráfico. Con el tema de D-055 seguían pareciendo gráficos de Plotly genéricos. Se pidió que fueran más visuales y encajaran con la web, **sin cambiar lo que cuenta cada uno**. Es la opción B de D-055, solo para estos cinco gráficos.
+- **Decisión:** `app/dibujos_senales.py` dibuja cada uno en SVG propio, con el lenguaje de la presentación: tubos y burbujas de cristal llenos de líquido, «este contrato» en azul vivo y el contexto en gris azulado.
+  - **Una sola oferta (E-01):** un tubo por número de ofertas, lleno según los contratos parecidos; el de este contrato, en azul y con la etiqueta «Este contrato».
+  - **Sin anuncio público (E-02):** una burbuja llena hasta los euros de cada 100 que el organismo adjudicó sin anuncio, con la cifra al lado.
+  - **Una empresa concentra el gasto (E-04):** un tubo horizontal por empresa con sus euros de cada 100 y la línea de «la mitad».
+  - **Modificaciones (E-05):** dos vasos, antes y después, con los tramos hasta el 20 % y por encima, la línea del +20 % y la subida en grande.
+  - **Rebaja (E-06):** una regla de cristal con las zonas donde salta la señal, la burbuja de este contrato y una burbuja gris con lo habitual.
+  - **Contratos menores (E-03):** ya era dibujo propio (`billetes.html_menores`); ahora con la tarjeta y las hojas de cristal.
+  - El líquido sube al abrir (solo `transform`, una vez, quieto con «reducir movimiento»). Cada elemento da su cifra al pasar el ratón (`<title>`), y el dibujo lleva una descripción (`aria-label`) además de la frase de siempre.
+  - Se quitan de `app/graficos.py` las cinco figuras de Plotly que sustituyen.
+- **Alternativas consideradas:** retocar más el tema de Plotly (no da tubos ni líquido) y dejarlo como estaba.
+- **Consecuencias:** sin la interacción de Plotly (zoom, cuadro de Plotly); no hacía falta en gráficos tan pequeños. A un día de la entrega, hay que revisarlos en pantalla antes de integrarlos. Si algo falla, se deshace volviendo a la rama anterior.
+
 ## D-063 · El asistente solo responde sobre el gasto público de la Comunidad de Madrid y sobre la plataforma
 
 - **Fecha:** 2026-11-25

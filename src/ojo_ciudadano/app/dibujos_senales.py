@@ -1,4 +1,4 @@
-"""Dibujos de las señales de un contrato, con el estilo de la web (D-060).
+"""Dibujos de las señales de un contrato, con el estilo de la web (D-062).
 
 Mismo concepto que los gráficos de antes (estudios E-01 a E-06, D-042), con el lenguaje de la
 presentación y de la web: tubos y burbujas de cristal llenos de líquido. «Este contrato» o «esta
@@ -29,9 +29,9 @@ ZONA = "rgba(125, 179, 255, 0.16)"  # tramos de la regla donde salta una señal
 
 CSS = """
 <style>
-.oc-dib { font-family: Inter, sans-serif; color: #E7ECF3; }
+.oc-dib { font-family: Outfit, sans-serif; color: #E7ECF3; }
 .oc-dib svg { display: block; width: 100%; height: auto; max-width: 560px; overflow: visible; }
-.oc-dib text { font-family: Inter, sans-serif; }
+.oc-dib text { font-family: Outfit, sans-serif; }
 .oc-liq { transform-box: fill-box; animation: oc-sube 1.1s cubic-bezier(.2,.8,.2,1) both; }
 .oc-liq.v { transform-origin: bottom; }
 .oc-liq.h { transform-origin: left; animation-name: oc-crece; }

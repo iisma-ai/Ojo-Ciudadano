@@ -17,3 +17,13 @@
 ## A partir de ahora
 
 Lucas pide que todo se fusione y se suba a `main` al momento, porque `main` se publica solo en la web (D-056).
+
+## Segunda vuelta (D-060)
+
+- Panel del chat en cristal azul vivo, como el de la presentación, con las sugerencias y la caja de escribir a juego.
+- El ojo, fuera del panel y a su izquierda: flota, gira y mira a los lados.
+
+## Tercera vuelta
+
+- **Icono de la persona:** una silueta clara dentro de un círculo fino, en lugar del cuadrado rojo con la carita de Streamlit. Se oculta el icono por defecto y se pinta la silueta con CSS, así se mantiene el avatar de usuario que alinea los mensajes.
+- **Tu pregunta:** una burbuja de cristal claro translúcido, a la medida del texto y a la derecha, en lugar del degradado azul y cian.

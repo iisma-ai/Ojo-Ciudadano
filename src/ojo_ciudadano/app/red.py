@@ -245,7 +245,7 @@ def mapa(
                 font={
                     "color": TEXTO,
                     "size": 15 if n.centro else (11 if n.grupo != "ent" else 13),
-                    "face": "Inter, sans-serif",
+                    "face": "Outfit, sans-serif",
                     "strokeWidth": 4,
                     "strokeColor": FONDO,
                     "multi": False,

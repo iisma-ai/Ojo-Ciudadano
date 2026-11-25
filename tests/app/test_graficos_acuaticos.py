@@ -12,7 +12,7 @@ def test_barras_de_cristal_y_cuadro_con_nuestra_letra():
     assert barra.marker.line.color == graficos.BORDE_CRISTAL
     assert figura.layout.barcornerradius == 6
     etiqueta = figura.layout.hoverlabel
-    assert etiqueta.font.family.startswith("Inter")
+    assert etiqueta.font.family.startswith("Outfit")
     assert etiqueta.namelength == -1  # el nombre no se corta
 
 

@@ -2,7 +2,7 @@
 
 Cada señal se muestra con su nombre en lenguaje claro, una frase con las cifras del contrato
 (que hace de texto alternativo del gráfico) y el dibujo pensado para ella: tubos y burbujas de
-cristal (`dibujos_senales`, D-060) o, en los contratos menores, sus iconos (`billetes`).
+cristal (`dibujos_senales`, D-062) o, en los contratos menores, sus iconos (`billetes`).
 """
 
 import hashlib
@@ -152,7 +152,7 @@ def mostrar(
         if en_caja and not frase.startswith("**En este contrato"):
             st.caption("En este contrato")
         st.markdown(frase)
-    if isinstance(figura, str):  # dibujo propio en HTML y SVG (D-042, D-060)
+    if isinstance(figura, str):  # dibujo propio en HTML y SVG (D-042, D-062)
         billetes.pintar(figura, clave=f"{indicador}-{contrato_id}")
     elif figura is not None:
         st.plotly_chart(figura, config=graficos.CONFIG, key=f"{indicador}-{contrato_id}")

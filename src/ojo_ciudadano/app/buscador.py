@@ -179,7 +179,11 @@ export default function () {
         if (d && d.body && !d.getElementById('oc-transparente')) {
           const s = d.createElement('style');
           s.id = 'oc-transparente';
-          s.textContent = 'html, body { background: transparent !important; }' +
+          s.textContent =
+            "@import url('https://fonts.googleapis.com/css2" +
+            "?family=Outfit:wght@400;500;600&display=swap');" +
+            'html, body { background: transparent !important; }' +
+            '* { font-family: Outfit, sans-serif !important; }' +
             '[class*="-menu"] { background: #0B2236 !important; border-radius: 16px !important;' +
             ' overflow: hidden; border: 1px solid rgba(170,225,255,.18);' +
             ' box-shadow: 0 12px 30px rgba(0,8,22,.5) !important; }' +

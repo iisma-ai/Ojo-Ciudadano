@@ -1170,7 +1170,34 @@ Plantilla:
 
     Las demás pantallas mantienen su pie.
 
-## D-060 · Los gráficos de las señales de un contrato, como dibujos de cristal propios
+## D-060 · Asistente: panel de cristal azul vivo y el ojo al lado como personaje
+
+- **Fecha:** 2026-11-25
+- **Estado:** Aceptada (Lucas: «un poco más glassy, un poco más cristalino y un poco más azul vivo… ahora mismo es como un azul muerto»; el ojo «a derecha o a izquierda, como un personajillo»).
+- **Autor:** Claude (agente), a petición de Lucas
+- **Decisión:**
+  - **Panel del chat**, inspirado en el panel de la presentación:
+    - cristal teñido de azul;
+    - luces azules difuminadas detrás (en una capa propia);
+    - borde claro, brillo arriba y un halo azul;
+    - desenfoque y saturación de lo que hay detrás (`backdrop-filter`, solo en este panel).
+  - **Sugerencias y caja de escribir**, en cristal más claro a juego.
+  - **El ojo de cristal sale del panel** y queda a su izquierda, como un personaje. Flota despacio, el iris gira y de vez en cuando mira a un lado y a otro. Sin tarjeta gráfica o con «reducir movimiento», queda quieto.
+
+## D-061 · Tipografía Outfit (y JetBrains Mono para el código)
+
+- **Fecha:** 2026-11-25
+- **Estado:** Aceptada (Lucas: «vamos a cambiarla por una un poco más chula… la que uso en Clubed»).
+- **Autor:** Claude (agente), a petición de Lucas
+- **Decisión:**
+  - **Outfit** (Google Fonts, pesos 300 a 700) sustituye a Inter en toda la web: el tema de Streamlit, el CSS, el HTML de las pantallas, los SVG, el lienzo de las burbujas y los gráficos de Plotly.
+  - **JetBrains Mono**, que estaba declarada pero no se descargaba, se carga ahora para el código y los nombres de tablas.
+  - El buscador va en un iframe y carga Outfit por su cuenta.
+- **Consecuencias:**
+  - Los logos en SVG que llevan texto no pueden cargar la letra web desde una imagen y siguen con su lista de respaldo.
+  - La presentación no cambia.
+
+## D-062 · Los gráficos de las señales de un contrato, como dibujos de cristal propios
 
 - **Fecha:** 2026-11-25
 - **Estado:** Propuesta (Ignacio pidió el cambio de estilo; en rama `feat/graficos-alertas`, sin subir hasta que lo revise)

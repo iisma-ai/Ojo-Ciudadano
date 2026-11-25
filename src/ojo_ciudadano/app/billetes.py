@@ -115,7 +115,7 @@ def svg_frasco(
             '<rect x="24" y="31" width="52" height="19" rx="5" fill="#0B2236" fill-opacity=".35"/>'
             '<rect x="24" y="30" width="52" height="19" rx="5" fill="#F7F1DF"/>'
             '<rect x="24" y="30" width="52" height="5" rx="2.5" fill="#fff" fill-opacity=".5"/>'
-            f'<text x="50" y="44.5" text-anchor="middle" font-family="Inter, Arial, sans-serif" '
+            f'<text x="50" y="44.5" text-anchor="middle" font-family="Outfit, Arial, sans-serif" '
             f'font-size="14" font-weight="700" fill="#0B2236">{html.escape(etiqueta)}</text>'
         )
     borde = 0.7 if centro else 0.5
@@ -184,7 +184,7 @@ BILLETE = """
   <circle cx="38" cy="20" r="10.5" fill="#fff" fill-opacity=".16" stroke="#fff"
           stroke-opacity=".45" stroke-width="1.2"/>
   <text x="38" y="25" text-anchor="middle" font-size="14" font-weight="700" fill="#fff"
-        fill-opacity=".92" font-family="Inter, sans-serif">€</text>
+        fill-opacity=".92" font-family="Outfit, sans-serif">€</text>
   <circle cx="11" cy="11" r="3.2" fill="#fff" fill-opacity=".28"/>
   <circle cx="65" cy="29" r="3.2" fill="#fff" fill-opacity=".28"/>
 </symbol>
@@ -423,7 +423,7 @@ def html_menores(detalle: dict, ventana: list[dict], contrato_id: str) -> str:
         )
     return f"""
 <style>
-.oc-r03 {{ font-family: Inter, sans-serif; color: #E7ECF3; }}
+.oc-r03 {{ font-family: Outfit, sans-serif; color: #E7ECF3; }}
 .oc-grande {{ display: flex; gap: 16px; align-items: center; padding: 14px 16px;
   border-radius: 16px; border: 1px solid rgba(170,225,255,.22);
   background: linear-gradient(145deg, rgba(125,179,255,.16), rgba(255,255,255,.03) 65%);
@@ -466,7 +466,7 @@ def html_menores(detalle: dict, ventana: list[dict], contrato_id: str) -> str:
 # --------------------------------------------------------------------------- componente
 CSS = """
 .oc-leyenda { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: center;
-  font-family: Inter, sans-serif; font-size: .9rem; color: #B9C6D8; margin: 2px 0 6px; }
+  font-family: Outfit, sans-serif; font-size: .9rem; color: #B9C6D8; margin: 2px 0 6px; }
 .oc-ley { display: inline-flex; align-items: center; gap: 8px; }
 """
 

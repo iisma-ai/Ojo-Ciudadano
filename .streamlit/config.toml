@@ -16,8 +16,8 @@ linkColor = "#7DB3FF"
 borderColor = "#1E3A52"
 showWidgetBorder = true
 baseRadius = "0.6rem"
-font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-codeFont = "'JetBrains Mono', ui-monospace, monospace"
+font = "Outfit:https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
+codeFont = "JetBrains Mono:https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
 
 [theme.sidebar]
 backgroundColor = "#06202F"

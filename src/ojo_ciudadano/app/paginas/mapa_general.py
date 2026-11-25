@@ -470,7 +470,7 @@ def barra_presupuesto(datos_anio: dict, anio: int) -> str:
     )
     return f"""
 <style>
-.ocp {{ font-family:Inter, sans-serif; color:#E7ECF3; margin: 6px 0 4px; }}
+.ocp {{ font-family:Outfit, sans-serif; color:#E7ECF3; margin: 6px 0 4px; }}
 .ocp-cab {{ display:flex; justify-content:space-between; align-items:baseline; gap:12px;
   margin-bottom:10px; }}
 .ocp-cab h3 {{ margin:0; padding:0; font-size:1.35rem; font-weight:700; color:#E7ECF3; }}
@@ -558,7 +558,7 @@ def tarjeta_ciudadano(datos_anio: dict, anio: int, poblacion: dict | None) -> No
 .oc-tarjeta {{ display:flex; gap:28px; align-items:center; flex-wrap:wrap;
   padding:22px 26px; border-radius:18px; background:rgba(255,255,255,.045);
   border:1px solid rgba(170,225,255,.16); box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
-  font-family:Inter, sans-serif; color:#E7ECF3; }}
+  font-family:Outfit, sans-serif; color:#E7ECF3; }}
 .oc-tarjeta .texto {{ flex:1 1 360px; min-width:0; }}
 .oc-frase {{ font-size:1.45rem; line-height:1.45; margin:0 0 14px; font-weight:300; }}
 .oc-frase b {{ font-weight:650; color:#fff; }}
@@ -608,7 +608,7 @@ def gasto_por_consejeria(entidades: list[dict]) -> str:
         "<style>"
         ".oc-fila{display:grid;grid-template-columns:minmax(150px,1.2fr) 3fr 56px;"
         "gap:14px;align-items:center;padding:7px 0;border-bottom:1px solid rgba(170,225,255,.08);"
-        "font-family:Inter,sans-serif;color:#E7ECF3;font-size:.92rem}"
+        "font-family:Outfit,sans-serif;color:#E7ECF3;font-size:.92rem}"
         ".oc-nombre{line-height:1.25}"
         ".oc-mini{height:12px;border-radius:7px;background:#33415C;overflow:hidden}"
         ".oc-mini div{height:100%;border-radius:7px;"
@@ -650,7 +650,7 @@ def barras_dinero(entidades: list[dict]) -> str:
     )
     return (
         """<style>
-.ocb { font-family: Inter, sans-serif; color: #E7ECF3; }
+.ocb { font-family: Outfit, sans-serif; color: #E7ECF3; }
 .ocb-leyenda { display:flex; gap:22px; flex-wrap:wrap; font-size:.85rem; color:#9FB6CC;
   margin: 0 0 14px; }
 .ocb-leyenda span { display:flex; align-items:center; gap:8px; }

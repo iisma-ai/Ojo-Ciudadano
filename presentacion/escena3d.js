@@ -31,7 +31,8 @@ try {
   document.getElementById("cortina").textContent = "Este navegador no puede mostrar gráficos 3D (WebGL).";
   throw err;
 }
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+// Al menos 1,5 y hasta 2 pixeles por punto: en pantallas y proyectores de 1080p el ojo y el agua salen nitidos
+renderer.setPixelRatio(Math.min(Math.max(window.devicePixelRatio, 1.5), 2));
 renderer.toneMapping = THREE.NeutralToneMapping; // conserva el tono de los azules (ACES los vuelve morados)
 renderer.toneMappingExposure = 1.05;
 
@@ -72,7 +73,12 @@ const rocas = Agua.crearRocas([
 escena.add(cieloArriba, rocas);
 const NEBLINA = new THREE.Color("#d9a585");
 
-const compositor = new EffectComposer(renderer);
+// El compositor pinta en una textura propia, que sin muestras no tiene antialiasing (bordes en dientes de sierra)
+const compositor = new EffectComposer(
+  renderer,
+  new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 }),
+);
+compositor.setPixelRatio(renderer.getPixelRatio());
 compositor.addPass(new RenderPass(escena, camara));
 const brillo = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.55, 0.7, 0.82);
 compositor.addPass(brillo);
@@ -198,8 +204,8 @@ const MAT_ENLACE = () =>
       void main(){
         if (vUv.x > uProg) discard;
         float pulso = smoothstep(.82, 1., sin(vUv.x * 36. - uT * 4.) * .5 + .5);
-        float a = .55 + pulso * .9;
-        gl_FragColor = vec4(vec3(.65, .9, 1.) * (1. + pulso * 2.5) * a, a);
+        float a = .22 + pulso * .3;
+        gl_FragColor = vec4(vec3(.6, .82, 1.) * (1. + pulso * .8) * a, a);
       }`,
     transparent: true,
     depthWrite: false,
@@ -364,7 +370,7 @@ function crearEnlace(e, i, porId) {
   const p2 = pb.clone().addScaledVector(dir, -rb * 1.02);
   const medio = p1.clone().lerp(p2, 0.5).add(new THREE.Vector3(0, -0.35, 0.4));
   const curva = new THREE.QuadraticBezierCurve3(p1, medio, p2);
-  const malla = new THREE.Mesh(new THREE.TubeGeometry(curva, 90, 0.022, 10), MAT_ENLACE());
+  const malla = new THREE.Mesh(new THREE.TubeGeometry(curva, 90, 0.016, 10), MAT_ENLACE());
   escena.add(malla);
   return { tipo: "enlace", e, i, malla, prog: 0 };
 }
@@ -464,7 +470,7 @@ function crearPanel(e, i) {
   let k = 0;
   for (const b of e.bloques || []) h += `<div class="bloque" style="--i:${k++}">${bloque(b)}</div>`;
   if (e.fuente) h += `<div class="bloque p-fuente" style="--i:${k}">${e.fuente}</div>`;
-  return { tipo: "panel", i, dom: etiquetaHtml(h, "panel"), fijo: { x: e.x, y: e.y, ancho: e.ancho || 560 }, tam: 18 };
+  return { tipo: "panel", i, dom: etiquetaHtml(h, "panel"), fijo: { x: e.x, y: e.y, ancho: e.ancho || 560 }, tam: e.tam || 18 };
 }
 
 function crearChat(e, i) {
@@ -547,7 +553,7 @@ const diapositivas = DIAPOSITIVAS.map((d, i) => {
         valor: e.valor,
         dom: etiquetaHtml(`<div class="num">0</div><div class="cap">${e.texto || ""}</div>`, "cifra"),
         ancla: aMundo(i, e.x, e.y),
-        tam: 40,
+        tam: e.tam || 40,
       };
     }
     if (!it) continue;
@@ -671,8 +677,9 @@ function ajustar() {
   camara.updateProjectionMatrix();
   renderer.setSize(W, H);
   compositor.setSize(W, H);
-  final.uniforms.uRes.value.set(W, H);
-  nieve.uniforms.uPx.value = H * 0.045;
+  const pr = renderer.getPixelRatio();
+  final.uniforms.uRes.value.set(W * pr, H * pr);
+  nieve.uniforms.uPx.value = H * pr * 0.045;
   escalaTexto = (H / 1080) * (D0 / D);
   for (const it of items) {
     if (!it.dom) continue;

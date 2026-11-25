@@ -55,7 +55,7 @@ body.quieto { cursor: none; }
   color: rgba(225, 242, 255, 0.9);
 }
 .etiqueta.dentro b { font-weight: 200; font-size: 2.1em; letter-spacing: -0.03em; line-height: 1; }
-.etiqueta.dentro span { font-size: 0.55em; }
+.etiqueta.dentro span { font-size: 0.55em; white-space: normal; max-width: 13em; text-align: center; line-height: 1.4; }
 
 .cifra .num {
   font-size: 5.6em;

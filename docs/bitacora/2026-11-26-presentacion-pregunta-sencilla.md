@@ -35,6 +35,8 @@
   - una subvención: AECC, cuidados paliativos 2025, 0,6 M€ (BDNS).
 - **Periodo de los datos** para el guion: 1.354.441 contratos (licitaciones de la Plataforma y del portal y menores
   de enero de 2023 a septiembre de 2026) y 872.821 concesiones de subvenciones (de enero de 2023 a noviembre de 2026).
+- **Diapositiva 5:** debajo de los 1.354.441 contratos, más pequeña (`tam: 24`), la cifra de 872.821 subvenciones;
+  la de contratos sube de `y: 540` a `y: 430`. `DATOS.subvenciones` pasa de 863.510 a 872.821, lo que hay en la base.
 - `presentacion/README.md`: actualizadas las filas de las escenas 4 y 7.
 - **Guion de Isma (diapositivas 4 a 7)** reescrito en la conversación con la estructura que pidió: de dónde viene y a
   dónde va el dinero, el volumen de los datos, las señales y los atípicos (Isolation Forest), el asistente

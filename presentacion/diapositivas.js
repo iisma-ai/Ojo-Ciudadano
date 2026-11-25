@@ -43,7 +43,7 @@
 const DATOS = {
   contratosPortal: 1354441, // contratos del portal de la Comunidad
   adjudicadoMillones: 22857, // adjudicado en la Plataforma de Contratacion, sin IVA
-  subvenciones: 863510, // concesiones de subvenciones (BDNS)
+  subvenciones: 872821, // concesiones de subvenciones (BDNS), de ene-2023 a nov-2026 (base del 24-nov)
   organismos: 132,
   indicadores: 6,
   urlApp: "", // direccion publica de la web para el QR de la escena 8 (vacia: sale un hueco)
@@ -225,7 +225,8 @@ const DIAPOSITIVAS = [
       ...ENJAMBRE.map(([x, y, r, llenado], i) => ({
         tipo: "burbuja", id: `e${i}`, x, y, r, llenado, tono: i % 4 ? "agua" : "azul", paso: 0,
       })),
-      { tipo: "cifra", x: 960, y: 540, valor: DATOS.contratosPortal, texto: "contratos públicos", paso: 1 },
+      { tipo: "cifra", x: 960, y: 430, valor: DATOS.contratosPortal, texto: "contratos públicos", paso: 1 },
+      { tipo: "cifra", x: 960, y: 740, valor: DATOS.subvenciones, texto: "subvenciones", tam: 24, paso: 1 },
     ],
   },
 

@@ -225,6 +225,116 @@ def ingresos_por_capitulo(con: duckdb.DuckDBPyConnection, anio: int) -> list[dic
     )
 
 
+# ------------------------------------------------------------ de dónde viene el dinero (D-054)
+SERIE_INGRESOS_LIQUIDADOS = (
+    "presupuestos_liquidados_ingresos_consolidados_por_capitulo_y_fase_ejecucion"
+)
+SERIE_SISTEMA_FINANCIACION = "1902613"
+SERIE_AYUDAS_UE = "1902617"
+# capítulo de ingresos a partir del texto del concepto (las dos series lo escriben distinto)
+_CAPITULO_INGRESO = """
+    CASE WHEN concepto ILIKE '%total%' THEN NULL
+         WHEN concepto ILIKE '%impuestos directos%' THEN 'directos'
+         WHEN concepto ILIKE '%impuestos indirectos%' THEN 'indirectos'
+         WHEN concepto ILIKE '%tasas%' THEN 'tasas'
+         WHEN concepto ILIKE '%transferencias corrientes%' THEN 'transferencias_corrientes'
+         WHEN concepto ILIKE '%patrimoniales%' THEN 'patrimoniales'
+         WHEN concepto ILIKE '%enajenaci%' THEN 'enajenacion'
+         WHEN concepto ILIKE '%transferencias de capital%' THEN 'transferencias_capital'
+         WHEN concepto ILIKE '%activos financieros%' THEN 'activos'
+         WHEN concepto ILIKE '%pasivos financieros%' THEN 'pasivos'
+    END
+"""
+
+
+def ingresos_del_anio(con: duckdb.DuckDBPyConnection, anio: int) -> dict:
+    """Ingresos consolidados de la Comunidad en un año, por capítulo.
+
+    Con el año cerrado: lo que entró (derechos reconocidos, como «gastado» son las obligaciones
+    reconocidas) y lo previsto (previsión actual). Si no, el presupuesto inicial. Las
+    transferencias corrientes pueden salir en negativo: es un saldo (ver D-054)."""
+    liquidados = _filas(
+        con,
+        f"""
+        SELECT capitulo,
+               max(valor_eur) FILTER (WHERE dimension = 'Derechos reconocidos') AS importe,
+               max(valor_eur) FILTER (WHERE dimension = 'Previsión actual') AS previsto,
+               any_value(url_origen) AS url_origen, max(fecha_descarga) AS fecha_descarga
+        FROM (SELECT {_CAPITULO_INGRESO} AS capitulo, * FROM serie_cm
+              WHERE serie_id = ? AND anio = ?)
+        WHERE capitulo IS NOT NULL GROUP BY capitulo
+        """,
+        [SERIE_INGRESOS_LIQUIDADOS, anio],
+    )
+    liquidado = any(f["importe"] is not None for f in liquidados)
+    if liquidado:
+        capitulos = [f for f in liquidados if f["importe"] is not None]
+    else:
+        capitulos = _filas(
+            con,
+            f"""
+            SELECT capitulo, max(valor_eur) AS importe, NULL AS previsto,
+                   any_value(url_origen) AS url_origen, max(fecha_descarga) AS fecha_descarga
+            FROM (SELECT {_CAPITULO_INGRESO} AS capitulo, * FROM serie_cm
+                  WHERE serie_id = ? AND anio = ?)
+            WHERE capitulo IS NOT NULL AND valor_eur IS NOT NULL GROUP BY capitulo
+            """,
+            [SERIE_INGRESOS_INICIALES, anio],
+        )
+    capitulos = sorted(capitulos, key=lambda f: -(f["importe"] or 0))
+    return {
+        "anio": anio,
+        "liquidado": liquidado,
+        "capitulos": capitulos,
+        "total": sum(f["importe"] or 0 for f in capitulos),
+        "url_origen": capitulos[0]["url_origen"] if capitulos else None,
+        "fecha_descarga": capitulos[0]["fecha_descarga"] if capitulos else None,
+    }
+
+
+def sistema_financiacion(con: duckdb.DuckDBPyConnection, anio: int) -> dict | None:
+    """Saldo de la Comunidad con los fondos del sistema de financiación autonómica, del último año
+    publicado hasta `anio` (la serie llega con unos años de retraso)."""
+    filas = _filas(
+        con,
+        """
+        WITH ultimo AS (SELECT max(anio) AS anio FROM serie_cm
+                        WHERE serie_id = ? AND anio <= ? AND valor_eur IS NOT NULL)
+        SELECT s.anio,
+               max(valor_eur) FILTER (WHERE concepto ILIKE '%Fondo de Garant%') AS garantia,
+               max(valor_eur) FILTER (WHERE concepto ILIKE '%suficiencia%') AS suficiencia,
+               max(valor_eur) FILTER (WHERE concepto ILIKE 'Recaudación del  IVA%'
+                                         OR concepto ILIKE 'Recaudación del IVA%') AS iva,
+               max(valor_eur) FILTER (WHERE concepto ILIKE 'Tarifa autonómica del IRPF%') AS irpf,
+               any_value(url_origen) AS url_origen, max(fecha_descarga) AS fecha_descarga
+        FROM serie_cm s JOIN ultimo u ON s.anio = u.anio
+        WHERE serie_id = ? GROUP BY s.anio
+        """,
+        [SERIE_SISTEMA_FINANCIACION, anio, SERIE_SISTEMA_FINANCIACION],
+    )
+    return filas[0] if filas and filas[0]["garantia"] is not None else None
+
+
+def ayudas_ue(con: duckdb.DuckDBPyConnection, anio: int) -> dict | None:
+    """Ayudas del presupuesto de la Unión Europea a la Comunidad, del último año publicado hasta
+    `anio`: el total y el fondo que más aporta."""
+    filas = _filas(
+        con,
+        """
+        WITH ultimo AS (SELECT max(anio) AS anio FROM serie_cm
+                        WHERE serie_id = ? AND anio <= ? AND valor_eur IS NOT NULL)
+        SELECT s.anio,
+               max(valor_eur) FILTER (WHERE concepto ILIKE 'Total ayudas procedentes%') AS total,
+               max(valor_eur) FILTER (WHERE concepto ILIKE '%Fondo Social Europeo%') AS fse,
+               any_value(url_origen) AS url_origen, max(fecha_descarga) AS fecha_descarga
+        FROM serie_cm s JOIN ultimo u ON s.anio = u.anio
+        WHERE serie_id = ? GROUP BY s.anio
+        """,
+        [SERIE_AYUDAS_UE, anio, SERIE_AYUDAS_UE],
+    )
+    return filas[0] if filas and filas[0]["total"] is not None else None
+
+
 def personal_por_area(con: duckdb.DuckDBPyConnection) -> list[dict]:
     """Personal al servicio de la Comunidad por área, último año disponible."""
     return _filas(

@@ -1109,7 +1109,7 @@ Plantilla:
   - Los datos no pasan por GitHub: si se regenera la base, se copia con `despliegue/cargar_datos.ps1`.
   - Guía y operación en `docs/15-despliegue.md`.
 
-## D-057 · Límite de preguntas al modelo de lenguaje: 2 seguidas y 5 minutos de espera por persona
+## D-057 · Límite de preguntas al modelo de lenguaje: 5 seguidas y 5 minutos de espera por persona, solo desde España
 
 - **Fecha:** 2026-11-25
 - **Estado:** Aceptada (El Harrak: «cada individuo pueda hacer 2 consultas seguidas y luego … un cooldown de 5 minutos … Esas preguntas no cuentan cuando se trata de preguntas ya preparadas»).
@@ -1124,3 +1124,11 @@ Plantilla:
 - **Consecuencias:**
   - Dos personas con el mismo modelo de móvil y la misma wifi comparten contador.
   - La clave de OpenRouter ya tiene un límite de 6 USD a la semana. El tope real es el saldo de la cuenta (0,35 USD el 25-nov por la noche), a unos 0,008 USD por pregunta.
+- **Ajuste del mismo día (El Harrak, tras recargar 5 USD):**
+  - **5 preguntas seguidas**, en vez de 2, antes de los 5 minutos de espera. El aviso dice «Estás haciendo demasiadas consultas seguidas al modelo de lenguaje. Espera un poco…».
+  - **Solo desde España,** según el país de la IP que pone Cloudflare (`CF-IPCountry`).
+    - Desde fuera, el modelo no responde y la pregunta no cuenta; la web y las preguntas preparadas funcionan desde cualquier sitio.
+    - Si Cloudflare no sabe el país («XX») o la cabecera no llega (acceso en local), se deja preguntar, para no bloquear a nadie por error.
+    - Puede dejar fuera a quien use una SIM extranjera en itinerancia o una VPN.
+  - Con 4,94 USD de margen en la clave (unos 0,008 USD por pregunta) hay para unas 600 preguntas.
+

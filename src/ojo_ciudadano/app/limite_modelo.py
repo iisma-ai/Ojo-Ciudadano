@@ -1,7 +1,8 @@
 """Límite de consultas al modelo de lenguaje por persona (D-057).
 
-Cada persona puede hacer 2 preguntas seguidas al modelo; después espera 5 minutos desde la
-última, sin excepciones. Las respuestas preparadas no cuentan: no llaman al modelo ni gastan.
+Cada persona puede hacer 5 preguntas seguidas al modelo; después espera 5 minutos desde la
+última, sin excepciones. Solo desde España (país de la IP según Cloudflare). Las respuestas
+preparadas no cuentan ni tienen estas restricciones: no llaman al modelo ni gastan.
 
 Quién es «cada persona»: la IP real del visitante (la cabecera `CF-Connecting-IP`, que pone
 Cloudflare y el visitante no puede falsear) junto con su navegador (`User-Agent`). Así, recargar
@@ -17,7 +18,10 @@ from collections.abc import Callable
 
 import streamlit as st
 
-CONSULTAS_SEGUIDAS = 2
+CONSULTAS_SEGUIDAS = 5
+# País desde el que se puede preguntar al modelo (cabecera CF-IPCountry de Cloudflare). «XX» es
+# «no se sabe»: se deja pasar para no bloquear a nadie por error.
+PAISES_PERMITIDOS = {"ES", "XX"}
 ESPERA_SEGUNDOS = 5 * 60
 
 
@@ -93,6 +97,26 @@ def identidad() -> str:
     return hashlib.sha256(f"{ip}|{navegador}".encode()).hexdigest()[:20]
 
 
+def pais_permitido(pais: str | None) -> bool:
+    """Si se puede preguntar al modelo desde ese país. Sin cabecera (se entra sin pasar por
+    Cloudflare, p. ej. en local) se permite."""
+    return not pais or pais.strip().upper() in PAISES_PERMITIDOS
+
+
+def desde_pais_permitido() -> bool:
+    try:
+        return pais_permitido(_cabecera("CF-IPCountry"))
+    except Exception:
+        return True
+
+
+FUERA_DE_ESPANA = (
+    "Las preguntas abiertas al modelo de lenguaje solo están disponibles desde España. Las "
+    "preguntas con respuesta preparada (las de la lista de arriba) funcionan desde cualquier "
+    "sitio."
+)
+
+
 def tiempo(segundos: float) -> str:
     """«4 min 10 s», «35 s»."""
     s = max(1, int(round(segundos)))
@@ -102,8 +126,8 @@ def tiempo(segundos: float) -> str:
 
 def mensaje(segundos: float) -> str:
     return (
-        f"Has hecho {CONSULTAS_SEGUIDAS} preguntas seguidas al modelo de lenguaje. Para repartir "
-        f"su uso entre todas las personas, podrás volver a preguntarle dentro de "
-        f"**{tiempo(segundos)}**. Mientras tanto, las preguntas con respuesta preparada (las de "
-        "la lista de arriba) siguen funcionando sin espera."
+        "**Estás haciendo demasiadas consultas seguidas al modelo de lenguaje.** Espera un "
+        f"poco: podrás volver a preguntarle dentro de **{tiempo(segundos)}**. Mientras tanto, "
+        "las preguntas con respuesta preparada (las de la lista de arriba) siguen funcionando "
+        "sin espera."
     )

@@ -1,6 +1,6 @@
-"""Límite de consultas al modelo (D-057): 2 seguidas y 5 minutos de espera por persona."""
+"""Límite de consultas al modelo (D-057): 5 seguidas y 5 minutos de espera, solo desde España."""
 
-from ojo_ciudadano.app.limite_modelo import Limitador, mensaje, tiempo
+from ojo_ciudadano.app.limite_modelo import Limitador, mensaje, pais_permitido, tiempo
 
 
 class Reloj:
@@ -11,9 +11,23 @@ class Reloj:
         return self.ahora
 
 
+def test_cinco_seguidas_por_defecto():
+    limite = Limitador(reloj=Reloj())
+    assert all(limite.intentar("ana") == 0 for _ in range(5))
+    assert limite.intentar("ana") == 300
+
+
+def test_solo_desde_espana():
+    assert pais_permitido("ES") and pais_permitido("es")
+    assert pais_permitido(None) and pais_permitido("")  # en local, sin Cloudflare
+    assert pais_permitido("XX")  # Cloudflare no sabe de dónde es: no se bloquea por error
+    assert not pais_permitido("FR")
+    assert not pais_permitido("T1")  # red Tor
+
+
 def test_dos_seguidas_y_luego_espera_de_cinco_minutos():
     reloj = Reloj()
-    limite = Limitador(reloj=reloj)
+    limite = Limitador(maximo=2, reloj=reloj)
     assert limite.intentar("ana") == 0
     reloj.ahora += 30
     assert limite.intentar("ana") == 0
@@ -27,7 +41,7 @@ def test_dos_seguidas_y_luego_espera_de_cinco_minutos():
 
 def test_pasada_la_espera_vuelve_a_tener_dos():
     reloj = Reloj()
-    limite = Limitador(reloj=reloj)
+    limite = Limitador(maximo=2, reloj=reloj)
     limite.intentar("ana")
     limite.intentar("ana")
     reloj.ahora += 300
@@ -37,7 +51,7 @@ def test_pasada_la_espera_vuelve_a_tener_dos():
 
 
 def test_cada_persona_cuenta_aparte():
-    limite = Limitador(reloj=Reloj())
+    limite = Limitador(maximo=2, reloj=Reloj())
     limite.intentar("ana")
     limite.intentar("ana")
     assert limite.intentar("ana") > 0
@@ -48,4 +62,5 @@ def test_mensaje_con_el_tiempo_que_queda():
     assert tiempo(250) == "4 min 10 s"
     assert tiempo(35) == "35 s"
     assert "4 min 10 s" in mensaje(250)
+    assert "demasiadas consultas" in mensaje(250)
     assert "respuesta preparada" in mensaje(250)

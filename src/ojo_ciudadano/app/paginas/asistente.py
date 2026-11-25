@@ -283,7 +283,10 @@ def contestar(pregunta: str, historial: list[dict], forzar_modelo: bool) -> agen
             return respuesta
     if modelo is None:
         return agente.Respuesta(SIN_MODELO)
-    # Solo cuentan las preguntas que llegan al modelo (D-057): 2 seguidas y 5 minutos de espera.
+    # Solo para las preguntas que llegan al modelo (D-057): desde España, y 5 seguidas con 5
+    # minutos de espera. Lo de fuera de España no cuenta como consulta.
+    if not limite_modelo.desde_pais_permitido():
+        return agente.Respuesta(limite_modelo.FUERA_DE_ESPANA)
     espera = limite_modelo.limitador().intentar(limite_modelo.identidad())
     if espera:
         return agente.Respuesta(limite_modelo.mensaje(espera))

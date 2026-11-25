@@ -1,0 +1,15 @@
+# Cabeceras de Cloudflare Pages para la portada.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  X-Frame-Options: DENY
+
+# La portada y la lista de servidores, sin caché: un cambio de servidor se nota al recargar.
+/index.html
+  Cache-Control: no-cache
+/config.js
+  Cache-Control: no-cache
+
+/logo.svg
+  Cache-Control: public, max-age=86400

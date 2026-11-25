@@ -2,7 +2,7 @@
 
 import streamlit as st
 
-from ojo_ciudadano.app import datos, graficos, textos
+from ojo_ciudadano.app import cargando, datos, graficos, textos
 from ojo_ciudadano.app.conexion import conexion
 
 st.header("Contratos atípicos")
@@ -190,7 +190,12 @@ st.caption(
     )
 )
 
-for fila in filas:
+
+@st.fragment
+def contrato(fila: dict) -> None:
+    """Un contrato de la lista. Va en su propio fragmento: al abrirlo solo se vuelve a ejecutar
+    este contrato, no toda la pantalla (antes el desplegable tardaba en abrirse). La frase sale
+    al momento; el gráfico, mientras se prepara, deja en su sitio el ojo girando."""
     titulo = fila["titulo"] or fila["contrato_id"]
     if len(titulo) > 110:
         titulo = titulo[:107].rstrip() + "…"
@@ -209,11 +214,13 @@ for fila in filas:
             )
         st.markdown(f"**Por qué se aleja:** {fila['motivo']}")
         if not desplegable.open:
-            continue
+            return
+        sitio = st.empty()
+        sitio.html(cargando.html("Preparando el gráfico frente a contratos similares"))
         pares = datos.pares_anomalia(con, fila["contrato_id"])
         if pares and pares["pares"]:
             variables = (fila["variables"] or "").split(", ")
-            st.plotly_chart(
+            sitio.plotly_chart(
                 graficos.atipico(pares, variables),
                 config=graficos.CONFIG,
                 key=f"grafico-atipico-{fila['contrato_id']}",
@@ -225,6 +232,8 @@ for fila in filas:
                 f"{textos.porcentaje(fila['puntuacion'], 1)} (posición relativa, no una "
                 "probabilidad)."
             )
+        else:
+            sitio.empty()
         if fila["adjudicatarios"]:
             st.caption(f"Adjudicataria: {fila['adjudicatarios']}")
         if fila["url_origen"]:
@@ -233,3 +242,7 @@ for fila in filas:
             )
         else:
             st.caption("Sin enlace oficial disponible para este contrato.")
+
+
+for fila in filas:
+    contrato(fila)

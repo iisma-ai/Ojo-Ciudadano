@@ -556,3 +556,24 @@ div[class*="st-key-cajasenal_"][class*="st-key-cajasenal_"] {
 @media (prefers-reduced-motion: reduce) {
   [data-testid="stPlotlyChart"] { animation: none; }
 }
+
+/* Contratos atípicos: al abrir uno, su contenido entra con una transición corta, y el gráfico,
+   cuando está listo, aparece con algo más de presencia (opacidad y transform, una sola vez). */
+[class*="st-key-atipico-"] [data-testid="stExpanderDetails"] {
+  animation: oc-atipico-abre 0.3s ease-out both;
+}
+@keyframes oc-atipico-abre {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+[class*="st-key-grafico-atipico-"] {
+  animation: oc-atipico-grafico 0.7s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+}
+@keyframes oc-atipico-grafico {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  [class*="st-key-atipico-"] [data-testid="stExpanderDetails"],
+  [class*="st-key-grafico-atipico-"] { animation: none; }
+}

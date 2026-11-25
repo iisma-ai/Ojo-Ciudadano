@@ -788,13 +788,16 @@ def atipico(detalle: dict, variables: list[str]) -> go.Figure:
     if len(variables) == 2:
         vx, vy = variables
         puntos = [p for p in pares if p[vx] is not None and p[vy] is not None]
-        figura.add_scatter(
-            x=[p[vx] for p in puntos],
-            y=[p[vy] for p in puntos],
-            mode="markers",
-            name="Contratos similares",
-            marker={"color": transparente(GRIS_CLARO, 0.35), "size": 6},
-            hoverinfo="skip",
+        # la nube (hasta 1.500 puntos) con WebGL: en SVG tardaba en dibujarse
+        figura.add_trace(
+            go.Scattergl(
+                x=[p[vx] for p in puntos],
+                y=[p[vy] for p in puntos],
+                mode="markers",
+                name="Contratos similares",
+                marker={"color": transparente(GRIS_CLARO, 0.35), "size": 6},
+                hoverinfo="skip",
+            )
         )
         # el atípico como la burbuja ámbar de la presentación: un halo que se apaga hacia fuera
         # y, encima, la burbuja de cristal con el borde más claro (dos puntos, sin 3D)

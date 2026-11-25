@@ -1041,4 +1041,9 @@ Plantilla:
     - los puntos con degradado solo se usan en trazas de hasta 50 puntos (la nube de atípicos tiene 1.500 y cada degradado es un elemento SVG propio);
     - se quitan el halo de las barras y la sombra grande del cuadro al pasar el ratón, que se recalculaban en cada redibujado;
     - la entrada de los gráficos es solo de opacidad.
+- **Ajuste del mismo día (abrir un contrato atípico sin esperas):**
+  - Cada contrato de la pantalla de atípicos va en su propio fragmento (`st.fragment`): al abrirlo solo se vuelve a ejecutar ese contrato, no toda la pantalla con sus filtros y su lista.
+  - La frase «Por qué se aleja» sale al momento. Mientras se prepara el gráfico, en su sitio está nuestro ojo con el iris girando y «Preparando el gráfico…» (`app/cargando.py`, reutilizable).
+  - La nube de comparación se dibuja con WebGL (`Scattergl`).
+  - Al abrir, el contenido entra con una transición corta; el gráfico aparece con opacidad y `transform`, una sola vez.
 

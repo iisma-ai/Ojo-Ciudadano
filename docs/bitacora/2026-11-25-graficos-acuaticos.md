@@ -35,6 +35,16 @@
   - entrada solo con opacidad.
 - **Comprobado en el navegador:** histograma de un atípico real y nube de puntos de prueba con 1.500 puntos.
 
+## Ajuste: abrir un contrato atípico sin esperas
+
+- **Causa:** el desplegable de cada contrato volvía a ejecutar toda la pantalla (filtros, lista y consultas) antes de abrirse, y la nube de 1.500 puntos se dibujaba en SVG.
+- **Arreglo:**
+  - cada contrato, en su propio `st.fragment`;
+  - la frase al momento y, en el sitio del gráfico, el ojo girando (`app/cargando.py`) hasta que el gráfico está listo;
+  - la nube con `Scattergl`;
+  - transiciones de apertura y de entrada del gráfico.
+- **Comprobado en el navegador:** al pulsar sale la frase con el ojo girando y, en uno o dos segundos, el gráfico entra animado (histograma y nube de puntos).
+
 ## Pendiente
 
 - Mirar en la pantalla de la demo el contraste de las barras translúcidas.

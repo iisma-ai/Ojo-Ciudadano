@@ -174,7 +174,7 @@ def test_atipico_dibuja_dos_variables_o_una():
         "Este contrato (atípico)",
     ]
     nube, halo, burbuja = figura.data
-    assert nube.marker.gradient.type is None  # 59 puntos: planos, para no ir a tirones
+    assert nube.type == "scattergl"  # la nube con WebGL y puntos planos: no va a tirones
     assert halo.showlegend is False and halo.hoverinfo == "skip"
     assert burbuja.marker.gradient.color == graficos.ATIPICO_LUZ
     figura = graficos.atipico({"este": este, "pares": pares}, ["baja"])

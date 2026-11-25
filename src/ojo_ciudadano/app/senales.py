@@ -1,7 +1,8 @@
 """Explicación visual de cada señal de un contrato (D-023, estudios E-01 a E-06).
 
 Cada señal se muestra con su nombre en lenguaje claro, una frase con las cifras del contrato
-(que hace de texto alternativo del gráfico) y el gráfico pensado para ella.
+(que hace de texto alternativo del gráfico) y el dibujo pensado para ella: tubos y burbujas de
+cristal (`dibujos_senales`, D-060) o, en los contratos menores, sus iconos (`billetes`).
 """
 
 import hashlib
@@ -9,7 +10,15 @@ import hashlib
 import duckdb
 import streamlit as st
 
-from ojo_ciudadano.app import billetes, cargando, datos, datos_flujos, graficos, textos
+from ojo_ciudadano.app import (
+    billetes,
+    cargando,
+    datos,
+    datos_flujos,
+    dibujos_senales,
+    graficos,
+    textos,
+)
 
 
 def _porcentaje(parte: float, total: float) -> str:
@@ -30,7 +39,7 @@ def frase_y_grafico(con: duckdb.DuckDBPyConnection, indicador: str, contrato_id:
             f"{textos.numero(total)} contratos parecidos ({d['tipo'] or 'del mismo tipo'}), "
             f"**el {_porcentaje(varias, total)} recibió dos o más**."
         )
-        return frase, graficos.ofertas(d)
+        return frase, dibujos_senales.ofertas(d)
     if indicador == "R-02":
         d = datos.detalle_r02(con, contrato_id)
         if not d:
@@ -48,7 +57,7 @@ def frase_y_grafico(con: duckdb.DuckDBPyConnection, indicador: str, contrato_id:
             f"**{de_cada} € fueron sin anuncio** ({d['n_sin_anuncio']} de sus "
             f"{d['n_contratos']} contratos)."
         )
-        return frase, graficos.sin_anuncio(d)
+        return frase, dibujos_senales.sin_anuncio(d)
     if indicador == "R-03":
         d = datos.detalle_r03(con, contrato_id)
         if not d:
@@ -79,7 +88,7 @@ def frase_y_grafico(con: duckdb.DuckDBPyConnection, indicador: str, contrato_id:
             f"**{round(100 * d['cuota'])} € fueron a {quien}** (entre {d['n_empresas']} "
             "empresas). La señal salta cuando una sola empresa se lleva más de la mitad."
         )
-        return frase, graficos.reparto(d)
+        return frase, dibujos_senales.reparto(d)
     if indicador in ("R-05", "R-06"):
         d = datos.detalle_importes(con, contrato_id)
         if not d or not d["adjudicado"]:
@@ -94,7 +103,7 @@ def frase_y_grafico(con: duckdb.DuckDBPyConnection, indicador: str, contrato_id:
                 "**Para comparar:** la ley fija en un 20 % el máximo de las modificaciones "
                 "previstas en el pliego; otras pueden estar justificadas."
             )
-            return frase, graficos.subida(d)
+            return frase, dibujos_senales.subida(d)
         if not d["presupuesto"]:
             return None, None
         baja = 1 - d["adjudicado"] / d["presupuesto"]
@@ -120,7 +129,7 @@ def frase_y_grafico(con: duckdb.DuckDBPyConnection, indicador: str, contrato_id:
                 f"con varias ofertas, la rebaja habitual es del "
                 f"**{textos.porcentaje(habitual['mediana'])}**."
             )
-        return frase, graficos.rebaja(d, habitual["mediana"] if habitual else None)
+        return frase, dibujos_senales.rebaja(d, habitual["mediana"] if habitual else None)
     return None, None
 
 
@@ -143,7 +152,7 @@ def mostrar(
         if en_caja and not frase.startswith("**En este contrato"):
             st.caption("En este contrato")
         st.markdown(frase)
-    if isinstance(figura, str):  # dibujo propio en HTML (contratos menores, D-042)
+    if isinstance(figura, str):  # dibujo propio en HTML y SVG (D-042, D-060)
         billetes.pintar(figura, clave=f"{indicador}-{contrato_id}")
     elif figura is not None:
         st.plotly_chart(figura, config=graficos.CONFIG, key=f"{indicador}-{contrato_id}")

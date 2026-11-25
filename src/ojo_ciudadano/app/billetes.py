@@ -412,7 +412,9 @@ def html_menores(detalle: dict, ventana: list[dict], contrato_id: str) -> str:
             f'<div class="oc-menor{" este" if es_este else ""}" tabindex="0" '
             f'title="{html.escape(pista)}">'
             + _documento(
-                34, "#2F6FD6" if es_este else "#33415C", "#E7ECF3" if es_este else "#93A1B8"
+                34,
+                "#3D8BFD" if es_este else "rgba(147,161,184,.22)",
+                "#E7ECF3" if es_este else "rgba(220,240,255,.6)",
             )
             + ('<span class="oc-este">este</span>' if es_este else "")
             + f'<div class="oc-pista"><b>{html.escape(pista)}</b>'
@@ -422,8 +424,10 @@ def html_menores(detalle: dict, ventana: list[dict], contrato_id: str) -> str:
     return f"""
 <style>
 .oc-r03 {{ font-family: Inter, sans-serif; color: #E7ECF3; }}
-.oc-grande {{ display: flex; gap: 16px; align-items: center; padding: 12px 14px;
-  border-radius: 12px; background: rgba(125,179,255,.08); border: 1px solid rgba(125,179,255,.3); }}
+.oc-grande {{ display: flex; gap: 16px; align-items: center; padding: 14px 16px;
+  border-radius: 16px; border: 1px solid rgba(170,225,255,.22);
+  background: linear-gradient(145deg, rgba(125,179,255,.16), rgba(255,255,255,.03) 65%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.2); }}
 .oc-grande p {{ margin: 0; line-height: 1.45; }}
 .oc-suma {{ font-size: 1.05rem; }}
 .oc-suma b {{ font-size: 1.35rem; color: #fff; }}
@@ -434,6 +438,7 @@ def html_menores(detalle: dict, ventana: list[dict], contrato_id: str) -> str:
 .oc-menor {{ position: relative; display: flex; flex-direction: column; align-items: center;
   cursor: default; outline: none; transition: transform .15s; }}
 .oc-menor:hover, .oc-menor:focus-visible {{ transform: translateY(-3px); }}
+.oc-menor.este svg {{ filter: drop-shadow(0 0 8px rgba(61,139,253,.6)); }}
 .oc-este {{ font-size: .72rem; color: #7DB3FF; font-weight: 600; margin-top: 2px; }}
 .oc-pista {{ visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 8px);
   left: 50%; transform: translateX(-50%); width: max-content; max-width: 240px; z-index: 5;

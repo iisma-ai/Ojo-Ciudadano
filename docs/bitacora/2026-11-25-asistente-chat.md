@@ -1,6 +1,6 @@
 # 2026-11-25 · El asistente como un chat
 
-**Quién:** Lucas con Claude (agente). Rama `feat/asistente-chat`, integrada en `main` junto con `fix/ficha-buscador` (D-058).
+**Quién:** Ismael con Claude (agente). Rama `feat/asistente-chat`, integrada en `main` junto con `fix/ficha-buscador` (D-058).
 
 ## Qué se ha hecho (D-059)
 
@@ -16,7 +16,7 @@
 
 ## A partir de ahora
 
-Lucas pide que todo se fusione y se suba a `main` al momento, porque `main` se publica solo en la web (D-056).
+Ismael pide que todo se fusione y se suba a `main` al momento, porque `main` se publica solo en la web (D-056).
 
 ## Segunda vuelta (D-060)
 

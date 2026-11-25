@@ -2,28 +2,24 @@
 de a dónde va.
 
 Para un ciudadano cualquiera:
-- una barra con «de cada 100 € que entran» (impuestos directos, indirectos, préstamos y el
-  resto);
-- el saldo con el sistema común de financiación, que en el presupuesto consolidado sale como
-  transferencias corrientes en negativo;
 - el mapa de burbujas con la misma estética que el de gastos: una burbuja por tipo de ingreso
   que, con el año cerrado, se llena hasta lo que entró respecto a lo previsto;
+- al lado, una caja de información con el saldo con el sistema común de financiación, que en
+  el presupuesto consolidado sale como transferencias corrientes en negativo (D-064);
 - lo que supone por habitante, las ayudas de la UE y las fuentes al final.
 
 Todas las cifras salen de las series del catálogo de datos abiertos de la Comunidad
 (`serie_cm`), con su enlace. No hay personas físicas (D-007).
 """
 
-import html
-
 import streamlit as st
 
-from ojo_ciudadano.app import billetes, datos_contexto, red, textos
 from ojo_ciudadano.app import burbujas as mapa_burbujas
+from ojo_ciudadano.app import datos_contexto, red, textos
 from ojo_ciudadano.ingesta import ine
 
 CENTRO = "centro"
-# capítulo → (nombre corto, qué es, color en la barra)
+# capítulo → (nombre corto, qué es, color)
 CAPITULOS = {
     "directos": (
         "Impuestos directos",
@@ -78,10 +74,6 @@ CAPITULOS = {
         "#7E8FA8",
     ),
 }
-# en la barra, los tres grandes por separado y el resto juntos
-EN_LA_BARRA = ("directos", "indirectos", "pasivos")
-COLOR_RESTO = "#7E8FA8"
-COLOR_APORTA = "#B57BFF"
 
 
 # ------------------------------------------------------------------------------ cuentas
@@ -112,115 +104,11 @@ def entradas_y_saldo(ingresos: dict) -> tuple[dict[str, float], float]:
     return entradas, saldo
 
 
-def grupos_barra(entradas: dict[str, float]) -> dict[str, float]:
-    """Los tres grandes y el resto sumado."""
-    grupos = {k: entradas.get(k, 0.0) for k in EN_LA_BARRA}
-    grupos["resto"] = sum(v for k, v in entradas.items() if k not in EN_LA_BARRA)
-    return grupos
-
-
 def nombre(clave: str) -> str:
-    return "El resto" if clave == "resto" else CAPITULOS.get(clave, (clave,))[0]
-
-
-def color(clave: str) -> str:
-    return COLOR_RESTO if clave == "resto" else CAPITULOS.get(clave, ("", "", COLOR_RESTO))[2]
+    return CAPITULOS.get(clave, (clave,))[0]
 
 
 # ------------------------------------------------------------------------------ piezas
-def barra_entradas(ingresos: dict, entradas: dict[str, float]) -> str:
-    """La cabecera: cuánto entra, «de cada 100 €» en una frase y una barra por tramos."""
-    anio, liquidado = ingresos["anio"], ingresos["liquidado"]
-    grupos = grupos_barra(entradas)
-    partes = de_cada_100(grupos)
-    total = sum(entradas.values())
-    verbo = "entraron" if liquidado else "está previsto que entren"
-    trozos = [f"<b>{partes[k]}</b> {nombre(k).lower()}" for k in EN_LA_BARRA if partes[k]]
-    frase = (
-        f"De cada 100 € que {'entraron' if liquidado else 'entran'}: "
-        + ", ".join(trozos)
-        + (f" y <b>{partes['resto']}</b> de todo lo demás" if partes["resto"] else "")
-        + "."
-    )
-    tramos = "".join(
-        f'<div class="dvb-tramo" style="width:{100 * v / total:.2f}%;background:{color(k)};'
-        f'--j:{j}" title="{html.escape(nombre(k))}: {textos.millones(v)}"></div>'
-        for j, (k, v) in enumerate(grupos.items())
-        if v > 0
-    )
-    leyenda = "".join(
-        f'<span><i style="background:{color(k)}"></i>{html.escape(nombre(k))} '
-        f"<b>{textos.millones(v)}</b></span>"
-        for k, v in grupos.items()
-        if v > 0
-    )
-    etiqueta = html.escape(frase.replace("<b>", "").replace("</b>", ""))
-    return f"""
-<style>
-.dvb {{ font-family:Outfit, sans-serif; color:#E7ECF3; margin:6px 0 4px; }}
-.dvb-cab {{ display:flex; justify-content:space-between; align-items:baseline; gap:12px;
-  flex-wrap:wrap; margin-bottom:6px; }}
-.dvb-cab h3 {{ margin:0; padding:0; font-size:1.35rem; font-weight:700; color:#E7ECF3; }}
-.dvb-cab .total {{ font-size:1.9rem; font-weight:750; letter-spacing:-.02em;
-  background:linear-gradient(180deg,#fff,#9FCBFF); -webkit-background-clip:text;
-  background-clip:text; color:transparent; }}
-.dvb-cab .total small {{ font-size:.85rem; font-weight:500; color:#9FB6CC;
-  -webkit-text-fill-color:#9FB6CC; margin-left:6px; }}
-.dvb-frase {{ font-size:1.2rem; line-height:1.5; margin:0 0 12px; color:#B9C6D8;
-  font-weight:300; }}
-.dvb-frase b {{ color:#fff; font-weight:650; font-size:1.35rem; }}
-.dvb-barra {{ display:flex; gap:3px; height:30px; border-radius:16px; overflow:hidden;
-  border:1px solid rgba(170,225,255,.3);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 8px 24px rgba(0,8,22,.35); }}
-.dvb-tramo {{ height:100%; box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
-  transform-origin:left center; animation: dvb-crece .9s cubic-bezier(.25,.8,.25,1) both;
-  animation-delay: calc(var(--j) * 90ms); }}
-@keyframes dvb-crece {{ from {{ transform:scaleX(0); opacity:0; }}
-  to {{ transform:none; opacity:1; }} }}
-.dvb-leyenda {{ display:flex; flex-wrap:wrap; gap:8px 22px; margin-top:10px; font-size:.95rem;
-  color:#9FB6CC; }}
-.dvb-leyenda b {{ color:#E7ECF3; }}
-.dvb-leyenda i {{ display:inline-block; width:12px; height:12px; border-radius:4px;
-  margin-right:7px; vertical-align:-1px; }}
-@media (prefers-reduced-motion: reduce) {{ .dvb-tramo {{ animation:none; }} }}
-</style>
-<div class="dvb">
-  <div class="dvb-cab"><h3>Lo que {verbo} en {anio}</h3>
-    <span class="total">{textos.millones(total)}<small>en total</small></span></div>
-  <p class="dvb-frase">{frase}</p>
-  <div class="dvb-barra" role="img" aria-label="{etiqueta}">{tramos}</div>
-  <div class="dvb-leyenda">{leyenda}</div>
-</div>"""
-
-
-def flujo_saldo(entradas: dict[str, float], saldo: float, liquidado: bool) -> str:
-    """Entra, sale hacia el sistema común y queda para la Comunidad, en tres cifras."""
-    total = sum(entradas.values())
-    pasado = "entró" if liquidado else "entra"
-    return f"""
-<style>
-.dvf {{ display:grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap:14px; align-items:center;
-  font-family:Outfit, sans-serif; color:#E7ECF3; padding:18px 22px; border-radius:18px;
-  background:rgba(255,255,255,.045); border:1px solid rgba(170,225,255,.16);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }}
-.dvf div {{ display:flex; flex-direction:column; gap:4px; }}
-.dvf span {{ font-size:.9rem; color:#9FB6CC; line-height:1.35; }}
-.dvf b {{ font-size:1.6rem; font-weight:700; letter-spacing:-.01em; }}
-.dvf .menos b {{ color:{COLOR_APORTA}; }}
-.dvf .flecha {{ font-size:1.6rem; color:#7DB3FF; }}
-@media (max-width: 760px) {{ .dvf {{ grid-template-columns: 1fr; }}
-  .dvf .flecha {{ display:none; }} }}
-</style>
-<div class="dvf">
-  <div><span>Lo que {pasado}</span><b>{textos.millones(total)}</b></div>
-  <p class="flecha">&minus;</p>
-  <div class="menos"><span>Saldo neto de transferencias corrientes (sistema de financiación y
-    otras administraciones)</span><b>{textos.millones(-saldo)}</b></div>
-  <p class="flecha">=</p>
-  <div><span>Ingresos netos de la Comunidad</span><b>{textos.millones(total + saldo)}</b></div>
-</div>"""
-
-
 def grafo(ingresos: dict, entradas: dict[str, float]):
     """Nodos y enlaces: la Comunidad en el centro y una burbuja por tipo de ingreso."""
     total = sum(entradas.values())
@@ -302,28 +190,39 @@ def ficha(clave: str, ingresos: dict, entradas: dict[str, float], habitantes: in
         )
 
 
-def sistema_comun(sistema: dict | None, anio: int) -> None:
-    """El sistema de financiación autonómica, en una explicación neutra con sus cifras (revisada
-    por `revisor-legal`)."""
-    st.markdown(
-        "Por ley (Ley 22/2009), el Estado cede a las comunidades de régimen común el 50 % del "
-        "IRPF y del IVA, el 58 % de los impuestos especiales sobre alcohol, tabaco e "
-        "hidrocarburos y el 100 % del de electricidad, además de tributos como Patrimonio, "
-        "Sucesiones y Donaciones o Transmisiones Patrimoniales. El IVA y los impuestos "
-        "especiales se asignan según el consumo estimado en cada comunidad.\n\n"
-        "Cada comunidad aporta el 75 % de su capacidad tributaria al **Fondo de Garantía de "
-        "Servicios Públicos Fundamentales**, al que el Estado añade su parte, y el fondo se "
-        "reparte según la población ajustada de cada comunidad (corregida por edad, superficie, "
-        "dispersión e insularidad) para sanidad, educación y servicios sociales. Si una "
-        "comunidad aporta más de lo que recibe, su saldo es negativo. El **Fondo de Suficiencia "
-        "Global** ajusta cada año los recursos de cada comunidad con sus competencias y puede "
-        "ser positivo (lo paga el Estado) o negativo (lo paga la comunidad al Estado).\n\n"
-        "En el presupuesto consolidado estos saldos se restan dentro de las transferencias "
-        "corrientes; por eso ese capítulo sale en negativo. País Vasco y Navarra tienen un "
-        "sistema propio (concierto y convenio)."
+EXPLICACION_SISTEMA = (
+    "Por ley (Ley 22/2009), el Estado cede a las comunidades de régimen común el 50 % del "
+    "IRPF y del IVA, el 58 % de los impuestos especiales sobre alcohol, tabaco e "
+    "hidrocarburos y el 100 % del de electricidad, además de tributos como Patrimonio, "
+    "Sucesiones y Donaciones o Transmisiones Patrimoniales. El IVA y los impuestos "
+    "especiales se asignan según el consumo estimado en cada comunidad.\n\n"
+    "Cada comunidad aporta el 75 % de su capacidad tributaria al **Fondo de Garantía de "
+    "Servicios Públicos Fundamentales**, al que el Estado añade su parte, y el fondo se "
+    "reparte según la población ajustada de cada comunidad (corregida por edad, superficie, "
+    "dispersión e insularidad) para sanidad, educación y servicios sociales. Si una "
+    "comunidad aporta más de lo que recibe, su saldo es negativo. El **Fondo de Suficiencia "
+    "Global** ajusta cada año los recursos de cada comunidad con sus competencias y puede "
+    "ser positivo (lo paga el Estado) o negativo (lo paga la comunidad al Estado).\n\n"
+    "En el presupuesto consolidado estos saldos se restan dentro de las transferencias "
+    "corrientes; por eso ese capítulo sale en negativo. País Vasco y Navarra tienen un "
+    "sistema propio (concierto y convenio)."
+)
+
+
+def resumen_saldo(entradas: dict[str, float], saldo: float, liquidado: bool) -> str:
+    """La caja de información en tres líneas: lo que entra, el saldo que se resta y lo que queda."""
+    total = sum(entradas.values())
+    return (
+        "**El saldo con el sistema de financiación autonómica**\n\n"
+        f"De los {textos.millones(total)} que {'entraron' if liquidado else 'entran'}, se restan "
+        f"**{textos.millones(-saldo)}** de saldo neto de transferencias corrientes (sistema de "
+        "financiación y otras administraciones). A la Comunidad le quedan "
+        f"**{textos.millones(total + saldo)}**."
     )
-    if not sistema:
-        return
+
+
+def lineas_sistema(sistema: dict) -> list[str]:
+    """Los saldos de los dos fondos y lo recibido del IRPF y del IVA, del último año publicado."""
     lineas = [
         f"- **Fondo de Garantía de Servicios Públicos Fundamentales:** saldo de "
         f"{textos.millones(sistema['garantia'])}"
@@ -348,21 +247,34 @@ def sistema_comun(sistema: dict | None, anio: int) -> None:
             f"- **Lo que la Comunidad recibe del IRPF y del IVA** por el sistema: "
             f"{textos.millones(sistema['irpf'])} y {textos.millones(sistema['iva'])}."
         )
-    aviso = (
-        f"; el saldo de arriba es de {anio} y no es directamente comparable, porque las "
-        "transferencias corrientes incluyen también otras transferencias del Estado y de la "
-        "Unión Europea"
-        if sistema["anio"] != anio
-        else ""
-    )
-    st.markdown(
-        f"Según la serie del sistema de financiación ({sistema['anio']}, el último año "
-        f"publicado{aviso}):\n\n" + "\n".join(lineas)
-    )
-    st.caption(
-        f"Fuente: [sistema de financiación, datos abiertos de la Comunidad de Madrid]"
-        f"({sistema['url_origen']}), descargado el {sistema['fecha_descarga']}."
-    )
+    return lineas
+
+
+def caja_sistema(
+    entradas: dict[str, float], saldo: float, ingresos: dict, sistema: dict | None
+) -> None:
+    """Caja de información junto a las burbujas; la explicación completa, en un desplegable
+    (texto revisado por `revisor-legal`)."""
+    anio = ingresos["anio"]
+    st.info(resumen_saldo(entradas, saldo, ingresos["liquidado"]), icon=":material/info:")
+    with st.popover("Cómo funciona el sistema", icon=":material/account_balance:"):
+        st.markdown(EXPLICACION_SISTEMA)
+        if sistema:
+            aviso = (
+                f"; el saldo de la caja es de {anio} y no es directamente comparable, porque "
+                "las transferencias corrientes incluyen también otras transferencias del Estado "
+                "y de la Unión Europea"
+                if sistema["anio"] != anio
+                else ""
+            )
+            st.markdown(
+                f"Según la serie del sistema de financiación ({sistema['anio']}, el último año "
+                f"publicado{aviso}):\n\n" + "\n".join(lineas_sistema(sistema))
+            )
+            st.caption(
+                f"Fuente: [sistema de financiación, datos abiertos de la Comunidad de Madrid]"
+                f"({sistema['url_origen']}), descargado el {sistema['fecha_descarga']}."
+            )
 
 
 def fuentes(ingresos: dict, sistema, ue, poblacion, anio: int) -> None:
@@ -420,17 +332,7 @@ def pintar(con, anio: int, poblacion: dict | None) -> None:
     referencia = ine.del_anio(poblacion, anio) if poblacion else None
     habitantes = referencia[1] if referencia else None
 
-    billetes.pintar(barra_entradas(ingresos, entradas), clave=f"dv_barra_{anio}")
-    if saldo < 0:
-        st.html(flujo_saldo(entradas, saldo, ingresos["liquidado"]))
-    st.caption(
-        "Fuente: [ingresos consolidados por capítulo, datos abiertos de la Comunidad de Madrid]"
-        f"({ingresos['url_origen']}), "
-        + ("derechos reconocidos" if ingresos["liquidado"] else "presupuesto inicial")
-        + f" de {anio}, descargado el {ingresos['fecha_descarga']}."
-    )
-
-    st.subheader("Cada tipo de ingreso, en una burbuja")
+    st.subheader(f"Lo que {'entró' if ingresos['liquidado'] else 'entra'} en {anio}")
     izquierda, derecha = st.columns([5, 2])
     with izquierda:
         st.markdown(
@@ -452,6 +354,12 @@ def pintar(con, anio: int, poblacion: dict | None) -> None:
         )
         if pulsada:
             st.session_state["dv_sel"] = pulsada
+        st.caption(
+            "Fuente: [ingresos consolidados por capítulo, datos abiertos de la Comunidad de "
+            f"Madrid]({ingresos['url_origen']}), "
+            + ("derechos reconocidos" if ingresos["liquidado"] else "presupuesto inicial")
+            + f" de {anio}, descargado el {ingresos['fecha_descarga']}."
+        )
     with derecha:
         st.html('<span class="oc-ficha-mapa"></span>')  # misma columna de ficha que el mapa
         elegida = st.session_state.get("dv_sel")
@@ -463,10 +371,8 @@ def pintar(con, anio: int, poblacion: dict | None) -> None:
                 "cuánto supone de cada 100 €.",
                 icon=":material/touch_app:",
             )
-
-    if saldo < 0:
-        st.subheader("El saldo de la Comunidad con el sistema de financiación autonómica")
-        sistema_comun(datos_contexto.sistema_financiacion(con, anio), anio)
+        if saldo < 0:
+            caja_sistema(entradas, saldo, ingresos, datos_contexto.sistema_financiacion(con, anio))
 
     impuestos = entradas.get("directos", 0) + entradas.get("indirectos", 0)
     ue = datos_contexto.ayudas_ue(con, anio)

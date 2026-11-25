@@ -90,14 +90,11 @@ def test_de_cada_100_suma_100_y_respeta_el_peso():
     assert dv.de_cada_100({"a": 0.0}) == {"a": 0}
 
 
-def test_barra_agrupa_el_resto_y_lo_explica_en_una_frase():
-    entradas = {"directos": 50.0, "indirectos": 39.0, "pasivos": 8.0, "tasas": 2.0, "activos": 1.0}
-    grupos = dv.grupos_barra(entradas)
-    assert grupos["resto"] == 3.0
-    ingresos = {"anio": 2026, "liquidado": False, "capitulos": []}
-    html = dv.barra_entradas(ingresos, entradas)
-    assert "De cada 100 € que entran" in html
-    assert "<b>50</b> impuestos directos" in html
+def test_caja_del_saldo_resta_lo_que_va_al_sistema():
+    entradas = {"directos": 50.0, "indirectos": 40.0, "pasivos": 10.0}
+    texto = dv.resumen_saldo(entradas, -20.0, liquidado=False)
+    assert "que entran" in texto
+    assert texto.count("**") == 6  # saldo restado y lo que queda, en negrita, y el título
 
 
 def test_sistema_de_financiacion_del_ultimo_anio_publicado():

@@ -452,7 +452,7 @@ Plantilla:
 
 ## D-034 · Estética «océano» y cristal en la web
 
-- **Fecha:** 2026-11-23 · **Estado:** aceptada (prueba de concepto revisada por Lucas)
+- **Fecha:** 2026-11-23 · **Estado:** aceptada (prueba de concepto revisada por Ismael)
 - **Contexto:** la presentación (carpeta `presentacion/`) usa una estética submarina con burbujas de cristal; la web debía verse coherente con ella y más moderna.
 - **Decisión:** solo estilo, sin tocar datos ni lógica. Fondo de mar profundo con luz y burbujas que suben (CSS); métricas, tarjetas, desplegables, avisos, barra lateral, botones y campos de cristal esmerilado; títulos finos con degradado; burbujas de cristal sobrias en los mapas de nodos (sin manchas de brillo); los mapas de nodos sin recuadro (el fondo del componente se funde con `mix-blend-mode: lighten` y bordes difuminados); separaciones de gráficos claras y casi transparentes, nunca negras. Paleta del tema ajustada a azul océano (`docs/marca.md`).
 - **Alternativas:** mantener el tema plano anterior; tema claro.
@@ -828,8 +828,8 @@ Plantilla:
 ## D-046 · Mapa del dinero con burbujas o frascos, cabecera solo con el nombre e Inicio con menos texto
 
 - **Fecha:** 2026-11-24
-- **Estado:** Aceptada (Lucas: «que esté su opción, pero que haya un switch… lo mío tenía muchísima más información»). En la rama `feat/web-retoques`, sobre `feat/web-ligera` (D-043 a D-045).
-- **Autor:** Claude (agente), a petición de Lucas
+- **Estado:** Aceptada (Ismael: «que esté su opción, pero que haya un switch… lo mío tenía muchísima más información»). En la rama `feat/web-retoques`, sobre `feat/web-ligera` (D-043 a D-045).
+- **Autor:** Claude (agente), a petición de Ismael
 - **Contexto:** D-038 cambió las burbujas del mapa general (D-033) por frascos de 100 billetes. Los frascos se entienden mejor de un vistazo, pero perdían información:
   - el llenado según lo gastado;
   - el tamaño según el dinero;
@@ -871,8 +871,8 @@ Plantilla:
 ## D-047 · Mapa de burbujas dibujado como en la presentación, barra de dinero sin Plotly y pie sencillo
 
 - **Fecha:** 2026-11-24
-- **Estado:** Aceptada (Lucas: «mira la diferencia entre el gráfico de las burbujas que has dibujado en la presentación y el que hay luego realmente en la página web… no tienes por qué usar Plotly»). En la rama `feat/web-retoques`, sobre D-046.
-- **Autor:** Claude (agente), a petición de Lucas
+- **Estado:** Aceptada (Ismael: «mira la diferencia entre el gráfico de las burbujas que has dibujado en la presentación y el que hay luego realmente en la página web… no tienes por qué usar Plotly»). En la rama `feat/web-retoques`, sobre D-046.
+- **Autor:** Claude (agente), a petición de Ismael
 - **Contexto:** En el Mapa del dinero, las burbujas eran imágenes SVG dentro de `streamlit-agraph` (vis-network): planas y muy lejos de las de la presentación. Debajo había dos gráficas, una en HTML y otra en Plotly, que repetían información. El pie tenía demasiadas cosas sueltas.
 - **Decisión:**
   - **Burbujas en un lienzo propio** (`app/burbujas.py`, un componente `components.v2` que corre en la página):
@@ -903,8 +903,8 @@ Plantilla:
 ## D-048 · Portada como página de bienvenida, no como panel
 
 - **Fecha:** 2026-11-25
-- **Estado:** Aceptada (Lucas: «parece demasiado como un panel informativo en vez de una web accesible y amable»). En la rama `feat/web-retoques`. Es el 25-nov, día sin funciones nuevas según el plan: es un rediseño de la portada pedido expresamente y no añade cálculos nuevos, solo dos consultas de lectura sobre los indicadores existentes.
-- **Autor:** Claude (agente), a petición de Lucas
+- **Estado:** Aceptada (Ismael: «parece demasiado como un panel informativo en vez de una web accesible y amable»). En la rama `feat/web-retoques`. Es el 25-nov, día sin funciones nuevas según el plan: es un rediseño de la portada pedido expresamente y no añade cálculos nuevos, solo dos consultas de lectura sobre los indicadores existentes.
+- **Autor:** Claude (agente), a petición de Ismael
 - **Contexto:** Lo que había en el Inicio:
   - el título alineado a la izquierda y un buscador de borde a borde;
   - cuatro puertas;
@@ -931,8 +931,8 @@ Plantilla:
 ## D-049 · Fuera los frascos: el Mapa del dinero solo con burbujas y en dos niveles
 
 - **Fecha:** 2026-11-25
-- **Estado:** Aceptada (Lucas: «hemos quedado en que vamos a quitar los frascos con mis compañeros… vamos con las burbujas a tope»). Sustituye a la parte de mapa de D-038 y al interruptor de D-046.
-- **Autor:** Claude (agente), a petición de Lucas
+- **Estado:** Aceptada (Ismael: «hemos quedado en que vamos a quitar los frascos con mis compañeros… vamos con las burbujas a tope»). Sustituye a la parte de mapa de D-038 y al interruptor de D-046.
+- **Autor:** Claude (agente), a petición de Ismael
 - **Decisión:**
   - El Mapa del dinero solo tiene burbujas (D-047): se quita el interruptor y el código de los frascos de la pantalla.
   - Por defecto se ven dos niveles: las consejerías y sus dos contratos más grandes.
@@ -944,8 +944,8 @@ Plantilla:
 ## D-050 · Logo arriba también en el Inicio, consejería al centro al pulsarla y Red del dinero con las burbujas del lienzo
 
 - **Fecha:** 2026-11-25
-- **Estado:** Aceptada (Lucas). En la rama `feat/web-retoques`, sobre D-047 a D-049.
-- **Autor:** Claude (agente), a petición de Lucas
+- **Estado:** Aceptada (Ismael). En la rama `feat/web-retoques`, sobre D-047 a D-049.
+- **Autor:** Claude (agente), a petición de Ismael
 - **Decisión:**
   - **Logo:** sale arriba con el nombre en todas las pantallas, también en el Inicio. Se quita el logo grande de encima del título del Inicio.
   - **Inicio:**
@@ -968,8 +968,8 @@ Plantilla:
 ## D-051 · Logo junto al título del Inicio y buscador debajo del mapa
 
 - **Fecha:** 2026-11-25
-- **Estado:** En prueba (Lucas: «a ver cómo queda»). En la rama `feat/web-retoques`, sobre D-050.
-- **Autor:** Claude (agente), a petición de Lucas
+- **Estado:** En prueba (Ismael: «a ver cómo queda»). En la rama `feat/web-retoques`, sobre D-050.
+- **Autor:** Claude (agente), a petición de Ismael
 - **Decisión:**
   - **Logo:** en el Inicio va a la izquierda del título, de tamaño medio; arriba solo el nombre. En las demás pantallas, el logo arriba con el nombre.
   - **Orden del Inicio:**
@@ -985,8 +985,8 @@ Plantilla:
 ## D-052 · Mapa del dinero: el presupuesto en una barra, lo primero
 
 - **Fecha:** 2026-11-25
-- **Estado:** Aceptada (Lucas: «lo primero tendría que salir el selector de año y luego ya el presupuesto general y el mapa»).
-- **Autor:** Claude (agente), a petición de Lucas
+- **Estado:** Aceptada (Ismael: «lo primero tendría que salir el selector de año y luego ya el presupuesto general y el mapa»).
+- **Autor:** Claude (agente), a petición de Ismael
 - **Decisión:**
   - Debajo del selector de año, «Presupuesto 2025» con el total y una sola barra llena hasta lo gastado, con una marca donde acaba. Debajo, lo gastado (y su %) y lo que quedó sin gastar. Sin frases.
   - La tarjeta de la mascota con lo que tocaría a cada habitante pasa a un desplegable al final, «Si se repartiera entre todos los habitantes».
@@ -995,8 +995,8 @@ Plantilla:
 ## D-053 · Portada: el mapa de burbujas con la animación de la presentación
 
 - **Fecha:** 2026-11-25
-- **Estado:** Retirada el mismo día (Lucas: «no me terminó de convencer… vamos a volver a lo de antes»). Se vuelve al estilo del lienzo de D-047 con el líquido algo más azulado (mezclado con el azul de la marca), y se borra el código del estilo «presentacion». Se deja aquí como registro.
-- **Autor:** Claude (agente), a petición de Lucas
+- **Estado:** Retirada el mismo día (Ismael: «no me terminó de convencer… vamos a volver a lo de antes»). Se vuelve al estilo del lienzo de D-047 con el líquido algo más azulado (mezclado con el azul de la marca), y se borra el código del estilo «presentacion». Se deja aquí como registro.
+- **Autor:** Claude (agente), a petición de Ismael
 - **Decisión:** el lienzo de `app/burbujas.py` tiene un segundo estilo, `estilo="presentacion"`, que solo usa la portada:
   - burbujas de azul intenso con ondas de luz (cáusticas) que se mueven dentro, reflejos arriba y halo;
   - líneas como collares de perlas de luz que avanzan de la burbuja grande a la pequeña;
@@ -1136,8 +1136,8 @@ Plantilla:
 ## D-058 · La ficha de empresa u organismo enseña lo que llega por la dirección
 
 - **Fecha:** 2026-11-25
-- **Estado:** Aceptada (fallo que vio Lucas: «te saca los mismos datos en todos los paneles»).
-- **Autor:** Claude (agente), a petición de Lucas
+- **Estado:** Aceptada (fallo que vio Ismael: «te saca los mismos datos en todos los paneles»).
+- **Autor:** Claude (agente), a petición de Ismael
 - **Contexto:** las fichas decidían qué enseñar con `buscador or dirección`. El buscador de la ficha guarda en la sesión lo último que se eligió en él. Al elegir allí una empresa una vez (por ejemplo, Fresenius Kabi), todas las que llegaban después desde el Inicio (`?empresa=…`) seguían enseñando esa.
 - **Decisión:** `buscador.con_direccion`:
   - si se acaba de elegir algo nuevo en el buscador de la ficha, se enseña eso y se pone en la dirección;
@@ -1148,8 +1148,8 @@ Plantilla:
 ## D-059 · El asistente, solo un chat; el aviso legal, en su propia pantalla
 
 - **Fecha:** 2026-11-25
-- **Estado:** Aceptada (Lucas: «quitar absolutamente todo lo que hay y hacer un formato chat un poco más amable… es lo más importante de la web»).
-- **Autor:** Claude (agente), a petición de Lucas
+- **Estado:** Aceptada (Ismael: «quitar absolutamente todo lo que hay y hacer un formato chat un poco más amable… es lo más importante de la web»).
+- **Autor:** Claude (agente), a petición de Ismael
 - **Contexto:** la pantalla del asistente era un cajón de sastre:
   - el título y un párrafo largo;
   - el aviso de modelo sin conectar;
@@ -1173,8 +1173,8 @@ Plantilla:
 ## D-060 · Asistente: panel de cristal azul vivo y el ojo al lado como personaje
 
 - **Fecha:** 2026-11-25
-- **Estado:** Aceptada (Lucas: «un poco más glassy, un poco más cristalino y un poco más azul vivo… ahora mismo es como un azul muerto»; el ojo «a derecha o a izquierda, como un personajillo»).
-- **Autor:** Claude (agente), a petición de Lucas
+- **Estado:** Aceptada (Ismael: «un poco más glassy, un poco más cristalino y un poco más azul vivo… ahora mismo es como un azul muerto»; el ojo «a derecha o a izquierda, como un personajillo»).
+- **Autor:** Claude (agente), a petición de Ismael
 - **Decisión:**
   - **Panel del chat**, inspirado en el panel de la presentación:
     - cristal teñido de azul;
@@ -1187,8 +1187,8 @@ Plantilla:
 ## D-061 · Tipografía Outfit (y JetBrains Mono para el código)
 
 - **Fecha:** 2026-11-25
-- **Estado:** Aceptada (Lucas: «vamos a cambiarla por una un poco más chula… la que uso en Clubed»).
-- **Autor:** Claude (agente), a petición de Lucas
+- **Estado:** Aceptada (Ismael: «vamos a cambiarla por una un poco más chula… la que uso en Clubed»).
+- **Autor:** Claude (agente), a petición de Ismael
 - **Decisión:**
   - **Outfit** (Google Fonts, pesos 300 a 700) sustituye a Inter en toda la web: el tema de Streamlit, el CSS, el HTML de las pantallas, los SVG, el lienzo de las burbujas y los gráficos de Plotly.
   - **JetBrains Mono**, que estaba declarada pero no se descargaba, se carga ahora para el código y los nombres de tablas.
@@ -1196,3 +1196,16 @@ Plantilla:
 - **Consecuencias:**
   - Los logos en SVG que llevan texto no pueden cargar la letra web desde una imagen y siguen con su lista de respaldo.
   - La presentación no cambia.
+
+## D-063 · «¿De dónde viene el dinero?»: solo las burbujas y el sistema de financiación en una caja
+
+- **Fecha:** 2026-11-25
+- **Estado:** Propuesta (Ignacio: «es muy poco visual e intuitivo… dejando solo las burbujas»; el sistema de financiación, «como una caja de información»). En la rama `feat/de-donde-viene-burbujas`, sin integrar en `main` hasta que el equipo lo vea.
+- **Autor:** Claude (agente), a petición de Ignacio
+- **Contexto:** la vista de D-054 abría con una barra apilada «de cada 100 € que entran» y una caja de tres cifras (lo que entra − saldo = ingresos netos), y terminaba con la explicación del sistema de financiación a todo lo ancho. Se pidió simplificarla.
+- **Decisión:**
+  - Fuera la barra apilada y la caja de tres cifras. La vista empieza con «Lo que entró / entra en {año}» y las burbujas; la fuente de los ingresos va debajo del mapa.
+  - El sistema de financiación pasa a la columna de la ficha, debajo de ella: una caja de información con lo que entra, el saldo que se resta y lo que queda, y un botón «Cómo funciona el sistema» que abre la explicación neutra de D-054 (el mismo texto revisado), los saldos de los fondos y su fuente.
+  - «De cada 100 €» sigue en la ficha de cada burbuja.
+- **Alternativas consideradas:** dejar la barra más pequeña; un desplegable a todo lo ancho para el sistema (seguía ocupando la página).
+- **Consecuencias:** se borran `barra_entradas`, `flujo_saldo` y `grupos_barra` de `app/de_donde_viene.py`, y su test. Si no gusta, se deshace sin tocar `main`.

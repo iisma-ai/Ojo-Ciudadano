@@ -99,25 +99,35 @@ const CONSEJERIAS = [
   ["cultura", "Cultura y Turismo", 960, 870, 58, 0.5],
 ];
 
-// Reparto real de 2025 (presupuesto liquidado): id, nombre, x, y, radio (por el dinero), gastado
+// De donde viene el dinero en 2025: los tres capitulos de ingresos que mas aportan (ingresos
+// consolidados liquidados, derechos reconocidos; catalogo de datos abiertos, serie
+// presupuestos_liquidados_ingresos_consolidados_por_capitulo_y_fase_ejecucion, 23-nov).
+// «De cada 100 €» sobre lo que entra antes de restar el saldo con el sistema de financiacion,
+// como en la web (app/de_donde_viene.py): directos 18.714 M€, indirectos 15.063 M€,
+// prestamos 3.445 M€. id, nombre, x, y, radio, llenado (entrado / previsto)
+const INGRESOS_2025 = [
+  ["dir", "Impuestos directos · 49 de cada 100 €", 560, 120, 80, 1],
+  ["ind", "Impuestos indirectos · 39 de cada 100 €", 1360, 120, 72, 1],
+  ["pre", "Préstamos · 9 de cada 100 €", 960, 95, 34, 0.93],
+];
+
+// A donde va: reparto real de 2025 (presupuesto liquidado), solo las cuatro mayores
+// id, nombre, x, y, radio (por el dinero), gastado
 const REPARTO_2025 = [
-  ["san", "Sanidad", 520, 330, 125, 0.992],
-  ["edu", "Educación", 1400, 330, 92, 0.992],
-  ["deu", "Deuda pública", 1580, 640, 68, 1],
-  ["viv", "Vivienda y Transportes", 1250, 860, 67, 0.844],
-  ["fam", "Familia y Asuntos Sociales", 660, 860, 58, 0.954],
-  ["emp", "Políticas de Empleo", 300, 660, 34, 0.616],
-  ["dig", "Digitalización", 960, 900, 29, 0.85],
+  ["san", "Sanidad", 460, 840, 115, 0.992],
+  ["viv", "Vivienda y Transportes", 830, 910, 62, 0.844],
+  ["edu", "Educación", 1220, 880, 88, 0.992],
+  ["deu", "Deuda pública", 1560, 845, 66, 1],
 ];
 
 // Los mayores contratos de Sanidad en 2025 en la Plataforma (id, etiqueta, x, y, radio)
 const CONTRATOS_SANIDAD = [
-  ["ter", "", 310, 330, 30], // terapias respiratorias, 107,4 M€
-  ["gri", "", 335, 240, 15], // vacunas de la gripe, 17,2 M€
-  ["cli", "", 390, 170, 15], // obras del Hospital Clínico San Carlos, 17,1 M€
-  ["vph", "Vacuna VPH", 330, 425, 14], // vacuna del papiloma humano, 14,4 M€
-  ["pro", "", 468, 132, 14], // protonterapia en La Paz, 13,7 M€
-  ["vrs", "", 395, 490, 13], // vacuna del virus respiratorio sincitial, 12,0 M€
+  ["ter", "", 250, 840, 30], // terapias respiratorias, 107,4 M€
+  ["gri", "", 275, 750, 15], // vacunas de la gripe, 17,2 M€
+  ["cli", "", 330, 680, 15], // obras del Hospital Clínico San Carlos, 17,1 M€
+  ["vph", "Vacuna VPH", 270, 935, 14], // vacuna del papiloma humano, 14,4 M€
+  ["pro", "", 408, 652, 14], // protonterapia en La Paz, 13,7 M€
+  ["vrs", "", 335, 1000, 13], // vacuna del virus respiratorio sincitial, 12,0 M€
 ];
 
 const DIAPOSITIVAS = [
@@ -166,16 +176,23 @@ const DIAPOSITIVAS = [
     profundidad: 0.6,
     ojo: { x: 150, y: 140, escala: 0.7, mira: { x: 700, y: 540 } },
     elementos: [
-      ...REPARTO_2025.map(([id, etiqueta, x, y, r, llenado]) => ({
-        tipo: "burbuja", id, x, y, r, llenado, etiqueta, tono: "azul", paso: 0,
+      // paso 0: de donde viene; el dinero baja de los ingresos a la Comunidad
+      ...INGRESOS_2025.map(([id, etiqueta, x, y, r, llenado]) => ({
+        tipo: "burbuja", id, x, y, r, llenado, etiqueta, tono: "agua", paso: 0,
       })),
-      { tipo: "burbuja", id: "cm25", x: 960, y: 540, r: 210, llenado: 0.954, etiqueta: "Comunidad de Madrid · 2025", valor: "33.296 M€", tono: "azul", paso: 0 },
-      ...REPARTO_2025.map(([id]) => ({ tipo: "enlace", de: id, a: "cm25", paso: 0 })),
+      { tipo: "burbuja", id: "cm25", x: 960, y: 470, r: 170, llenado: 0.954, etiqueta: "Comunidad de Madrid · 2025", valor: "33.296 M€", tono: "azul", paso: 0 },
+      ...INGRESOS_2025.map(([id]) => ({ tipo: "enlace", de: id, a: "cm25", paso: 0 })),
 
-      // paso 1: la camara se acerca a Sanidad y sale su ficha
-      { tipo: "foco", de: "san", zoom: 1.7, x: 560, y: 540, paso: 1, hasta: 1 },
+      // paso 1: a donde va; el dinero sale de la Comunidad hacia las consejerias
+      ...REPARTO_2025.map(([id, etiqueta, x, y, r, llenado]) => ({
+        tipo: "burbuja", id, x, y, r, llenado, etiqueta, tono: "azul", paso: 1,
+      })),
+      ...REPARTO_2025.map(([id]) => ({ tipo: "enlace", de: "cm25", a: id, paso: 1 })),
+
+      // paso 2: la camara se acerca a Sanidad y sale su ficha
+      { tipo: "foco", de: "san", zoom: 1.7, x: 560, y: 540, paso: 2, hasta: 2 },
       {
-        tipo: "panel", x: 1080, y: 310, ancho: 700, paso: 1, hasta: 2,
+        tipo: "panel", x: 1080, y: 310, ancho: 700, paso: 2, hasta: 3,
         tam: 28,
         etiqueta: "Sanidad · 2025",
         titulo: "40 de cada 100 € que gastó la Comunidad",
@@ -184,17 +201,17 @@ const DIAPOSITIVAS = [
         ],
       },
 
-      // paso 2: aparecen sus contratos mayores
-      { tipo: "foco", de: "san", zoom: 1.45, x: 560, y: 560, paso: 2, hasta: 2 },
+      // paso 3: aparecen sus contratos mayores
+      { tipo: "foco", de: "san", zoom: 1.45, x: 560, y: 560, paso: 3, hasta: 3 },
       ...CONTRATOS_SANIDAD.map(([id, etiqueta, x, y, r]) => ({
-        tipo: "burbuja", id, x, y, r, llenado: 1, etiqueta, tono: "agua", paso: 2,
+        tipo: "burbuja", id, x, y, r, llenado: 1, etiqueta, tono: "agua", paso: 3,
       })),
-      ...CONTRATOS_SANIDAD.map(([id]) => ({ tipo: "enlace", de: "san", a: id, paso: 2 })),
+      ...CONTRATOS_SANIDAD.map(([id]) => ({ tipo: "enlace", de: "san", a: id, paso: 3 })),
 
-      // paso 3: la camara entra en un contrato y sale su ficha con sus señales
-      { tipo: "foco", de: "vph", zoom: 3.4, x: 600, y: 540, paso: 3 },
+      // paso 4: la camara entra en un contrato y sale su ficha con sus señales
+      { tipo: "foco", de: "vph", zoom: 3.4, x: 600, y: 540, paso: 4 },
       {
-        tipo: "panel", x: 1060, y: 540, ancho: 680, paso: 3,
+        tipo: "panel", x: 1060, y: 540, ancho: 680, paso: 4,
         tam: 28,
         etiqueta: "Contrato · Sanidad",
         titulo: "Vacuna del papiloma humano",

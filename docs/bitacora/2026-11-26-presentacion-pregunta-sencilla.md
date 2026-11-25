@@ -14,7 +14,19 @@
     regional, con 2,6 M€ con IVA. Las dos cifras no se suman.
   - Son servicios de helicóptero de rescate, extinción de incendios y asistencia sanitaria del SUMMA 112, y
     lo que necesitan (por ejemplo, el prefabricado de la base de Las Rozas).
-- `presentacion/README.md`: actualizada la fila de la escena 7.
+- **Diapositiva 4, el flujo del dinero** (a petición de Isma):
+  - arriba, los tres capítulos de ingresos de 2025 que más aportan, con «de cada 100 €» como en la web
+    (`app/de_donde_viene.py`): impuestos directos 49 (18.714 M€), indirectos 39 (15.063 M€) y préstamos 9
+    (3.445 M€). Ingresos consolidados liquidados del catálogo de datos abiertos, descargados el 23-nov;
+  - los enlaces van de los ingresos a la Comunidad y, en un paso nuevo, de la Comunidad a las consejerías: el
+    pulso de luz del enlace va de `de` a `a`, así que el dinero baja;
+  - de siete consejerías se pasa a las cuatro mayores (Sanidad, Educación, Vivienda y Transportes, Deuda pública)
+    para que se lea mejor. Sanidad y sus contratos bajan a la parte de abajo; los pasos de Sanidad, sus contratos y la
+    vacuna se retrasan uno;
+  - el Estado no sale como fuente propia: en el consolidado, las transferencias corrientes de 2025 son un saldo
+    negativo (−6.118 M€), porque se restan las aportaciones al sistema de financiación (D-054). El IRPF y el IVA
+    son tributos cedidos por el Estado dentro de ese sistema.
+- `presentacion/README.md`: actualizadas las filas de las escenas 4 y 7.
 - **Guion de Isma (diapositivas 4 a 7)** reescrito en la conversación con la estructura que pidió: de dónde viene y a
   dónde va el dinero, el volumen de los datos, las señales y los atípicos (Isolation Forest), el asistente
   («no hace falta saber para preguntar») y la vuelta a la alegoría del mar. No se guarda en el repositorio.
@@ -24,7 +36,7 @@
 
 ## Pendiente
 
-- Probar la diapositiva 7 en el ordenador de la demo (no se ha podido ver en un navegador desde esta sesión).
+- Probar las diapositivas 4 y 7 en el ordenador de la demo (no se ha podido ver en un navegador desde esta sesión).
 - El QR de la escena 8 sigue sin dirección (`DATOS.urlApp`).
 
 ## Siguiente paso

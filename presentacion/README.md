@@ -16,7 +16,7 @@ se ha gastado, y se unen en consejerías y en la Comunidad de Madrid. Poco texto
 | 1 | Fuera del agua, sin ojo: atardecer, mar y las rocas desde las que se salta; al pulsar, nos asomamos al borde y no se ve lo que hay debajo | Ignacio: Málaga, las rocas, saltar |
 | 2 | Bajo el agua, oscuro: las rocas están pero no se ven | Datos «transparentes» que no se pueden ver |
 | 3 | Aparece el ojo de cristal, «Ojo Ciudadano», y su luz ilumina | La plataforma accesible |
-| 4 | Reparto real de 2025; la cámara entra en Sanidad y en un contrato (anuncio, ofertas, peso en el gasto de la consejería) | Isma: el mapa interactivo |
+| 4 | De dónde viene y a dónde va el dinero de 2025: arriba los tres ingresos que más aportan (impuestos directos, indirectos y préstamos), el dinero baja a la Comunidad de Madrid y, al pulsar, sale hacia las cuatro mayores consejerías; después la cámara entra en Sanidad y en un contrato (anuncio, ofertas) | Isma: el mapa interactivo |
 | 5 | Enjambre de burbujas y 1.354.441 contratos | Más de un millón de contratos abruma |
 | 6 | Señales de cada 100 y, al pulsar, un contrato atípico | Los 6 indicadores y el buscador de atípicos |
 | 7 | El asistente: tres preguntas reales (barras por año, tarta de los recursos ante el Tribunal y una pregunta sencilla: «¿la Comunidad tiene helicópteros?») | La IA busca, compara, relaciona y visualiza |

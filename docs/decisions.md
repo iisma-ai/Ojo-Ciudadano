@@ -1010,7 +1010,7 @@ Plantilla:
 ## D-054 · Mapa del dinero: «¿De dónde viene el dinero?» al lado de «¿A dónde va?»
 
 - **Fecha:** 2026-11-25
-- **Estado:** Propuesta. La persona pidió hacerlo en una rama aparte (`feat/de-donde-viene`) para enseñarlo al equipo. El plan dice que el 25 no se añaden funciones, así que entrar en `main` necesita el visto bueno del equipo.
+- **Estado:** Aceptada (El Harrak: «haz merge de todo el trabajo… directamente en main», 25-nov). Se hizo en una rama aparte (`feat/de-donde-viene`); entra en `main` el 25 aunque el plan dice que ese día no se añaden funciones, por decisión expresa de El Harrak.
 - **Autor:** Claude (agente), a petición de El Harrak
 - **Contexto:** el mapa del dinero solo contaba en qué se gasta. La base ya tiene, del catálogo de datos abiertos de la Comunidad (`serie_cm`, D-024), los ingresos por capítulo (iniciales hasta 2026 y liquidados hasta 2025), el sistema de financiación autonómica y las ayudas de la UE (hasta 2023). No hace falta bajar nada nuevo.
 - **Decisión:**
@@ -1031,7 +1031,7 @@ Plantilla:
 ## D-055 · Gráficos de Plotly con estilo acuático (opción A: solo el tema)
 
 - **Fecha:** 2026-11-25
-- **Estado:** Propuesta. Es un retoque visual en una rama aparte (`feat/graficos-acuaticos`) para no arriesgar la entrega; el equipo decide si entra.
+- **Estado:** Aceptada (El Harrak: «haz merge de todo el trabajo… directamente en main», 25-nov). Se hizo en una rama aparte (`feat/graficos-acuaticos`) para no arriesgar la entrega.
 - **Autor:** Claude (agente), a petición de El Harrak
 - **Contexto:** los unos 20 gráficos de Plotly (fichas, señales, atípicos, contexto, asistente) no seguían el estilo acuático de la web. Se valoraron tres caminos:
   - **A:** cambiar el tema de Plotly, 4–8 h;

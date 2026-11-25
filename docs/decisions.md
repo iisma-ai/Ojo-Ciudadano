@@ -1032,3 +1032,13 @@ Plantilla:
 - **Consecuencias:**
   - El cuadro al pasar el ratón depende de cómo dibuja Plotly su etiqueta (`.hoverlayer .hovertext path`).
   - Las barras más translúcidas tienen algo menos de contraste. El borde claro las separa del fondo, pero conviene revisarlas en la pantalla de la demo.
+- **Ajuste del mismo día (lo atípico en ámbar y menos tirones):**
+  - **Ámbar:** lo atípico pasa al ámbar de la presentación (`#E0A032` y `#FFD27A`, tono «ambar» de `presentacion/escena3d.js`):
+    - en el gráfico E-07, el contrato es una burbuja ámbar de cristal con un halo que se apaga hacia fuera (dos puntos, sin 3D);
+    - en el histograma, la línea y su etiqueta van en ámbar;
+    - en la ficha de contrato del Mapa del dinero, «Contrato atípico» sale en naranja.
+  - **Menos tirones:**
+    - los puntos con degradado solo se usan en trazas de hasta 50 puntos (la nube de atípicos tiene 1.500 y cada degradado es un elemento SVG propio);
+    - se quitan el halo de las barras y la sombra grande del cuadro al pasar el ratón, que se recalculaban en cada redibujado;
+    - la entrada de los gráficos es solo de opacidad.
+

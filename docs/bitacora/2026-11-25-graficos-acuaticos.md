@@ -22,6 +22,19 @@
 - **Tests:** `tests/app/test_graficos_acuaticos.py` (2). Total: 478 en verde, `ruff` limpio.
 - **Comprobado en el navegador** en «Presupuesto y contexto»: barras horizontales, barras apiladas y cuadro al pasar el ratón.
 
+## Ajuste: lo atípico en ámbar y menos tirones
+
+- **Ámbar:** lo atípico, en el ámbar de la presentación.
+  - En E-07, burbuja ámbar de cristal con un halo, que no se recorta en el borde del gráfico (`cliponaxis=False`).
+  - En el histograma, línea y etiqueta en ámbar, a la izquierda de la línea para que no se corte.
+  - «Contrato atípico», en naranja en la ficha del Mapa del dinero.
+  - La frase de la pantalla de atípicos dice «el punto amarillo».
+- **Tirones:**
+  - la nube de 1.500 puntos tenía un degradado SVG por punto: ahora, puntos planos por encima de 50;
+  - fuera el halo de las barras y la sombra grande del cuadro al pasar el ratón;
+  - entrada solo con opacidad.
+- **Comprobado en el navegador:** histograma de un atípico real y nube de puntos de prueba con 1.500 puntos.
+
 ## Pendiente
 
 - Mirar en la pantalla de la demo el contraste de las barras translúcidas.

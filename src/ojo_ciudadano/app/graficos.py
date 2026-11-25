@@ -50,6 +50,12 @@ REJILLA_SUAVE = "rgba(170, 225, 255, 0.08)"
 BORDE_CRISTAL = "rgba(220, 240, 255, 0.55)"
 FONDO_BURBUJA = "rgba(9, 30, 50, 0.96)"  # el cuadro al pasar el ratón; su forma, en estilo.css
 OPACIDAD_CRISTAL = 0.72
+# Cada punto con degradado es un degradado SVG propio: en nubes grandes (la de atípicos tiene
+# 1.500) el navegador va a tirones. Por encima de este número, puntos planos.
+MAX_PUNTOS_BURBUJA = 50
+# Lo atípico, en ámbar como en la presentación (tono «ambar» de presentacion/escena3d.js).
+ATIPICO_LUZ = "#FFD27A"
+ATIPICO_TONO = "#E0A032"
 
 
 def _cristal(figura: go.Figure) -> None:
@@ -62,6 +68,8 @@ def _cristal(figura: go.Figure) -> None:
     for traza in figura.data:
         if traza.type != "scatter" or "markers" not in (traza.mode or ""):
             continue
+        if len(traza.x or ()) > MAX_PUNTOS_BURBUJA or traza.marker.gradient.type is not None:
+            continue  # nube grande, o ya trae su propio degradado (el atípico)
         traza.marker.gradient = {"type": "radial", "color": "rgba(225, 245, 255, 0.85)"}
         if traza.marker.line.color is None:
             traza.marker.line = {"color": BORDE_CRISTAL, "width": 1}
@@ -771,9 +779,9 @@ def _eje(figura: go.Figure, eje: str, variable: str, valores: list, este=None) -
 
 
 def atipico(detalle: dict, variables: list[str]) -> go.Figure:
-    """E-07: el contrato atípico (azul) frente a una muestra de contratos similares (gris), en
-    las variables que más lo alejan. Con dos variables, nube de puntos; con una, histograma con
-    la posición del contrato."""
+    """E-07: el contrato atípico (ámbar, como en la presentación) frente a una muestra de
+    contratos similares (gris), en las variables que más lo alejan. Con dos variables, nube de
+    puntos; con una, histograma con la posición del contrato."""
     este, pares = detalle["este"], detalle["pares"]
     variables = [v for v in variables if v in NOMBRE_VARIABLE][:2] or ["importe"]
     figura = go.Figure()
@@ -788,13 +796,35 @@ def atipico(detalle: dict, variables: list[str]) -> go.Figure:
             marker={"color": transparente(GRIS_CLARO, 0.35), "size": 6},
             hoverinfo="skip",
         )
+        # el atípico como la burbuja ámbar de la presentación: un halo que se apaga hacia fuera
+        # y, encima, la burbuja de cristal con el borde más claro (dos puntos, sin 3D)
         figura.add_scatter(
             x=[este[vx]],
             y=[este[vy]],
             mode="markers",
-            name="Este contrato",
-            marker={"color": AZUL, "size": 16, "line": {"width": 1.5, "color": BRILLO}},
-            hovertemplate="Este contrato<extra></extra>",
+            showlegend=False,
+            hoverinfo="skip",
+            cliponaxis=False,  # el halo puede salir del área del gráfico sin cortarse
+            marker={
+                "color": transparente(ATIPICO_LUZ, 0.5),
+                "size": 46,
+                "gradient": {"type": "radial", "color": transparente(ATIPICO_LUZ, 0.0)},
+                "line": {"width": 0},
+            },
+        )
+        figura.add_scatter(
+            x=[este[vx]],
+            y=[este[vy]],
+            mode="markers",
+            name="Este contrato (atípico)",
+            cliponaxis=False,
+            marker={
+                "color": transparente(ATIPICO_TONO, 0.55),
+                "size": 22,
+                "gradient": {"type": "radial", "color": ATIPICO_LUZ},
+                "line": {"width": 1.5, "color": "rgba(255, 236, 190, 0.95)"},
+            },
+            hovertemplate="Este contrato (atípico)<extra></extra>",
         )
         _eje(figura, "x", vx, [p[vx] for p in puntos] + [este[vx]], este[vx])
         _eje(figura, "y", vy, [p[vy] for p in puntos] + [este[vy]], este[vy])
@@ -811,9 +841,11 @@ def atipico(detalle: dict, variables: list[str]) -> go.Figure:
         if este[v] is not None:
             figura.add_vline(
                 x=este[v],
-                line={"color": AZUL, "width": 3},
-                annotation_text="Este contrato",
-                annotation_font_color=AZUL,
+                line={"color": ATIPICO_TONO, "width": 3},
+                annotation_text="Este contrato (atípico)",
+                annotation_font_color=ATIPICO_LUZ,
+                # a la izquierda de la línea: el atípico suele estar en el borde del eje
+                annotation_position="top left",
             )
         _eje(figura, "x", v, valores + [este[v]], este[v])
         figura.update_yaxes(title="Contratos similares")

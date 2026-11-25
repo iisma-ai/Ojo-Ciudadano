@@ -167,7 +167,16 @@ def test_atipico_dibuja_dos_variables_o_una():
     pares = [{"importe": 100.0 * i, "cuota": i / 100, "baja": 0.1} for i in range(1, 60)]
     este = {"importe": 50_000.0, "cuota": 0.9, "baja": -50.0}
     figura = graficos.atipico({"este": este, "pares": pares}, ["importe", "cuota"])
-    assert [t.name for t in figura.data] == ["Contratos similares", "Este contrato"]
+    # la nube, el halo del atípico (sin nombre ni leyenda) y la burbuja ámbar
+    assert [t.name for t in figura.data] == [
+        "Contratos similares",
+        None,
+        "Este contrato (atípico)",
+    ]
+    nube, halo, burbuja = figura.data
+    assert nube.marker.gradient.type is None  # 59 puntos: planos, para no ir a tirones
+    assert halo.showlegend is False and halo.hoverinfo == "skip"
+    assert burbuja.marker.gradient.color == graficos.ATIPICO_LUZ
     figura = graficos.atipico({"este": este, "pares": pares}, ["baja"])
     # El eje se recorta, pero este contrato (rebaja de -5.000 %) sigue dentro.
     assert figura.layout.xaxis.range[0] <= -50.0

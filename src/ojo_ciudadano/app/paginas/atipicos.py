@@ -219,7 +219,7 @@ for fila in filas:
                 key=f"grafico-atipico-{fila['contrato_id']}",
             )
             st.caption(
-                f"El punto azul es este contrato; los grises, una muestra de los "
+                f"El punto amarillo es este contrato; los grises, una muestra de los "
                 f"{textos.numero(fila['n_grupo'])} contratos de «"
                 f"{textos.nombre_grupo(fila['grupo'])}». Está más alejado de ellos que el "
                 f"{textos.porcentaje(fila['puntuacion'], 1)} (posición relativa, no una "

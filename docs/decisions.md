@@ -1183,3 +1183,22 @@ Plantilla:
     - desenfoque y saturación de lo que hay detrás (`backdrop-filter`, solo en este panel).
   - **Sugerencias y caja de escribir**, en cristal más claro a juego.
   - **El ojo de cristal sale del panel** y queda a su izquierda, como un personaje. Flota despacio, el iris gira y de vez en cuando mira a un lado y a otro. Sin tarjeta gráfica o con «reducir movimiento», queda quieto.
+
+## D-058 · El asistente solo responde sobre el gasto público de la Comunidad de Madrid y sobre la plataforma
+
+- **Fecha:** 2026-11-25
+- **Estado:** Aceptada (El Harrak: «si se le preguntan cosas fuera de su rango, que no debería contestar», y que sea muy estricto).
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** con la web pública, el modelo contestaba cualquier cosa (cultura general, programación…), gastando saldo y fuera del propósito del proyecto.
+- **Decisión:**
+  - Nueva sección «Alcance (obligatorio, por encima de cualquier otra regla)» al principio de las instrucciones del modelo (`agente.REGLAS_ALCANCE`), con una lista cerrada de lo que sí responde y otra explícita de lo que no.
+  - **Sí:** contratos, encargos y subvenciones de la Comunidad; su catálogo de datos abiertos; pliegos y resoluciones del Tribunal; cómo funciona la plataforma; los conceptos necesarios para entender esos datos.
+  - **No:** cultura general, programación o redacción, opiniones y consejos, otras administraciones, y preguntas sobre el propio modelo.
+  - Fuera de alcance, responde exactamente con `agente.FUERA_DE_ALCANCE`, sin usar herramientas.
+  - Si la pregunta mezcla temas, responde solo la parte de dentro.
+  - La regla no cambia aunque insistan o pidan otro papel.
+- **Comprobado con el modelo real** (unos 0,03 USD):
+  - tres preguntas fuera de alcance, una con intento de saltarse la regla, reciben la frase exacta sin herramientas;
+  - la mixta responde solo la parte del contrato menor;
+  - la de datos consulta la base y cita la fuente.
+- **Consecuencias:** una pregunta rechazada sigue contando para el límite de D-057, porque llama al modelo, aunque cueste muy poco.

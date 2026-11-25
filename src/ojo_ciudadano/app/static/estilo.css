@@ -521,3 +521,44 @@ div[class*="st-key-cajasenal_"][class*="st-key-cajasenal_"] {
 [data-testid="stColumn"]:has(.oc-ficha-mapa) [data-testid="stMetricValue"] {
   font-size: clamp(1.35rem, 1.7vw, 1.9rem);
 }
+
+/* Gráficos de Plotly con estilo acuático (D-055). El cuadro al pasar el ratón como una burbuja:
+   Plotly no deja darle más margen, así que se agranda con un trazo grueso del mismo color que el
+   fondo (con las esquinas redondeadas) y se le pone un borde de luz y una sombra. El texto ya va
+   con nuestra letra (`hoverlabel` en app/graficos.py). */
+.js-plotly-plot .hoverlayer .hovertext path {
+  stroke: rgba(9, 30, 50, 0.96) !important;
+  stroke-width: 18px !important;
+  stroke-linejoin: round;
+  paint-order: stroke;
+  filter: drop-shadow(0 0 0.6px rgba(170, 225, 255, 0.9)) drop-shadow(0 0 0.6px rgba(170, 225, 255, 0.9))
+    drop-shadow(0 10px 22px rgba(0, 8, 22, 0.55));
+}
+.js-plotly-plot .hoverlayer .hovertext text {
+  font-family: Inter, sans-serif !important;
+}
+/* la etiqueta del eje que sale al pasar el ratón, igual */
+.js-plotly-plot .hoverlayer .axistext path {
+  stroke: rgba(9, 30, 50, 0.96) !important;
+  stroke-width: 10px !important;
+  stroke-linejoin: round;
+  paint-order: stroke;
+}
+/* los gráficos aparecen con suavidad (solo opacidad y transform) */
+[data-testid="stPlotlyChart"] {
+  animation: oc-grafico-entra 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) both;
+}
+@keyframes oc-grafico-entra {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-testid="stPlotlyChart"] { animation: none; }
+}
+/* halo azul suave de las barras: un solo filtro para todo el grupo, no uno por barra */
+.js-plotly-plot .barlayer {
+  filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.28));
+}
+html.oc-sin-gpu .js-plotly-plot .barlayer {
+  filter: none;
+}

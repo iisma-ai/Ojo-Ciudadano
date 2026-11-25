@@ -1006,3 +1006,29 @@ Plantilla:
 
   El Mapa del dinero sigue con el estilo `mapa`, más sobrio y con cifras, porque ahí se lee y se compara.
 - **Consecuencias:** las cifras de cada consejería en la portada salen al pasar el ratón.
+
+## D-055 · Gráficos de Plotly con estilo acuático (opción A: solo el tema)
+
+- **Fecha:** 2026-11-25
+- **Estado:** Propuesta. Es un retoque visual en una rama aparte (`feat/graficos-acuaticos`) para no arriesgar la entrega; el equipo decide si entra.
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** los unos 20 gráficos de Plotly (fichas, señales, atípicos, contexto, asistente) no seguían el estilo acuático de la web. Se valoraron tres caminos:
+  - **A:** cambiar el tema de Plotly, 4–8 h;
+  - **B:** rehacerlos todos con dibujo propio, 6–10 días;
+  - **C:** mixto.
+  Se eligió A por el riesgo, a un día de la entrega.
+- **Decisión:**
+  - Todo en el tema común `_tema` de `app/graficos.py`, que usan todos los gráficos:
+    - rejilla casi invisible;
+    - barras de cristal: translúcidas, con borde claro y esquinas redondeadas;
+    - puntos como burbujas: degradado radial con el borde más claro;
+    - cuadro al pasar el ratón con nuestra letra (Inter, 14 px), sin cortar nombres.
+  - En `estilo.css`:
+    - el cuadro al pasar el ratón como una burbuja: más margen con un trazo grueso del color del fondo, esquinas redondeadas, borde de luz y sombra;
+    - un halo azul suave en el grupo de barras (un solo filtro, sin él en equipos sin tarjeta gráfica, D-044);
+    - entrada suave de cada gráfico (opacidad y `transform`).
+  - Los colores, la forma de cada gráfico y sus frases no cambian.
+- **Alternativas consideradas:** B y C (ver contexto), para después de la entrega si se quiere ir más lejos.
+- **Consecuencias:**
+  - El cuadro al pasar el ratón depende de cómo dibuja Plotly su etiqueta (`.hoverlayer .hovertext path`).
+  - Las barras más translúcidas tienen algo menos de contraste. El borde claro las separa del fondo, pero conviene revisarlas en la pantalla de la demo.

@@ -44,6 +44,29 @@ def transparente(color: str, alfa: float) -> str:
     return f"rgba({r}, {g}, {b}, {alfa})"
 
 
+# Estilo acuático (D-055): rejilla casi invisible, barras de cristal (translúcidas, con borde claro
+# y esquinas redondeadas) y puntos como burbujas (centro de color y borde que se aclara).
+REJILLA_SUAVE = "rgba(170, 225, 255, 0.08)"
+BORDE_CRISTAL = "rgba(220, 240, 255, 0.55)"
+FONDO_BURBUJA = "rgba(9, 30, 50, 0.96)"  # el cuadro al pasar el ratón; su forma, en estilo.css
+OPACIDAD_CRISTAL = 0.72
+
+
+def _cristal(figura: go.Figure) -> None:
+    """Barras de cristal y puntos-burbuja en las trazas que ya tiene la figura."""
+    figura.update_traces(
+        selector={"type": "bar"},
+        opacity=OPACIDAD_CRISTAL,
+        marker_line={"color": BORDE_CRISTAL, "width": 1},
+    )
+    for traza in figura.data:
+        if traza.type != "scatter" or "markers" not in (traza.mode or ""):
+            continue
+        traza.marker.gradient = {"type": "radial", "color": "rgba(225, 245, 255, 0.85)"}
+        if traza.marker.line.color is None:
+            traza.marker.line = {"color": BORDE_CRISTAL, "width": 1}
+
+
 def _tema(figura: go.Figure, alto: int = 240) -> go.Figure:
     figura.update_layout(
         height=alto,
@@ -52,12 +75,27 @@ def _tema(figura: go.Figure, alto: int = 240) -> go.Figure:
         plot_bgcolor="rgba(0,0,0,0)",
         font={"family": "Inter, sans-serif", "color": TEXTO, "size": 13},
         showlegend=False,
-        hoverlabel={"bgcolor": "#131C2E", "bordercolor": REJILLA, "font": {"color": TEXTO}},
+        # el cuadro al pasar el ratón, con nuestra letra; el resto de su forma, en estilo.css
+        hoverlabel={
+            "bgcolor": FONDO_BURBUJA,
+            "bordercolor": FONDO_BURBUJA,
+            "font": {"family": "Inter, sans-serif", "color": TEXTO, "size": 14},
+            "align": "left",
+            "namelength": -1,
+        },
         bargap=0.25,
+        barcornerradius=6,
         separators=",.",  # formato español: 1.234,5
     )
-    figura.update_xaxes(gridcolor=REJILLA, zeroline=False, linecolor=REJILLA, automargin=True)
-    figura.update_yaxes(gridcolor=REJILLA, zeroline=False, linecolor=REJILLA, automargin=True)
+    for actualizar in (figura.update_xaxes, figura.update_yaxes):
+        actualizar(
+            gridcolor=REJILLA_SUAVE,
+            zeroline=False,
+            linecolor=REJILLA_SUAVE,
+            automargin=True,
+            tickfont={"color": GRIS_CLARO},
+        )
+    _cristal(figura)
     return figura
 
 

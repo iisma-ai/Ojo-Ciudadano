@@ -1,6 +1,6 @@
 # 2026-11-24 · Retoques de la web: mapa con burbujas o frascos, buscador, fondo y cabecera
 
-**Quién:** Lucas con Claude (agente). Rama `feat/web-retoques`, sacada de `feat/web-ligera`.
+**Quién:** Ismael con Claude (agente). Rama `feat/web-retoques`, sacada de `feat/web-ligera`.
 
 ## Qué se ha hecho (D-046)
 
@@ -29,7 +29,7 @@
 
 ## Siguiente paso
 
-- Lucas sigue con más cambios.
+- Ismael sigue con más cambios.
 - Cuando estén revisados, integrar con `feat/web-ligera` y `main`.
 
 ## Segunda tanda (D-047)
@@ -92,4 +92,4 @@
   - los reflejos cuadrados quedaban mal;
   - todas las burbujas tenían el mismo tono.
 - Se vuelve al lienzo de D-047 con el líquido algo más azulado y se borra ese código.
-- Lucas pide subir y juntar ramas: `feat/web-retoques` se integra en `main`.
+- Ismael pide subir y juntar ramas: `feat/web-retoques` se integra en `main`.

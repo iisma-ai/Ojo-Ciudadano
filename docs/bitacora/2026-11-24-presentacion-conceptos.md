@@ -25,7 +25,7 @@
 - Logo de Ojo Ciudadano (`app/static/logo-horizontal.svg`) en el panel del QR y en el cierre (tipo `imagen`).
 
 ## Pendiente
-- Guion definitivo (lo da Lucas) para ordenar las escenas.
+- Guion definitivo (lo da Ismael) para ordenar las escenas.
 - Capturas o vídeos de la web en la escena 9.
 - Revisión de textos con `revisor-legal`.
 

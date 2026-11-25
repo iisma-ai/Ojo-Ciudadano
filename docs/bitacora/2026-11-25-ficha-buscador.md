@@ -1,6 +1,6 @@
 # 2026-11-25 · Fichas que enseñaban siempre la misma empresa
 
-**Quién:** Lucas con Claude (agente). Rama `fix/ficha-buscador`.
+**Quién:** Ismael con Claude (agente). Rama `fix/ficha-buscador`.
 
 ## Qué pasaba
 

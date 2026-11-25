@@ -1183,3 +1183,16 @@ Plantilla:
     - desenfoque y saturación de lo que hay detrás (`backdrop-filter`, solo en este panel).
   - **Sugerencias y caja de escribir**, en cristal más claro a juego.
   - **El ojo de cristal sale del panel** y queda a su izquierda, como un personaje. Flota despacio, el iris gira y de vez en cuando mira a un lado y a otro. Sin tarjeta gráfica o con «reducir movimiento», queda quieto.
+
+## D-061 · Tipografía Outfit (y JetBrains Mono para el código)
+
+- **Fecha:** 2026-11-25
+- **Estado:** Aceptada (Lucas: «vamos a cambiarla por una un poco más chula… la que uso en Clubed»).
+- **Autor:** Claude (agente), a petición de Lucas
+- **Decisión:**
+  - **Outfit** (Google Fonts, pesos 300 a 700) sustituye a Inter en toda la web: el tema de Streamlit, el CSS, el HTML de las pantallas, los SVG, el lienzo de las burbujas y los gráficos de Plotly.
+  - **JetBrains Mono**, que estaba declarada pero no se descargaba, se carga ahora para el código y los nombres de tablas.
+  - El buscador va en un iframe y carga Outfit por su cuenta.
+- **Consecuencias:**
+  - Los logos en SVG que llevan texto no pueden cargar la letra web desde una imagen y siguen con su lista de respaldo.
+  - La presentación no cambia.

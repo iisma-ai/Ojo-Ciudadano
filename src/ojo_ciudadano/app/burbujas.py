@@ -21,7 +21,7 @@ import streamlit as st
 from ojo_ciudadano.app import red
 
 CSS = """
-.ocb-mapa { position: relative; width: 100%; font-family: Inter, sans-serif; }
+.ocb-mapa { position: relative; width: 100%; font-family: Outfit, sans-serif; }
 .ocb-mapa canvas { display: block; width: 100%; height: 100%; }
 .ocb-tip { position: absolute; pointer-events: none; z-index: 5; max-width: 300px;
   padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.45; color: #E7ECF3;
@@ -196,7 +196,7 @@ function crear(raiz) {
     const tam = n.centro ? 15 : n.grupo === 'ent' ? 12.5 : 11;
     n.lineas.forEach((l, i) => {
       const cifra = i === n.lineas.length - 1 && /€$/.test(l);
-      g.font = `${cifra ? 500 : 600} ${tam}px Inter, sans-serif`;
+      g.font = `${cifra ? 500 : 600} ${tam}px Outfit, sans-serif`;
       g.fillStyle = cifra ? '#9FCBFF' : '#E7ECF3';
       g.fillText(l, x, yy);
       yy += tam + 3;

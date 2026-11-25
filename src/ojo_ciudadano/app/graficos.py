@@ -2,7 +2,7 @@
 
 Un gráfico por señal, pensado para lo que mide. Reglas comunes (docs/marca.md):
 - «Este contrato» o «esta empresa» en azul; el contexto, en gris azulado.
-- Fondo transparente, tipografía Inter, rejilla discreta, sin barra de herramientas.
+- Fondo transparente, tipografía Outfit, rejilla discreta, sin barra de herramientas.
 - Cada gráfico va con una frase que dice lo mismo en texto (texto alternativo).
 Las funciones reciben los diccionarios de `app.datos` y devuelven una figura de Plotly.
 """
@@ -90,7 +90,7 @@ def _treemap_de_cristal(traza) -> None:
     traza.marker.line = {"color": BORDE_CRISTAL, "width": 1.2}
     traza.marker.cornerradius = 8
     traza.tiling.pad = 4
-    traza.textfont.family = "Inter, sans-serif"
+    traza.textfont.family = "Outfit, sans-serif"
 
 
 def _tema(figura: go.Figure, alto: int = 240) -> go.Figure:
@@ -99,13 +99,13 @@ def _tema(figura: go.Figure, alto: int = 240) -> go.Figure:
         margin={"l": 10, "r": 10, "t": 24, "b": 10},
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font={"family": "Inter, sans-serif", "color": TEXTO, "size": 13},
+        font={"family": "Outfit, sans-serif", "color": TEXTO, "size": 13},
         showlegend=False,
         # el cuadro al pasar el ratón, con nuestra letra; el resto de su forma, en estilo.css
         hoverlabel={
             "bgcolor": FONDO_BURBUJA,
             "bordercolor": FONDO_BURBUJA,
-            "font": {"family": "Inter, sans-serif", "color": TEXTO, "size": 14},
+            "font": {"family": "Outfit, sans-serif", "color": TEXTO, "size": 14},
             "align": "left",
             "namelength": -1,
         },

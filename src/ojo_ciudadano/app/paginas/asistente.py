@@ -359,7 +359,7 @@ ESTILO = """
 BIENVENIDA = """
 <style>
 .oc-saludo { display:flex; flex-direction:column; align-items:center; gap:12px;
-  padding: 150px 0 8px; font-family: Inter, sans-serif; text-align:center; }
+  padding: 150px 0 8px; font-family: Outfit, sans-serif; text-align:center; }
 .oc-saludo h2 { margin:0; padding:0; font-size:clamp(1.6rem, 2.6vw, 2.2rem); font-weight:700;
   letter-spacing:-.02em; color:#fff; }
 .oc-saludo p { margin:0; color:#C4D8F2; font-size:1.05rem; }

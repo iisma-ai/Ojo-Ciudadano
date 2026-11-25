@@ -31,7 +31,7 @@ No se deforma, no se rota y no se cambian sus colores fuera de esta paleta.
 
 **Gráficos (D-055): solo azules y grises azulados; el ámbar, solo para lo atípico.** Para distinguir entidades (organismos, empresas) se usa la paleta categórica de `app/graficos.py` (`CATEGORICOS`), en orden fijo y alternando claros y oscuros: `#3D8BFD`, `#9CC7FF`, `#1E5BB8`, `#38BDF8`, `#6F86A6`, `#2B6CB0`, `#B4C3D6`; del 8.º en adelante, gris `#4A5872`. Las señales en los gráficos van en celeste `#38BDF8`; las líneas de referencia (límites, umbrales), en gris claro punteado.
 
-Tipografía: **Inter** (Google Fonts) para todo el texto y una monoespaciada para el SQL.
+Tipografía: **Outfit** (Google Fonts, la de Clubed) para todo el texto y **JetBrains Mono** para el código y los nombres de tablas (D-061). Las dos se cargan desde `.streamlit/config.toml`; el buscador, que va en un iframe, la carga aparte.
 
 ## Estética «océano» (D-034)
 

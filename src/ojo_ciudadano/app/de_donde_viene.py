@@ -157,7 +157,7 @@ def barra_entradas(ingresos: dict, entradas: dict[str, float]) -> str:
     etiqueta = html.escape(frase.replace("<b>", "").replace("</b>", ""))
     return f"""
 <style>
-.dvb {{ font-family:Inter, sans-serif; color:#E7ECF3; margin:6px 0 4px; }}
+.dvb {{ font-family:Outfit, sans-serif; color:#E7ECF3; margin:6px 0 4px; }}
 .dvb-cab {{ display:flex; justify-content:space-between; align-items:baseline; gap:12px;
   flex-wrap:wrap; margin-bottom:6px; }}
 .dvb-cab h3 {{ margin:0; padding:0; font-size:1.35rem; font-weight:700; color:#E7ECF3; }}
@@ -200,7 +200,7 @@ def flujo_saldo(entradas: dict[str, float], saldo: float, liquidado: bool) -> st
     return f"""
 <style>
 .dvf {{ display:grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap:14px; align-items:center;
-  font-family:Inter, sans-serif; color:#E7ECF3; padding:18px 22px; border-radius:18px;
+  font-family:Outfit, sans-serif; color:#E7ECF3; padding:18px 22px; border-radius:18px;
   background:rgba(255,255,255,.045); border:1px solid rgba(170,225,255,.16);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }}
 .dvf div {{ display:flex; flex-direction:column; gap:4px; }}

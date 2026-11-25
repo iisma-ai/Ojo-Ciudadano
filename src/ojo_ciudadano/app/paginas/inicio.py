@@ -60,7 +60,7 @@ PUERTAS = [
 
 ESTILO = """
 <style>
-.oc-sec { text-align:center; margin: 4.5rem 0 1.6rem; font-family: Inter, sans-serif; }
+.oc-sec { text-align:center; margin: 4.5rem 0 1.6rem; font-family: Outfit, sans-serif; }
 .oc-sec small { display:block; color:#7DB3FF; font-size:.82rem; font-weight:600;
   letter-spacing:.14em; text-transform:uppercase; margin-bottom:.5rem; }
 .oc-sec h2 { margin:0; font-size:clamp(1.7rem, 2.6vw, 2.4rem); font-weight:700;
@@ -172,7 +172,7 @@ def bienvenida() -> None:
     contenido = """
 <style>
 .oc-bienvenida { display:flex; align-items:center; justify-content:center; gap:28px;
-  font-family:Inter, sans-serif; padding: 28px 0 22px; }
+  font-family:Outfit, sans-serif; padding: 28px 0 22px; }
 .oc-bienvenida .oc-logo { width:clamp(84px, 9vw, 132px); height:auto; flex:none;
   filter:drop-shadow(0 0 26px rgba(56,189,248,.4)); }
 .oc-bienvenida h1 { font-size:clamp(2.3rem, 4.2vw, 3.9rem); line-height:1.08; margin:0;
@@ -207,7 +207,7 @@ def que_hace() -> None:
         billetes.pintar(
             f"""
 <style>
-.oc-hace {{ font-family:Inter, sans-serif; color:#E7ECF3; }}
+.oc-hace {{ font-family:Outfit, sans-serif; color:#E7ECF3; }}
 .oc-hace small {{ color:#7DB3FF; font-size:.82rem; font-weight:600; letter-spacing:.14em;
   text-transform:uppercase; }}
 .oc-hace h2 {{ font-size:clamp(1.8rem, 2.8vw, 2.6rem); line-height:1.12; margin:.4rem 0 1.6rem;
@@ -287,7 +287,7 @@ html.oc-sin-gpu .oc-ojo .iris {{ animation:none; }}
         billetes.pintar(
             """
 <style>
-.oc-ia { font-family:Inter, sans-serif; color:#E7ECF3; }
+.oc-ia { font-family:Outfit, sans-serif; color:#E7ECF3; }
 .oc-ia p { font-size:1.15rem; color:#B9C6D8; line-height:1.55; margin:0 0 1.2rem; max-width:34em; }
 .oc-ia .chat { display:grid; gap:.6rem; max-width:34em; }
 .oc-ia .q { justify-self:end; padding:.7rem 1rem; border-radius:18px 18px 4px 18px;
@@ -315,7 +315,7 @@ html.oc-sin-gpu .oc-ojo .iris {{ animation:none; }}
 # ------------------------------------------------------------------------------ 5. destacados
 ESTILO_TARJETA = """
 <style>
-.oc-dest { font-family:Inter, sans-serif; color:#E7ECF3; display:flex; flex-direction:column;
+.oc-dest { font-family:Outfit, sans-serif; color:#E7ECF3; display:flex; flex-direction:column;
   gap:.9rem; }
 .oc-dest h3 { font-size:1.15rem; margin:0; font-weight:650; padding:0; color:#E7ECF3; }
 .oc-dest .cifra { font-size:clamp(2.2rem, 3vw, 2.9rem); font-weight:750; letter-spacing:-.02em;
@@ -345,9 +345,9 @@ el precio.</p>
 <rect x="0" y="8" width="{ancho}" height="22" rx="11" fill="#cfeeff" fill-opacity=".1"
   stroke="#aae1ff" stroke-opacity=".3"/>
 <rect x="0" y="8" width="{ancho * parte:.1f}" height="22" rx="11" fill="url(#u1)"/>
-<text x="0" y="50" fill="#9FB6CC" font-size="11" font-family="Inter">{round(100 * parte)} % del
+<text x="0" y="50" fill="#9FB6CC" font-size="11" font-family="Outfit">{round(100 * parte)} % del
 dinero</text>
-<text x="{ancho}" y="50" fill="#9FB6CC" font-size="11" font-family="Inter" text-anchor="end">
+<text x="{ancho}" y="50" fill="#9FB6CC" font-size="11" font-family="Outfit" text-anchor="end">
 de {textos.millones(d["total"])}</text></svg>
 <p class="pie">{n100} de cada 100 contratos donde se pudo comprobar.</p></div>"""
     )
@@ -376,7 +376,7 @@ def tarjeta_modificaciones(d: dict, comparada: dict | None, anio: int | None) ->
             cifra = ("+" if k == 0 else "") + textos.millones(valor)
             filas.append(
                 f'<text x="0" y="{y + 12}" fill="#E7ECF3" font-size="13" font-weight="700" '
-                f'font-family="Inter">{cifra}<tspan fill="#9FB6CC" font-weight="400" '
+                f'font-family="Outfit">{cifra}<tspan fill="#9FB6CC" font-weight="400" '
                 f'font-size="11.5"> {etiqueta}</tspan></text>'
                 f'<rect x="0" y="{y + 20}" width="300" height="16" rx="8" fill="#cfeeff" '
                 'fill-opacity=".08" stroke="#aae1ff" stroke-opacity=".22"/>'
@@ -422,14 +422,14 @@ def tarjeta_concentracion(d: dict) -> str:
   stroke-dasharray="{max(resto - hueco, 0.6):.1f} {100 - resto + hueco:.1f}"
   stroke-dashoffset="{-(p + hueco / 2):.1f}"/></g>
 <text x="62" y="69" text-anchor="middle" fill="#fff" font-size="21" font-weight="750"
-  font-family="Inter">{p} %</text>
+  font-family="Outfit">{p} %</text>
 <rect x="132" y="38" width="12" height="12" rx="3" fill="url(#u3)"/>
-<text x="152" y="48" fill="#E7ECF3" font-size="13" font-family="Inter" font-weight="600">
+<text x="152" y="48" fill="#E7ECF3" font-size="13" font-family="Outfit" font-weight="600">
 {p} € para una empresa</text>
 <rect x="132" y="66" width="12" height="12" rx="3" fill="#5B6B86"/>
-<text x="152" y="76" fill="#9FB6CC" font-size="13" font-family="Inter">
+<text x="152" y="76" fill="#9FB6CC" font-size="13" font-family="Outfit">
 {resto} € para el resto</text>
-<text x="132" y="104" fill="#8FA7BF" font-size="11" font-family="Inter">de cada 100 €
+<text x="132" y="104" fill="#8FA7BF" font-size="11" font-family="Outfit">de cada 100 €
 adjudicados</text></svg>
 <p>En <b>{html.escape(d["organo"])}</b>, una sola empresa se lleva casi todo lo adjudicado en
 un mismo tipo de contrato.</p></div>"""

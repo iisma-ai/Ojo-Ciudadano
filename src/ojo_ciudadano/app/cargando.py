@@ -13,7 +13,7 @@ _OJO = ojo_cristal.imagenes()
 ESTILO = """
 <style>
 .oc-cargando { display:flex; align-items:center; gap:16px; padding:22px 6px;
-  font-family:Inter, sans-serif; color:#B9C6D8; font-size:1rem;
+  font-family:Outfit, sans-serif; color:#B9C6D8; font-size:1rem;
   animation: oc-cargando-entra .3s ease-out both; }
 .oc-cargando .ojo { position:relative; width:54px; height:54px; flex:0 0 auto; }
 .oc-cargando .ojo::before { content:""; position:absolute; inset:-30%; border-radius:50%;

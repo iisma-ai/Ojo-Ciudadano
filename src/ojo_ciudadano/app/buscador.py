@@ -66,6 +66,22 @@ def organo(clave: str, etiqueta: str = "Organismo") -> str | None:
     )
 
 
+def con_direccion(elegido: str | None, parametro: str, clave: str) -> str | None:
+    """Qué ficha se ve (D-058): si se acaba de elegir algo en el buscador de la ficha, eso (y se
+    pone en la dirección); si no, lo que trae la dirección (`?empresa=…`, `?organo=…`), que es lo
+    que llega desde el Inicio u otra pantalla.
+
+    Antes se miraba primero el buscador: lo elegido allí una vez se quedaba guardado en la sesión
+    y tapaba lo que llegaba después por la dirección, así que todas las fichas enseñaban la
+    misma empresa (la primera que se eligió en ese buscador)."""
+    marca = f"_{clave}_ultima"
+    if elegido and elegido != st.session_state.get(marca):
+        st.session_state[marca] = elegido
+        st.query_params[parametro] = elegido
+        return elegido
+    return st.query_params.get(parametro) or elegido
+
+
 def esperar(elegido: str | None, mensaje: str) -> None:
     """Si todavía no se ha elegido nada, muestra el mensaje y detiene la pantalla."""
     if elegido is None:

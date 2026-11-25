@@ -18,6 +18,8 @@
 
 Los paneles aceptan ahora `tam` y las cifras también (`escena3d.js`).
 
+- **Cierre.** El lema de la última diapositiva pasa de «Lo público, a la vista de todos» a «Ojo, ciudadano».
+
 ## Pendiente
 
 - Probarla en el ordenador y el proyector de la demo (no se ha podido capturar en un navegador sin interfaz).

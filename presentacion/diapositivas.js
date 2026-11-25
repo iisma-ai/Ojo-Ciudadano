@@ -325,7 +325,7 @@ const DIAPOSITIVAS = [
     profundidad: 0.15,
     ojo: { x: 960, y: 400, escala: 2, mira: { x: 960, y: 560 } },
     elementos: [
-      { tipo: "texto", x: 960, y: 740, texto: "Lo público, a la vista de todos", tam: 84, clase: "titulo", paso: 0 },
+      { tipo: "texto", x: 960, y: 740, texto: "Ojo, ciudadano", tam: 84, clase: "titulo", paso: 0 },
       { tipo: "imagen", x: 790, y: 870, ancho: 340, src: LOGO_OJO, paso: 1 },
     ],
   },

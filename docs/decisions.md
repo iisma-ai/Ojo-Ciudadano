@@ -1051,4 +1051,10 @@ Plantilla:
   - Las tarjetas de contrato (`senales.tarjeta_contrato`, en las dos fichas y en «Contratos a revisar») van en su propio fragmento, con el ojo girando mientras se calculan sus señales.
   - «Contrato atípico» dentro de la tarjeta, en ámbar.
   - Todos los desplegables se abren con la misma transición corta, y sus gráficos entran animados.
+- **Ajuste del mismo día (solo azules y grises; el ámbar, solo para lo atípico):**
+  - La paleta categórica pasa a azules y grises azulados, alternando claros y oscuros: `#3D8BFD`, `#9CC7FF`, `#1E5BB8`, `#38BDF8`, `#6F86A6`, `#2B6CB0`, `#B4C3D6`; del 8.º en adelante, `#4A5872`. Sustituye a la paleta anterior (naranja, verde, rosa…).
+  - Las señales en los gráficos pasan de ámbar a celeste `#38BDF8`.
+  - La línea punteada del contexto pasa a gris claro, y el resto del anillo de «Una empresa concentra el gasto» del Inicio, a gris azulado.
+  - En los gráficos, el ámbar queda solo para lo atípico. Actualizados `docs/marca.md` y `docs/11-accesibilidad.md`.
+  - Contrapartida: con siete tonos de la misma familia, distinguir muchas entidades cuesta algo más. Por eso cada rectángulo y cada burbuja lleva su nombre escrito.
 

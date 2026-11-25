@@ -23,15 +23,16 @@ TEXTO = "#E7ECF3"
 SEPARADOR = "rgba(220, 240, 255, 0.22)"
 BRILLO = "rgba(235, 248, 255, 0.75)"
 REJILLA = "#24314A"
-AMBAR = "#F2B544"
+# Señales en celeste (antes ámbar): en los gráficos solo lo atípico va en ámbar (D-055).
+SENAL = "#38BDF8"
 
 CONFIG = {"displayModeBar": False, "responsive": True}
 
-# Paleta categórica para distinguir entidades (organismos en el mapa del dinero), en orden fijo.
-# Validada sobre el fondo #0B1120 con el validador de la guía de visualización (luminosidad,
-# croma, separación para daltonismo y contraste). Del 8.º en adelante, gris.
-CATEGORICOS = ["#3987E5", "#D95926", "#199E70", "#C98500", "#D55181", "#0CA30C", "#9085E9"]
-GRIS_OTROS = "#5B6B86"
+# Paleta categórica para distinguir entidades (organismos, empresas), en orden fijo: solo azules
+# y grises azulados (D-055), alternando claros y oscuros para que dos vecinos se distingan por
+# luminosidad. El ámbar queda solo para lo atípico. Del 8.º en adelante, gris.
+CATEGORICOS = ["#3D8BFD", "#9CC7FF", "#1E5BB8", "#38BDF8", "#6F86A6", "#2B6CB0", "#B4C3D6"]
+GRIS_OTROS = "#4A5872"
 
 
 def color_categorico(posicion: int) -> str:
@@ -440,7 +441,7 @@ def reparto_organismos(
 
 
 def contratos_por_anio(tendencia: list[dict]) -> go.Figure:
-    """Contratos de cada año, separando los que tienen alguna señal (en ámbar)."""
+    """Contratos de cada año, separando los que tienen alguna señal (en celeste)."""
     anios = [str(t["anio"]) for t in tendencia]
     con_senal = [t["n_con_alertas"] for t in tendencia]
     sin_senal = [t["n_contratos"] - t["n_con_alertas"] for t in tendencia]
@@ -456,7 +457,7 @@ def contratos_por_anio(tendencia: list[dict]) -> go.Figure:
         x=anios,
         y=con_senal,
         name="Con alguna señal",
-        marker={"color": AMBAR},
+        marker={"color": SENAL},
         hovertemplate="%{x}: %{y:,.0f} contratos con alguna señal<extra></extra>",
     )
     figura.update_layout(barmode="stack")
@@ -475,7 +476,7 @@ def senales_de_empresa(filas: list[dict], nombres: dict[str, str]) -> go.Figure:
             y=[nombres.get(f["indicador"], f["indicador"]) for f in filas],
             x=[f["n"] for f in filas],
             orientation="h",
-            marker={"color": AMBAR, "cornerradius": 4},
+            marker={"color": SENAL, "cornerradius": 4},
             text=[f"{f['n']:,}".replace(",", ".") for f in filas],
             textposition="outside",
             cliponaxis=False,

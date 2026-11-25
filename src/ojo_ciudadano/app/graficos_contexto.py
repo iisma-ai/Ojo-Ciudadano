@@ -6,7 +6,7 @@ de herramientas y una frase en texto con cada gráfico (la pone la pantalla).
 
 import plotly.graph_objects as go
 
-from ojo_ciudadano.app.graficos import AMBAR, AZUL, GRIS, _tema, color_categorico, partir
+from ojo_ciudadano.app.graficos import AZUL, GRIS, GRIS_CLARO, _tema, color_categorico, partir
 from ojo_ciudadano.app.graficos import CONFIG as GRAFICO_CONFIG  # noqa: F401 (lo usa la pantalla)
 from ojo_ciudadano.app.textos import euros
 
@@ -99,7 +99,7 @@ def gastos_e_ingresos(filas: list[dict]) -> go.Figure:
         y=[f["ingresos"] for f in filas],
         name="Ingresos",
         mode="lines+markers",
-        line={"color": AMBAR, "dash": "dot"},
+        line={"color": GRIS_CLARO, "dash": "dot"},
         hovertemplate="Ingresos %{x}: %{y:,.0f} €<extra></extra>",
     )
     figura.update_yaxes(title="Euros", tickformat=",.0f")

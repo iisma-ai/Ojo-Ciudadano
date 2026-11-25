@@ -418,7 +418,7 @@ def tarjeta_concentracion(d: dict) -> str:
 <g transform="translate(62 62) rotate(-90)">
 <circle r="44" fill="none" stroke="url(#u3)" stroke-width="18" pathLength="100"
   stroke-dasharray="{p - hueco:.1f} {100 - p + hueco:.1f}" stroke-dashoffset="{-hueco / 2:.1f}"/>
-<circle r="44" fill="none" stroke="#F2B544" stroke-width="18" pathLength="100"
+<circle r="44" fill="none" stroke="#5B6B86" stroke-width="18" pathLength="100"
   stroke-dasharray="{max(resto - hueco, 0.6):.1f} {100 - resto + hueco:.1f}"
   stroke-dashoffset="{-(p + hueco / 2):.1f}"/></g>
 <text x="62" y="69" text-anchor="middle" fill="#fff" font-size="21" font-weight="750"
@@ -426,7 +426,7 @@ def tarjeta_concentracion(d: dict) -> str:
 <rect x="132" y="38" width="12" height="12" rx="3" fill="url(#u3)"/>
 <text x="152" y="48" fill="#E7ECF3" font-size="13" font-family="Inter" font-weight="600">
 {p} € para una empresa</text>
-<rect x="132" y="66" width="12" height="12" rx="3" fill="#F2B544"/>
+<rect x="132" y="66" width="12" height="12" rx="3" fill="#5B6B86"/>
 <text x="152" y="76" fill="#9FB6CC" font-size="13" font-family="Inter">
 {resto} € para el resto</text>
 <text x="132" y="104" fill="#8FA7BF" font-size="11" font-family="Inter">de cada 100 €

@@ -27,9 +27,9 @@ No se deforma, no se rota y no se cambian sus colores fuera de esta paleta.
 | Azul (acento) | `#3D8BFD` | Color principal: botones, selección, pupila del logo |
 | Azul claro | `#7DB3FF` | Enlaces |
 | Azul de señal | `#7DB3FF` (etiquetas: cristal `rgba(125,179,255,.13)` con borde `rgba(125,179,255,.35)`) | Señales en las tarjetas de contrato, sus subcajas y la cuadrícula del Inicio (D-042, sustituye al ámbar); nunca rojo «de peligro» (lenguaje no acusatorio, D-002) |
-| Ámbar | `#F2B544` | Solo líneas de referencia de los gráficos (límites y umbrales) y la animación del asistente |
+| Ámbar | `#E0A032` y `#FFD27A` (tono «ambar» de la presentación) | En los gráficos, **solo lo atípico** (D-055): la burbuja del contrato atípico y su línea. Fuera de los gráficos, la animación del asistente |
 
-Para distinguir entidades en un gráfico (p. ej. organismos en el mapa del dinero) se usa la paleta categórica de `app/graficos.py` (`CATEGORICOS`), en orden fijo y validada sobre el fondo oscuro: `#3987E5`, `#D95926`, `#199E70`, `#C98500`, `#D55181`, `#0CA30C`, `#9085E9`; del 8.º en adelante, gris.
+**Gráficos (D-055): solo azules y grises azulados; el ámbar, solo para lo atípico.** Para distinguir entidades (organismos, empresas) se usa la paleta categórica de `app/graficos.py` (`CATEGORICOS`), en orden fijo y alternando claros y oscuros: `#3D8BFD`, `#9CC7FF`, `#1E5BB8`, `#38BDF8`, `#6F86A6`, `#2B6CB0`, `#B4C3D6`; del 8.º en adelante, gris `#4A5872`. Las señales en los gráficos van en celeste `#38BDF8`; las líneas de referencia (límites, umbrales), en gris claro punteado.
 
 Tipografía: **Inter** (Google Fonts) para todo el texto y una monoespaciada para el SQL.
 

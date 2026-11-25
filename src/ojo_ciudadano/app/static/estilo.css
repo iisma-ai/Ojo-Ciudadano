@@ -590,4 +590,61 @@ div[class*="st-key-cajasenal_"][class*="st-key-cajasenal_"] {
 @media (max-width: 640px) {
   .st-key-mg_modo [data-testid="stButtonGroup"] > div:has(> button) { grid-template-columns: 1fr; }
   .st-key-mg_modo button[role="radio"] { min-height: 68px; }
+/* Gráficos de Plotly con estilo acuático (D-055). El cuadro al pasar el ratón como una burbuja:
+   Plotly no deja darle más margen, así que se agranda con un trazo grueso del mismo color que el
+   fondo (con las esquinas redondeadas) y se le pone un borde de luz y una sombra. El texto ya va
+   con nuestra letra (`hoverlabel` en app/graficos.py). */
+.js-plotly-plot .hoverlayer .hovertext path {
+  stroke: rgba(9, 30, 50, 0.96) !important;
+  stroke-width: 18px !important;
+  stroke-linejoin: round;
+  paint-order: stroke;
+  /* un solo filtro pequeño (el borde de luz); la sombra grande y el halo de las barras se
+     quitaron porque se recalculaban en cada redibujado y daban tirones */
+  filter: drop-shadow(0 0 1px rgba(170, 225, 255, 0.85));
+}
+.js-plotly-plot .hoverlayer .hovertext text {
+  font-family: Inter, sans-serif !important;
+}
+/* la etiqueta del eje que sale al pasar el ratón, igual */
+.js-plotly-plot .hoverlayer .axistext path {
+  stroke: rgba(9, 30, 50, 0.96) !important;
+  stroke-width: 10px !important;
+  stroke-linejoin: round;
+  paint-order: stroke;
+}
+/* los gráficos aparecen con suavidad (solo opacidad: no mueve el SVG) */
+[data-testid="stPlotlyChart"] {
+  animation: oc-grafico-entra 0.45s ease-out both;
+}
+@keyframes oc-grafico-entra {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-testid="stPlotlyChart"] { animation: none; }
+}
+
+/* Desplegables (contratos atípicos, tarjetas de contrato de las fichas y de «Contratos a
+   revisar»): al abrir uno, su contenido entra con una transición corta, y sus gráficos, cuando
+   están listos, aparecen con algo más de presencia (opacidad y transform, una sola vez). */
+[data-testid="stExpanderDetails"] {
+  animation: oc-atipico-abre 0.3s ease-out both;
+}
+@keyframes oc-atipico-abre {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+[data-testid="stExpanderDetails"] [data-testid="stPlotlyChart"],
+[class*="st-key-grafico-atipico-"] {
+  animation: oc-atipico-grafico 0.7s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+}
+@keyframes oc-atipico-grafico {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-testid="stExpanderDetails"],
+  [data-testid="stExpanderDetails"] [data-testid="stPlotlyChart"],
+  [class*="st-key-grafico-atipico-"] { animation: none; }
 }

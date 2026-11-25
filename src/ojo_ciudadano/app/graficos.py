@@ -23,15 +23,16 @@ TEXTO = "#E7ECF3"
 SEPARADOR = "rgba(220, 240, 255, 0.22)"
 BRILLO = "rgba(235, 248, 255, 0.75)"
 REJILLA = "#24314A"
-AMBAR = "#F2B544"
+# Señales en celeste (antes ámbar): en los gráficos solo lo atípico va en ámbar (D-055).
+SENAL = "#38BDF8"
 
 CONFIG = {"displayModeBar": False, "responsive": True}
 
-# Paleta categórica para distinguir entidades (organismos en el mapa del dinero), en orden fijo.
-# Validada sobre el fondo #0B1120 con el validador de la guía de visualización (luminosidad,
-# croma, separación para daltonismo y contraste). Del 8.º en adelante, gris.
-CATEGORICOS = ["#3987E5", "#D95926", "#199E70", "#C98500", "#D55181", "#0CA30C", "#9085E9"]
-GRIS_OTROS = "#5B6B86"
+# Paleta categórica para distinguir entidades (organismos, empresas), en orden fijo: solo azules
+# y grises azulados (D-055), alternando claros y oscuros para que dos vecinos se distingan por
+# luminosidad. El ámbar queda solo para lo atípico. Del 8.º en adelante, gris.
+CATEGORICOS = ["#3D8BFD", "#9CC7FF", "#1E5BB8", "#38BDF8", "#6F86A6", "#2B6CB0", "#B4C3D6"]
+GRIS_OTROS = "#4A5872"
 
 
 def color_categorico(posicion: int) -> str:
@@ -44,6 +45,54 @@ def transparente(color: str, alfa: float) -> str:
     return f"rgba({r}, {g}, {b}, {alfa})"
 
 
+# Estilo acuático (D-055): rejilla casi invisible, barras de cristal (translúcidas, con borde claro
+# y esquinas redondeadas) y puntos como burbujas (centro de color y borde que se aclara).
+REJILLA_SUAVE = "rgba(170, 225, 255, 0.08)"
+BORDE_CRISTAL = "rgba(220, 240, 255, 0.55)"
+FONDO_BURBUJA = "rgba(9, 30, 50, 0.96)"  # el cuadro al pasar el ratón; su forma, en estilo.css
+OPACIDAD_CRISTAL = 0.72
+# Cada punto con degradado es un degradado SVG propio: en nubes grandes (la de atípicos tiene
+# 1.500) el navegador va a tirones. Por encima de este número, puntos planos.
+MAX_PUNTOS_BURBUJA = 50
+# Lo atípico, en ámbar como en la presentación (tono «ambar» de presentacion/escena3d.js).
+ATIPICO_LUZ = "#FFD27A"
+ATIPICO_TONO = "#E0A032"
+
+
+def _cristal(figura: go.Figure) -> None:
+    """Barras de cristal y puntos-burbuja en las trazas que ya tiene la figura."""
+    figura.update_traces(
+        selector={"type": "bar"},
+        opacity=OPACIDAD_CRISTAL,
+        marker_line={"color": BORDE_CRISTAL, "width": 1},
+    )
+    for traza in figura.data:
+        if traza.type == "treemap":
+            _treemap_de_cristal(traza)
+            continue
+        if traza.type != "scatter" or "markers" not in (traza.mode or ""):
+            continue
+        if len(traza.x or ()) > MAX_PUNTOS_BURBUJA or traza.marker.gradient.type is not None:
+            continue  # nube grande, o ya trae su propio degradado (el atípico)
+        traza.marker.gradient = {"type": "radial", "color": "rgba(225, 245, 255, 0.85)"}
+        if traza.marker.line.color is None:
+            traza.marker.line = {"color": BORDE_CRISTAL, "width": 1}
+
+
+def _treemap_de_cristal(traza) -> None:
+    """Rectángulos de cristal: el color de cada uno, translúcido, con borde claro, esquinas
+    redondeadas y algo de aire entre ellos (como las tarjetas de la web)."""
+    colores = traza.marker.colors
+    if colores:
+        traza.marker.colors = [
+            transparente(c, 0.5) if isinstance(c, str) and c.startswith("#") else c for c in colores
+        ]
+    traza.marker.line = {"color": BORDE_CRISTAL, "width": 1.2}
+    traza.marker.cornerradius = 8
+    traza.tiling.pad = 4
+    traza.textfont.family = "Inter, sans-serif"
+
+
 def _tema(figura: go.Figure, alto: int = 240) -> go.Figure:
     figura.update_layout(
         height=alto,
@@ -52,12 +101,27 @@ def _tema(figura: go.Figure, alto: int = 240) -> go.Figure:
         plot_bgcolor="rgba(0,0,0,0)",
         font={"family": "Inter, sans-serif", "color": TEXTO, "size": 13},
         showlegend=False,
-        hoverlabel={"bgcolor": "#131C2E", "bordercolor": REJILLA, "font": {"color": TEXTO}},
+        # el cuadro al pasar el ratón, con nuestra letra; el resto de su forma, en estilo.css
+        hoverlabel={
+            "bgcolor": FONDO_BURBUJA,
+            "bordercolor": FONDO_BURBUJA,
+            "font": {"family": "Inter, sans-serif", "color": TEXTO, "size": 14},
+            "align": "left",
+            "namelength": -1,
+        },
         bargap=0.25,
+        barcornerradius=6,
         separators=",.",  # formato español: 1.234,5
     )
-    figura.update_xaxes(gridcolor=REJILLA, zeroline=False, linecolor=REJILLA, automargin=True)
-    figura.update_yaxes(gridcolor=REJILLA, zeroline=False, linecolor=REJILLA, automargin=True)
+    for actualizar in (figura.update_xaxes, figura.update_yaxes):
+        actualizar(
+            gridcolor=REJILLA_SUAVE,
+            zeroline=False,
+            linecolor=REJILLA_SUAVE,
+            automargin=True,
+            tickfont={"color": GRIS_CLARO},
+        )
+    _cristal(figura)
     return figura
 
 
@@ -377,7 +441,7 @@ def reparto_organismos(
 
 
 def contratos_por_anio(tendencia: list[dict]) -> go.Figure:
-    """Contratos de cada año, separando los que tienen alguna señal (en ámbar)."""
+    """Contratos de cada año, separando los que tienen alguna señal (en celeste)."""
     anios = [str(t["anio"]) for t in tendencia]
     con_senal = [t["n_con_alertas"] for t in tendencia]
     sin_senal = [t["n_contratos"] - t["n_con_alertas"] for t in tendencia]
@@ -393,7 +457,7 @@ def contratos_por_anio(tendencia: list[dict]) -> go.Figure:
         x=anios,
         y=con_senal,
         name="Con alguna señal",
-        marker={"color": AMBAR},
+        marker={"color": SENAL},
         hovertemplate="%{x}: %{y:,.0f} contratos con alguna señal<extra></extra>",
     )
     figura.update_layout(barmode="stack")
@@ -412,7 +476,7 @@ def senales_de_empresa(filas: list[dict], nombres: dict[str, str]) -> go.Figure:
             y=[nombres.get(f["indicador"], f["indicador"]) for f in filas],
             x=[f["n"] for f in filas],
             orientation="h",
-            marker={"color": AMBAR, "cornerradius": 4},
+            marker={"color": SENAL, "cornerradius": 4},
             text=[f"{f['n']:,}".replace(",", ".") for f in filas],
             textposition="outside",
             cliponaxis=False,
@@ -733,30 +797,55 @@ def _eje(figura: go.Figure, eje: str, variable: str, valores: list, este=None) -
 
 
 def atipico(detalle: dict, variables: list[str]) -> go.Figure:
-    """E-07: el contrato atípico (azul) frente a una muestra de contratos similares (gris), en
-    las variables que más lo alejan. Con dos variables, nube de puntos; con una, histograma con
-    la posición del contrato."""
+    """E-07: el contrato atípico (ámbar, como en la presentación) frente a una muestra de
+    contratos similares (gris), en las variables que más lo alejan. Con dos variables, nube de
+    puntos; con una, histograma con la posición del contrato."""
     este, pares = detalle["este"], detalle["pares"]
     variables = [v for v in variables if v in NOMBRE_VARIABLE][:2] or ["importe"]
     figura = go.Figure()
     if len(variables) == 2:
         vx, vy = variables
         puntos = [p for p in pares if p[vx] is not None and p[vy] is not None]
+        # la nube (hasta 1.500 puntos) con WebGL: en SVG tardaba en dibujarse
+        figura.add_trace(
+            go.Scattergl(
+                x=[p[vx] for p in puntos],
+                y=[p[vy] for p in puntos],
+                mode="markers",
+                name="Contratos similares",
+                marker={"color": transparente(GRIS_CLARO, 0.35), "size": 6},
+                hoverinfo="skip",
+            )
+        )
+        # el atípico como la burbuja ámbar de la presentación: un halo que se apaga hacia fuera
+        # y, encima, la burbuja de cristal con el borde más claro (dos puntos, sin 3D)
         figura.add_scatter(
-            x=[p[vx] for p in puntos],
-            y=[p[vy] for p in puntos],
+            x=[este[vx]],
+            y=[este[vy]],
             mode="markers",
-            name="Contratos similares",
-            marker={"color": transparente(GRIS_CLARO, 0.35), "size": 6},
+            showlegend=False,
             hoverinfo="skip",
+            cliponaxis=False,  # el halo puede salir del área del gráfico sin cortarse
+            marker={
+                "color": transparente(ATIPICO_LUZ, 0.5),
+                "size": 46,
+                "gradient": {"type": "radial", "color": transparente(ATIPICO_LUZ, 0.0)},
+                "line": {"width": 0},
+            },
         )
         figura.add_scatter(
             x=[este[vx]],
             y=[este[vy]],
             mode="markers",
-            name="Este contrato",
-            marker={"color": AZUL, "size": 16, "line": {"width": 1.5, "color": BRILLO}},
-            hovertemplate="Este contrato<extra></extra>",
+            name="Este contrato (atípico)",
+            cliponaxis=False,
+            marker={
+                "color": transparente(ATIPICO_TONO, 0.55),
+                "size": 22,
+                "gradient": {"type": "radial", "color": ATIPICO_LUZ},
+                "line": {"width": 1.5, "color": "rgba(255, 236, 190, 0.95)"},
+            },
+            hovertemplate="Este contrato (atípico)<extra></extra>",
         )
         _eje(figura, "x", vx, [p[vx] for p in puntos] + [este[vx]], este[vx])
         _eje(figura, "y", vy, [p[vy] for p in puntos] + [este[vy]], este[vy])
@@ -773,9 +862,11 @@ def atipico(detalle: dict, variables: list[str]) -> go.Figure:
         if este[v] is not None:
             figura.add_vline(
                 x=este[v],
-                line={"color": AZUL, "width": 3},
-                annotation_text="Este contrato",
-                annotation_font_color=AZUL,
+                line={"color": ATIPICO_TONO, "width": 3},
+                annotation_text="Este contrato (atípico)",
+                annotation_font_color=ATIPICO_LUZ,
+                # a la izquierda de la línea: el atípico suele estar en el borde del eje
+                annotation_position="top left",
             )
         _eje(figura, "x", v, valores + [este[v]], este[v])
         figura.update_yaxes(title="Contratos similares")

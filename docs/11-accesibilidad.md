@@ -60,7 +60,7 @@ Implementados en `app/graficos.py` (gráficos), `app/senales.py` (frase con cifr
 | --- | --- | --- |
 | E-01 | Cifra sola («1 oferta»); comparación con la mediana; distribución | **Distribución de ofertas** de los contratos del mismo tipo con la barra de este contrato en azul, y la frase «de N contratos parecidos, el X % recibió dos o más». La mediana sola engaña: en suministros también es 1 |
 | E-02 | Anillo; barra apilada | **Barra apilada** del organismo (con / sin anuncio), con el porcentaje en la leyenda. Una barra se lee mejor que un anillo para dos partes |
-| E-03 | Puntos por contrato; suma acumulada desde el inicio; suma móvil de 12 meses | **Suma de los 12 meses anteriores** en escalera, con un punto por contrato (este, más grande y en azul) y la línea del límite en ámbar. Es la misma ventana que usa R-03; los puntos sueltos quedaban aplastados contra el eje |
+| E-03 | Puntos por contrato; suma acumulada desde el inicio; suma móvil de 12 meses | **Suma de los 12 meses anteriores** en escalera, con un punto por contrato (este, más grande y en azul) y la línea del límite en gris claro punteado. Es la misma ventana que usa R-03; los puntos sueltos quedaban aplastados contra el eje |
 | E-04 | Mapa de áreas; anillo; barras | **Anillo** con la empresa en azul, las 4 siguientes y «Otras N empresas» en gris, y la cuota en el centro. Los porcentajes van en la leyenda: dentro del anillo eran ilegibles en los trozos pequeños |
 | E-05 | Dos barras; barra apilada | **Barra apilada**: precio adjudicado (gris) + lo añadido después (azul), con la marca del +20 % |
 | E-06 | Barras con zona sombreada; dos barras | **Dos barras** (precio de salida y adjudicado) con la cifra dentro, y la rebaja en la frase. La zona sombreada añadía ruido |
@@ -75,8 +75,8 @@ Formato común: números y fechas en español (`1.234`, `05/2025`), fondo transp
   - burbujas: no hay disposición nativa y las áreas se comparan mal;
   - barras horizontales: precisas, pero planas;
   - **mapa de áreas (elegido):** el tamaño es el importe, hay un color por organismo (paleta categórica) y los que pasan del 12.º se agrupan en «Otros N organismos». Un selector de fuente evita mezclar bases de IVA; por defecto se muestra la fuente con más importe.
-- **Evolución:** barras apiladas del **número** de contratos por año (sin señales en gris, con alguna señal en ámbar). Se usan recuentos, no importes, para no mezclar bases.
-- **Señales:** barras horizontales en ámbar con el número de contratos con cada señal.
+- **Evolución:** barras apiladas del **número** de contratos por año (sin señales en gris, con alguna señal en celeste; D-055). Se usan recuentos, no importes, para no mezclar bases.
+- **Señales:** barras horizontales en celeste (D-055) con el número de contratos con cada señal.
 - **Contratos:** la misma tarjeta desplegable que «Contratos a revisar» (`senales.tarjeta_contrato`), los 30 con más señales e importe.
 - **Cifras:** contratos, contratos con alguna señal, importe adjudicado (con su base de IVA en la etiqueta y las dos fuentes en la ayuda) y subvenciones.
 

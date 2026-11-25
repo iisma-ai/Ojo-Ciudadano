@@ -421,7 +421,8 @@ def ficha_contrato(con, contrato_id: str, entidades: list[dict]) -> None:
     anomalia = datos.anomalia_contrato(con, detalle["contrato_id"])
     if anomalia:
         st.markdown(
-            f"**Contrato atípico** respecto a {textos.numero(anomalia['n_grupo'])} contratos "
+            ":orange[**Contrato atípico**] respecto a "
+            f"{textos.numero(anomalia['n_grupo'])} contratos "
             f"similares (señal experimental; atípico no significa irregular): {anomalia['motivo']}"
         )
     if detalle["url_origen"]:

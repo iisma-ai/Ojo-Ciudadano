@@ -9,7 +9,7 @@ import hashlib
 import duckdb
 import streamlit as st
 
-from ojo_ciudadano.app import billetes, datos, datos_flujos, graficos, textos
+from ojo_ciudadano.app import billetes, cargando, datos, datos_flujos, graficos, textos
 
 
 def _porcentaje(parte: float, total: float) -> str:
@@ -180,12 +180,16 @@ def cabecera_contrato(fila: dict) -> str:
     return cabecera
 
 
+@st.fragment
 def tarjeta_contrato(con: duckdb.DuckDBPyConnection, fila: dict, prefijo: str) -> None:
     """Contrato como desplegable (D-042). En la cabecera, el título limpio, cuánto, a quién,
     quién lo adjudica y las señales en etiquetas azules. Al pulsar en cualquier parte se abre con
     el enlace al expediente arriba, un gráfico por señal (que solo se calcula entonces) y el
     aviso de contrato atípico. `fila` lleva los campos de `datos.alertas` o
-    `datos.contratos_empresa`."""
+    `datos.contratos_empresa`.
+
+    Va en su propio fragmento: al abrirla solo se vuelve a ejecutar esta tarjeta, no toda la
+    pantalla; mientras se calculan las señales, el ojo gira (`app/cargando.py`)."""
     encontradas = [i for i in (fila["indicadores_activados"] or "").split(", ") if i]
     desplegable = st.expander(
         cabecera_contrato(fila), key=f"{prefijo}-{fila['contrato_id']}", on_change="rerun"
@@ -214,6 +218,8 @@ def tarjeta_contrato(con: duckdb.DuckDBPyConnection, fila: dict, prefijo: str) -
                 f"{objeto['nombre_division']}. Clasificación oficial de la Plataforma de "
                 "Contratación del Sector Público."
             )
+        cargador = st.empty()
+        cargador.html(cargando.html("Preparando las señales de este contrato"))
         if encontradas:
             # Cada señal en su propia subcaja, de dos en dos y de la misma altura (D-042).
             for inicio in range(0, len(encontradas), 2):
@@ -225,10 +231,11 @@ def tarjeta_contrato(con: duckdb.DuckDBPyConnection, fila: dict, prefijo: str) -
                         mostrar(con, indicador, fila["contrato_id"], en_caja=True)
         else:
             st.markdown("En este contrato no hemos encontrado ninguna señal.")
+        cargador.empty()
         anomalia = datos.anomalia_contrato(con, fila["contrato_id"])
         if anomalia:
             st.markdown(
-                f":material/scatter_plot: **Contrato atípico:** sus cifras se salen de lo "
+                f":orange[:material/scatter_plot: **Contrato atípico:**] sus cifras se salen de lo "
                 f"habitual en {textos.numero(anomalia['n_grupo'])} contratos parecidos. Es una "
                 "señal experimental: atípico no significa irregular."
             )

@@ -1028,3 +1028,54 @@ Plantilla:
   - Ninguna tabla nueva; solo consultas en `app/datos_contexto.py` (`ingresos_del_anio`, `sistema_financiacion`, `ayudas_ue`).
   - El cuadro al pasar el ratón por una burbuja acepta otra lectura del llenado (`extra["linea_llenado"]` en `red.py`).
   - El estilo del selector depende de cómo pinta Streamlit 1.67 el `segmented_control` (`role="radio"`, `aria-checked`).
+## D-055 · Gráficos de Plotly con estilo acuático (opción A: solo el tema)
+
+- **Fecha:** 2026-11-25
+- **Estado:** Propuesta. Es un retoque visual en una rama aparte (`feat/graficos-acuaticos`) para no arriesgar la entrega; el equipo decide si entra.
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** los unos 20 gráficos de Plotly (fichas, señales, atípicos, contexto, asistente) no seguían el estilo acuático de la web. Se valoraron tres caminos:
+  - **A:** cambiar el tema de Plotly, 4–8 h;
+  - **B:** rehacerlos todos con dibujo propio, 6–10 días;
+  - **C:** mixto.
+  Se eligió A por el riesgo, a un día de la entrega.
+- **Decisión:**
+  - Todo en el tema común `_tema` de `app/graficos.py`, que usan todos los gráficos:
+    - rejilla casi invisible;
+    - barras de cristal: translúcidas, con borde claro y esquinas redondeadas;
+    - puntos como burbujas: degradado radial con el borde más claro;
+    - cuadro al pasar el ratón con nuestra letra (Inter, 14 px), sin cortar nombres.
+  - En `estilo.css`:
+    - el cuadro al pasar el ratón como una burbuja: más margen con un trazo grueso del color del fondo, esquinas redondeadas, borde de luz y sombra;
+    - un halo azul suave en el grupo de barras (un solo filtro, sin él en equipos sin tarjeta gráfica, D-044);
+    - entrada suave de cada gráfico (opacidad y `transform`).
+  - Los colores, la forma de cada gráfico y sus frases no cambian.
+- **Alternativas consideradas:** B y C (ver contexto), para después de la entrega si se quiere ir más lejos.
+- **Consecuencias:**
+  - El cuadro al pasar el ratón depende de cómo dibuja Plotly su etiqueta (`.hoverlayer .hovertext path`).
+  - Las barras más translúcidas tienen algo menos de contraste. El borde claro las separa del fondo, pero conviene revisarlas en la pantalla de la demo.
+- **Ajuste del mismo día (lo atípico en ámbar y menos tirones):**
+  - **Ámbar:** lo atípico pasa al ámbar de la presentación (`#E0A032` y `#FFD27A`, tono «ambar» de `presentacion/escena3d.js`):
+    - en el gráfico E-07, el contrato es una burbuja ámbar de cristal con un halo que se apaga hacia fuera (dos puntos, sin 3D);
+    - en el histograma, la línea y su etiqueta van en ámbar;
+    - en la ficha de contrato del Mapa del dinero, «Contrato atípico» sale en naranja.
+  - **Menos tirones:**
+    - los puntos con degradado solo se usan en trazas de hasta 50 puntos (la nube de atípicos tiene 1.500 y cada degradado es un elemento SVG propio);
+    - se quitan el halo de las barras y la sombra grande del cuadro al pasar el ratón, que se recalculaban en cada redibujado;
+    - la entrada de los gráficos es solo de opacidad.
+- **Ajuste del mismo día (abrir un contrato atípico sin esperas):**
+  - Cada contrato de la pantalla de atípicos va en su propio fragmento (`st.fragment`): al abrirlo solo se vuelve a ejecutar ese contrato, no toda la pantalla con sus filtros y su lista.
+  - La frase «Por qué se aleja» sale al momento. Mientras se prepara el gráfico, en su sitio está nuestro ojo con el iris girando y «Preparando el gráfico…» (`app/cargando.py`, reutilizable).
+  - La nube de comparación se dibuja con WebGL (`Scattergl`).
+  - Al abrir, el contenido entra con una transición corta; el gráfico aparece con opacidad y `transform`, una sola vez.
+- **Ajuste del mismo día (fichas de empresa y de organismo):**
+  - El mapa de rectángulos «De qué organismos» / «A qué empresas» pasa a cristal en el tema común: colores translúcidos, borde claro, esquinas redondeadas y aire entre rectángulos.
+  - Las tarjetas de contrato (`senales.tarjeta_contrato`, en las dos fichas y en «Contratos a revisar») van en su propio fragmento, con el ojo girando mientras se calculan sus señales.
+  - «Contrato atípico» dentro de la tarjeta, en ámbar.
+  - Todos los desplegables se abren con la misma transición corta, y sus gráficos entran animados.
+- **Ajuste del mismo día (solo azules y grises; el ámbar, solo para lo atípico):**
+  - La paleta categórica pasa a azules y grises azulados, alternando claros y oscuros: `#3D8BFD`, `#9CC7FF`, `#1E5BB8`, `#38BDF8`, `#6F86A6`, `#2B6CB0`, `#B4C3D6`; del 8.º en adelante, `#4A5872`. Sustituye a la paleta anterior (naranja, verde, rosa…).
+  - Las señales en los gráficos pasan de ámbar a celeste `#38BDF8`.
+  - La línea punteada del contexto pasa a gris claro, y el resto del anillo de «Una empresa concentra el gasto» del Inicio, a gris azulado.
+  - En los gráficos, el ámbar queda solo para lo atípico. Actualizados `docs/marca.md` y `docs/11-accesibilidad.md`.
+  - Contrapartida: con siete tonos de la misma familia, distinguir muchas entidades cuesta algo más. Por eso cada rectángulo y cada burbuja lleva su nombre escrito.
+

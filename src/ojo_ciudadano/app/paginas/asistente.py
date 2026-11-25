@@ -297,9 +297,22 @@ N_SUGERIDAS = 3
 
 ESTILO = """
 <style>
-/* el panel del chat: cristal como el resto de la web */
-.st-key-chat { max-width: 980px; margin: 0 auto; padding: 1.2rem 1.4rem 1rem !important;
-  border-radius: 28px !important; }
+/* El panel del chat: cristal azul vivo como el de la presentación (D-060): teñido de azul,
+   con luces azules difuminadas detrás, borde claro y desenfoque de lo que hay detrás. */
+.st-key-chat { position: relative; isolation: isolate; overflow: hidden;
+  padding: 1.2rem 1.4rem 1rem !important; border-radius: 30px !important;
+  background: linear-gradient(150deg, rgba(120, 175, 255, 0.24), rgba(61, 139, 253, 0.10) 45%,
+    rgba(30, 90, 210, 0.18)) !important;
+  border: 1px solid rgba(160, 205, 255, 0.34) !important;
+  box-shadow: 0 30px 80px rgba(0, 6, 20, 0.55), 0 0 60px rgba(61, 139, 253, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(160%); backdrop-filter: blur(22px) saturate(160%); }
+.st-key-chat::before { content: ""; position: absolute; inset: 0; z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(42% 38% at 12% 8%, rgba(110, 170, 255, 0.38), transparent 70%),
+    radial-gradient(38% 34% at 92% 30%, rgba(56, 189, 248, 0.22), transparent 70%),
+    radial-gradient(50% 40% at 70% 105%, rgba(61, 110, 253, 0.32), transparent 70%); }
 .st-key-chat_mensajes { border: none !important; background: none !important;
   box-shadow: none !important; }
 .st-key-chat [data-testid="stChatMessage"] { background: transparent; padding: .4rem 0; }
@@ -313,30 +326,51 @@ ESTILO = """
 /* sugerencias: cápsulas de cristal pequeñas */
 .st-key-sugerencias { gap: .5rem !important; flex-wrap: wrap; justify-content: center; }
 .st-key-sugerencias button p { font-size: .9rem !important; }
+.st-key-sugerencias button { background: rgba(255, 255, 255, 0.10) !important;
+  border: 1px solid rgba(180, 215, 255, 0.34) !important; }
+.st-key-sugerencias button:hover { background: rgba(255, 255, 255, 0.18) !important; }
+.st-key-chat [data-testid="stChatInput"] > div { background: rgba(8, 36, 84, 0.45) !important;
+  border: 1px solid rgba(170, 210, 255, 0.34) !important; }
 .st-key-chat [data-testid="stChatInput"] { border-radius: 999px !important; }
 </style>
 """
 
-BIENVENIDA = f"""
+BIENVENIDA = """
 <style>
-.oc-saludo {{ display:flex; flex-direction:column; align-items:center; gap:14px;
-  padding: 26px 0 8px; font-family: Inter, sans-serif; text-align:center; }}
-.oc-saludo .ojo {{ position:relative; width:150px; height:150px; }}
-.oc-saludo .ojo::before {{ content:""; position:absolute; inset:-18%; border-radius:50%;
-  background:radial-gradient(circle, rgba(56,189,248,.3), transparent 62%); }}
-.oc-saludo .ojo img {{ position:absolute; inset:0; width:100%; height:100%; }}
-.oc-saludo .iris {{ animation: oc-saludo-gira 40s linear infinite; }}
-@keyframes oc-saludo-gira {{ to {{ transform: rotate(360deg); }} }}
-@media (prefers-reduced-motion: reduce) {{ .oc-saludo .iris {{ animation:none; }} }}
-.oc-saludo h2 {{ margin:0; padding:0; font-size:clamp(1.5rem, 2.4vw, 2rem); font-weight:700;
-  letter-spacing:-.02em; color:#E7ECF3; }}
-.oc-saludo p {{ margin:0; color:#9FB6CC; font-size:1rem; }}
+.oc-saludo { display:flex; flex-direction:column; align-items:center; gap:12px;
+  padding: 150px 0 8px; font-family: Inter, sans-serif; text-align:center; }
+.oc-saludo h2 { margin:0; padding:0; font-size:clamp(1.6rem, 2.6vw, 2.2rem); font-weight:700;
+  letter-spacing:-.02em; color:#fff; }
+.oc-saludo p { margin:0; color:#C4D8F2; font-size:1.05rem; }
 </style>
 <div class="oc-saludo">
-  <div class="ojo"><img class="iris" src="{OJO["{iris}"]}" alt=""><img src="{OJO["{cristal}"]}"
-    alt=""></div>
   <h2>¿Qué quieres saber del gasto público?</h2>
   <p>Pregunta como hablas. Te respondo con los datos oficiales y su fuente.</p>
+</div>"""
+
+# El ojo, fuera del panel y a su lado, como un personaje que acompaña: flota despacio, el iris
+# gira y de vez en cuando mira a un lado y a otro.
+PERSONAJE = f"""
+<style>
+.oc-personaje {{ position:relative; width:min(100%, 190px); aspect-ratio:1; margin: 0 auto;
+  animation: oc-flota 6s ease-in-out infinite; }}
+.oc-personaje::before {{ content:""; position:absolute; inset:-22%; border-radius:50%;
+  background:radial-gradient(circle, rgba(56,189,248,.32), transparent 62%); }}
+.oc-personaje .mira {{ position:absolute; inset:0; animation: oc-mira 9s ease-in-out infinite; }}
+.oc-personaje img {{ position:absolute; inset:0; width:100%; height:100%; }}
+.oc-personaje .iris {{ animation: oc-gira 30s linear infinite; }}
+@keyframes oc-flota {{ 0%,100% {{ transform: translateY(0); }}
+  50% {{ transform: translateY(-12px); }} }}
+@keyframes oc-gira {{ to {{ transform: rotate(360deg); }} }}
+@keyframes oc-mira {{ 0%,30%,100% {{ transform: translateX(0) rotate(0); }}
+  40%,52% {{ transform: translateX(6px) rotate(8deg); }}
+  64%,76% {{ transform: translateX(-6px) rotate(-8deg); }} }}
+@media (prefers-reduced-motion: reduce) {{ .oc-personaje, .oc-personaje * {{ animation:none; }} }}
+html.oc-sin-gpu .oc-personaje, html.oc-sin-gpu .oc-personaje * {{ animation:none; }}
+</style>
+<div class="oc-personaje" role="img" aria-label="El ojo de Ojo Ciudadano">
+  <div class="mira"><img class="iris" src="{OJO["{iris}"]}" alt="">
+  <img src="{OJO["{cristal}"]}" alt=""></div>
 </div>"""
 
 
@@ -371,7 +405,10 @@ modelo = agente.modelo_configurado()
 turnos = st.session_state.setdefault("turnos_asistente", [])
 elegida = None
 
-with st.container(key="chat", border=True):
+lado, centro, _ = st.columns([1.3, 6, 1], vertical_alignment="center")
+with lado:
+    billetes.pintar(PERSONAJE, clave="asistente_personaje")
+with centro, st.container(key="chat", border=True):
     mensajes = st.container(key="chat_mensajes", height=560, border=False)
     with st.container(key="sugerencias", horizontal=True, vertical_alignment="center"):
         for fija in sugeridas():

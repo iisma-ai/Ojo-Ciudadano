@@ -17,3 +17,8 @@
 ## A partir de ahora
 
 Lucas pide que todo se fusione y se suba a `main` al momento, porque `main` se publica solo en la web (D-056).
+
+## Segunda vuelta (D-060)
+
+- Panel del chat en cristal azul vivo, como el de la presentación, con las sugerencias y la caja de escribir a juego.
+- El ojo, fuera del panel y a su izquierda: flota, gira y mira a los lados.

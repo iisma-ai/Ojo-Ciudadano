@@ -1,4 +1,4 @@
-# 2026-11-25 · El asistente solo responde dentro de su alcance (D-060)
+# 2026-11-25 · El asistente solo responde dentro de su alcance (D-061)
 
 - **Quién:** El Harrak con Claude (agente)
 - **Rama:** `fix/asistente-alcance` (sale de `main` en `9e0abb1`)

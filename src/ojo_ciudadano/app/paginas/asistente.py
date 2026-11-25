@@ -14,7 +14,7 @@ import time
 
 import streamlit as st
 
-from ojo_ciudadano.app import animacion, graficos, textos
+from ojo_ciudadano.app import animacion, graficos, limite_modelo, textos
 from ojo_ciudadano.app.conexion import conexion
 from ojo_ciudadano.app.tablas import mostrar_resultado
 from ojo_ciudadano.asistente import agente, bateria, catalogo, plano, respuestas_fijas
@@ -283,6 +283,10 @@ def contestar(pregunta: str, historial: list[dict], forzar_modelo: bool) -> agen
             return respuesta
     if modelo is None:
         return agente.Respuesta(SIN_MODELO)
+    # Solo cuentan las preguntas que llegan al modelo (D-057): 2 seguidas y 5 minutos de espera.
+    espera = limite_modelo.limitador().intentar(limite_modelo.identidad())
+    if espera:
+        return agente.Respuesta(limite_modelo.mensaje(espera))
     return del_modelo(pregunta, historial)
 
 

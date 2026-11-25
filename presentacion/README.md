@@ -19,7 +19,7 @@ se ha gastado, y se unen en consejerías y en la Comunidad de Madrid. Poco texto
 | 4 | Reparto real de 2025; la cámara entra en Sanidad y en un contrato (anuncio, ofertas, peso en el gasto de la consejería) | Isma: el mapa interactivo |
 | 5 | Enjambre de burbujas y 1.354.441 contratos | Más de un millón de contratos abruma |
 | 6 | Señales de cada 100 y, al pulsar, un contrato atípico | Los 6 indicadores y el buscador de atípicos |
-| 7 | El asistente: tres preguntas reales (barras, comparación y tarta del Tribunal) | La IA busca, compara, relaciona y visualiza |
+| 7 | El asistente: tres preguntas reales (barras por año, comparación de organismos y una pregunta sencilla: «¿la Comunidad tiene helicópteros?») | La IA busca, compara, relaciona y visualiza |
 | 8 | El ojo y un QR de cristal | Ignacio: ya está en marcha, pruébalo |
 | 9 | Burbujas con las tecnologías | El stack |
 | 10 | Cierre | Democratizar los datos. Gracias |

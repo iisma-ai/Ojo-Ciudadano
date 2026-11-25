@@ -281,16 +281,14 @@ const DIAPOSITIVAS = [
       },
       {
         tipo: "chat", x: 700, y: 540, ancho: 960, paso: 3,
-        pregunta: "¿Qué proporción de los recursos ante el Tribunal de Contratación Pública se estima, según el acto recurrido?",
+        // pregunta de alguien que no sabe nada del tema; cifras de la busqueda por palabras
+        // en los titulos (asistente/texto.py, «helicoptero», base del 16-nov)
+        pregunta: "Oye, ¿es verdad que la Comunidad de Madrid tiene helicópteros?",
         respuesta: [
-          { tarta: { titulo: "Resoluciones del Tribunal por acto recurrido", centro: ["1.104", "resoluciones"], filas: [
-            ["Adjudicación", 452, "452 · 24,8 % estimadas", "#3d8bfd"],
-            ["Exclusión", 389, "389 · 18,3 % estimadas", "#7db3ff"],
-            ["Pliegos", 209, "209 · 30,6 % estimadas", "#1f5fd6"],
-            ["Otros actos", 54, "54 · 14,8 % estimadas", "#f2b544"],
-          ] } },
-          { texto: "Presentar un recurso no es una señal. Que se estime significa que el Tribunal dio la razón a quien recurrió ese acto; no implica una conducta reprochable de la empresa adjudicataria." },
-          { chips: ["Tribunal Administrativo de Contratación Pública de la Comunidad de Madrid · 23-nov-2026"] },
+          { texto: "Sí. Hay 12 contratos que hablan de helicópteros: los usan los servicios de emergencia para rescates, para apagar incendios y para la asistencia sanitaria del SUMMA 112." },
+          { kpis: [["52,8 M€", "4 licitaciones · sin IVA"], ["2,6 M€", "8 contratos · con IVA"]] },
+          { texto: "Son servicios de helicóptero y lo que necesitan, como la base de Las Rozas. Las dos cifras no se suman: una va sin IVA y la otra con IVA." },
+          { chips: ["Plataforma de Contratación del Sector Público · 16-nov-2026", "Portal de la Contratación Pública de la Comunidad de Madrid · 16-nov-2026"] },
         ],
       },
     ],

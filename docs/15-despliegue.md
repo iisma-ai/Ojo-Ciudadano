@@ -40,15 +40,22 @@ Rutas de ejemplo: carpeta de trabajo `C:\Users\harra\Ojo-Ciudadano` y carpeta de
 
 ### 1. Túnel en Cloudflare (panel web, 5 min)
 
-1. https://one.dash.cloudflare.com → la cuenta de siempre → **Networks → Tunnels → Create a
-   tunnel** → tipo **Cloudflared** → nombre `ojo-ciudadano` → **Save tunnel**.
-2. En «Install and run a connector» elige **Docker**. Sale un comando con
-   `--token eyJ…`: copia **solo el token** (lo que va después de `--token`). No lo pegues en
-   ningún chat ni lo subas a git.
-3. **Next** → pestaña **Public Hostname** (o «Published application routes»):
-   - Subdomain: `oc-origen` · Domain: `sourcia.solutions` · Path: vacío
-   - Service: Type **HTTP**, URL **`web:8501`**
-   - **Save**.
+El panel de Cloudflare cambió en 2026: los túneles están en el panel principal
+(`dash.cloudflare.com`, menú **Networking → Tunnels**) y las direcciones públicas se llaman
+«published application routes» y se añaden en la pestaña **Routes** del túnel.
+
+1. https://dash.cloudflare.com → la cuenta de siempre → **Networking → Tunnels** → crear un
+   túnel de tipo **Cloudflared** con el nombre `ojo-ciudadano`.
+2. Al crearlo, en las instrucciones de instalación (opción **Docker**) sale un comando con
+   `--token eyJ…`: copia **solo el token** (lo que va después de `--token`) y guárdalo en
+   `despliegue\tunel.env`. No lo subas a git.
+3. Arranca el túnel (paso 2). En **Networking → Tunnels**, `ojo-ciudadano` debe salir
+   **Healthy**.
+4. Pulsa el túnel `ojo-ciudadano` → pestaña **Routes** → **Add route** → **Published
+   application**:
+   - subdominio: `oc-origen` · **Domain**: `sourcia.solutions` · ruta: vacía
+   - **Service URL**: **`http://web:8501`** (el nombre del servicio de Docker, no `localhost`)
+   - **Add route**. Cloudflare crea solo el registro DNS.
    Si usas otro subdominio, cámbialo también en `portada/config.js`.
 
 ### 2. Carpeta de despliegue (10 min, la primera vez tarda por la imagen)

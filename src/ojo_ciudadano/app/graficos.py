@@ -66,6 +66,9 @@ def _cristal(figura: go.Figure) -> None:
         marker_line={"color": BORDE_CRISTAL, "width": 1},
     )
     for traza in figura.data:
+        if traza.type == "treemap":
+            _treemap_de_cristal(traza)
+            continue
         if traza.type != "scatter" or "markers" not in (traza.mode or ""):
             continue
         if len(traza.x or ()) > MAX_PUNTOS_BURBUJA or traza.marker.gradient.type is not None:
@@ -73,6 +76,20 @@ def _cristal(figura: go.Figure) -> None:
         traza.marker.gradient = {"type": "radial", "color": "rgba(225, 245, 255, 0.85)"}
         if traza.marker.line.color is None:
             traza.marker.line = {"color": BORDE_CRISTAL, "width": 1}
+
+
+def _treemap_de_cristal(traza) -> None:
+    """Rectángulos de cristal: el color de cada uno, translúcido, con borde claro, esquinas
+    redondeadas y algo de aire entre ellos (como las tarjetas de la web)."""
+    colores = traza.marker.colors
+    if colores:
+        traza.marker.colors = [
+            transparente(c, 0.5) if isinstance(c, str) and c.startswith("#") else c for c in colores
+        ]
+    traza.marker.line = {"color": BORDE_CRISTAL, "width": 1.2}
+    traza.marker.cornerradius = 8
+    traza.tiling.pad = 4
+    traza.textfont.family = "Inter, sans-serif"
 
 
 def _tema(figura: go.Figure, alto: int = 240) -> go.Figure:

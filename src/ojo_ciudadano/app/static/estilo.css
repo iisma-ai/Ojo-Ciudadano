@@ -557,15 +557,17 @@ div[class*="st-key-cajasenal_"][class*="st-key-cajasenal_"] {
   [data-testid="stPlotlyChart"] { animation: none; }
 }
 
-/* Contratos atípicos: al abrir uno, su contenido entra con una transición corta, y el gráfico,
-   cuando está listo, aparece con algo más de presencia (opacidad y transform, una sola vez). */
-[class*="st-key-atipico-"] [data-testid="stExpanderDetails"] {
+/* Desplegables (contratos atípicos, tarjetas de contrato de las fichas y de «Contratos a
+   revisar»): al abrir uno, su contenido entra con una transición corta, y sus gráficos, cuando
+   están listos, aparecen con algo más de presencia (opacidad y transform, una sola vez). */
+[data-testid="stExpanderDetails"] {
   animation: oc-atipico-abre 0.3s ease-out both;
 }
 @keyframes oc-atipico-abre {
   from { opacity: 0; transform: translateY(-6px); }
   to { opacity: 1; transform: none; }
 }
+[data-testid="stExpanderDetails"] [data-testid="stPlotlyChart"],
 [class*="st-key-grafico-atipico-"] {
   animation: oc-atipico-grafico 0.7s cubic-bezier(0.22, 0.9, 0.3, 1) both;
 }
@@ -574,6 +576,7 @@ div[class*="st-key-cajasenal_"][class*="st-key-cajasenal_"] {
   to { opacity: 1; transform: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  [class*="st-key-atipico-"] [data-testid="stExpanderDetails"],
+  [data-testid="stExpanderDetails"],
+  [data-testid="stExpanderDetails"] [data-testid="stPlotlyChart"],
   [class*="st-key-grafico-atipico-"] { animation: none; }
 }

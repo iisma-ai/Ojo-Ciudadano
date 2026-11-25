@@ -45,6 +45,14 @@
   - transiciones de apertura y de entrada del gráfico.
 - **Comprobado en el navegador:** al pulsar sale la frase con el ojo girando y, en uno o dos segundos, el gráfico entra animado (histograma y nube de puntos).
 
+## Ajuste: fichas de empresa y de organismo
+
+- **Mapa de rectángulos de cristal** (`_treemap_de_cristal` en el tema común): opacidad 0,5, borde claro, esquinas de 8 px y 4 px de separación.
+- **Tarjetas de contrato en su propio fragmento:** al abrir una, solo se recalcula esa tarjeta, con el ojo girando mientras se calculan las señales. Sirve para la ficha de empresa, la de organismo y «Contratos a revisar».
+- **«Contrato atípico»** en ámbar dentro de la tarjeta.
+- **Transición** de apertura en todos los desplegables y entrada animada de sus gráficos.
+- **Comprobado en el navegador** con la ficha de B. Braun Medical: mapa de rectángulos, contratos por año, señales y una tarjeta abierta con sus dos gráficos.
+
 ## Pendiente
 
 - Mirar en la pantalla de la demo el contraste de las barras translúcidas.

@@ -1046,4 +1046,9 @@ Plantilla:
   - La frase «Por qué se aleja» sale al momento. Mientras se prepara el gráfico, en su sitio está nuestro ojo con el iris girando y «Preparando el gráfico…» (`app/cargando.py`, reutilizable).
   - La nube de comparación se dibuja con WebGL (`Scattergl`).
   - Al abrir, el contenido entra con una transición corta; el gráfico aparece con opacidad y `transform`, una sola vez.
+- **Ajuste del mismo día (fichas de empresa y de organismo):**
+  - El mapa de rectángulos «De qué organismos» / «A qué empresas» pasa a cristal en el tema común: colores translúcidos, borde claro, esquinas redondeadas y aire entre rectángulos.
+  - Las tarjetas de contrato (`senales.tarjeta_contrato`, en las dos fichas y en «Contratos a revisar») van en su propio fragmento, con el ojo girando mientras se calculan sus señales.
+  - «Contrato atípico» dentro de la tarjeta, en ámbar.
+  - Todos los desplegables se abren con la misma transición corta, y sus gráficos entran animados.
 

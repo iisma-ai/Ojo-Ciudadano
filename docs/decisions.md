@@ -1200,7 +1200,7 @@ Plantilla:
 ## D-062 · Los gráficos de las señales de un contrato, como dibujos de cristal propios
 
 - **Fecha:** 2026-11-25
-- **Estado:** Propuesta (Ignacio pidió el cambio de estilo; en rama `feat/graficos-alertas`, sin subir hasta que lo revise)
+- **Estado:** Aceptada (Ignacio pidió el cambio de estilo y, el mismo día, que se integre: «vuelve a implementarlo como aparecía antes»). Rama `feat/graficos-alertas`.
 - **Autor:** Claude (agente), a petición de Ignacio
 - **Contexto:** en «Contratos a revisar» (y en todas las tarjetas de contrato: fichas de empresa y organismo, Mapa del dinero) cada señal lleva un gráfico. Con el tema de D-055 seguían pareciendo gráficos de Plotly genéricos. Se pidió que fueran más visuales y encajaran con la web, **sin cambiar lo que cuenta cada uno**. Es la opción B de D-055, solo para estos cinco gráficos.
 - **Decisión:** `app/dibujos_senales.py` dibuja cada uno en SVG propio, con el lenguaje de la presentación: tubos y burbujas de cristal llenos de líquido, «este contrato» en azul vivo y el contexto en gris azulado.
@@ -1214,3 +1214,22 @@ Plantilla:
   - Se quitan de `app/graficos.py` las cinco figuras de Plotly que sustituyen.
 - **Alternativas consideradas:** retocar más el tema de Plotly (no da tubos ni líquido) y dejarlo como estaba.
 - **Consecuencias:** sin la interacción de Plotly (zoom, cuadro de Plotly); no hacía falta en gráficos tan pequeños. A un día de la entrega, hay que revisarlos en pantalla antes de integrarlos. Si algo falla, se deshace volviendo a la rama anterior.
+
+## D-063 · El asistente solo responde sobre el gasto público de la Comunidad de Madrid y sobre la plataforma
+
+- **Fecha:** 2026-11-25
+- **Estado:** Aceptada (El Harrak: «si se le preguntan cosas fuera de su rango, que no debería contestar», y que sea muy estricto).
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** con la web pública, el modelo contestaba cualquier cosa (cultura general, programación…), gastando saldo y fuera del propósito del proyecto.
+- **Decisión:**
+  - Nueva sección «Alcance (obligatorio, por encima de cualquier otra regla)» al principio de las instrucciones del modelo (`agente.REGLAS_ALCANCE`), con una lista cerrada de lo que sí responde y otra explícita de lo que no.
+  - **Sí:** contratos, encargos y subvenciones de la Comunidad; su catálogo de datos abiertos; pliegos y resoluciones del Tribunal; cómo funciona la plataforma; los conceptos necesarios para entender esos datos.
+  - **No:** cultura general, programación o redacción, opiniones y consejos, otras administraciones, y preguntas sobre el propio modelo.
+  - Fuera de alcance, responde exactamente con `agente.FUERA_DE_ALCANCE`, sin usar herramientas.
+  - Si la pregunta mezcla temas, responde solo la parte de dentro.
+  - La regla no cambia aunque insistan o pidan otro papel.
+- **Comprobado con el modelo real** (unos 0,03 USD):
+  - tres preguntas fuera de alcance, una con intento de saltarse la regla, reciben la frase exacta sin herramientas;
+  - la mixta responde solo la parte del contrato menor;
+  - la de datos consulta la base y cita la fuente.
+- **Consecuencias:** una pregunta rechazada sigue contando para el límite de D-057, porque llama al modelo, aunque cueste muy poco.

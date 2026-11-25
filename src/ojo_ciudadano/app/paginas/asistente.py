@@ -377,21 +377,29 @@ PERSONAJE = f"""
   animation: oc-flota 6s ease-in-out infinite; }}
 .oc-personaje::before {{ content:""; position:absolute; inset:-22%; border-radius:50%;
   background:radial-gradient(circle, rgba(56,189,248,.32), transparent 62%); }}
-.oc-personaje .mira {{ position:absolute; inset:0; animation: oc-mira 9s ease-in-out infinite; }}
+/* el iris se mueve dentro del cristal (el cristal queda quieto): mira a un lado y a otro con
+   saltos rápidos y pausas, como una mirada de verdad, mientras gira */
+.oc-personaje .globo {{ position:absolute; inset:0; border-radius:50%; overflow:hidden; }}
+.oc-personaje .mira {{ position:absolute; inset:0;
+  animation: oc-mira 12s cubic-bezier(.6,0,.2,1) infinite; }}
 .oc-personaje img {{ position:absolute; inset:0; width:100%; height:100%; }}
-.oc-personaje .iris {{ animation: oc-gira 30s linear infinite; }}
+.oc-personaje .iris {{ animation: oc-gira 24s linear infinite; }}
 @keyframes oc-flota {{ 0%,100% {{ transform: translateY(0); }}
   50% {{ transform: translateY(-12px); }} }}
 @keyframes oc-gira {{ to {{ transform: rotate(360deg); }} }}
-@keyframes oc-mira {{ 0%,30%,100% {{ transform: translateX(0) rotate(0); }}
-  40%,52% {{ transform: translateX(6px) rotate(8deg); }}
-  64%,76% {{ transform: translateX(-6px) rotate(-8deg); }} }}
+@keyframes oc-mira {{
+  0%,18% {{ transform: translate(0, 0); }}
+  21%,34% {{ transform: translate(-13%, -2%); }}
+  37%,46% {{ transform: translate(0, 0); }}
+  49%,60% {{ transform: translate(13%, 3%); }}
+  63%,70% {{ transform: translate(7%, -9%); }}
+  73%,100% {{ transform: translate(0, 0); }} }}
 @media (prefers-reduced-motion: reduce) {{ .oc-personaje, .oc-personaje * {{ animation:none; }} }}
 html.oc-sin-gpu .oc-personaje, html.oc-sin-gpu .oc-personaje * {{ animation:none; }}
 </style>
 <div class="oc-personaje" role="img" aria-label="El ojo de Ojo Ciudadano">
-  <div class="mira"><img class="iris" src="{OJO["{iris}"]}" alt="">
-  <img src="{OJO["{cristal}"]}" alt=""></div>
+  <div class="globo"><div class="mira"><img class="iris" src="{OJO["{iris}"]}" alt=""></div></div>
+  <img src="{OJO["{cristal}"]}" alt="">
 </div>"""
 
 

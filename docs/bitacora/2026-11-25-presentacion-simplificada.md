@@ -2,9 +2,8 @@
 
 ## Qué se ha hecho
 
-- **Nitidez del ojo y del agua.** El compositor de efectos (brillo y acabado de cámara) pintaba en una textura sin
-  antialiasing y a 1,5 píxeles por punto como máximo: los bordes salían en dientes de sierra. Ahora usa una textura
-  con 4 muestras (MSAA), entre 1,5 y 2 píxeles por punto, la textura de anillos del iris a 1024 px y la mitad de grano.
+- **Nitidez del ojo y del agua.** Primero se probó antialiasing MSAA de 4 muestras y resolución forzada a 2x en el compositor: dejaba el fondo en negro en el portátil de la demo y se retiró. Queda la calidad de antes (hasta 1,5x) más un pase FXAA al final, que casi no gasta,
+  y además la textura de anillos del iris a 1024 px y la mitad de grano.
 - **Aristas de los grafos más suaves.** Los enlaces entre burbujas brillan menos (opacidad y pulso más bajos) y son
   algo más finos, para que no quiten protagonismo a las burbujas.
 - **Diapositiva del reparto de 2025.** Fuera la nota «Presupuesto de 2025 de cada consejería…»; la burbuja de la

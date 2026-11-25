@@ -6,6 +6,7 @@ import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
+import { FXAAShader } from "three/addons/shaders/FXAAShader.js";
 import * as Agua from "./agua.js";
 import { crearOjo } from "./ojo3d.js";
 
@@ -31,8 +32,7 @@ try {
   document.getElementById("cortina").textContent = "Este navegador no puede mostrar gráficos 3D (WebGL).";
   throw err;
 }
-// Al menos 1,5 y hasta 2 pixeles por punto: en pantallas y proyectores de 1080p el ojo y el agua salen nitidos
-renderer.setPixelRatio(Math.min(Math.max(window.devicePixelRatio, 1.5), 2));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 renderer.toneMapping = THREE.NeutralToneMapping; // conserva el tono de los azules (ACES los vuelve morados)
 renderer.toneMappingExposure = 1.05;
 
@@ -73,18 +73,16 @@ const rocas = Agua.crearRocas([
 escena.add(cieloArriba, rocas);
 const NEBLINA = new THREE.Color("#d9a585");
 
-// El compositor pinta en una textura propia, que sin muestras no tiene antialiasing (bordes en dientes de sierra)
-const compositor = new EffectComposer(
-  renderer,
-  new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 }),
-);
-compositor.setPixelRatio(renderer.getPixelRatio());
+const compositor = new EffectComposer(renderer);
 compositor.addPass(new RenderPass(escena, camara));
 const brillo = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.55, 0.7, 0.82);
 compositor.addPass(brillo);
 compositor.addPass(new OutputPass());
 const final = new ShaderPass(Agua.PasoFinal);
 compositor.addPass(final);
+// El compositor pinta sin antialiasing: FXAA suaviza los bordes del ojo y de las burbujas y casi no gasta
+const suavizado = new ShaderPass(FXAAShader);
+compositor.addPass(suavizado);
 
 // ---------- Materiales compartidos ----------
 const GEO = new THREE.SphereGeometry(1, 72, 54);
@@ -679,7 +677,8 @@ function ajustar() {
   compositor.setSize(W, H);
   const pr = renderer.getPixelRatio();
   final.uniforms.uRes.value.set(W * pr, H * pr);
-  nieve.uniforms.uPx.value = H * pr * 0.045;
+  suavizado.uniforms.resolution.value.set(1 / (W * pr), 1 / (H * pr));
+  nieve.uniforms.uPx.value = H * 0.045;
   escalaTexto = (H / 1080) * (D0 / D);
   for (const it of items) {
     if (!it.dom) continue;

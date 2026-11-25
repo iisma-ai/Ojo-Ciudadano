@@ -12,8 +12,9 @@
   su única señal. Letra de 28 en lugar de 18. La de Sanidad sube a la parte de arriba (y = 310) para no pisar las
   burbujas del fondo y va sin línea de fuente; la del contrato mantiene una corta.
 - **«Señales, no acusaciones».** El panel con rejillas de puntos, texto explicativo y fuente se cambia por tres cifras
-  grandes (39, 31 y 17 de cada 100) con un rótulo legible cada una. Para separarlas del fondo sin caja, cada cifra y
-  rótulo lleva un halo oscuro difuminado detrás (clase `resalte`) y los números van en ámbar, el color de las señales.
+  grandes (39, 31 y 17 de cada 100) con un rótulo legible cada una. Para separarlas del fondo sin caja
+  se probó un halo oscuro detrás, pero no encajaba con el estilo. Queda: en ese paso el fondo 3D se apaga
+  con una neblina suave (`niebla` con `fuerza: 0.45`) y los números van en ámbar, el color de las señales.
 
 Los paneles aceptan ahora `tam` y las cifras también (`escena3d.js`).
 

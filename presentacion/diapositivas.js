@@ -12,12 +12,13 @@
  * Elementos:
  *   {tipo:"texto",   x, y, texto, tam, clase, paso}              clase: "titulo" | "subtitulo" | "nota"
  *   {tipo:"cifra",   x, y, valor, formato, texto, tam, clase, paso}  numero que sube hasta `valor`
- *                    clase "resalte" (tambien en textos): halo oscuro difuminado detras, sin caja
+ *                    clase "resalte": numero en ambar, el color de las señales
  *   {tipo:"burbuja", id, x, y, r, llenado, etiqueta, valor, tono, paso}
  *                    llenado 0..1 = lo gastado; tono: "azul" | "ambar" | "agua"
  *   {tipo:"enlace",  de, a, paso}                                 linea de agua entre dos burbujas
  *   {tipo:"captura", id, x, y, r, src, etiqueta, paso}           burbuja con una imagen o video dentro
- *   {tipo:"niebla",  paso}                                        capa turbia (lo que no se ve)
+ *   {tipo:"niebla",  fuerza, paso, hasta}                         capa turbia (lo que no se ve); fuerza 0..1
+ *                    (por defecto 1; con menos, solo apaga el fondo para que se lean los textos)
  *   {tipo:"luz",     paso}                                        el ojo ilumina la escena
  *   {tipo:"foco",    de, zoom, x, y, paso, hasta}                 la camara se acerca a la burbuja `de`
  *                    y la deja en (x, y) de la pantalla; `hasta` = ultimo paso en que dura
@@ -230,7 +231,8 @@ const DIAPOSITIVAS = [
         tipo: "burbuja", id: `s${i}`, x, y: y + 40, r: r * 0.8, llenado, tono: i % 3 ? "agua" : "ambar", paso: 0,
       })),
       { tipo: "texto", x: 960, y: 140, texto: "Señales, no acusaciones", tam: 64, clase: "titulo", paso: 0, hasta: 1 },
-      // paso 1: tres cifras grandes, una idea cada una
+      // paso 1: tres cifras grandes, una idea cada una; el fondo se apaga un poco para que se lean
+      { tipo: "niebla", fuerza: 0.45, paso: 1, hasta: 1 },
       ...[[480, 39, "Una sola oferta"], [960, 31, "Sin anuncio público"], [1440, 17, "Posible fraccionamiento"]].flatMap(([x, valor, texto]) => [
         { tipo: "cifra", x, y: 500, valor, texto: "de cada 100", tam: 34, clase: "resalte", paso: 1, hasta: 1 },
         { tipo: "texto", x, y: 690, texto, tam: 36, clase: "subtitulo resalte", paso: 1, hasta: 1 },

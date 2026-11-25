@@ -73,20 +73,7 @@ body.quieto { cursor: none; }
   color: rgba(196, 226, 248, 0.75);
 }
 
-/* Resalte: un halo oscuro y difuminado detras del texto lo separa de las burbujas del fondo, sin caja ni borde */
-.t.resalte::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: calc(100% + 4em);
-  height: calc(100% + 3em);
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(1, 10, 26, 0.8), rgba(1, 10, 26, 0.5) 55%, rgba(1, 10, 26, 0) 100%);
-  z-index: -1;
-  pointer-events: none;
-}
+/* Resalte: cifras de las señales en ámbar */
 .cifra.resalte .num { color: #ffd27a; text-shadow: 0 0 48px rgba(242, 181, 68, 0.35), 0 4px 30px rgba(0, 10, 30, 0.8); }
 .cifra.resalte .cap { color: rgba(225, 240, 255, 0.9); }
 .subtitulo.resalte { color: #fff; font-weight: 400; text-shadow: 0 2px 18px rgba(0, 8, 24, 0.9); }

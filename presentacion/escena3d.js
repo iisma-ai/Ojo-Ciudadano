@@ -533,7 +533,7 @@ const diapositivas = DIAPOSITIVAS.map((d, i) => {
     else if (e.tipo === "captura") it = crearCaptura(e, i);
     else if (e.tipo === "enlace") it = crearEnlace(e, i, porId);
     else if (e.tipo === "luz") it = crearLuz(i, d.ojo);
-    else if (e.tipo === "niebla") it = { tipo: "niebla", i };
+    else if (e.tipo === "niebla") it = { tipo: "niebla", i, fuerza: e.fuerza ?? 1 };
     else if (e.tipo === "foco") it = { tipo: "foco", i, de: porId[e.de], zoom: e.zoom || 1.6, sx: e.x ?? 600, sy: e.y ?? 540 };
     else if (e.tipo === "panel") it = crearPanel(e, i);
     else if (e.tipo === "chat") it = crearChat(e, i);
@@ -783,9 +783,9 @@ function cuadro() {
 
   // agua, niebla y luz segun la diapositiva y el paso
   profundidad += (d.cfg.profundidad - profundidad) * suave(dt, 1.2);
-  const hayNiebla = d.items.some((it) => it.tipo === "niebla" && it.objetivo);
+  const nieblaMeta = Math.max(0, ...d.items.filter((it) => it.tipo === "niebla" && it.objetivo).map((it) => it.fuerza));
   const tieneLuz = d.items.find((it) => it.tipo === "luz");
-  niebla += ((hayNiebla ? 1 : 0) - niebla) * suave(dt, 1.4);
+  niebla += (nieblaMeta - niebla) * suave(dt, 1.4);
   luz += ((tieneLuz && !tieneLuz.objetivo ? 0.18 : 1) - luz) * suave(dt, 1.6);
   const fuera = camara.position.y > SUPERFICIE;
   Agua.colorProfundidad(profundidad, colorAgua);

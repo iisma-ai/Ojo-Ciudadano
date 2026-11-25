@@ -74,6 +74,51 @@ ESTILO = """
   height: 100%; padding: 1.5rem 1.5rem !important; }
 [class*="st-key-puerta_"]:hover { transform: translateY(-3px);
   border-color: rgba(170,225,255,.55) !important; }
+/* Al pasar el ratón, luz sutil como los rayos de la página: unos haces que bajan desde arriba,
+   se funden con la tarjeta y el texto, y un destello que la cruza una vez. Solo opacidad y
+   transform (sin repintar); nada se mueve si no hay ratón encima. */
+[class*="st-key-puerta_"] { overflow: hidden;
+  transition: transform .25s ease, border-color .25s ease, box-shadow .35s ease; }
+[class*="st-key-puerta_"]::before, [class*="st-key-puerta_"]::after { content: "";
+  position: absolute; inset: 0; pointer-events: none; z-index: 2; border-radius: inherit;
+  opacity: 0; mix-blend-mode: screen; }
+[class*="st-key-puerta_"]::before {
+  inset: -10% -15% 0 -15%;
+  background:
+    radial-gradient(90% 65% at 50% -8%, rgba(125,211,252,.30), transparent 68%),
+    linear-gradient(104deg, transparent 22%, rgba(170,225,255,.15) 30%, transparent 38%),
+    linear-gradient(98deg, transparent 46%, rgba(170,225,255,.12) 53%, transparent 60%),
+    linear-gradient(110deg, transparent 64%, rgba(170,225,255,.09) 70%, transparent 76%);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,.45) 55%, transparent 95%);
+  mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,.45) 55%, transparent 95%);
+  transform: translateY(-10px);
+  transition: opacity .6s ease, transform .9s cubic-bezier(.25,.8,.25,1); }
+[class*="st-key-puerta_"]::after {
+  background: linear-gradient(112deg, transparent 38%, rgba(255,255,255,.13) 50%,
+    transparent 62%);
+  transform: translateX(-110%); }
+[class*="st-key-puerta_"]:hover {
+  box-shadow: 0 14px 40px rgba(56,189,248,.16), inset 0 1px 0 rgba(255,255,255,.16); }
+[class*="st-key-puerta_"]:hover::before { opacity: 1; transform: none;
+  animation: oc-puerta-haces 5s ease-in-out .9s infinite alternate; }
+[class*="st-key-puerta_"]:hover::after { animation: oc-puerta-destello 1.2s ease-out 1; }
+@keyframes oc-puerta-haces { from { transform: none; } to { transform: translateX(3%); } }
+@keyframes oc-puerta-destello { 0% { opacity: 1; transform: translateX(-110%); }
+  100% { opacity: 1; transform: translateX(110%); } }
+/* sin el recuadro de fondo que Streamlit pone al enlace al pasar el ratón */
+[class*="st-key-puerta_"] [data-testid="stPageLink"] a,
+[class*="st-key-puerta_"] [data-testid="stPageLink"] a:hover { background: transparent !important; }
+/* el texto también recibe la luz */
+[class*="st-key-puerta_"] [data-testid="stPageLink"] a p,
+[class*="st-key-puerta_"] [data-testid="stCaptionContainer"] {
+  transition: color .4s ease, text-shadow .4s ease; }
+[class*="st-key-puerta_"]:hover [data-testid="stPageLink"] a p {
+  color: #fff; text-shadow: 0 0 14px rgba(125,211,252,.45); }
+[class*="st-key-puerta_"]:hover [data-testid="stCaptionContainer"] { color: #C9D8E8; }
+@media (prefers-reduced-motion: reduce) {
+  [class*="st-key-puerta_"]:hover::before, [class*="st-key-puerta_"]:hover::after {
+    animation: none; } }
+html.oc-sin-gpu [class*="st-key-puerta_"]:hover::before { animation: none; }
 /* todo lo de dentro sin posición propia: así el enlace se estira sobre toda la tarjeta */
 [class*="st-key-puerta_"] * { position: static !important; }
 [class*="st-key-puerta_"] [data-testid="stPageLink"] a::after {

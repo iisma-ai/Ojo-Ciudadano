@@ -62,8 +62,8 @@ LIMIT 20
 
 SIN_PUBLICIDAD_POR_ORGANO = ConsultaDemo(
     pregunta=(
-        "¿Qué órganos adjudican más por negociado sin publicidad u otros procedimientos "
-        "(R-02), en proporción a su gasto?"
+        "¿Qué órganos adjudican más por negociado sin publicidad u otros procedimientos"
+        ", en proporción a su gasto?"
     ),
     parametros=(),
     sql="""
@@ -97,7 +97,7 @@ LIMIT 20
 """,
     nota=(
         "Proporción del importe adjudicado por negociado sin publicidad u «otro procedimiento» "
-        "(indicador R-02) sobre el importe de los contratos no menores del órgano, por fuente "
+        "sobre el importe de los contratos no menores del órgano, por fuente "
         "para no mezclar importes con y sin IVA. Solo órganos con al menos 20 contratos. "
         "Estos procedimientos son legales en supuestos concretos (exclusividad, emergencia); "
         "los datos no dicen cuál se alegó."
@@ -130,7 +130,7 @@ LIMIT 20
 """,
     nota=(
         "Contratos del portal regional ordenados por el peso de sus modificaciones sobre el "
-        "importe adjudicado (indicador R-05). Las prórrogas aparecen en el motivo pero no "
+        "importe adjudicado. Las prórrogas aparecen en el motivo pero no "
         "cuentan: suelen ser anualidades previstas en el pliego (D-016). Superar el 20 % no "
         "implica por sí solo un incumplimiento. PLACSP no publica modificaciones. Los porcentajes "
         "de más del 1.000 % aparecen al final, marcados en «importe_a_comprobar»: "

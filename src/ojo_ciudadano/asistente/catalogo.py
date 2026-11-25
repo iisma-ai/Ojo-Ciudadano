@@ -142,8 +142,7 @@ def resumir(paquete: dict, fecha_descarga: str) -> dict | None:
 def conjuntos(ruta: Path = RUTA_PAQUETES) -> list[dict]:
     if not ruta.exists():
         raise ConjuntoNoDisponible(
-            "El catálogo no está descargado en esta instalación "
-            "(uv run python -m ojo_ciudadano.asistente.catalogo)."
+            "El catálogo de datos abiertos no está disponible todavía en esta versión de la web."
         )
     datos = json.loads(ruta.read_text(encoding="utf-8"))
     resumenes = (resumir(p, datos["fecha_descarga"]) for p in datos["paquetes"])

@@ -3,7 +3,37 @@ from ojo_ciudadano.app import textos
 
 def test_cada_indicador_tiene_ayuda():
     assert set(textos.AYUDA_INDICADOR) == set(textos.NOMBRES_INDICADOR)
-    assert "R-06 · " in textos.lista_indicadores()
+    lista = textos.lista_indicadores()
+    assert textos.NOMBRES_INDICADOR["R-06"] in lista
+    assert "R-0" not in lista  # los códigos internos no salen en la web
+
+
+def test_sin_codigos_quita_las_referencias_internas():
+    assert textos.sin_codigos("R-02 (Procedimiento sin publicidad) en 30 contratos") == (
+        "Procedimiento sin publicidad en 30 contratos"
+    )
+    assert textos.sin_codigos("Una sola oferta (señal R-01): 12 contratos") == (
+        "Una sola oferta: 12 contratos"
+    )
+    assert textos.sin_codigos("Lo que más activa R-03 es Sanidad") == (
+        "Lo que más activa la señal «Muchos contratos menores» es Sanidad"
+    )
+    assert textos.sin_codigos("Método propio (Isolation Forest, D-021).") == (
+        "Método propio (Isolation Forest)."
+    )
+    assert "docs/" not in textos.sin_codigos("Detalle en docs/04-indicadores-riesgo.md.")
+    # los códigos que son datos reales no se tocan
+    assert textos.sin_codigos("Obras en la autovía A-42, lote B-12") == (
+        "Obras en la autovía A-42, lote B-12"
+    )
+
+
+def test_los_textos_fijos_no_mencionan_el_desarrollo():
+    import re
+
+    patron = re.compile(r"(?:R-0[1-9]|D-0[0-9]{2}|P-[0-9]{2})|docs/|uv run")
+    for nombre in ("AVISO", "AVISO_CORTO", "AVISO_ATIPICOS", "AVISO_CONTEXTO", "PIE", "NOTA_SENAL"):
+        assert not patron.search(getattr(textos, nombre)), nombre
 
 
 def test_fechas_de_descarga_nombran_cada_fuente():

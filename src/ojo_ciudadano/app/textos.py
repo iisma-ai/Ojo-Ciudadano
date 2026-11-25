@@ -1,5 +1,7 @@
 """Textos fijos de la interfaz. Lenguaje no acusatorio (docs/07-riesgos.md)."""
 
+import re
+
 AVISO_CORTO = (
     "Las alertas son **indicadores de riesgo** calculados con reglas públicas: señalan "
     "contratos que merecen revisión y **no prueban ninguna irregularidad**."
@@ -13,7 +15,7 @@ AVISO = (
     "propio de esta plataforma, no datos de la Administración y pueden contener errores. "
     "Un contrato sin alertas tampoco queda avalado. Cada alerta indica qué regla y qué valor "
     "la activó y enlaza al expediente oficial. Con pocos indicadores aplicables la puntuación "
-    "es menos fiable y menos comparable. Reglas completas en `docs/04-indicadores-riesgo.md`."
+    "es menos fiable y menos comparable. Las reglas de cada señal se explican más abajo."
 )
 
 FUENTES = (
@@ -125,10 +127,39 @@ NOMBRES_FUENTE = {
 def lista_indicadores() -> str:
     """Explicación de cada indicador en Markdown, para el apartado de metodología."""
     return "\n".join(
-        f"- **{i} · {NOMBRES_INDICADOR[i]}**: "
+        f"- **{NOMBRES_INDICADOR[i]}**: "
         + " ".join(filter(None, [AYUDA_INDICADOR[i], CONTEXTO_SENAL.get(i)]))
         for i in NOMBRES_INDICADOR
     )
+
+
+# Códigos internos del proyecto (indicadores R-01…, decisiones D-001…, preguntas P-01…) que
+# no deben llegar a la pantalla: el modelo de lenguaje los usa para trabajar, pero la persona
+# solo tiene que ver el nombre de cada señal.
+_CODIGO_ENTRE_PARENTESIS = re.compile(r"\s*\((?:señal |indicador )?R-0[1-9]\)")
+_CODIGO_Y_NOMBRE = re.compile(r"\b(R-0[1-9])\s*\(([^)]+)\)")
+_CODIGO_DELANTE = re.compile(r"\b(?:la |el )?(?:señal |indicador )?(R-0[1-9])\s*[·:–]\s*")
+_CODIGO_SUELTO = re.compile(r"\b(?:la |el )?(?:señal |indicador )?(R-0[1-9])\b")
+# solo decisiones (D-0xx), preguntas abiertas (P-xx) y rutas de docs/: otros códigos parecidos
+# pueden ser datos reales (la autovía A-42, un lote B-12)
+_REFERENCIA = r"(?:D-0[0-9]{2}|P-[0-9]{2}|docs/[\w./-]*[\w/])"
+_DOCUMENTO_SOLO = re.compile(r"\s*\(" + _REFERENCIA + r"\)")
+_DOCUMENTO = re.compile(r",?\s*\b" + _REFERENCIA)
+
+
+def sin_codigos(texto: str) -> str:
+    """El texto sin códigos internos: «R-02 (Procedimiento sin publicidad)» queda en el nombre,
+    «(señal R-02)» desaparece, un código suelto pasa a «la señal «Sin anuncio público»» y las
+    referencias a decisiones o a documentos internos se quitan."""
+    if not texto:
+        return texto
+    texto = _CODIGO_ENTRE_PARENTESIS.sub("", texto)
+    texto = _CODIGO_Y_NOMBRE.sub(r"\2", texto)
+    texto = _CODIGO_DELANTE.sub("", texto)
+    texto = _CODIGO_SUELTO.sub(lambda m: f"la señal «{SENAL_CORTA[m.group(1)]}»", texto)
+    texto = _DOCUMENTO_SOLO.sub("", texto)
+    texto = _DOCUMENTO.sub("", texto)
+    return re.sub(r"\(\s*\)", "", texto)
 
 
 def fechas_descarga(fechas: list[dict]) -> str:
@@ -148,8 +179,7 @@ AVISO_ATIPICOS = (
     "por razones legítimas (tamaño, urgencia, un único proveedor posible). Es una señal "
     "experimental, aparte de los indicadores de riesgo, que **no suma a la puntuación** y "
     "puede contener errores. Que un contrato no aparezca aquí no lo avala: los grupos con "
-    "menos de 50 contratos no se analizan. Método completo en "
-    "`docs/04-indicadores-riesgo.md` (D-021)."
+    "menos de 50 contratos no se analizan."
 )
 
 
@@ -308,7 +338,7 @@ GLOSARIO = {
 AVISO_CONTEXTO = (
     "Estas cifras vienen de fuentes distintas de las de los contratos y **no se pueden restar "
     "ni cruzar partida a partida**: los datos oficiales no dicen qué parte del presupuesto "
-    "de una consejería acabó en cada contrato (docs/02-fuentes-datos.md). Sirven para dar "
+    "de una consejería acabó en cada contrato. Sirven para dar "
     "escala. No son indicadores de riesgo."
 )
 AVISO_REGISTROS = (

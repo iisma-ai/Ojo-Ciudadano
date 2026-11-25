@@ -15,8 +15,7 @@ st.caption(
 con = conexion()
 if not datos.hay_anomalias(con):
     st.warning(
-        "La base no tiene todavía la detección de anomalías. Se calcula con "
-        "`uv run python -m ojo_ciudadano.anomalias.deteccion`."
+        "La detección de contratos atípicos no está disponible todavía en esta versión de la web."
     )
     st.stop()
 

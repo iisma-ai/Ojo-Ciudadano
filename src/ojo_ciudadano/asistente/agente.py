@@ -281,8 +281,7 @@ DESCRIPCION_TABLAS = {
     "puntuacion_organo_anio": "Como puntuacion_organo, por año.",
     "puntuacion_empresa": (
         "Por adjudicatario (sin personas físicas): igual que puntuacion_organo. Los entes del "
-        "sector público (sector_publico) tienen la puntuación vacía: no se comparan con empresas "
-        "(D-036)."
+        "sector público (sector_publico) tienen la puntuación vacía: no se comparan con empresas."
     ),
     "puntuacion_empresa_anio": "Como puntuacion_empresa, por año.",
     "contrato_financiacion": (
@@ -306,18 +305,18 @@ DESCRIPCION_TABLAS = {
         "adjudicación…); no es una señal sobre la empresa adjudicataria ni sobre el órgano."
     ),
     "anomalia_resultado": (
-        "Contratos atípicos respecto a contratos similares (D-021, Isolation Forest por grupo "
+        "Contratos atípicos respecto a contratos similares (Isolation Forest por grupo "
         "de pares). atipico = está en el 1 % más alejado de su grupo; puntuacion = percentil; "
         "motivo = variables en las que más se aleja. Señal experimental, fuera de la puntuación."
     ),
     "anomalia_encargo": (
-        "Encargos a medios propios atípicos respecto a otros encargos (D-031): mismas columnas "
+        "Encargos a medios propios atípicos respecto a otros encargos: mismas columnas "
         "que anomalia_resultado, con encargo_id en vez de contrato_id (se une con encargo). "
         "Variables: importe del encargo, modificaciones y cuota del medio propio en lo que "
         "encarga el órgano. Los encargos no son contratos licitados. Señal experimental."
     ),
     "anomalia_validacion": (
-        "Comprobación de la detección de anomalías (D-031): proporción de atípicos y puntuación "
+        "Comprobación de la detección de anomalías: proporción de atípicos y puntuación "
         "de riesgo media en todos los contratos, en los que tienen algún recurso estimado ante "
         "el TACPCM, en los que solo tienen recursos desestimados o inadmitidos, y en las "
         "licitaciones de PLACSP con y sin fondos europeos. Es descriptiva: no prueba nada."

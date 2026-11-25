@@ -730,8 +730,7 @@ st.header("Mapa del dinero")
 periodos = datos_mapa.periodos(con)
 if not periodos:
     st.warning(
-        "Esta base no tiene todavía el presupuesto de la Comunidad. Ejecuta "
-        "`uv run python -m ojo_ciudadano.modelo.contexto` (docs/12-datos-cm.md).",
+        "El presupuesto de la Comunidad no está disponible todavía en esta versión de la web.",
         icon=":material/database:",
     )
     st.stop()

@@ -259,8 +259,7 @@ def documentos_de(con: duckdb.DuckDBPyConnection, identificador: str) -> list[di
         ]
     if not _hay_tabla(con, "contrato_documento"):
         raise DocumentoNoDisponible(
-            "La base no tiene los enlaces de los pliegos: hay que regenerarla con "
-            "uv run python -m ojo_ciudadano.modelo.carga."
+            "Los enlaces de los pliegos no están disponibles todavía en esta versión de la web."
         )
     # Una licitación del portal regional que repite una de PLACSP usa los pliegos de esa.
     duplicado = con.execute(
@@ -430,8 +429,8 @@ def buscar_resoluciones(
     palabras = _comprobar_consulta(consulta)
     if not resoluciones_disponibles(con):
         raise DocumentoNoDisponible(
-            "El texto de las resoluciones no está indexado en esta base "
-            "(uv run python -m ojo_ciudadano.asistente.documentos)."
+            "El texto de las resoluciones del Tribunal no está disponible todavía en esta versión "
+            "de la web."
         )
     filtro = ""
     parametros = {"q": " ".join(palabras), "n": n}

@@ -222,7 +222,7 @@ SELECT
     e.n_contratos,
     e.n_con_alertas,
     e.puntuacion_media,
-    'Indicadores R-01 a R-06 sobre PLACSP y el portal regional' AS fuente
+    'Indicadores de riesgo de Ojo Ciudadano' AS fuente
 FROM puntuacion_empresa AS e
 JOIN adjudicatario AS d USING (adjudicatario_id)
 WHERE d.tipo_persona IN ('juridica', 'ute')
@@ -246,7 +246,7 @@ SELECT
     p.n_con_alertas,
     p.puntuacion_ponderada,
     p.puntuacion_media,
-    'Indicadores R-01 a R-06 sobre PLACSP y el portal regional' AS fuente
+    'Indicadores de riesgo de Ojo Ciudadano' AS fuente
 FROM puntuacion_organo AS p
 JOIN organo AS o USING (organo_id)
 WHERE p.n_contratos >= 100

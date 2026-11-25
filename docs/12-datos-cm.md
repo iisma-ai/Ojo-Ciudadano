@@ -32,6 +32,7 @@ Esquema en [`sql/esquema/003_contexto_cm.sql`](../sql/esquema/003_contexto_cm.sq
 ## Dónde se ve en la web
 
 - **Presupuesto y contexto** (pantalla nueva, grupo «Explorar»): gasto por consejería y año con contratos y subvenciones al lado; evolución por capítulo; gastos e ingresos presupuestados; personal; convenios con filtros; registros.
+- **Mapa del dinero, «¿De dónde viene el dinero?»** (D-054): ingresos consolidados por capítulo (iniciales y liquidados, fase de derechos reconocidos y previsión actual), sistema de financiación autonómica (`1902613`) y ayudas de la UE (`1902617`), todo de `serie_cm`.
 - **Ficha de órgano:** bloque «Presupuesto de la consejería» (crédito y gasto reconocido por año).
 - **Ficha de empresa:** «En qué registros de la Comunidad figura» (por NIF).
 - **Asistente:** las cinco tablas están en la lista permitida y descritas para el modelo.

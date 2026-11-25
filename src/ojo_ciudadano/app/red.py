@@ -117,7 +117,9 @@ def svg_nodo(color: str, llenado: float | None, centro: bool = False) -> str:
 
 def _titulo(n: NodoRed) -> str:
     lineas = [n.titulo or n.etiqueta.replace("\n", " "), euros(n.importe)]
-    if n.llenado is not None:
+    if "linea_llenado" in n.extra:  # otra lectura del llenado (ingresos, D-054)
+        lineas.append(n.extra["linea_llenado"])
+    elif n.llenado is not None:
         lineas.append(f"Gastado: {round(100 * n.llenado)} %")
     if n.detalle:
         lineas.append(n.detalle)

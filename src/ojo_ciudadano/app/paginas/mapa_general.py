@@ -23,6 +23,7 @@ from ojo_ciudadano.app import (
     datos,
     datos_contexto,
     datos_mapa,
+    de_donde_viene,
     graficos_contexto,
     red,
     senales,
@@ -44,6 +45,11 @@ CAMPO_VISTA = {
     "subvenciones": "subvenciones",
 }
 NIVELES = {1: "Solo consejerías", 2: "Consejerías y sus contratos"}
+# las dos caras del dinero (D-054): por defecto, a dónde va
+MODOS = {
+    "va": ":material/payments: ¿A dónde va el dinero?",
+    "viene": ":material/savings: ¿De dónde viene el dinero?",
+}
 CENTRO = "centro"
 RADIO_ENTIDADES = {1: 300, 2: 230}  # distancia de las consejerías al centro, según los niveles
 RADIO_CONTRATOS = 125  # distancia de los contratos a su consejería (se añade al radio anterior)
@@ -736,6 +742,20 @@ if not periodos:
     )
     st.stop()
 
+# el selector grande de las dos caras del dinero (D-054; su aspecto, en estilo.css)
+modo = (
+    st.segmented_control(
+        "Qué quieres ver",
+        list(MODOS),
+        default="va",
+        format_func=MODOS.get,
+        key="mg_modo",
+        label_visibility="collapsed",
+        width="stretch",
+    )
+    or "va"
+)
+
 anios = [p["anio"] for p in periodos]
 por_defecto = next((p["anio"] for p in periodos if p["liquidado"]), anios[0])
 liquidados = {p["anio"] for p in periodos if p["liquidado"]}
@@ -749,6 +769,10 @@ anio = (
     )
     or por_defecto
 )
+if modo == "viene":
+    de_donde_viene.pintar(con, anio, _poblacion())
+    st.stop()
+
 datos_anio = {**_reparto(anio), "anio": anio}
 entidades = datos_anio["entidades"]
 if not entidades:

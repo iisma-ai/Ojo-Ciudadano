@@ -1006,3 +1006,25 @@ Plantilla:
 
   El Mapa del dinero sigue con el estilo `mapa`, más sobrio y con cifras, porque ahí se lee y se compara.
 - **Consecuencias:** las cifras de cada consejería en la portada salen al pasar el ratón.
+
+## D-054 · Mapa del dinero: «¿De dónde viene el dinero?» al lado de «¿A dónde va?»
+
+- **Fecha:** 2026-11-25
+- **Estado:** Propuesta. La persona pidió hacerlo en una rama aparte (`feat/de-donde-viene`) para enseñarlo al equipo. El plan dice que el 25 no se añaden funciones, así que entrar en `main` necesita el visto bueno del equipo.
+- **Autor:** Claude (agente), a petición de El Harrak
+- **Contexto:** el mapa del dinero solo contaba en qué se gasta. La base ya tiene, del catálogo de datos abiertos de la Comunidad (`serie_cm`, D-024), los ingresos por capítulo (iniciales hasta 2026 y liquidados hasta 2025), el sistema de financiación autonómica y las ayudas de la UE (hasta 2023). No hace falta bajar nada nuevo.
+- **Decisión:**
+  - Arriba del Mapa del dinero, un selector grande a lo ancho con dos tarjetas: «¿A dónde va el dinero?» (por defecto, la vista de siempre) y «¿De dónde viene el dinero?». La tarjeta sin elegir late cuatro veces y se para (sin animación sin fin, D-041). El año es el mismo para las dos.
+  - «¿De dónde viene?» (`app/de_donde_viene.py`):
+    - una barra con «de cada 100 € que entran»: impuestos directos, indirectos, préstamos y el resto;
+    - tres cifras: lo que entra, el saldo neto de transferencias corrientes y los ingresos netos;
+    - el mapa de burbujas con la misma estética que el de gastos, con una ficha por tipo de ingreso; con el año cerrado, cada burbuja se llena hasta lo que entró frente a lo previsto;
+    - una explicación neutra del sistema de financiación autonómica, con sus cifras;
+    - los impuestos divididos entre habitantes, las ayudas de la UE y las fuentes.
+  - Con el año cerrado, «entró» son los **derechos reconocidos**, como «gastado» son las obligaciones reconocidas. Si no, el presupuesto inicial.
+  - Los textos los revisó `revisor-legal`: la explicación del sistema de financiación es técnica y neutra (Ley 22/2009, población ajustada, signo de cada fondo), sin «Madrid paga por otros»; se avisa cuando se mezclan años; cada bloque de cifras lleva su fuente con enlace y fecha.
+- **Alternativas consideradas:** una pantalla nueva en «Explorar» (se ve menos; el usuario quería que estuviera al lado de «a dónde va»); un diagrama de flujo de ingresos a gastos (no se puede seguir un euro de un impuesto a un contrato: el dinero entra en una caja común).
+- **Consecuencias:**
+  - Ninguna tabla nueva; solo consultas en `app/datos_contexto.py` (`ingresos_del_anio`, `sistema_financiacion`, `ayudas_ue`).
+  - El cuadro al pasar el ratón por una burbuja acepta otra lectura del llenado (`extra["linea_llenado"]` en `red.py`).
+  - El estilo del selector depende de cómo pinta Streamlit 1.67 el `segmented_control` (`role="radio"`, `aria-checked`).

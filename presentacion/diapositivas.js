@@ -263,14 +263,17 @@ const DIAPOSITIVAS = [
       })),
       {
         tipo: "chat", x: 700, y: 540, ancho: 960, paso: 1, hasta: 1,
-        pregunta: "¿Qué porcentaje de licitaciones tuvo un único licitador cada año?",
+        pregunta: "¿Qué organismos adjudicaron más importe en la Plataforma de Contratación en 2025?",
         respuesta: [
-          { texto: "Licitaciones que recibieron una sola oferta (señal R-01):" },
-          { barras: { titulo: "Por año", max: 100, filas: [
-            ["2023", 43.3, "43,3 %"], ["2024", 44.0, "44,0 %"], ["2025", 42.2, "42,2 %"], ["2026", 41.5, "41,5 %"],
+          { barras: { titulo: "Millones de euros sin IVA · 2025", filas: [
+            ["Consejería de Familia, Juventud y Asuntos Sociales", 594.3, "594,3"],
+            ["Metro de Madrid", 451.8, "451,8"],
+            ["Canal de Isabel II", 432.6, "432,6"],
+            ["Consejería de Presidencia, Justicia y Adm. Local", 234.0, "234,0"],
+            ["Agencia de Contratación Sanitaria", 203.3, "203,3"],
           ] } },
-          { texto: "Como referencia, en 2025 el 45,5 % de los lotes de las comunidades autónomas recibió una sola oferta. Se cuentan de otra manera: sirve como orden de magnitud." },
-          { chips: ["Indicador R-01 · Plataforma y portal regional", "OIReScon · Informe Anual de Supervisión 2026", "Comisión Europea · Single Market Scoreboard"] },
+          { texto: "El año es el de formalización. Solo incluye la Plataforma, con importes sin IVA." },
+          { chips: ["Plataforma de Contratación del Sector Público · 16-nov-2026"] },
         ],
       },
       {

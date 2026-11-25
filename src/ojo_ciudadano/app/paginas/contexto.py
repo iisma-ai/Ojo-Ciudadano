@@ -24,8 +24,8 @@ st.caption(
 
 if not dc.hay_contexto(con):
     st.warning(
-        "Esta base no tiene todavía el contexto de la Comunidad de Madrid. Ejecuta "
-        "`uv run python -m ojo_ciudadano.modelo.contexto` (ver docs/12-datos-cm.md).",
+        "El presupuesto y el contexto de la Comunidad de Madrid no están disponibles "
+        "todavía en esta versión de la web.",
         icon=":material/database:",
     )
     st.stop()
@@ -241,7 +241,9 @@ with pestanas[5]:
     st.info(textos.AVISO_ENCARGOS, icon=":material/info:")
     encargos = df.resumen_encargos(con)
     if not encargos:
-        st.write("Esta base no tiene encargos. Regenera la base con la exportación de encargos.")
+        st.write(
+            "Los encargos a medios propios no están disponibles todavía en esta versión de la web."
+        )
     else:
         anios = st.columns(len(encargos["por_anio"]))
         for columna, a in zip(anios, encargos["por_anio"], strict=True):
@@ -280,7 +282,7 @@ with pestanas[6]:
     recursos = df.resumen_recursos(con)
     if not recursos:
         st.write(
-            "Esta base no tiene recursos. Ejecuta `uv run python -m ojo_ciudadano.ingesta.tacp`."
+            "Los recursos ante el Tribunal no están disponibles todavía en esta versión de la web."
         )
     else:
         st.markdown(

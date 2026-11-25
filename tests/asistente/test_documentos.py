@@ -192,7 +192,7 @@ def test_filtro_estimatoria_no_trae_inadmisiones(con):
 
 
 def test_sin_indice_de_resoluciones_lo_dice(base):
-    with pytest.raises(documentos.DocumentoNoDisponible, match="indexado"):
+    with pytest.raises(documentos.DocumentoNoDisponible, match="no está disponible"):
         documentos.buscar_resoluciones(base.con, "criterios")
 
 

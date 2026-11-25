@@ -173,8 +173,8 @@ def buscar(con: duckdb.DuckDBPyConnection, consulta: str, origen: str) -> dict:
         raise BusquedaNoDisponible("La búsqueda está vacía.")
     if not disponible(con):
         raise BusquedaNoDisponible(
-            "La búsqueda por palabras no está preparada en esta base "
-            "(uv run python -m ojo_ciudadano.asistente.texto). Usa consultar_sql con ILIKE."
+            "La búsqueda por palabras no está disponible todavía en esta versión de la web. Usa "
+            "consultar_sql con ILIKE."
         )
     parametros = {"consulta": consulta, "origen": origen}
     sql = f"""

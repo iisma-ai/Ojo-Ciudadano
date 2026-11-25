@@ -3,6 +3,7 @@
 
 import streamlit as st
 
+from ojo_ciudadano.app import textos
 from ojo_ciudadano.asistente import sql_seguro
 
 
@@ -13,6 +14,13 @@ def mostrar_resultado(resultado: dict) -> None:
     filas = []
     for fila in resultado["filas"]:
         registro = dict(zip(resultado["columnas"], fila, strict=True))
+        # el código interno de la señal (R-01…) se enseña por su nombre
+        if isinstance(registro.get("indicador"), str):
+            registro["indicador"] = textos.SENAL_CORTA.get(
+                registro["indicador"], registro["indicador"]
+            )
+        if isinstance(registro.get("fuente"), str):
+            registro["fuente"] = textos.sin_codigos(registro["fuente"])
         for c in columnas_pct:
             if registro[c] is not None:
                 registro[c] = 100 * registro[c]

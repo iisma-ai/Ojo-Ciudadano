@@ -203,15 +203,15 @@ def mostrar_respuesta(
     if animar and sql:
         time.sleep(min(2.4, max(animacion.duracion(plano_de(c)) for c in sql)))
     if nueva:
-        st.write_stream(animacion.escribir(respuesta.texto))
+        st.write_stream(animacion.escribir(textos.sin_codigos(respuesta.texto)))
     else:
-        st.markdown(respuesta.texto)
+        st.markdown(textos.sin_codigos(respuesta.texto))
     mostrar_salida(respuesta, clave)
     if respuesta.preparada:
         interpretado = "; ".join(f"{k}: {v}" for k, v in respuesta.interpretacion.items())
         st.caption(
             "Respuesta preparada"
-            + (" con una consulta revisada por el equipo" if respuesta.consultas else "")
+            + (" con una consulta comprobada de antemano" if respuesta.consultas else "")
             + f", sin modelo de lenguaje, para la pregunta «{respuesta.pregunta_preparada}»"
             + (f" ({interpretado})" if interpretado else "")
             + "."
@@ -295,7 +295,7 @@ st.caption(
     "sobre los datos de su catálogo de datos abiertos (sanidad, educación, presupuestos…), sobre "
     "lo que dicen los pliegos de una licitación o sobre las resoluciones del Tribunal "
     "Administrativo de Contratación Pública. Las preguntas frecuentes tienen una respuesta "
-    "preparada con una consulta revisada por el equipo; las demás las redacta un modelo de "
+    "preparada con una consulta comprobada de antemano; las demás las redacta un modelo de "
     "lenguaje, que "
     "puede equivocarse: comprueba siempre los datos y el enlace oficial que se "
     "muestran con cada respuesta. No escribas datos personales en tus preguntas."

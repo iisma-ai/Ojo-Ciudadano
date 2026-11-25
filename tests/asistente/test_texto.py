@@ -80,7 +80,7 @@ def test_origen_no_valido_o_sin_indice(con, base):
     with pytest.raises(texto.BusquedaNoDisponible, match="vacía"):
         texto.buscar(con, "  ", "contrato")
     vacia = duckdb.connect()
-    with pytest.raises(texto.BusquedaNoDisponible, match="no está preparada"):
+    with pytest.raises(texto.BusquedaNoDisponible, match="no está disponible"):
         texto.buscar(vacia, "x", "contrato")
 
 

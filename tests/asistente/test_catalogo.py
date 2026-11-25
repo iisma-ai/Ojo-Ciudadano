@@ -79,7 +79,7 @@ def test_conjuntos_lee_la_cache(tmp_path):
         json.dumps({"fecha_descarga": "2026-11-23", "paquetes": PAQUETES}), encoding="utf-8"
     )
     assert len(catalogo.conjuntos(ruta)) == 3
-    with pytest.raises(catalogo.ConjuntoNoDisponible, match="no está descargado"):
+    with pytest.raises(catalogo.ConjuntoNoDisponible, match="no está disponible"):
         catalogo.conjuntos(tmp_path / "no_existe.json")
 
 

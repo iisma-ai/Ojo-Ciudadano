@@ -667,7 +667,7 @@ SELECT
     grupo,
     any_value(n_grupo) AS contratos,
     count_if(atipico) AS atipicos,
-    'Detección de anomalías de Ojo Ciudadano (Isolation Forest, D-021)' AS fuente
+    'Detección de contratos atípicos de Ojo Ciudadano' AS fuente
 FROM anomalia_resultado
 GROUP BY grupo
 ORDER BY contratos DESC
@@ -942,8 +942,7 @@ DATOS = [
         sql=_sql("B-29"),
         excluir=("que es", "que son", "que significa"),
         vacio=(
-            "La base todavía no tiene los encargos a medios propios: el portal de la Comunidad "
-            "solo permite exportarlos a mano y aún no se han cargado."
+            "Los encargos a medios propios no están disponibles todavía en esta versión de la web."
         ),
     ),
     Fija(
@@ -1095,7 +1094,7 @@ AYUDA = (
     "el pliego de una licitación, qué ha resuelto el Tribunal Administrativo de Contratación "
     "Pública o qué "
     "hay en el catálogo de datos abiertos de la Comunidad. Las preguntas frecuentes tienen una "
-    "respuesta preparada con una consulta revisada por el equipo; las demás las contesta un "
+    "respuesta preparada con una consulta comprobada de antemano; las demás las contesta un "
     "modelo de "
     "lenguaje con consultas a la base. Cada respuesta enseña los datos, la consulta y el enlace "
     "a la fuente oficial."
@@ -1413,10 +1412,10 @@ for _codigo, _alias in _NOMBRES_INDICADOR.items():
     TEXTOS.append(
         Fija(
             f"C-{_codigo}",
-            f"¿Qué mide el indicador {_codigo} ({textos.NOMBRES_INDICADOR[_codigo].lower()})?",
+            f"¿Qué mide la señal «{textos.SENAL_CORTA[_codigo]}»?",
             (_alias, QUE_ES),
             _texto(
-                f"**{_codigo} · {textos.NOMBRES_INDICADOR[_codigo]}.** "
+                f"**{textos.SENAL_CORTA[_codigo]} ({textos.NOMBRES_INDICADOR[_codigo].lower()}).** "
                 + textos.AYUDA_INDICADOR[_codigo]
                 + (" " + textos.CONTEXTO_SENAL[_codigo] if _codigo in textos.CONTEXTO_SENAL else "")
                 + " Es un indicador de riesgo: señala contratos que merecen revisión y no "

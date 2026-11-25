@@ -1,0 +1,76 @@
+# Despliegue de Ojo Ciudadano en el ordenador fijo (D-056, docs/15-despliegue.md).
+#
+#   web    Streamlit con la app entera (web, consultas y asistente). Datos en un volumen de Docker
+#          (más rápido en Windows que leer la base desde una carpeta de Windows).
+#   tunel  Túnel de Cloudflare propio de Ojo Ciudadano, independiente del de otros proyectos.
+#          Publica la web sin abrir puertos del router. Solo arranca con el perfil «publico».
+#
+# Uso (desde la carpeta de despliegue; los scripts .ps1 lo hacen por ti):
+#   docker compose -f despliegue/docker-compose.yml up -d --build web            solo en local
+#   docker compose -f despliegue/docker-compose.yml --profile publico up -d      web y túnel
+
+name: ojo-ciudadano
+
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: despliegue/Dockerfile
+    image: ojo-ciudadano-web:latest
+    restart: always
+    # OPENROUTER_API_KEY (y LLM_MODEL si se quiere otro modelo): el .env de la carpeta del
+    # proyecto. Nunca entra en la imagen.
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      # Sin recargas al cambiar ficheros ni vigilancia del disco: en producción solo gastan CPU.
+      STREAMLIT_SERVER_FILE_WATCHER_TYPE: none
+      STREAMLIT_SERVER_RUN_ON_SAVE: "false"
+      STREAMLIT_BROWSER_GATHER_USAGE_STATS: "false"
+      # La web se muestra dentro del marco de la portada (otro dominio). Sin estas dos opciones,
+      # Safari y algunos móviles bloquean la cookie de Streamlit dentro del marco y la página se
+      # queda en «Connecting». La app no recibe ficheros ni formularios que cambien nada.
+      STREAMLIT_SERVER_ENABLE_CORS: "false"
+      STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION: "false"
+      # Si algo falla, el visitante ve un aviso, no el código del error.
+      STREAMLIT_CLIENT_SHOW_ERROR_DETAILS: "none"
+    volumes:
+      - datos:/app/data
+    # Solo para comprobarla desde este ordenador (http://localhost:8601); desde fuera se entra
+    # por el túnel.
+    ports:
+      - "127.0.0.1:8601:8501"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=4)"
+      interval: 15s
+      timeout: 5s
+      start_period: 60s
+      retries: 3
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  tunel:
+    image: cloudflare/cloudflared:2026.10.0
+    profiles: ["publico"]
+    restart: always
+    command: tunnel --no-autoupdate run
+    # TUNNEL_TOKEN=... del túnel «ojo-ciudadano» del panel de Cloudflare (no se sube a git).
+    env_file:
+      - path: tunel.env
+        required: true
+    depends_on:
+      web:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+volumes:
+  datos:
+    name: ojo-ciudadano-datos

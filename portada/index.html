@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ojo Ciudadano · El gasto público de la Comunidad de Madrid</title>
+<meta name="description" content="Mira en qué se gasta tu dinero la Comunidad de Madrid: contratos y subvenciones de fuentes oficiales, indicadores de riesgo explicados y un asistente que responde con la fuente.">
+<meta name="theme-color" content="#041627">
+<meta property="og:title" content="Ojo Ciudadano">
+<meta property="og:description" content="Mira en qué se gasta tu dinero la Comunidad de Madrid, con datos oficiales.">
+<link rel="icon" href="/logo.svg" type="image/svg+xml">
+<!--
+  Portada de Ojo Ciudadano. La web de verdad corre en un servidor
+  aparte (Streamlit); esta página solo la muestra a pantalla completa con un nombre fácil:
+  1. comprueba qué servidor de config.js responde (primero el principal);
+  2. lo carga dentro de un marco, con la misma ruta y parámetros que traiga el enlace;
+  3. lo vigila y, si deja de responder, avisa y salta solo al que responda.
+-->
+<style>
+  :root { color-scheme: dark; }
+  html, body { margin: 0; height: 100%; background: #041627; overflow: hidden; }
+  body { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #E7ECF3; }
+  #app { position: fixed; inset: 0; width: 100%; height: 100%; height: 100dvh; border: 0;
+    display: block; background: #041627; }
+  .capa { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 22px; padding: 24px; text-align: center; z-index: 2;
+    background: radial-gradient(120% 80% at 50% 0%, #0B3352 0%, #041627 60%);
+    transition: opacity .45s ease, visibility .45s ease; }
+  .capa.fuera { opacity: 0; visibility: hidden; pointer-events: none; }
+  .capa img { width: 88px; height: 88px; filter: drop-shadow(0 0 26px rgba(56, 189, 248, .45));
+    animation: late 1.8s ease-in-out infinite; }
+  .capa p { margin: 0; font-size: 1.05rem; color: #B9C6D8; max-width: 34rem; line-height: 1.5; }
+  .capa b { color: #fff; font-weight: 600; }
+  .capa button { font: inherit; color: #fff; background: linear-gradient(135deg, #2f7cf0, #22b5d8);
+    border: 0; border-radius: 999px; padding: .7rem 1.5rem; cursor: pointer; }
+  #banda { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 3;
+    background: rgba(9, 30, 50, .96); border: 1px solid rgba(170, 225, 255, .3); border-radius: 999px;
+    padding: .55rem 1.1rem; font-size: .92rem; color: #E7ECF3; box-shadow: 0 10px 30px rgba(0, 8, 22, .5);
+    transition: opacity .3s ease; }
+  #banda[hidden] { display: none; }
+  @keyframes late { 0%, 100% { opacity: .75; transform: scale(.96); } 50% { opacity: 1; transform: scale(1.02); } }
+  @media (prefers-reduced-motion: reduce) { .capa img { animation: none; } }
+</style>
+<script src="/config.js"></script>
+</head>
+<body>
+<div id="carga" class="capa" role="status" aria-live="polite">
+  <img src="/logo.svg" alt="">
+  <p><b>Ojo Ciudadano</b><br><span id="carga-texto">Abriendo…</span></p>
+</div>
+<div id="caido" class="capa fuera" role="alert">
+  <img src="/logo.svg" alt="">
+  <p><b>La web no responde en este momento.</b><br>Lo volvemos a intentar solos cada pocos segundos; también puedes probar ahora.</p>
+  <button type="button" id="reintentar">Probar ahora</button>
+</div>
+<div id="banda" hidden>Recuperando la conexión…</div>
+<iframe id="app" title="Ojo Ciudadano" allow="clipboard-write; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+
+<script>
+(() => {
+  "use strict";
+  const SERVIDORES = (window.OC_SERVIDORES || []).filter((s) => s && s.url);
+  const ESPERA_SALUD_MS = 4000;   // tiempo máximo para que un servidor diga «ok»
+  const VIGILANCIA_MS = 20000;    // cada cuánto se comprueba el servidor abierto
+  const FALLOS_PARA_CAMBIAR = 2;  // fallos seguidos antes de avisar y buscar otro
+  const REINTENTO_CAIDO_MS = 8000;
+
+  const marco = document.getElementById("app");
+  const carga = document.getElementById("carga");
+  const cargaTexto = document.getElementById("carga-texto");
+  const caido = document.getElementById("caido");
+  const banda = document.getElementById("banda");
+  let actual = null;
+  let fallos = 0;
+  let temporizador = null;
+
+  // Calienta la conexión con el servidor principal mientras se comprueba su salud.
+  if (SERVIDORES[0]) {
+    const pre = document.createElement("link");
+    pre.rel = "preconnect";
+    pre.href = SERVIDORES[0].url;
+    pre.crossOrigin = "anonymous";
+    document.head.appendChild(pre);
+  }
+
+  async function responde(servidor) {
+    const control = new AbortController();
+    const corte = setTimeout(() => control.abort(), ESPERA_SALUD_MS);
+    try {
+      const r = await fetch(servidor.url + "/_stcore/health", { cache: "no-store", signal: control.signal });
+      return r.ok && (await r.text()).trim() === "ok";
+    } catch (e) {
+      return false;
+    } finally {
+      clearTimeout(corte);
+    }
+  }
+
+  // Todos a la vez (no se suman las esperas), pero gana el primero de la lista que responda.
+  async function elegir() {
+    const vivos = await Promise.all(SERVIDORES.map(responde));
+    const i = vivos.indexOf(true);
+    return i >= 0 ? SERVIDORES[i] : null;
+  }
+
+  // La misma ruta y los mismos parámetros que el enlace de la portada (p. ej. /empresa?empresa=X).
+  function direccion(servidor) {
+    const ruta = location.pathname.replace(/\/index\.html$/, "/") || "/";
+    const parametros = new URLSearchParams(location.search);
+    parametros.set("embed", "true");
+    return servidor.url + ruta + "?" + parametros.toString() + location.hash;
+  }
+
+  function abrir(servidor) {
+    actual = servidor;
+    fallos = 0;
+    console.info("[Ojo Ciudadano] Abriendo el servidor:", servidor.nombre, servidor.url);
+    caido.classList.add("fuera");
+    marco.src = direccion(servidor);
+  }
+
+  marco.addEventListener("load", () => {
+    if (marco.src) carga.classList.add("fuera");
+  });
+
+  function mostrarCaido() {
+    carga.classList.add("fuera");
+    caido.classList.remove("fuera");
+    clearTimeout(temporizador);
+    temporizador = setTimeout(iniciar, REINTENTO_CAIDO_MS);
+  }
+
+  async function iniciar() {
+    clearTimeout(temporizador);
+    if (!SERVIDORES.length) { cargaTexto.textContent = "Falta la dirección de la web (config.js)."; return; }
+    const servidor = await elegir();
+    if (servidor) abrir(servidor); else mostrarCaido();
+  }
+
+  // Vigila el servidor abierto. Un reinicio corto (una actualización tarda unos segundos) no
+  // hace nada: Streamlit se reconecta solo. Si falla dos veces seguidas, avisa y busca otro.
+  async function vigilar() {
+    if (actual && !document.hidden) {
+      if (await responde(actual)) {
+        if (fallos >= FALLOS_PARA_CAMBIAR) banda.hidden = true;
+        fallos = 0;
+      } else if (++fallos >= FALLOS_PARA_CAMBIAR) {
+        banda.hidden = false;
+        const otro = await elegir();
+        if (otro && otro.url !== actual.url) { banda.hidden = true; abrir(otro); }
+        else if (!otro) { banda.hidden = true; mostrarCaido(); actual = null; }
+      }
+    }
+    setTimeout(vigilar, VIGILANCIA_MS);
+  }
+
+  document.getElementById("reintentar").addEventListener("click", () => {
+    caido.classList.add("fuera");
+    carga.classList.remove("fuera");
+    cargaTexto.textContent = "Probando…";
+    iniciar();
+  });
+
+  iniciar();
+  setTimeout(vigilar, VIGILANCIA_MS);
+})();
+</script>
+</body>
+</html>

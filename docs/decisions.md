@@ -1184,7 +1184,7 @@ Plantilla:
   - **Sugerencias y caja de escribir**, en cristal más claro a juego.
   - **El ojo de cristal sale del panel** y queda a su izquierda, como un personaje. Flota despacio, el iris gira y de vez en cuando mira a un lado y a otro. Sin tarjeta gráfica o con «reducir movimiento», queda quieto.
 
-## D-058 · El asistente solo responde sobre el gasto público de la Comunidad de Madrid y sobre la plataforma
+## D-060 · El asistente solo responde sobre el gasto público de la Comunidad de Madrid y sobre la plataforma
 
 - **Fecha:** 2026-11-25
 - **Estado:** Aceptada (El Harrak: «si se le preguntan cosas fuera de su rango, que no debería contestar», y que sea muy estricto).

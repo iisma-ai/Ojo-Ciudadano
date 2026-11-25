@@ -1132,3 +1132,28 @@ Plantilla:
     - Puede dejar fuera a quien use una SIM extranjera en itinerancia o una VPN.
   - Con 4,94 USD de margen en la clave (unos 0,008 USD por pregunta) hay para unas 600 preguntas.
 
+
+## D-059 · El asistente, solo un chat; el aviso legal, en su propia pantalla
+
+- **Fecha:** 2026-11-25
+- **Estado:** Aceptada (Lucas: «quitar absolutamente todo lo que hay y hacer un formato chat un poco más amable… es lo más importante de la web»).
+- **Autor:** Claude (agente), a petición de Lucas
+- **Contexto:** la pantalla del asistente era un cajón de sastre:
+  - el título y un párrafo largo;
+  - el aviso de modelo sin conectar;
+  - el desplegable con todas las preguntas preparadas;
+  - seis sugerencias;
+  - el pie con el aviso legal.
+- **Decisión** (`paginas/asistente.py`, solo la parte de pantalla; la forma de responder no cambia):
+  - **Panel de cristal centrado:**
+    - al empezar, el ojo de cristal girando, «¿Qué quieres saber del gasto público?» y una línea;
+    - la conversación, en una zona que se desplaza; los mensajes de la persona, en burbuja azul a la derecha, y los del asistente, con el logo;
+    - tres preguntas sugeridas encima de la caja de escribir, con un botón para cambiarlas por otras al azar entre las preparadas;
+    - la caja «Escribe tu pregunta».
+  - **Sin título, párrafos ni pie.** En cada respuesta, una sola línea si es preparada, sin el aviso de los indicadores.
+  - **Pantalla nueva «Aviso legal y fuentes»** (`paginas/aviso.py`, en Explorar), con:
+    - el aviso, qué significa una señal y qué mide cada indicador;
+    - cómo responde el asistente (preguntas preparadas y modelo que puede equivocarse, no escribir datos personales) y la lista de preguntas preparadas;
+    - las fuentes y sus fechas de descarga.
+
+    Las demás pantallas mantienen su pie.

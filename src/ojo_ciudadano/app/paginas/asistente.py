@@ -10,11 +10,13 @@ consultas (gráfico y tabla con el enlace a la fuente). El SQL no se muestra. Si
 necesita datos, solo se escribe el texto.
 """
 
+import random
 import time
+from pathlib import Path
 
 import streamlit as st
 
-from ojo_ciudadano.app import animacion, graficos, limite_modelo, textos
+from ojo_ciudadano.app import animacion, billetes, graficos, limite_modelo, ojo_cristal, textos
 from ojo_ciudadano.app.conexion import conexion
 from ojo_ciudadano.app.tablas import mostrar_resultado
 from ojo_ciudadano.asistente import agente, bateria, catalogo, plano, respuestas_fijas
@@ -208,14 +210,7 @@ def mostrar_respuesta(
         st.markdown(textos.sin_codigos(respuesta.texto))
     mostrar_salida(respuesta, clave)
     if respuesta.preparada:
-        interpretado = "; ".join(f"{k}: {v}" for k, v in respuesta.interpretacion.items())
-        st.caption(
-            "Respuesta preparada"
-            + (" con una consulta comprobada de antemano" if respuesta.consultas else "")
-            + f", sin modelo de lenguaje, para la pregunta «{respuesta.pregunta_preparada}»"
-            + (f" ({interpretado})" if interpretado else "")
-            + "."
-        )
+        st.caption("Respuesta preparada, con una consulta comprobada de antemano.")
         if modelo is not None and st.button(
             "No es lo que preguntaba: que responda el modelo",
             key=f"al-modelo-{clave}",
@@ -224,8 +219,6 @@ def mostrar_respuesta(
             st.session_state["pregunta_asistente"] = pregunta
             st.session_state["forzar_modelo"] = True
             st.rerun()
-    if respuesta.consultas:
-        st.caption(textos.AVISO_CORTO)
 
 
 @st.cache_data(ttl=3600, max_entries=500, show_spinner=False)
@@ -293,87 +286,129 @@ def contestar(pregunta: str, historial: list[dict], forzar_modelo: bool) -> agen
     return del_modelo(pregunta, historial)
 
 
-# --- Pantalla ---
+# --- Pantalla (D-059) ---
+# Solo el chat, en un panel de cristal: el ojo y un saludo al empezar, la conversación, tres
+# preguntas sugeridas que se pueden cambiar y la caja para escribir. Nada más: el aviso legal,
+# cómo responde el asistente y la lista de preguntas preparadas están en «Aviso legal y fuentes».
 
-st.html(animacion.CSS)  # una vez por página, para todas las animaciones
-st.header("Asistente")
-st.caption(
-    "Pregunta en tus palabras sobre los contratos y las subvenciones de la Comunidad de Madrid, "
-    "sobre los datos de su catálogo de datos abiertos (sanidad, educación, presupuestos…), sobre "
-    "lo que dicen los pliegos de una licitación o sobre las resoluciones del Tribunal "
-    "Administrativo de Contratación Pública. Las preguntas frecuentes tienen una respuesta "
-    "preparada con una consulta comprobada de antemano; las demás las redacta un modelo de "
-    "lenguaje, que "
-    "puede equivocarse: comprueba siempre los datos y el enlace oficial que se "
-    "muestran con cada respuesta. No escribas datos personales en tus preguntas."
-)
+LOGO = str(Path(__file__).parents[1] / "static" / "logo.svg")
+OJO = ojo_cristal.imagenes()
+N_SUGERIDAS = 3
 
-modelo = agente.modelo_configurado()
-if modelo is None:
-    st.info(
-        "El modelo de lenguaje no está conectado: ahora solo se contestan las preguntas con "
-        "respuesta preparada.",
-        icon=":material/info:",
+ESTILO = """
+<style>
+/* el panel del chat: cristal como el resto de la web */
+.st-key-chat { max-width: 980px; margin: 0 auto; padding: 1.2rem 1.4rem 1rem !important;
+  border-radius: 28px !important; }
+.st-key-chat_mensajes { border: none !important; background: none !important;
+  box-shadow: none !important; }
+.st-key-chat [data-testid="stChatMessage"] { background: transparent; padding: .4rem 0; }
+/* los mensajes de la persona, en burbuja azul a la derecha */
+.st-key-chat [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {
+  flex-direction: row-reverse; text-align: right; }
+.st-key-chat [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"])
+  [data-testid="stMarkdownContainer"] { display: inline-block; padding: .65rem 1rem;
+  border-radius: 18px 18px 4px 18px; background: linear-gradient(135deg,#3d8bfd,#22b5d8);
+  color: #fff; }
+/* sugerencias: cápsulas de cristal pequeñas */
+.st-key-sugerencias { gap: .5rem !important; flex-wrap: wrap; justify-content: center; }
+.st-key-sugerencias button p { font-size: .9rem !important; }
+.st-key-chat [data-testid="stChatInput"] { border-radius: 999px !important; }
+</style>
+"""
+
+BIENVENIDA = f"""
+<style>
+.oc-saludo {{ display:flex; flex-direction:column; align-items:center; gap:14px;
+  padding: 26px 0 8px; font-family: Inter, sans-serif; text-align:center; }}
+.oc-saludo .ojo {{ position:relative; width:150px; height:150px; }}
+.oc-saludo .ojo::before {{ content:""; position:absolute; inset:-18%; border-radius:50%;
+  background:radial-gradient(circle, rgba(56,189,248,.3), transparent 62%); }}
+.oc-saludo .ojo img {{ position:absolute; inset:0; width:100%; height:100%; }}
+.oc-saludo .iris {{ animation: oc-saludo-gira 40s linear infinite; }}
+@keyframes oc-saludo-gira {{ to {{ transform: rotate(360deg); }} }}
+@media (prefers-reduced-motion: reduce) {{ .oc-saludo .iris {{ animation:none; }} }}
+.oc-saludo h2 {{ margin:0; padding:0; font-size:clamp(1.5rem, 2.4vw, 2rem); font-weight:700;
+  letter-spacing:-.02em; color:#E7ECF3; }}
+.oc-saludo p {{ margin:0; color:#9FB6CC; font-size:1rem; }}
+</style>
+<div class="oc-saludo">
+  <div class="ojo"><img class="iris" src="{OJO["{iris}"]}" alt=""><img src="{OJO["{cristal}"]}"
+    alt=""></div>
+  <h2>¿Qué quieres saber del gasto público?</h2>
+  <p>Pregunta como hablas. Te respondo con los datos oficiales y su fuente.</p>
+</div>"""
+
+
+def preguntas_sugeribles() -> list:
+    """Las preguntas preparadas que se pueden ofrecer tal cual (sin pedir una empresa)."""
+    return [f for f in respuestas_fijas.FIJAS if "empresa" not in f.parametros]
+
+
+def sugeridas() -> list:
+    """Las tres sugerencias de ahora; al principio, las de `respuestas_fijas.sugerencias`."""
+    todas = {f.id: f for f in preguntas_sugeribles()}
+    ids = st.session_state.get("sugeridas_asistente")
+    if not ids:
+        ids = [f.id for f in respuestas_fijas.sugerencias() if f.id in todas][:N_SUGERIDAS]
+        st.session_state["sugeridas_asistente"] = ids
+    return [todas[i] for i in ids if i in todas]
+
+
+def otras_sugerencias() -> None:
+    """Tres preguntas distintas de las que se ven."""
+    vistas = set(st.session_state.get("sugeridas_asistente") or [])
+    candidatas = [f.id for f in preguntas_sugeribles() if f.id not in vistas]
+    st.session_state["sugeridas_asistente"] = random.sample(
+        candidatas, min(N_SUGERIDAS, len(candidatas))
     )
 
+
+st.html(animacion.CSS)  # una vez por página, para todas las animaciones
+st.html(ESTILO)
+
+modelo = agente.modelo_configurado()
 turnos = st.session_state.setdefault("turnos_asistente", [])
 elegida = None
 
-with st.expander("Preguntas con respuesta preparada", icon=":material/quiz:"):
-    grupos: dict[str, list] = {}
-    for fija in respuestas_fijas.FIJAS:
-        grupos.setdefault(fija.grupo, []).append(fija)
-    for grupo in (
-        "Datos",
-        "Empresas",
-        "Señales",
-        "Subvenciones",
-        "Tribunal",
-        "Conceptos",
-        "Límites",
-    ):
-        if grupo not in grupos:
-            continue
-        st.markdown(f"**{grupo}**")
-        for fija in grupos[grupo]:
-            if "empresa" in fija.parametros:
-                continue  # necesita el nombre de una empresa: va como pista, abajo
-            if st.button(fija.pregunta, key=f"fija-{fija.id}", type="tertiary"):
+with st.container(key="chat", border=True):
+    mensajes = st.container(key="chat_mensajes", height=560, border=False)
+    with st.container(key="sugerencias", horizontal=True, vertical_alignment="center"):
+        for fija in sugeridas():
+            if st.button(fija.pregunta, key=f"sugerencia-{fija.id}"):
                 elegida = fija.pregunta
-    st.caption(
-        "Para una empresa o entidad, escribe «¿Qué ha recibido …?» con su nombre o su NIF. "
-        "Se pueden preguntar con otras palabras, y con otro año, consejería o empresa. Las "
-        "demás preguntas (por ejemplo, sobre un pliego concreto o el catálogo de datos "
-        "abiertos) las contesta el modelo."
-    )
-
-if not turnos:
-    st.markdown("**Prueba con una de estas preguntas**")
-    columnas = st.columns(3)
-    for n, fija in enumerate(respuestas_fijas.sugerencias()):
-        if columnas[n % 3].button(fija.pregunta, key=f"sugerencia-{fija.id}", width="stretch"):
-            elegida = fija.pregunta
-
-for n, (anterior, respuesta) in enumerate(turnos):
-    st.chat_message("user").write(anterior)
-    with st.chat_message("assistant"):
-        mostrar_respuesta(anterior, respuesta, clave=str(n))  # quieta: sin animar ni escribir
+        st.button(
+            "",
+            icon=":material/refresh:",
+            key="otras_sugerencias",
+            help="Otras preguntas",
+            type="tertiary",
+            on_click=otras_sugerencias,
+        )
+    escrita = st.chat_input("Escribe tu pregunta")
 
 # Una pregunta que llega escrita desde otra pantalla («¿Qué dice el pliego?») o desde el botón
 # «que responda el modelo».
 pendiente = st.session_state.pop("pregunta_asistente", None)
 forzar = st.session_state.pop("forzar_modelo", False)
-if pregunta := st.chat_input("Escribe tu pregunta") or elegida or pendiente:
-    st.chat_message("user").write(pregunta)
-    historial = []
-    for anterior, respuesta in turnos:
-        historial += [
-            {"rol": "usuario", "contenido": anterior},
-            {"rol": "modelo", "contenido": texto_visible(respuesta)},
-        ]
-    with st.chat_message("assistant"):
-        respuesta = contestar(pregunta, historial, forzar_modelo=forzar and not elegida)
-        mostrar_respuesta(pregunta, respuesta, clave=str(len(turnos)), nueva=True)
-    turnos.append((pregunta, respuesta))
+pregunta = escrita or elegida or pendiente
 
-# Las fuentes van en el pie de la página (D-043, main.pie).
+with mensajes:
+    if not turnos and not pregunta:
+        billetes.pintar(BIENVENIDA, clave="asistente_saludo")
+    for n, (anterior, respuesta) in enumerate(turnos):
+        st.chat_message("user").write(anterior)
+        with st.chat_message("assistant", avatar=LOGO):
+            mostrar_respuesta(anterior, respuesta, clave=str(n))  # quieta: sin animar
+    if pregunta:
+        st.chat_message("user").write(pregunta)
+        historial = []
+        for anterior, respuesta in turnos:
+            historial += [
+                {"rol": "usuario", "contenido": anterior},
+                {"rol": "modelo", "contenido": texto_visible(respuesta)},
+            ]
+        with st.chat_message("assistant", avatar=LOGO):
+            respuesta = contestar(pregunta, historial, forzar_modelo=forzar and not elegida)
+            mostrar_respuesta(pregunta, respuesta, clave=str(len(turnos)), nueva=True)
+        turnos.append((pregunta, respuesta))

@@ -62,11 +62,12 @@ CONTEXTO = st.Page(
 EMPRESA = st.Page("paginas/empresa.py", title="Ficha de empresa", icon=":material/domain:")
 ORGANO = st.Page("paginas/organo.py", title="Ficha de órgano", icon=":material/account_balance:")
 ASISTENTE = st.Page("paginas/asistente.py", title="Asistente", icon=":material/forum:")
+AVISO = st.Page("paginas/aviso.py", title="Aviso legal y fuentes", icon=":material/gavel:")
 
 SECCIONES = {
     "": [INICIO, DINERO],
     "Señales": [REVISAR, ATIPICOS],
-    "Explorar": [MAPA, CONTEXTO, EMPRESA, ORGANO],
+    "Explorar": [MAPA, CONTEXTO, EMPRESA, ORGANO, AVISO],
     "Preguntar": [ASISTENTE],
 }
 PRINCIPALES = [INICIO, DINERO, REVISAR, ASISTENTE]  # los botones de la barra
@@ -131,7 +132,9 @@ def pie(pagina) -> None:
     último y centrado, el logo con el nombre. En el Inicio, solo el logo."""
     with st.container(key="pie"):
         rendimiento.detectar()  # sin tarjeta gráfica, fondo quieto (D-044); no dibuja nada
-        if pagina.url_path != INICIO.url_path:
+        if pagina.url_path == ASISTENTE.url_path:
+            return  # el asistente, limpio: solo el chat (D-059); el aviso, en su pantalla
+        if pagina.url_path not in (INICIO.url_path, AVISO.url_path):
             with st.expander("Aviso legal, metodología y fuentes", icon=":material/info:"):
                 st.markdown(textos.AVISO_CORTO)
                 if pagina.url_path in NOTAS_PIE:

@@ -120,14 +120,19 @@ const REPARTO_2025 = [
   ["deu", "Deuda pública", 1560, 845, 66, 1],
 ];
 
-// Los mayores contratos de Sanidad en 2025 en la Plataforma (id, etiqueta, x, y, radio)
+// En que se gasta Sanidad en 2025: ejemplos sueltos de licitaciones, un contrato menor y una
+// subvencion, con nombre corto (se explican de palabra). En arco a la izquierda de Sanidad.
+// id, etiqueta, x, y, radio
 const CONTRATOS_SANIDAD = [
-  ["ter", "", 250, 840, 30], // terapias respiratorias, 107,4 M€
-  ["gri", "", 275, 750, 15], // vacunas de la gripe, 17,2 M€
-  ["cli", "", 330, 680, 15], // obras del Hospital Clínico San Carlos, 17,1 M€
-  ["vph", "Vacuna VPH", 270, 935, 14], // vacuna del papiloma humano, 14,4 M€
-  ["pro", "", 408, 652, 14], // protonterapia en La Paz, 13,7 M€
-  ["vrs", "", 335, 1000, 13], // vacuna del virus respiratorio sincitial, 12,0 M€
+  ["pro", "Protonterapia", 420, 613, 14], // licitacion: protonterapia en La Paz, 13,7 M€ sin IVA
+  ["cli", "Obras Clínico", 312, 664, 15], // licitacion: obras del Hospital Clinico San Carlos, 17,1 M€
+  ["gri", "Vacuna gripe", 244, 761, 15], // licitacion: vacunas de la gripe, 17,2 M€
+  ["ter", "Terapias respiratorias", 233, 880, 30], // licitacion: terapias respiratorias, 107,4 M€
+  // contrato menor: cafe del Hospital Universitario La Paz, 2.860 € con IVA (23-ene-2025);
+  // Sanidad firmo 330.085 menores en 2025 (portal de contratacion de la Comunidad)
+  ["caf", "Café", 284, 988, 8],
+  // subvencion: AECC, cuidados paliativos 2025, 0,6 M€ (BDNS)
+  ["pal", "Cuidados paliativos", 381, 1056, 11],
 ];
 
 const DIAPOSITIVAS = [
@@ -207,20 +212,6 @@ const DIAPOSITIVAS = [
         tipo: "burbuja", id, x, y, r, llenado: 1, etiqueta, tono: "agua", paso: 3,
       })),
       ...CONTRATOS_SANIDAD.map(([id]) => ({ tipo: "enlace", de: "san", a: id, paso: 3 })),
-
-      // paso 4: la camara entra en un contrato y sale su ficha con sus señales
-      { tipo: "foco", de: "vph", zoom: 3.4, x: 600, y: 540, paso: 4 },
-      {
-        tipo: "panel", x: 1060, y: 540, ancho: 680, paso: 4,
-        tam: 28,
-        etiqueta: "Contrato · Sanidad",
-        titulo: "Vacuna del papiloma humano",
-        bloques: [
-          { kpis: [["14,4 M€", "adjudicados"], ["1", "oferta"]] },
-          { senales: [["Sin anuncio público", true]], titulo: "Señal" },
-        ],
-        fuente: "Plataforma de Contratación del Sector Público, expediente placsp:17910499.",
-      },
     ],
   },
 

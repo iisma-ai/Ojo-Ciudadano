@@ -26,6 +26,15 @@
   - el Estado no sale como fuente propia: en el consolidado, las transferencias corrientes de 2025 son un saldo
     negativo (−6.118 M€), porque se restan las aportaciones al sistema de financiación (D-054). El IRPF y el IVA
     son tributos cedidos por el Estado dentro de ese sistema.
+- **Diapositiva 4, sin la vacuna del papiloma** (a petición de Isma): se quita el paso que entraba en ese contrato y
+  su ficha. Alrededor de Sanidad quedan seis ejemplos sueltos con nombre corto, que se explican de palabra:
+  - licitaciones de la Plataforma: protonterapia (13,7 M€), obras del Clínico (17,1 M€), vacuna de la gripe
+    (17,2 M€) y terapias respiratorias (107,4 M€), sin IVA;
+  - un contrato menor: café del Hospital Universitario La Paz, 2.860 € con IVA (23-ene-2025). Los órganos de
+    Sanidad firmaron 330.085 menores en 2025, unos 900 al día, en 39 hospitales (consulta sobre `contrato_unico`);
+  - una subvención: AECC, cuidados paliativos 2025, 0,6 M€ (BDNS).
+- **Periodo de los datos** para el guion: 1.354.441 contratos (licitaciones de la Plataforma y del portal y menores
+  de enero de 2023 a septiembre de 2026) y 872.821 concesiones de subvenciones (de enero de 2023 a noviembre de 2026).
 - `presentacion/README.md`: actualizadas las filas de las escenas 4 y 7.
 - **Guion de Isma (diapositivas 4 a 7)** reescrito en la conversación con la estructura que pidió: de dónde viene y a
   dónde va el dinero, el volumen de los datos, las señales y los atípicos (Isolation Forest), el asistente

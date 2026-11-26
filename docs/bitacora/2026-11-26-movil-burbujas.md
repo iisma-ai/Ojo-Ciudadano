@@ -39,3 +39,20 @@ antes. 496 tests en verde y `ruff` limpio.
 ## Siguiente paso
 
 Probarlo en un móvil real con datos, después de fusionar en `main`.
+
+## Después: la marca del último toque en el iPhone (rama `fix/movil-toque`)
+
+En el iPhone, al tocar una burbuja quedaba un aro alrededor (y a veces la burbuja agrandada con
+su cuadro de cifras), como si siguiera señalada. Causa: el aro es el de «burbuja seleccionada»
+del ordenador, y el móvil, al tocar, simula un ratón encima del punto tocado, así que la burbuja
+se quedaba como «con el ratón encima» porque nunca llega el «ratón se va».
+
+- Con el dedo ya no hay «pasar por encima» (solo con un ratón de verdad, por `pointerType`).
+- En pantallas táctiles no se dibuja el aro de la burbuja tocada. Se mira la pantalla
+  (`hover: none` o `pointer: coarse`) y el último toque, para que valga también en el mapa nuevo
+  de la consejería abierta.
+- Sin el resaltado gris de iOS al tocar el lienzo.
+- En el ordenador, igual que antes (aro, cuadro y agrandar al pasar el ratón).
+
+Comprobado con un toque táctil de verdad (emulado por DevTools) a 390 px, comparado con la
+versión anterior, que sí dejaba el aro, y a 1400 px.

@@ -22,7 +22,8 @@ from ojo_ciudadano.app import red
 
 CSS = """
 .ocb-mapa { position: relative; width: 100%; font-family: Outfit, sans-serif; }
-.ocb-mapa canvas { display: block; width: 100%; height: 100%; }
+.ocb-mapa canvas { display: block; width: 100%; height: 100%;
+  -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
 .ocb-tip { position: absolute; pointer-events: none; z-index: 5; max-width: 300px;
   padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.45; color: #E7ECF3;
   background: rgba(8, 30, 50, 0.94); border: 1px solid rgba(170, 225, 255, 0.22);
@@ -36,6 +37,12 @@ const TAU = Math.PI * 2;
 const MOVIL = 640; // por debajo de este ancho, la forma de móvil
 const POR_PAGINA = 6; // burbujas por vista en el móvil
 const MAS = '__ver_mas';
+// Pantalla táctil (móvil, tableta): ni «pasar por encima» ni aro de la burbuja tocada. Se mira
+// la pantalla y el último toque, que vale para todos los mapas (el de la consejería abierta es
+// otro mapa nuevo y no ha visto el toque).
+const pantallaTactil = () =>
+  matchMedia('(hover: none)').matches || matchMedia('(pointer: coarse)').matches;
+const tactil = () => window.__ocTactil ?? pantallaTactil();
 
 function mezcla(hex, otro, t) {
   const a = parseInt(hex.slice(1), 16), b = parseInt(otro.slice(1), 16);
@@ -236,7 +243,7 @@ function crear(raiz) {
     g.lineCap = 'round';
     g.stroke();
 
-    if (n.id === s.sel) {
+    if (n.id === s.sel && !tactil()) {
       g.beginPath(); g.arc(x, y, r + 5, 0, TAU);
       g.strokeStyle = 'rgba(125, 211, 252, 0.9)'; g.lineWidth = 2; g.stroke();
     }
@@ -372,7 +379,21 @@ function crear(raiz) {
     }
     return [mejor, x, y];
   }
-  lienzo.addEventListener('mousemove', (ev) => {
+  // Con el dedo no hay «pasar por encima»: el móvil (iPhone sobre todo) simula un ratón en el
+  // punto tocado y la burbuja se quedaba agrandada, con su cuadro y su aro de seleccionada. Solo
+  // el ratón de verdad hace todo eso.
+  lienzo.addEventListener('pointerdown', (ev) => {
+    window.__ocTactil = ev.pointerType !== 'mouse';
+    if (tactil()) olvidarEncima();
+  });
+  function olvidarEncima() {
+    s.encima = null;
+    tip.style.opacity = 0;
+    if (quieto()) dibujar(performance.now());
+  }
+  lienzo.addEventListener('pointermove', (ev) => {
+    if (ev.pointerType !== 'mouse') return;
+    window.__ocTactil = false;
     const [n, x, y] = bajo(ev);
     s.encima = n ? n.id : null;
     lienzo.style.cursor = n ? 'pointer' : 'default';
@@ -390,10 +411,7 @@ function crear(raiz) {
     }
     if (quieto()) dibujar(performance.now());
   });
-  lienzo.addEventListener('mouseleave', () => {
-    s.encima = null; tip.style.opacity = 0;
-    if (quieto()) dibujar(performance.now());
-  });
+  lienzo.addEventListener('pointerleave', olvidarEncima);
   lienzo.addEventListener('click', (ev) => {
     const [n] = bajo(ev);
     if (n && n.mas) {
@@ -404,6 +422,7 @@ function crear(raiz) {
       if (quieto()) dibujar(performance.now());
       return;
     }
+    if (tactil()) olvidarEncima();
     if (!n || !s.avisar) return;
     s.sel = n.id;
     s.avisar(n.id);

@@ -26,6 +26,17 @@
 - **El ojo sube más y se desvanece más poco a poco** (a petición de Isma): tras subir (1,4-2,4 s) sigue subiendo
   despacio hasta casi el borde de arriba (2-3 s). El desvanecimiento va de 1,9 a 3 s con una curva cuadrática, que
   empieza muy suave: casi todo llega cuando el ojo ya está más arriba. La entrada sigue durando 3 s.
+- **Revisión para otras pantallas** antes de fusionar (portátil, escritorio, proyector, 1440p con escalado al
+  150 %, 4K, ultrapanorámica, móvil en vertical y en horizontal, tableta, ventana estrecha):
+  - la capa oscura (160vmax) cubre la pantalla con cualquier proporción: la esquina más lejana está a 61vmax como
+    mucho y la capa llega a 80vmax;
+  - la cámara tiene un campo de visión vertical fijo, así que la subida del ojo y su salida por arriba son iguales
+    en todas;
+  - **corregido:** el lienzo 3D se dibujaba a 2-2,5 veces la resolución con suavizado x4, y en 4K o con escalado
+    pasaba de 20 millones de píxeles (riesgo de quedarse sin memoria gráfica). Ahora tiene un tope de 3840 x 2160
+    píxeles; en pantallas normales y en el móvil no cambia nada;
+  - sin cambiar (venía de antes): en el móvil vertical el ojo ocupa unos dos tercios del ancho cuando está más
+    cerca (86 % en una ventana muy estrecha). Cabe entero.
 - Se probó primero animar el radio del degradado con `@property`; se descartó porque repinta en cada cuadro y rompe
   la regla de la intro.
 
@@ -36,4 +47,5 @@
 
 ## Siguiente paso
 
-Si gusta, fusionar `feat/intro-luz-pupila` en `main`.
+Fusionada en `main` a petición de Isma. Si el ojo se ve demasiado grande en el móvil, reducirlo solo en pantallas
+verticales.

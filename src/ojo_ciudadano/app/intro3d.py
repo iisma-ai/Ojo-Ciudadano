@@ -197,7 +197,11 @@ async function arrancar(data, capa, empezar) {
   const ancho = innerWidth, alto = innerHeight;
   const render = new THREE.WebGLRenderer({ canvas: lienzo, alpha: true, antialias: true });
   // doble resolución (también en pantallas normales): el ojo y sus fibras salen nítidos
-  const resolucion = Math.min(Math.max(devicePixelRatio, 1) * 2, 2.5);
+  // con un tope de píxeles (los de una pantalla 4K): en un monitor grande o con escalado, el
+  // destino del brillo, con suavizado x4, se quedaría sin memoria de la tarjeta gráfica
+  const TOPE_PIXELES = 3840 * 2160;
+  const resolucion = Math.max(1, Math.min(Math.max(devicePixelRatio, 1) * 2, 2.5,
+                                          Math.sqrt(TOPE_PIXELES / (ancho * alto))));
   render.setPixelRatio(resolucion);
   render.setSize(ancho, alto, false);
   render.outputColorSpace = THREE.SRGBColorSpace;

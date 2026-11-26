@@ -14,6 +14,14 @@
   <a href="https://ojo-ciudadano.iismael.workers.dev/">https://ojo-ciudadano.iismael.workers.dev/</a>
 </p>
 <p align="center">
+  <a href="https://ojo-ciudadano.iismael.workers.dev/presentacion/jurado.html"><strong>Presentación para el jurado</strong></a>
+  ·
+  <a href="https://ojo-ciudadano.iismael.workers.dev/presentacion/"><strong>Presentación de la exposición</strong></a>
+</p>
+<p align="center">
+  Ignacio Vallejo Garach · Ismael El Harrak El Harraq
+</p>
+<p align="center">
   <a href="https://github.com/iisma-ai/Ojo-Ciudadano/actions/workflows/tests.yml"><img src="https://github.com/iisma-ai/Ojo-Ciudadano/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
   ·
   <a href="LICENSE">Licencia MIT</a>
@@ -111,7 +119,12 @@ uv run streamlit run src/ojo_ciudadano/app/main.py
 
 ## Presentación
 
-La presentación es una página en 3D en tiempo real (Three.js), en [`presentacion/`](presentacion/): un viaje bajo el mar en el que el ojo de cristal ilumina el dinero disperso entre portales. Para verla, ejecuta `uv run python -m http.server 8600` desde la raíz y abre `http://127.0.0.1:8600/presentacion/index.html` en Chrome. Guion en [`presentacion/README.md`](presentacion/README.md).
+Hay dos presentaciones en 3D en tiempo real (Three.js), en [`presentacion/`](presentacion/): un viaje bajo el mar en el que el ojo de cristal ilumina el dinero disperso entre portales.
+
+- **[Presentación para el jurado](https://ojo-ciudadano.iismael.workers.dev/presentacion/jurado.html)**: para leer sin quien presente, con el problema, los datos y sus enlaces, y los resultados.
+- **[Presentación de la exposición](https://ojo-ciudadano.iismael.workers.dev/presentacion/)**: la que acompaña a la charla, con poco texto.
+
+Para verlas en tu ordenador, ejecuta `uv run python -m http.server 8600` desde la raíz y abre `http://127.0.0.1:8600/presentacion/jurado.html` o `http://127.0.0.1:8600/presentacion/index.html` en Chrome. Guion en [`presentacion/README.md`](presentacion/README.md).
 
 ## Cómo colaborar
 

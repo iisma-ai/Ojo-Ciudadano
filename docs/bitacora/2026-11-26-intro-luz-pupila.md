@@ -19,6 +19,10 @@
   alrededor del ojo. Pasa a ser más grande (escala 7 en lugar de 4,2), más tenue (0,11 en lugar de 0,24) y con una
   caída más lenta, para que se funda con el fondo. El halo de CSS del centro (`.oc-intro-luz`) también se suaviza
   y se extiende más.
+- **Haces que no se distinguen** (a petición de Isma): los haces se veían como rectángulos claros. Ahora son 18 en
+  lugar de 11, más anchos y más tenues (intensidad 0,12 en lugar de 0,26), con un perfil de campana a los lados
+  (sin borde) y una variación suave a lo largo, de modo que se solapan y se leen como una sola luz. El cono sube de
+  0,5 a 0,62 para que la página siga igual de iluminada.
 - Se probó primero animar el radio del degradado con `@property`; se descartó porque repinta en cada cuadro y rompe
   la regla de la intro.
 

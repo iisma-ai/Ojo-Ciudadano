@@ -160,10 +160,13 @@ function crearHaces(THREE, n) {
         vertexShader: VS_CUNA,
         fragmentShader: `varying vec2 vUv; uniform float uT, uI, uS;
           void main(){
-            float borde = pow(sin(3.14159 * vUv.x), 2.);
+            // perfil de campana: se apaga hacia los lados sin borde, y los haces se solapan
+            float borde = exp(-pow((vUv.x - .5) * 4.5, 2.));
             float alto = pow(smoothstep(0., 1., vUv.y), 1.8);
             float parpadeo = .55 + .45 * sin(uT * (.4 + uS * .5) + uS * 30. + vUv.x * 5.);
-            float a = borde * alto * parpadeo * uI;
+            // variación suave a lo largo: el haz no se ve como una tira uniforme
+            float vena = .75 + .25 * sin(vUv.y * 7. + uS * 20. - uT * .8);
+            float a = borde * alto * parpadeo * vena * uI;
             gl_FragColor = vec4(vec3(.55, .75, 1.) * a, a);
           }`,
         transparent: true,
@@ -172,7 +175,7 @@ function crearHaces(THREE, n) {
       }),
     );
     const angulo = (-1 + (2 * (i + 0.5)) / n) * 1.15 + (azar() - 0.5) * 0.08;
-    m.userData = { angulo, ancho: 0.5 + azar() * 1.4, largo: 12 + azar() * 6 };
+    m.userData = { angulo, ancho: 1.2 + azar() * 1.8, largo: 11 + azar() * 7 };
     grupo.add(m);
     haces.push(m);
   }
@@ -231,7 +234,7 @@ async function arrancar(data, capa, empezar) {
   // salir del centro del iris y no asoma por el contorno. Sin la escala del ojo.
   const luz = new THREE.Group();
   const cono = crearCono(THREE);
-  const haces = crearHaces(THREE, 11);
+  const haces = crearHaces(THREE, 18);  // muchos y tenues: una luz, no tiras
   luz.add(cono.cono, haces.grupo);
   for (const m of [cono.cono, ...haces.haces]) m.renderOrder = 25;
   escena.add(luz);
@@ -345,9 +348,9 @@ async function arrancar(data, capa, empezar) {
     foco.malla.scale.setScalar(0.55 + 0.25 * enciende);
     foco.uniforms.uI.value = (0.25 * aparece + 0.55 * enciende) * (1 - apaga);
     cono.cono.scale.set(0.15 + 1.25 * abre, 0.35 + 0.65 * enciende, 0.15 + 1.25 * abre);
-    cono.uniforms.uI.value = 0.5 * enciende * (1 - apaga);  // suave: se funde con la página
+    cono.uniforms.uI.value = 0.62 * enciende * (1 - apaga);  // suave: se funde con la página
     cono.uniforms.uT.value = t;
-    haces.uniforms.uI.value = 0.26 * enciende * (1 - apaga);
+    haces.uniforms.uI.value = 0.12 * enciende * (1 - apaga);
     haces.uniforms.uT.value = t * 2;
     for (const h of haces.haces) {
       const { angulo, ancho, largo } = h.userData;

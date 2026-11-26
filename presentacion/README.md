@@ -18,7 +18,7 @@ se ha gastado, y se unen en consejerías y en la Comunidad de Madrid. Poco texto
 | 3 | Aparece el ojo de cristal, «Ojo Ciudadano», y su luz ilumina | La plataforma accesible |
 | 4 | De dónde viene y a dónde va el dinero de 2025: arriba los tres ingresos que más aportan (impuestos directos, indirectos y préstamos), el dinero baja a la Comunidad de Madrid y, al pulsar, sale hacia las cuatro mayores consejerías; después la cámara entra en Sanidad y salen ejemplos sueltos de en qué gasta: licitaciones, un contrato menor (café) y una subvención (cuidados paliativos), con nombre corto | Isma: el mapa interactivo |
 | 5 | Enjambre de burbujas, 1.354.441 contratos y, debajo, 872.821 subvenciones | Más de un millón de contratos abruma |
-| 6 | Solo burbujas; «6 señales» con tres ejemplos en grande, sin cifras; un contrato atípico; y el resumen: señales a un lado, atípicos al otro, «No son acusaciones» | Los 6 indicadores, los atípicos y que no son acusaciones |
+| 6 | Solo burbujas; «6 señales» con tres ejemplos en grande, sin cifras; y un contrato atípico, desde el que se pasa al asistente | Los 6 indicadores, los atípicos y que no son acusaciones (de palabra) |
 | 7 | El asistente: tres preguntas reales (organismos con más importe en 2025, tarta de los recursos ante el Tribunal y una pregunta sencilla: «¿la Comunidad tiene helicópteros?») | La IA busca, compara, relaciona y visualiza |
 | 8 | El ojo y un QR de cristal | Ignacio: ya está en marcha, pruébalo |
 | 9 | Cierre (el ojo baja directamente desde el QR) | Democratizar los datos. Gracias |

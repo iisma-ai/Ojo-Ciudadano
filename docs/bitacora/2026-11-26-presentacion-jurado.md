@@ -30,6 +30,10 @@
   (`capturas/web-inicio.jpg`, tomada con Chrome el 26-nov), con el enlace, el QR y el enlace al código al lado.
   Las bases piden tres diapositivas como máximo: se avisó a Isma y se añadió igualmente.
 
+- **Sin notas al pie** (a petición de Isma): fuera los textos pequeños en gris de los paneles «Los datos» y «Qué
+  hacemos con los datos» (periodo de los datos y fechas de descarga). Los enlaces a las fuentes siguen en el panel
+  de los datos.
+
 ## Pendiente
 
 - **Verla en el navegador.** Desde esta sesión Chrome no llega al servidor local, así que no se ha comprobado el

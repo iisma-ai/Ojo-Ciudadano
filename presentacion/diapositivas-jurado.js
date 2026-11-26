@@ -128,7 +128,6 @@ const DIAPOSITIVAS = [
           { texto: "<b>Contratos y subvenciones, registro a registro</b> (el catálogo los publica solo agregados):" },
           { chips: FUENTES_REGISTRO.map(([nombre, url]) => enlace(url, nombre)) },
         ],
-        fuente: "1.354.441 contratos de enero de 2023 a septiembre de 2026 y 872.821 concesiones de subvenciones. Descargas del 16 al 24 de noviembre de 2026; cada cifra enlaza a su registro oficial.",
       },
     ],
   },
@@ -156,7 +155,6 @@ const DIAPOSITIVAS = [
           ], titulo: "Del dato a la respuesta" },
           { texto: "<b>No son acusaciones:</b> indican dónde mirar, siempre con el enlace al expediente oficial." },
         ],
-        fuente: "Contratos de enero de 2023 a septiembre de 2026. Subvenciones de enero de 2023 a noviembre de 2026 (BDNS).",
       },
       {
         tipo: "panel", clase: "lectura", x: 1030, y: 590, ancho: 800, tam: 20, paso: 0,

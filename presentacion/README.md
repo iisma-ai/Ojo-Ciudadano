@@ -14,15 +14,14 @@ se ha gastado, y se unen en consejerías y en la Comunidad de Madrid. Poco texto
 | # | Escena | Guion |
 | --- | --- | --- |
 | 1 | Fuera del agua, sin ojo: atardecer, mar y las rocas desde las que se salta; al pulsar, nos asomamos al borde y no se ve lo que hay debajo | Ignacio: Málaga, las rocas, saltar |
-| 2 | Bajo el agua, oscuro: las rocas están pero no se ven | Datos «transparentes» que no se pueden ver |
+| 2 | Bajo el agua, oscuro: las rocas están pero no se ven; «Públicos. Pero no accesibles.» y, al pulsar, «¿A dónde va el dinero?» encima | Datos «transparentes» que no se pueden ver |
 | 3 | Aparece el ojo de cristal, «Ojo Ciudadano», y su luz ilumina | La plataforma accesible |
 | 4 | De dónde viene y a dónde va el dinero de 2025: arriba los tres ingresos que más aportan (impuestos directos, indirectos y préstamos), el dinero baja a la Comunidad de Madrid y, al pulsar, sale hacia las cuatro mayores consejerías; después la cámara entra en Sanidad y salen ejemplos sueltos de en qué gasta: licitaciones, un contrato menor (café) y una subvención (cuidados paliativos), con nombre corto | Isma: el mapa interactivo |
 | 5 | Enjambre de burbujas, 1.354.441 contratos y, debajo, 872.821 subvenciones | Más de un millón de contratos abruma |
 | 6 | Solo burbujas; «6 señales» con tres ejemplos en grande, sin cifras; un contrato atípico; y el resumen: señales a un lado, atípicos al otro, «No son acusaciones» | Los 6 indicadores, los atípicos y que no son acusaciones |
 | 7 | El asistente: tres preguntas reales (organismos con más importe en 2025, tarta de los recursos ante el Tribunal y una pregunta sencilla: «¿la Comunidad tiene helicópteros?») | La IA busca, compara, relaciona y visualiza |
 | 8 | El ojo y un QR de cristal | Ignacio: ya está en marcha, pruébalo |
-| 9 | Burbujas con las tecnologías | El stack |
-| 10 | Cierre | Democratizar los datos. Gracias |
+| 9 | Cierre (el ojo baja directamente desde el QR) | Democratizar los datos. Gracias |
 
 Estado: adaptada al guion del 24-nov. El QR de la escena 8 apunta a `https://ojo-ciudadano.iismael.workers.dev/` (`DATOS.urlApp` en `diapositivas.js`). Faltan las capturas o vídeos de la aplicación (burbujas de las
 escenas 6 y 7), revisar los textos con `revisor-legal` y probarla en el ordenador y el proyector de la demo.
@@ -63,3 +62,22 @@ objeto `DATOS`. El resto de ficheros es el motor y no hace falta tocarlo:
 Las burbujas de tipo `captura` están vacías. Guarda las imágenes o vídeos (`.png`, `.jpg`, `.mp4`, `.webm`) en
 `presentacion/media/` y pon la ruta en `src`, por ejemplo `src: "media/mapa.mp4"`. Los vídeos se reproducen
 solos, en bucle y sin sonido, dentro de la burbuja.
+
+## Versión para el jurado (`jurado.html`)
+
+Para leer sin quien presente, con más texto. Mismo motor (`escena3d.js`) y mismos tipos de
+elemento; el contenido está en `diapositivas-jurado.js`, sus estilos en `jurado.css` y la captura
+de la web en `capturas/`. Cada diapositiva aparece entera de una vez. Las bases piden tres
+diapositivas como máximo; la cuarta (la captura) se añadió a petición de Isma.
+
+| # | Escena | Qué cuenta |
+| --- | --- | --- |
+| 1 | En la roca, sobre el mar, con el ojo | Nombre del proyecto, integrantes y la propuesta: que cualquier ciudadano vea a dónde va su dinero |
+| 2 | Salto al agua; el ojo ilumina el mar | El problema y los datos a la vez: primero los conjuntos del Catálogo de Datos Abiertos de la Comunidad, con enlace, y después las fuentes de contratos y subvenciones |
+| 3 | Más abajo, entre muchas burbujas | Qué hacemos con los datos (unión, señales de riesgo, aprendizaje automático y el agente, en un solo bloque) y utilidad, impacto y viabilidad |
+| 4 | El ojo nos lleva a ver la web | Captura de la página de inicio, el enlace, el QR y el enlace al código |
+
+Se abre igual que la otra, servida desde la raíz del repositorio:
+`http://127.0.0.1:8600/presentacion/jurado.html`. Los enlaces se pueden pulsar (se abren en otra
+pestaña); un clic en cualquier otro sitio pasa de paso.
+

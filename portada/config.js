@@ -1,7 +1,7 @@
 // Dónde está la web de Ojo Ciudadano.
 //
 // La portada prueba los servidores EN ESTE ORDEN y abre el primero que responde. Para cambiar
-// de servidor basta con editar esta lista y subirla a GitHub: Cloudflare Pages publica la
+// de servidor basta con editar esta lista y subirla a GitHub: Cloudflare publica la
 // portada nueva en menos de un minuto.
 //
 //   url     dirección pública del servidor, sin barra al final

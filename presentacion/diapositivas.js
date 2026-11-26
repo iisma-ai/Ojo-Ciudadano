@@ -11,6 +11,7 @@
  *
  * Elementos:
  *   {tipo:"texto",   x, y, texto, tam, clase, paso}              clase: "titulo" | "subtitulo" | "nota"
+ *                    luego:{paso, dy, escala}: en ese paso el texto baja `dy` y se escala (deja sitio)
  *   {tipo:"cifra",   x, y, valor, formato, texto, tam, clase, paso}  numero que sube hasta `valor`
  *                    clase "resalte": numero en ambar, el color de las señales
  *   {tipo:"burbuja", id, x, y, r, llenado, etiqueta, valor, tono, paso}
@@ -156,7 +157,9 @@ const DIAPOSITIVAS = [
     ojo: null,
     elementos: [
       { tipo: "niebla", paso: 0 },
-      { tipo: "texto", x: 960, y: 540, texto: "Públicos. Pero no accesibles.", tam: 76, clase: "titulo", paso: 1 },
+      // paso 2: la frase baja un poco y se encoge para dejar sitio a la pregunta, que sale justo encima
+      { tipo: "texto", x: 960, y: 540, texto: "Públicos. Pero no accesibles.", tam: 76, clase: "titulo", paso: 1, luego: { paso: 2, dy: 50, escala: 0.8 } },
+      { tipo: "texto", x: 960, y: 492, texto: "¿A dónde va el dinero?", tam: 76, clase: "titulo", paso: 2 },
     ],
   },
 

@@ -1246,3 +1246,18 @@ Plantilla:
   - «De cada 100 €» sigue en la ficha de cada burbuja.
 - **Alternativas consideradas:** dejar la barra más pequeña; un desplegable a todo lo ancho para el sistema (seguía ocupando la página).
 - **Consecuencias:** se borran `barra_entradas`, `flujo_saldo` y `grupos_barra` de `app/de_donde_viene.py`, y su test. Si no gusta, se deshace sin tocar `main`.
+
+## D-065 · Las preguntas tecleadas en el asistente van al modelo, aunque haya una preparada parecida
+
+- **Fecha:** 2026-11-26
+- **Estado:** Aceptada (Isma: «si un usuario manda una consulta tecleando su propia pregunta, incluso si es muy similar o existente en las respuestas ya preparadas, que se mande esa consulta al agente directamente»).
+- **Autor:** Claude (agente), a petición de Isma
+- **Contexto:** con el orden de D-037, toda pregunta se intentaba primero con las respuestas preparadas, que se reconocen por palabras clave. Una pregunta escrita a mano y distinta de las preparadas recibió una respuesta preparada que no era la que se buscaba.
+- **Decisión:**
+  - Lo que la persona teclea en la caja del chat va al modelo con sus herramientas, aunque encaje con una respuesta preparada.
+  - Las preguntas sugeridas (botones) y las que llegan desde otras pantallas («¿Qué dice el pliego?») siguen usando la respuesta preparada si hay una.
+  - Si el modelo no puede responder (sin conectar, fuera de España, límite de D-057 o caída), se usa la preparada si encaja, en lugar del mensaje de error.
+  - Las preguntas con DNI o NIE siguen sin buscarse ni llegar al modelo.
+- **Alternativas consideradas:** afinar las palabras clave de las preparadas (no garantiza que una pregunta propia llegue al modelo); preguntar a la persona cuál quiere (un paso más en cada pregunta).
+- **Consecuencias:** más consultas al modelo, así que más gasto de saldo de OpenRouter y antes se llega al límite de 5 seguidas (D-057). Las respuestas a preguntas tecleadas ya no salen con la animación de las preparadas, salvo cuando la preparada hace de reserva.
+

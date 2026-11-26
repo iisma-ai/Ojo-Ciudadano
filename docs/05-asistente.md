@@ -213,9 +213,9 @@ Dos herramientas nuevas (`asistente/documentos.py`):
 - **Pantalla única «Asistente»:** «Preguntas guiadas» se quita del menú.
 - **Orden de respuesta:**
   1. Si la pregunta tiene un DNI o NIE, no se busca ni llega al modelo.
-  2. Respuesta preparada (`asistente/respuestas_fijas.py`): se reconoce por palabras clave y se responde con su SQL verificado y un texto escrito de antemano, con cifras y fuente. Sin modelo y sin gasto.
-  3. Si no hay ninguna, el modelo con sus herramientas (SQL, catálogo, pliegos, resoluciones).
-  4. Sin modelo conectado, se dice y se remite a las preguntas preparadas.
+  2. Respuesta preparada (`asistente/respuestas_fijas.py`): se reconoce por palabras clave y se responde con su SQL verificado y un texto escrito de antemano, con cifras y fuente. Sin modelo y sin gasto. **Desde D-065, solo para las preguntas sugeridas (botones) y las que llegan desde otras pantallas:** lo que la persona teclea va directo al modelo, aunque encaje con una preparada.
+  3. Si no hay ninguna (o la pregunta se ha tecleado), el modelo con sus herramientas (SQL, catálogo, pliegos, resoluciones).
+  4. Si el modelo no puede responder (sin conectar, fuera de España, límite de D-057 o caída), la preparada si encaja; si no, se dice y se remite a las preguntas preparadas.
 - **Respuestas preparadas:** 43.
   - 26 de datos:
     - B-01 a B-16, B-28 a B-30, B-35 y B-36;

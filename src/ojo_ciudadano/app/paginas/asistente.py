@@ -1,7 +1,9 @@
 """Asistente: una sola pantalla para preguntar en lenguaje natural (D-037, docs/05-asistente.md).
 
-Cada pregunta se intenta primero con las respuestas preparadas (consulta SQL revisada por el
-equipo y texto escrito de antemano, sin modelo de lenguaje). Si no hay una que encaje, contesta
+Las preguntas sugeridas (botones) y las que llegan desde otras pantallas se intentan primero
+con las respuestas preparadas (consulta SQL revisada por el equipo y texto escrito de antemano,
+sin modelo de lenguaje). Las que la persona teclea van al modelo aunque se parezcan a una
+preparada (D-065), que solo se usa si el modelo no puede responder. Si no, contesta
 el modelo elegido (D-010) con sus herramientas: SQL sobre la base, catálogo de datos abiertos,
 pliegos y resoluciones del Tribunal. Mientras se consulta se anima lo que se está haciendo
 (las tablas y sus uniones, o los documentos que se leen); el proceso de cada consulta se queda
@@ -267,23 +269,30 @@ def del_modelo(pregunta: str, historial: list[dict]) -> agente.Respuesta:
     return respuesta
 
 
-def contestar(pregunta: str, historial: list[dict], forzar_modelo: bool) -> agente.Respuesta:
+def contestar(
+    pregunta: str, historial: list[dict], forzar_modelo: bool, preferir_modelo: bool = False
+) -> agente.Respuesta:
+    """Respuesta preparada o del modelo. Con `preferir_modelo` (la pregunta la ha tecleado la
+    persona, D-065) contesta el modelo aunque haya una preparada que encaje; la preparada solo
+    se usa si el modelo no puede responder (sin conectar, fuera de España, límite o caída)."""
     if bateria.PATRON_DNI.search(pregunta):  # no se busca ni llega al modelo
         return agente.Respuesta(agente.PREGUNTA_CON_DNI)
-    if not forzar_modelo:
-        respuesta = preparada(pregunta)
-        if respuesta is not None:
-            return respuesta
+    fija = None if forzar_modelo else preparada(pregunta)
+    if fija is not None and not preferir_modelo:
+        return fija
     if modelo is None:
-        return agente.Respuesta(SIN_MODELO)
+        return fija or agente.Respuesta(SIN_MODELO)
     # Solo para las preguntas que llegan al modelo (D-057): desde España, y 5 seguidas con 5
     # minutos de espera. Lo de fuera de España no cuenta como consulta.
     if not limite_modelo.desde_pais_permitido():
-        return agente.Respuesta(limite_modelo.FUERA_DE_ESPANA)
+        return fija or agente.Respuesta(limite_modelo.FUERA_DE_ESPANA)
     espera = limite_modelo.limitador().intentar(limite_modelo.identidad())
     if espera:
-        return agente.Respuesta(limite_modelo.mensaje(espera))
-    return del_modelo(pregunta, historial)
+        return fija or agente.Respuesta(limite_modelo.mensaje(espera))
+    respuesta = del_modelo(pregunta, historial)
+    if fija is not None and respuesta.texto == MODELO_CAIDO:
+        return fija
+    return respuesta
 
 
 # --- Pantalla (D-059) ---
@@ -475,6 +484,11 @@ with mensajes:
                 {"rol": "modelo", "contenido": texto_visible(respuesta)},
             ]
         with st.chat_message("assistant", avatar=LOGO):
-            respuesta = contestar(pregunta, historial, forzar_modelo=forzar and not elegida)
+            respuesta = contestar(
+                pregunta,
+                historial,
+                forzar_modelo=forzar and not elegida,
+                preferir_modelo=bool(escrita),  # tecleada: al modelo (D-065)
+            )
             mostrar_respuesta(pregunta, respuesta, clave=str(len(turnos)), nueva=True)
         turnos.append((pregunta, respuesta))

@@ -60,25 +60,6 @@ const ENJAMBRE = (() => {
 // Logo de Ojo Ciudadano (el de la web)
 const LOGO_OJO = "../src/ojo_ciudadano/app/static/logo-horizontal.svg";
 
-// Tecnologias de Ojo Ciudadano con su logo real: nombre, logo y color para teñir los de un color.
-// Devicon (a color) y Simple Icons (de un color), servidos por jsDelivr en versiones fijas.
-const DEVICON = "https://cdn.jsdelivr.net/gh/devicons/devicon@v2.16.0/icons";
-const SIMPLE = "https://cdn.jsdelivr.net/npm/simple-icons@13.0.0/icons";
-const TECNOLOGIAS = [
-  ["Python", `${DEVICON}/python/python-original.svg`, null],
-  ["DuckDB", `${SIMPLE}/duckdb.svg`, "#FFF000"],
-  ["Polars", `${SIMPLE}/polars.svg`, "#7FB3FF"],
-  ["Streamlit", `${DEVICON}/streamlit/streamlit-original.svg`, null],
-  ["Plotly", `${DEVICON}/plotly/plotly-original.svg`, null],
-  ["scikit-learn", `${DEVICON}/scikitlearn/scikitlearn-original.svg`, null],
-  ["GPT · OpenRouter", `${SIMPLE}/openai.svg`, "#FFFFFF"],
-  ["Claude · OpenRouter", `${SIMPLE}/anthropic.svg`, "#E3A57E"],
-  ["Three.js", `${DEVICON}/threejs/threejs-original.svg`, "#FFFFFF"],
-].map(([nombre, logo, color], i, todas) => {
-  const a = -Math.PI / 2 + (2 * Math.PI * i) / todas.length;
-  return { nombre, logo, color, x: 960 + Math.cos(a) * 560, y: 545 + Math.sin(a) * 360 };
-});
-
 // Tamano y llenado de las burbujas de contratos de la escena 2 (x, y, r, llenado)
 const CONTRATOS = [
   [330, 640, 34, 0.85], [470, 400, 26, 0.35], [620, 760, 40, 0.6], [760, 330, 30, 0.95],
@@ -338,17 +319,7 @@ const DIAPOSITIVAS = [
     ],
   },
 
-  // 9. Con qué está hecho
-  {
-    id: "tecnologias",
-    profundidad: 0.45,
-    ojo: { x: 960, y: 540, escala: 1.2, mira: { x: 960, y: 600 } },
-    elementos: TECNOLOGIAS.map(({ nombre, logo, color, x, y }, i) => ({
-      tipo: "burbuja", id: `t${i}`, x, y, r: 68, llenado: 0.18, etiqueta: nombre, logo, color, tono: "azul", paso: 0,
-    })),
-  },
-
-  // 10. Cierre
+  // 9. Cierre: el ojo baja directamente desde el QR
   {
     id: "cierre",
     profundidad: 0.15,

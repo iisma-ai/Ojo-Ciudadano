@@ -14,15 +14,14 @@ se ha gastado, y se unen en consejerías y en la Comunidad de Madrid. Poco texto
 | # | Escena | Guion |
 | --- | --- | --- |
 | 1 | Fuera del agua, sin ojo: atardecer, mar y las rocas desde las que se salta; al pulsar, nos asomamos al borde y no se ve lo que hay debajo | Ignacio: Málaga, las rocas, saltar |
-| 2 | Bajo el agua, oscuro: las rocas están pero no se ven | Datos «transparentes» que no se pueden ver |
+| 2 | Bajo el agua, oscuro: las rocas están pero no se ven; «Públicos. Pero no accesibles.» y, al pulsar, «¿A dónde va el dinero?» encima | Datos «transparentes» que no se pueden ver |
 | 3 | Aparece el ojo de cristal, «Ojo Ciudadano», y su luz ilumina | La plataforma accesible |
 | 4 | De dónde viene y a dónde va el dinero de 2025: arriba los tres ingresos que más aportan (impuestos directos, indirectos y préstamos), el dinero baja a la Comunidad de Madrid y, al pulsar, sale hacia las cuatro mayores consejerías; después la cámara entra en Sanidad y salen ejemplos sueltos de en qué gasta: licitaciones, un contrato menor (café) y una subvención (cuidados paliativos), con nombre corto | Isma: el mapa interactivo |
 | 5 | Enjambre de burbujas, 1.354.441 contratos y, debajo, 872.821 subvenciones | Más de un millón de contratos abruma |
 | 6 | Solo burbujas; «6 señales» con tres ejemplos en grande, sin cifras; un contrato atípico; y el resumen: señales a un lado, atípicos al otro, «No son acusaciones» | Los 6 indicadores, los atípicos y que no son acusaciones |
 | 7 | El asistente: tres preguntas reales (organismos con más importe en 2025, tarta de los recursos ante el Tribunal y una pregunta sencilla: «¿la Comunidad tiene helicópteros?») | La IA busca, compara, relaciona y visualiza |
 | 8 | El ojo y un QR de cristal | Ignacio: ya está en marcha, pruébalo |
-| 9 | Burbujas con las tecnologías | El stack |
-| 10 | Cierre | Democratizar los datos. Gracias |
+| 9 | Cierre (el ojo baja directamente desde el QR) | Democratizar los datos. Gracias |
 
 Estado: adaptada al guion del 24-nov. El QR de la escena 8 apunta a `https://ojo-ciudadano.iismael.workers.dev/` (`DATOS.urlApp` en `diapositivas.js`). Faltan las capturas o vídeos de la aplicación (burbujas de las
 escenas 6 y 7), revisar los textos con `revisor-legal` y probarla en el ordenador y el proyector de la demo.

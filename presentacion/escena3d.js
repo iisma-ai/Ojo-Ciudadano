@@ -546,6 +546,7 @@ const diapositivas = DIAPOSITIVAS.map((d, i) => {
     else if (e.tipo === "texto") {
       it = { tipo: "texto", i, dom: etiquetaHtml(e.texto, e.clase || ""), ancla: aMundo(i, e.x, e.y), tam: e.tam || 40 };
       if (e.clase === "nota") it.tam *= 0.62;
+      if (e.luego) it.luego = { ...e.luego, m: 0 }; // en ese paso baja `dy` y se escala a `escala`
     } else if (e.tipo === "cifra") {
       it = {
         tipo: "cifra",
@@ -869,7 +870,14 @@ function cuadro() {
       if (it.tipo === "burbuja" || it.tipo === "captura") {
         it.dom.classList.toggle("tenue", Boolean(foco && foco.de && foco.de !== it.e));
       }
-      it.dom.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+      let extra = "";
+      if (it.luego) {
+        const meta = it.i === actual && paso >= it.luego.paso ? 1 : 0;
+        it.luego.m += (meta - it.luego.m) * suave(dt, 3);
+        const m = it.luego.m;
+        extra = ` translateY(${(it.luego.dy || 0) * escalaTexto * m}px) scale(${1 + ((it.luego.escala ?? 1) - 1) * m})`;
+      }
+      it.dom.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)${extra}`;
     }
   }
 

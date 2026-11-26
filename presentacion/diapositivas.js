@@ -11,6 +11,7 @@
  *
  * Elementos:
  *   {tipo:"texto",   x, y, texto, tam, clase, paso}              clase: "titulo" | "subtitulo" | "nota"
+ *                    luego:{paso, dy, escala}: en ese paso el texto baja `dy` y se escala (deja sitio)
  *   {tipo:"cifra",   x, y, valor, formato, texto, tam, clase, paso}  numero que sube hasta `valor`
  *                    clase "resalte": numero en ambar, el color de las señales
  *   {tipo:"burbuja", id, x, y, r, llenado, etiqueta, valor, tono, paso}
@@ -58,25 +59,6 @@ const ENJAMBRE = (() => {
 
 // Logo de Ojo Ciudadano (el de la web)
 const LOGO_OJO = "../src/ojo_ciudadano/app/static/logo-horizontal.svg";
-
-// Tecnologias de Ojo Ciudadano con su logo real: nombre, logo y color para teñir los de un color.
-// Devicon (a color) y Simple Icons (de un color), servidos por jsDelivr en versiones fijas.
-const DEVICON = "https://cdn.jsdelivr.net/gh/devicons/devicon@v2.16.0/icons";
-const SIMPLE = "https://cdn.jsdelivr.net/npm/simple-icons@13.0.0/icons";
-const TECNOLOGIAS = [
-  ["Python", `${DEVICON}/python/python-original.svg`, null],
-  ["DuckDB", `${SIMPLE}/duckdb.svg`, "#FFF000"],
-  ["Polars", `${SIMPLE}/polars.svg`, "#7FB3FF"],
-  ["Streamlit", `${DEVICON}/streamlit/streamlit-original.svg`, null],
-  ["Plotly", `${DEVICON}/plotly/plotly-original.svg`, null],
-  ["scikit-learn", `${DEVICON}/scikitlearn/scikitlearn-original.svg`, null],
-  ["GPT · OpenRouter", `${SIMPLE}/openai.svg`, "#FFFFFF"],
-  ["Claude · OpenRouter", `${SIMPLE}/anthropic.svg`, "#E3A57E"],
-  ["Three.js", `${DEVICON}/threejs/threejs-original.svg`, "#FFFFFF"],
-].map(([nombre, logo, color], i, todas) => {
-  const a = -Math.PI / 2 + (2 * Math.PI * i) / todas.length;
-  return { nombre, logo, color, x: 960 + Math.cos(a) * 560, y: 545 + Math.sin(a) * 360 };
-});
 
 // Tamano y llenado de las burbujas de contratos de la escena 2 (x, y, r, llenado)
 const CONTRATOS = [
@@ -156,7 +138,9 @@ const DIAPOSITIVAS = [
     ojo: null,
     elementos: [
       { tipo: "niebla", paso: 0 },
-      { tipo: "texto", x: 960, y: 540, texto: "Públicos. Pero no accesibles.", tam: 76, clase: "titulo", paso: 1 },
+      // paso 2: la frase baja un poco y se encoge para dejar sitio a la pregunta, que sale justo encima
+      { tipo: "texto", x: 960, y: 540, texto: "Públicos. Pero no accesibles.", tam: 76, clase: "titulo", paso: 1, luego: { paso: 2, dy: 70, escala: 0.78 } },
+      { tipo: "texto", x: 960, y: 478, texto: "¿A dónde va el dinero?", tam: 124, clase: "titulo impacto", paso: 2 },
     ],
   },
 
@@ -335,17 +319,7 @@ const DIAPOSITIVAS = [
     ],
   },
 
-  // 9. Con qué está hecho
-  {
-    id: "tecnologias",
-    profundidad: 0.45,
-    ojo: { x: 960, y: 540, escala: 1.2, mira: { x: 960, y: 600 } },
-    elementos: TECNOLOGIAS.map(({ nombre, logo, color, x, y }, i) => ({
-      tipo: "burbuja", id: `t${i}`, x, y, r: 68, llenado: 0.18, etiqueta: nombre, logo, color, tono: "azul", paso: 0,
-    })),
-  },
-
-  // 10. Cierre
+  // 9. Cierre: el ojo baja directamente desde el QR
   {
     id: "cierre",
     profundidad: 0.15,

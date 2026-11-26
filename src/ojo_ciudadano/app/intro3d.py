@@ -3,11 +3,10 @@
 Usa el mismo código que la presentación (`presentacion/ojo3d.js`, bola de cristal con refracción,
 iris de luz y pupila, y `presentacion/agua.js` para el entorno de reflejos y el color del agua)
 con Three.js y la misma iluminación y tono de imagen que la presentación. El ojo es la fuente de
-luz: lleva un núcleo blanco. En 3 s aparece, se acerca un poco y sube alejándose hasta cerca
-del borde de arriba, donde se desvanece poco a poco (así también se ve en el móvil); al
-apartarse, su núcleo se enciende y
-despliega rayos de luz que bajan sobre la página y la aclaran poco a poco, como los rayos del
-fondo, que vienen de arriba.
+luz. En 3 s aparece, se acerca un poco y sube alejándose hasta casi el borde de arriba, donde
+se desvanece poco a poco (así también se ve en el móvil); al apartarse, se enciende un brillo en
+su pupila y de ahí, no del contorno del cristal, salen los rayos de luz hacia donde mira, sobre
+la página. La página empieza muy oscura y se aclara desde el centro hacia los bordes.
 
 La capa oscura, la luz y el nombre son CSS (`static/intro.html`); este componente pone el lienzo
 3D dentro de esa capa y da la salida a sus animaciones cuando el ojo está listo. Si Three.js no
@@ -122,7 +121,7 @@ function crearCono(THREE) {
           float ang = atan(vP.x, vP.z);
           float rayas = .82 + .18 * sin(ang * 9. + uT * .5) * sin(ang * 4. - uT * .3);
           float a = uI * pow(clamp(abs(dot(vN, vV)), 0., 1.), .7) * pow(1. - a0, 1.6) * rayas
-            * smoothstep(0., .06, a0) * .75;
+            * smoothstep(0., .015, a0) * .75;  // nace ya en la pupila
           gl_FragColor = vec4(vec3(.8, .95, 1.) * a, a);
         }`,
       transparent: true,
@@ -135,13 +134,21 @@ function crearCono(THREE) {
 }
 
 // Haces de luz: los rayos de sol de la presentación (crearRayos en presentacion/agua.js), con la
-// raíz en el ojo. Empiezan todos hacia abajo y se abren poco a poco a los lados, como mucho a
-// 66 grados de la vertical: nunca apuntan hacia arriba.
+// raíz en la pupila. Son cuñas: casi sin anchura en la raíz y abiertas lejos del ojo, para que
+// ningún haz asome por el contorno del cristal. Empiezan juntos en la dirección de la mirada y
+// se abren poco a poco a los lados.
+const VS_CUNA = `varying vec2 vUv;
+  void main(){
+    vUv = uv;
+    vec3 p = position;
+    p.x *= mix(1., .03, uv.y);  // uv.y = 1 en la raíz (la pupila): casi un punto
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.);
+  }`;
 function crearHaces(THREE, n) {
   const grupo = new THREE.Group();
   const comunes = { uT: { value: 0 }, uI: { value: 0 } };
-  const geo = new THREE.PlaneGeometry(1, 1);
-  geo.translate(0, -0.5, 0);  // el borde de arriba, en el ojo
+  const geo = new THREE.PlaneGeometry(1, 1, 1, 16);  // con tramos: la cuña se estrecha suave
+  geo.translate(0, -0.5, 0);  // el borde de arriba, en la pupila
   let semilla = 7;
   const azar = () => { semilla = (semilla * 16807) % 2147483647; return semilla / 2147483647; };
   const haces = [];
@@ -150,13 +157,16 @@ function crearHaces(THREE, n) {
       geo,
       new THREE.ShaderMaterial({
         uniforms: { ...comunes, uS: { value: azar() } },
-        vertexShader: VS,
+        vertexShader: VS_CUNA,
         fragmentShader: `varying vec2 vUv; uniform float uT, uI, uS;
           void main(){
-            float borde = pow(sin(3.14159 * vUv.x), 2.);
+            // perfil de campana: se apaga hacia los lados sin borde, y los haces se solapan
+            float borde = exp(-pow((vUv.x - .5) * 4.5, 2.));
             float alto = pow(smoothstep(0., 1., vUv.y), 1.8);
             float parpadeo = .55 + .45 * sin(uT * (.4 + uS * .5) + uS * 30. + vUv.x * 5.);
-            float a = borde * alto * parpadeo * uI;
+            // variación suave a lo largo: el haz no se ve como una tira uniforme
+            float vena = .75 + .25 * sin(vUv.y * 7. + uS * 20. - uT * .8);
+            float a = borde * alto * parpadeo * vena * uI;
             gl_FragColor = vec4(vec3(.55, .75, 1.) * a, a);
           }`,
         transparent: true,
@@ -165,7 +175,7 @@ function crearHaces(THREE, n) {
       }),
     );
     const angulo = (-1 + (2 * (i + 0.5)) / n) * 1.15 + (azar() - 0.5) * 0.08;
-    m.userData = { angulo, ancho: 0.5 + azar() * 1.4, largo: 12 + azar() * 6 };
+    m.userData = { angulo, ancho: 1.2 + azar() * 1.8, largo: 11 + azar() * 7 };
     grupo.add(m);
     haces.push(m);
   }
@@ -187,7 +197,11 @@ async function arrancar(data, capa, empezar) {
   const ancho = innerWidth, alto = innerHeight;
   const render = new THREE.WebGLRenderer({ canvas: lienzo, alpha: true, antialias: true });
   // doble resolución (también en pantallas normales): el ojo y sus fibras salen nítidos
-  const resolucion = Math.min(Math.max(devicePixelRatio, 1) * 2, 2.5);
+  // con un tope de píxeles (los de una pantalla 4K): en un monitor grande o con escalado, el
+  // destino del brillo, con suavizado x4, se quedaría sin memoria de la tarjeta gráfica
+  const TOPE_PIXELES = 3840 * 2160;
+  const resolucion = Math.max(1, Math.min(Math.max(devicePixelRatio, 1) * 2, 2.5,
+                                          Math.sqrt(TOPE_PIXELES / (ancho * alto))));
   render.setPixelRatio(resolucion);
   render.setSize(ancho, alto, false);
   render.outputColorSpace = THREE.SRGBColorSpace;
@@ -211,18 +225,31 @@ async function arrancar(data, capa, empezar) {
   // El ojo da luz hacia fuera (cono y haces), pero por dentro se ve como en la presentación:
   // sin núcleo ni destello pintados encima del iris. Solo un halo suave por detrás del cristal,
   // que el propio cristal tapa, así que se ve alrededor y no dentro.
-  const aura = crearBrillo(THREE, 0x8cc8ff, 1.6);
-  aura.malla.scale.setScalar(4.2);
+  // más grande, más tenue y con caída más lenta: se funde con el fondo y no se ve como un aro
+  // alrededor del cristal
+  const aura = crearBrillo(THREE, 0x8cc8ff, 2.8);
+  aura.malla.scale.setScalar(7);
   aura.malla.position.z = -1.2;
   aura.malla.material.depthTest = true;
   aura.malla.renderOrder = -2;
   ojo.grupo.add(aura.malla);
-  // la luz que despliega hacia abajo: cono y haces, en la posición del ojo (sin su escala)
+  // La luz sale de la pupila (la «retina»), no del cristal: cono y haces tienen la raíz en la
+  // pupila y apuntan hacia donde mira el ojo. Se pintan después del ojo, así que la luz se ve
+  // salir del centro del iris y no asoma por el contorno. Sin la escala del ojo.
   const luz = new THREE.Group();
   const cono = crearCono(THREE);
-  const haces = crearHaces(THREE, 11);
+  const haces = crearHaces(THREE, 18);  // muchos y tenues: una luz, no tiras
   luz.add(cono.cono, haces.grupo);
+  for (const m of [cono.cono, ...haces.haces]) m.renderOrder = 25;
   escena.add(luz);
+  // brillo pequeño dentro de la pupila: de ahí nace la luz; el ojo entero se sigue viendo
+  // luminoso por el halo de detrás
+  const foco = crearBrillo(THREE, 0xd8f2ff, 2.2);
+  escena.add(foco.malla);
+  // la pupila del ojo de la presentación está en (0, 0, 0,44) del globo, que gira con la mirada
+  const globo = ojo.grupo.children[0];
+  const enPupila = new THREE.Vector3(), haciaMirada = new THREE.Vector3();
+  const abajo = new THREE.Vector3(0, -1, 0);  // cono y haces apuntan a -y
 
   // el mar de la presentación (presentacion/agua.js), de principio a fin: rayos de sol muy
   // tenues y burbujas que suben; se ven más al aclararse. No se ve la superficie: estamos en el
@@ -300,27 +327,37 @@ async function arrancar(data, capa, empezar) {
       lienzo.remove();
       return;
     }
-    // aparece (0-0,9 s), se acerca (0,9-1,5 s) y sube alejándose hasta cerca del borde de
-    // arriba (1,4-2,4 s); allí se desvanece poco a poco (1,95-3 s)
+    // aparece (0-0,9 s), se acerca (0,9-1,5 s), sube alejándose (1,4-2,4 s) y sigue subiendo
+    // despacio hasta casi el borde de arriba (2-3 s), mientras se desvanece poco a poco
     const aparece = tramo(t, 0, 0.9), acerca = tramo(t, 0.9, 1.5);
     const sube = tramo(t, 1.4, 2.4);  // sube suave y llega arriba hacia 2,4 s
+    const deriva = tramo(t, 2.0, 3.0);  // y sigue subiendo hasta casi el borde
     const enciende = tramo(t, 1.3, 2.2), abre = tramo(t, 1.45, 2.75), apaga = tramo(t, 2.55, 3.0);
     ojo.grupo.scale.setScalar(0.47 * (0.75 + 0.25 * aparece));  // algo más pequeño
-    // aparece y, ya arriba, se desvanece poco a poco (de 1,95 a 3 s) con su luz; con el
-    // mismo reloj que el movimiento, para que se vea cómo se va apagando
-    lienzo.style.opacity = (tramo(t, 0, 0.35) * (1 - tramo(t, 1.95, 3.0))).toFixed(3);
-    ojo.grupo.position.set(0, 1.75 * sube, 1.1 * acerca - 3.1 * sube);  // visible sobre el título
+    // aparece y se desvanece con su luz de 1,9 a 3 s, con una curva que empieza muy suave: casi
+    // todo el desvanecimiento llega cuando ya está más arriba. Con el mismo reloj que el
+    // movimiento, para que se vea cómo se va apagando
+    const desvanece = tramo(t, 1.9, 3.0);
+    lienzo.style.opacity = (tramo(t, 0, 0.35) * (1 - desvanece * desvanece)).toFixed(3);
+    ojo.grupo.position.set(0, 1.75 * sube + 0.8 * deriva, 1.1 * acerca - 3.1 * sube);
     mirada.copy(alEspectador).lerp(alaPagina, tramo(t, 1.3, 2.3));  // mira hacia la página
     ojo.dilatar(1 + 0.35 * enciende);
     // el halo crece poco a poco con la luz de la página, sin encenderse de golpe
-    aura.uniforms.uI.value = 0.24 * tramo(t, 0.3, 2.4);
-    // la luz hacia abajo: empieza estrecha, recta hacia la página, y se abre a los lados
-    luz.position.copy(ojo.grupo.position);
-    luz.position.z -= 0.05;  // un poco detrás: el cristal tapa la raíz y parece salir del ojo
+    aura.uniforms.uI.value = 0.11 * tramo(t, 0.3, 2.4);
+    // la luz, desde la pupila y en la dirección de la mirada: empieza estrecha y se abre a los
+    // lados (la mirada del cuadro anterior: el giro se suaviza y no se nota el desfase)
+    ojo.grupo.updateMatrixWorld();
+    globo.localToWorld(enPupila.set(0, 0, 0.44));
+    globo.localToWorld(haciaMirada.set(0, 0, 1.44)).sub(enPupila).normalize();
+    luz.position.copy(enPupila);
+    luz.quaternion.setFromUnitVectors(abajo, haciaMirada);
+    foco.malla.position.copy(enPupila);
+    foco.malla.scale.setScalar(0.55 + 0.25 * enciende);
+    foco.uniforms.uI.value = (0.25 * aparece + 0.55 * enciende) * (1 - apaga);
     cono.cono.scale.set(0.15 + 1.25 * abre, 0.35 + 0.65 * enciende, 0.15 + 1.25 * abre);
-    cono.uniforms.uI.value = 0.5 * enciende * (1 - apaga);  // suave: se funde con la página
+    cono.uniforms.uI.value = 0.62 * enciende * (1 - apaga);  // suave: se funde con la página
     cono.uniforms.uT.value = t;
-    haces.uniforms.uI.value = 0.26 * enciende * (1 - apaga);
+    haces.uniforms.uI.value = 0.12 * enciende * (1 - apaga);
     haces.uniforms.uT.value = t * 2;
     for (const h of haces.haces) {
       const { angulo, ancho, largo } = h.userData;

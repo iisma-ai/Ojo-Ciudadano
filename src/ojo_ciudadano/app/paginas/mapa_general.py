@@ -143,7 +143,10 @@ def leyenda_burbujas(vista: str, liquidado: bool, niveles: int) -> str:
             "(orden de magnitud: son fuentes distintas). "
         )
     if niveles == 2:
-        texto += "Las pequeñas son sus contratos más grandes del año. "
+        texto += (
+            "Las pequeñas son sus contratos más grandes del año (en el móvil, se ven al "
+            "pulsar la consejería). "
+        )
     return texto + (
         "Pasa el ratón por una burbuja para ver sus cifras. Pulsa una consejería para ponerla "
         "en el centro con todos sus contratos, y un contrato para ver su ficha."

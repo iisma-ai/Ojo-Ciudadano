@@ -19,7 +19,8 @@ def barras_horizontales(
     figura = go.Figure(
         go.Bar(
             x=[p[1] for p in pares],
-            y=[partir(p[0], 34) for p in pares],
+            # nombres en líneas cortas: en el móvil, si no, se comen la barra o se cortan
+            y=[partir(p[0], 28) for p in pares],
             orientation="h",
             marker={"color": color},
             text=[formato(p[1]) for p in pares],
@@ -29,9 +30,9 @@ def barras_horizontales(
         )
     )
     figura.update_xaxes(visible=False)
-    figura.update_yaxes(type="category")
-    figura = _tema(figura, alto=max(220, 34 * len(pares) + 40))
-    figura.update_layout(margin={"l": 10, "r": 90, "t": 10, "b": 10}, title=nombre or None)
+    figura.update_yaxes(type="category", automargin=True)
+    figura = _tema(figura, alto=max(220, 48 * len(pares) + 40))
+    figura.update_layout(margin={"l": 10, "r": 120, "t": 10, "b": 10}, title=nombre or None)
     return figura
 
 

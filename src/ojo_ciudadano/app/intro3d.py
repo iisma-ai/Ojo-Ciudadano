@@ -3,11 +3,10 @@
 Usa el mismo código que la presentación (`presentacion/ojo3d.js`, bola de cristal con refracción,
 iris de luz y pupila, y `presentacion/agua.js` para el entorno de reflejos y el color del agua)
 con Three.js y la misma iluminación y tono de imagen que la presentación. El ojo es la fuente de
-luz: lleva un núcleo blanco. En 3 s aparece, se acerca un poco y sube alejándose hasta cerca
-del borde de arriba, donde se desvanece poco a poco (así también se ve en el móvil); al
-apartarse, su núcleo se enciende y
-despliega rayos de luz que bajan sobre la página y la aclaran poco a poco, como los rayos del
-fondo, que vienen de arriba.
+luz. En 3 s aparece, se acerca un poco y sube alejándose hasta cerca del borde de arriba, donde
+se desvanece poco a poco (así también se ve en el móvil); al apartarse, se enciende un brillo en
+su pupila y de ahí, no del contorno del cristal, salen los rayos de luz hacia donde mira, sobre
+la página. La página empieza muy oscura y se aclara desde el centro hacia los bordes.
 
 La capa oscura, la luz y el nombre son CSS (`static/intro.html`); este componente pone el lienzo
 3D dentro de esa capa y da la salida a sus animaciones cuando el ojo está listo. Si Three.js no
@@ -122,7 +121,7 @@ function crearCono(THREE) {
           float ang = atan(vP.x, vP.z);
           float rayas = .82 + .18 * sin(ang * 9. + uT * .5) * sin(ang * 4. - uT * .3);
           float a = uI * pow(clamp(abs(dot(vN, vV)), 0., 1.), .7) * pow(1. - a0, 1.6) * rayas
-            * smoothstep(0., .06, a0) * .75;
+            * smoothstep(0., .015, a0) * .75;  // nace ya en la pupila
           gl_FragColor = vec4(vec3(.8, .95, 1.) * a, a);
         }`,
       transparent: true,
@@ -135,13 +134,21 @@ function crearCono(THREE) {
 }
 
 // Haces de luz: los rayos de sol de la presentación (crearRayos en presentacion/agua.js), con la
-// raíz en el ojo. Empiezan todos hacia abajo y se abren poco a poco a los lados, como mucho a
-// 66 grados de la vertical: nunca apuntan hacia arriba.
+// raíz en la pupila. Son cuñas: casi sin anchura en la raíz y abiertas lejos del ojo, para que
+// ningún haz asome por el contorno del cristal. Empiezan juntos en la dirección de la mirada y
+// se abren poco a poco a los lados.
+const VS_CUNA = `varying vec2 vUv;
+  void main(){
+    vUv = uv;
+    vec3 p = position;
+    p.x *= mix(1., .03, uv.y);  // uv.y = 1 en la raíz (la pupila): casi un punto
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.);
+  }`;
 function crearHaces(THREE, n) {
   const grupo = new THREE.Group();
   const comunes = { uT: { value: 0 }, uI: { value: 0 } };
-  const geo = new THREE.PlaneGeometry(1, 1);
-  geo.translate(0, -0.5, 0);  // el borde de arriba, en el ojo
+  const geo = new THREE.PlaneGeometry(1, 1, 1, 16);  // con tramos: la cuña se estrecha suave
+  geo.translate(0, -0.5, 0);  // el borde de arriba, en la pupila
   let semilla = 7;
   const azar = () => { semilla = (semilla * 16807) % 2147483647; return semilla / 2147483647; };
   const haces = [];
@@ -150,7 +157,7 @@ function crearHaces(THREE, n) {
       geo,
       new THREE.ShaderMaterial({
         uniforms: { ...comunes, uS: { value: azar() } },
-        vertexShader: VS,
+        vertexShader: VS_CUNA,
         fragmentShader: `varying vec2 vUv; uniform float uT, uI, uS;
           void main(){
             float borde = pow(sin(3.14159 * vUv.x), 2.);
@@ -217,12 +224,23 @@ async function arrancar(data, capa, empezar) {
   aura.malla.material.depthTest = true;
   aura.malla.renderOrder = -2;
   ojo.grupo.add(aura.malla);
-  // la luz que despliega hacia abajo: cono y haces, en la posición del ojo (sin su escala)
+  // La luz sale de la pupila (la «retina»), no del cristal: cono y haces tienen la raíz en la
+  // pupila y apuntan hacia donde mira el ojo. Se pintan después del ojo, así que la luz se ve
+  // salir del centro del iris y no asoma por el contorno. Sin la escala del ojo.
   const luz = new THREE.Group();
   const cono = crearCono(THREE);
   const haces = crearHaces(THREE, 11);
   luz.add(cono.cono, haces.grupo);
+  for (const m of [cono.cono, ...haces.haces]) m.renderOrder = 25;
   escena.add(luz);
+  // brillo pequeño dentro de la pupila: de ahí nace la luz; el ojo entero se sigue viendo
+  // luminoso por el halo de detrás
+  const foco = crearBrillo(THREE, 0xd8f2ff, 2.2);
+  escena.add(foco.malla);
+  // la pupila del ojo de la presentación está en (0, 0, 0,44) del globo, que gira con la mirada
+  const globo = ojo.grupo.children[0];
+  const enPupila = new THREE.Vector3(), haciaMirada = new THREE.Vector3();
+  const abajo = new THREE.Vector3(0, -1, 0);  // cono y haces apuntan a -y
 
   // el mar de la presentación (presentacion/agua.js), de principio a fin: rayos de sol muy
   // tenues y burbujas que suben; se ven más al aclararse. No se ve la superficie: estamos en el
@@ -314,9 +332,16 @@ async function arrancar(data, capa, empezar) {
     ojo.dilatar(1 + 0.35 * enciende);
     // el halo crece poco a poco con la luz de la página, sin encenderse de golpe
     aura.uniforms.uI.value = 0.24 * tramo(t, 0.3, 2.4);
-    // la luz hacia abajo: empieza estrecha, recta hacia la página, y se abre a los lados
-    luz.position.copy(ojo.grupo.position);
-    luz.position.z -= 0.05;  // un poco detrás: el cristal tapa la raíz y parece salir del ojo
+    // la luz, desde la pupila y en la dirección de la mirada: empieza estrecha y se abre a los
+    // lados (la mirada del cuadro anterior: el giro se suaviza y no se nota el desfase)
+    ojo.grupo.updateMatrixWorld();
+    globo.localToWorld(enPupila.set(0, 0, 0.44));
+    globo.localToWorld(haciaMirada.set(0, 0, 1.44)).sub(enPupila).normalize();
+    luz.position.copy(enPupila);
+    luz.quaternion.setFromUnitVectors(abajo, haciaMirada);
+    foco.malla.position.copy(enPupila);
+    foco.malla.scale.setScalar(0.55 + 0.25 * enciende);
+    foco.uniforms.uI.value = (0.25 * aparece + 0.55 * enciende) * (1 - apaga);
     cono.cono.scale.set(0.15 + 1.25 * abre, 0.35 + 0.65 * enciende, 0.15 + 1.25 * abre);
     cono.uniforms.uI.value = 0.5 * enciende * (1 - apaga);  // suave: se funde con la página
     cono.uniforms.uT.value = t;

@@ -1,7 +1,8 @@
 <!-- Entrada de la web (D-043): 3 s, solo la primera vez en la sesión.
      Mar muy oscuro. El ojo 3D de la presentación (app/intro3d.py), que es la fuente de luz,
-     aparece, se acerca un poco y sube alejándose hasta salir por arriba; al apartarse enciende la
-     luz de su núcleo y despliega rayos que bajan sobre la página mientras el mar se aclara. Esta capa espera quieta hasta que el ojo está listo (clase «en-marcha»);
+     aparece, se acerca un poco y sube alejándose hasta salir por arriba; al apartarse despliega
+     rayos que nacen en su pupila, mientras la página se aclara desde el centro hacia los bordes.
+     Esta capa espera quieta hasta que el ojo está listo (clase «en-marcha»);
      si el 3D no carga, sale el ojo plano de app/ojo_cristal.py (clase «sin3d»). Si nada arranca,
      la capa se quita sola a los 2,5 s.
      Solo se animan opacity y transform (los mueve la tarjeta gráfica, sin repintar) y no
@@ -17,19 +18,20 @@
   0%, 99% { opacity: 1; }
   100% { opacity: 0; visibility: hidden; } }
 
-/* el mar oscuro: se aclara a partir de 1,5 s, cuando el ojo enciende la luz sobre los datos */
-/* El mar oscuro es una cortina el doble de alta que la pantalla: oscura arriba, con un borde
-   largo y difuminado, y transparente abajo. Al subirla, la página se desvela de abajo arriba
-   (solo transform: la mueve la tarjeta gráfica). */
-.oc-intro-mar { position: absolute; left: 0; right: 0; top: 0; height: 220%;
-  will-change: transform;
-  background: linear-gradient(180deg, #01050b 0%, #020b16 22%, #04192b 40%,
-    rgba(4, 25, 43, .82) 47%, rgba(4, 25, 43, .45) 53%, rgba(4, 25, 43, .15) 58%,
-    transparent 63%); }
-.en-marcha .oc-intro-mar { animation: oc-intro-mar 3s cubic-bezier(.45, 0, .3, 1) forwards; }
+/* El mar oscuro: la página empieza casi negra y se aclara desde el centro hacia los bordes. Es
+   un cuadrado que cubre toda la pantalla (160vmax), oscuro salvo un claro diminuto en el centro;
+   al agrandarlo (solo transform: lo mueve la tarjeta gráfica, sin repintar) el claro crece desde
+   el centro y la oscuridad se va hacia los bordes. Al final se desvanece del todo. */
+.oc-intro-mar { position: absolute; left: 50%; top: 50%; width: 160vmax; height: 160vmax;
+  margin: -80vmax 0 0 -80vmax; will-change: transform, opacity;
+  background: radial-gradient(circle closest-side,
+    rgba(2, 11, 22, 0) 0, rgba(2, 11, 22, 0) 1.5%, rgba(2, 11, 22, .6) 4%,
+    rgba(1, 6, 13, .94) 7%, #01050b 14%); }
+.en-marcha .oc-intro-mar { animation: oc-intro-mar 3s cubic-bezier(.5, 0, .75, 1) forwards; }
 @keyframes oc-intro-mar {
-  0%, 42% { transform: translateY(0); }
-  100% { transform: translateY(-64%); } }
+  0%, 20% { transform: scale(1); opacity: 1; }
+  82% { opacity: 1; }
+  100% { transform: scale(16); opacity: 0; } }
 
 /* nieve marina */
 .oc-intro-nieve { position: absolute; inset: -10% 0; will-change: transform, opacity;
@@ -61,7 +63,7 @@
   100% { opacity: 0; transform: scale(1.25); } }
 
 /* luz del núcleo: el ojo, ya arriba, la enciende y baja sobre la página (como los rayos del
-   fondo, que también vienen de arriba) */
+   fondo, que también vienen de arriba); tenue, porque la luz principal sale del centro */
 .oc-intro-haz { position: absolute; inset: 0; will-change: transform, opacity;
   transform-origin: 50% 2%;
   background:
@@ -72,7 +74,7 @@
 .en-marcha .oc-intro-haz { animation: oc-intro-haz 3s cubic-bezier(.3, 0, .2, 1) forwards; }
 @keyframes oc-intro-haz {
   0%, 48% { opacity: 0; transform: scaleY(.25); }
-  76% { opacity: 1; transform: scaleY(1.1); }
+  76% { opacity: .5; transform: scaleY(1.1); }
   100% { opacity: 0; transform: scaleY(1.4); } }
 
 /* lienzo del ojo 3D (lo pone app/intro3d.py) */

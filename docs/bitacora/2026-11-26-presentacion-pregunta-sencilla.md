@@ -40,7 +40,10 @@
 - **Diapositiva 7, pregunta 1** (a petición de Isma): la del licitador único por año se cambia por la de los
   organismos con más importe adjudicado en la Plataforma en 2025 (barras). Orden final: 1) organismos, 2) recursos
   ante el Tribunal (tarta), 3) helicópteros.
-- `presentacion/README.md`: actualizadas las filas de las escenas 4 y 7.
+- **Diapositiva 6, señales y atípicos** (a petición de Isma), en cuatro pasos: 0) solo burbujas, algunas en ámbar,
+  sin texto; 1) «6 señales» con las tres cifras de cada 100; 2) el contrato atípico; 3) resumen con «Señales» a un
+  lado, «Atípicos» al otro y debajo «No son acusaciones». Fuera el título «Señales, no acusaciones».
+- `presentacion/README.md`: actualizadas las filas de las escenas 4, 6 y 7.
 - **Guion de Isma (diapositivas 4 a 7)** reescrito en la conversación con la estructura que pidió: de dónde viene y a
   dónde va el dinero, el volumen de los datos, las señales y los atípicos (Isolation Forest), el asistente
   («no hace falta saber para preguntar») y la vuelta a la alegoría del mar. No se guarda en el repositorio.

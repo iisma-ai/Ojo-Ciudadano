@@ -239,8 +239,9 @@ const DIAPOSITIVAS = [
       ...CONTRATOS.map(([x, y, r, llenado], i) => ({
         tipo: "burbuja", id: `s${i}`, x, y: y + 40, r: r * 0.8, llenado, tono: i % 3 ? "agua" : "ambar", paso: 0,
       })),
-      { tipo: "texto", x: 960, y: 140, texto: "Señales, no acusaciones", tam: 64, clase: "titulo", paso: 0, hasta: 1 },
-      // paso 1: tres cifras grandes, una idea cada una; el fondo se apaga un poco para que se lean
+      // paso 0: solo las burbujas, sin texto
+      // paso 1: «6 señales» y tres cifras grandes, una idea cada una; el fondo se apaga un poco para que se lean
+      { tipo: "texto", x: 960, y: 220, texto: "6 señales", tam: 64, clase: "titulo", paso: 1, hasta: 1 },
       { tipo: "niebla", fuerza: 0.45, paso: 1, hasta: 1 },
       ...[[480, 39, "Una sola oferta"], [960, 31, "Sin anuncio público"], [1440, 17, "Posible fraccionamiento"]].flatMap(([x, valor, texto]) => [
         { tipo: "cifra", x, y: 500, valor, texto: "de cada 100", tam: 34, clase: "resalte", paso: 1, hasta: 1 },
@@ -248,7 +249,12 @@ const DIAPOSITIVAS = [
       ]),
       // paso 2: un contrato que se separa de los de su grupo (buscador de atipicos)
       { tipo: "burbuja", id: "atipico", x: 1700, y: 250, r: 34, llenado: 0.9, etiqueta: "Atípico", tono: "ambar", paso: 2 },
-      { tipo: "foco", de: "atipico", zoom: 1.6, x: 1250, y: 420, paso: 2 },
+      { tipo: "foco", de: "atipico", zoom: 1.6, x: 1250, y: 420, paso: 2, hasta: 2 },
+      // paso 3: resumen; señales a un lado, atípicos al otro y debajo que no son acusaciones
+      { tipo: "niebla", fuerza: 0.45, paso: 3 },
+      { tipo: "texto", x: 560, y: 470, texto: "Señales", tam: 72, clase: "titulo", paso: 3 },
+      { tipo: "texto", x: 1360, y: 470, texto: "Atípicos", tam: 72, clase: "titulo", paso: 3 },
+      { tipo: "texto", x: 960, y: 720, texto: "No son acusaciones", tam: 44, clase: "subtitulo", paso: 3 },
     ],
   },
 

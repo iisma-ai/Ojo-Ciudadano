@@ -24,7 +24,7 @@ se ha gastado, y se unen en consejerías y en la Comunidad de Madrid. Poco texto
 | 9 | Burbujas con las tecnologías | El stack |
 | 10 | Cierre | Democratizar los datos. Gracias |
 
-Estado: adaptada al guion del 24-nov. Para el QR, pon la dirección pública de la web en `DATOS.urlApp` (`diapositivas.js`). Faltan las capturas o vídeos de la aplicación (burbujas de las
+Estado: adaptada al guion del 24-nov. El QR de la escena 8 apunta a `https://ojo-ciudadano.iismael.workers.dev/` (`DATOS.urlApp` en `diapositivas.js`). Faltan las capturas o vídeos de la aplicación (burbujas de las
 escenas 6 y 7), revisar los textos con `revisor-legal` y probarla en el ordenador y el proyector de la demo.
 
 ## Cómo verla

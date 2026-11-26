@@ -46,7 +46,7 @@ const DATOS = {
   subvenciones: 872821, // concesiones de subvenciones (BDNS), de ene-2023 a nov-2026 (base del 24-nov)
   organismos: 132,
   indicadores: 6,
-  urlApp: "https://ojo-ciudadano.pages.dev", // direccion publica de la web para el QR de la escena 8 (vacia: sale un hueco)
+  urlApp: "https://ojo-ciudadano.iismael.workers.dev/", // direccion publica de la web para el QR de la escena 8 (vacia: sale un hueco)
 };
 
 // Muchas burbujas pequeñas para la escena del millon de contratos (siempre las mismas)

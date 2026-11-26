@@ -49,7 +49,7 @@ uv run streamlit run src/ojo_ciudadano/app/main.py   # (cuando exista)
 uv run python -m ojo_ciudadano.modelo.contexto       # contexto de la Comunidad de Madrid (D-024, docs/12-datos-cm.md)
 ```
 
-- **Despliegue (D-056):** la web pública es `https://ojo-ciudadano.pages.dev`. Un push a `main` llega solo a la web en 1–2 min (ordenador fijo con Docker y túnel de Cloudflare). Si regeneras la base, avisa: los datos no pasan por GitHub y hay que cargarlos con `despliegue/cargar_datos.ps1`. Guía y operación en `docs/15-despliegue.md`.
+- **Despliegue (D-056):** la web pública es **`https://ojo-ciudadano.iismael.workers.dev/`** (es la única dirección que se comparte: README, presentación y entrega). Un push a `main` llega solo a la web en 1–2 min (ordenador fijo con Docker y túnel de Cloudflare). Si regeneras la base, avisa: los datos no pasan por GitHub y hay que cargarlos con `despliegue/cargar_datos.ps1`. Guía y operación en `docs/15-despliegue.md`.
 - Ingesta: polars, lxml (Atom de PLACSP), httpx. Base analítica: **DuckDB** en un fichero (`data/ojo_ciudadano.duckdb`). Interfaz: **Streamlit**.
 - Indicadores: **un fichero SQL por indicador** en `sql/indicadores/` (`r01_licitador_unico.sql`…), con test y definición en `docs/04-indicadores-riesgo.md` (D-004). Usa `/nuevo-indicador`.
 - Nueva fuente de datos: usa `/nueva-fuente`.

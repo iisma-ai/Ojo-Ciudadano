@@ -1108,6 +1108,7 @@ Plantilla:
   - La web depende de que el ordenador fijo esté encendido, con sesión iniciada y con internet. Mitigado con reinicio automático de los contenedores, la tarea programada, los ajustes de energía y Windows Update, y AnyDesk.
   - Los datos no pasan por GitHub: si se regenera la base, se copia con `despliegue/cargar_datos.ps1`.
   - Guía y operación en `docs/15-despliegue.md`.
+- **Actualización (26-nov):** la portada quedó publicada en Cloudflare Workers, en `https://ojo-ciudadano.iismael.workers.dev/`, que es la dirección que se comparte (README, QR de la presentación y entrega). `ojo-ciudadano.pages.dev` no llegó a existir.
 
 ## D-057 · Límite de preguntas al modelo de lenguaje: 5 seguidas y 5 minutos de espera por persona, solo desde España
 

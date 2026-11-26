@@ -38,3 +38,4 @@ A petición de Ignacio:
 - Fuera la nota de DataMad y los apartados «En 30 segundos» (queda solo su primer párrafo como introducción), «Probarla en 2 minutos», «Cómo responde a cada criterio», «Indicadores de riesgo, no acusaciones» y «Para quién».
 - Resumidos en un párrafo los apartados de calidad, privacidad y reutilización de los datos, «Qué tiene de nuevo» y «Viabilidad».
 - Como desaparece el apartado de indicadores, la aclaración «son indicadores de riesgo, no acusaciones» pasa a «Qué tiene de nuevo» (regla 4 de `CLAUDE.md`).
+- Segunda ronda: en «Qué hace» se quita la pantalla Inicio, cada pantalla queda en una frase y «Asistente» pasa a llamarse «Asistente de IA». La sección de datos abiertos presenta la tabla con «Las fuentes utilizadas han sido las siguientes». «Qué tiene de nuevo» lleva «(innovación)» en el título. El impacto social habla de la desconfianza que genera no saber a dónde va el dinero.

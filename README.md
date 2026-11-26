@@ -23,21 +23,20 @@ La información sobre el gasto de la Comunidad de Madrid **es pública, pero est
 
 ## Qué hace Ojo Ciudadano
 
-| Pantalla | Qué enseña |
+| Pantalla | Qué hace |
 | --- | --- |
-| **Inicio** | Un buscador único de empresas y organismos, las grandes cifras y las seis señales explicadas como «X de cada 100 contratos donde se pudo comprobar». |
-| **Mapa del dinero** | Dos vistas. **¿A dónde va?**: la Comunidad, sus consejerías y sus contratos como burbujas que se llenan hasta lo gastado, y lo que toca a cada habitante. **¿De dónde viene?**: los ingresos por capítulo, el sistema de financiación y las ayudas de la UE. |
-| **Contratos a revisar** | Contratos ordenados por número de señales, con el motivo de cada una en una frase y el enlace al expediente oficial. |
-| **Contratos atípicos** | Contratos que se alejan de otros parecidos según un modelo de aprendizaje automático no supervisado, con las cifras que los alejan. Es una señal experimental, aparte de los indicadores. |
-| **Red del dinero** | De cada organismo a las empresas y beneficiarios que más reciben, por año, tipo de contrato y procedimiento. |
-| **Ficha de empresa** | Todo lo que ha recibido un NIF: contratos, menores, prórrogas, modificaciones, subvenciones, encargos y registros públicos. |
-| **Ficha de órgano** | Cómo contrata cada consejería u organismo frente a los demás, su presupuesto y sus principales empresas. |
-| **Presupuesto y contexto** | Presupuesto por consejería, series presupuestarias, convenios y plantillas de la Comunidad. |
-| **Asistente** | Preguntas en lenguaje natural («¿qué organismos adjudicaron más importe en 2025?», «¿la Comunidad tiene helicópteros?»). Responde con la consulta usada, los datos y el enlace a cada registro, y busca también en el catálogo de datos abiertos, en los pliegos y en las resoluciones del Tribunal de Contratación. Solo lee los datos y solo responde sobre el gasto público de la Comunidad. |
+| **Mapa del dinero** | Muestra de dónde viene el dinero de la Comunidad y a qué consejerías y contratos va. |
+| **Contratos a revisar** | Lista los contratos con más señales de riesgo y explica cada una en una frase. |
+| **Contratos atípicos** | Señala los contratos que más se alejan de otros parecidos, con un modelo de aprendizaje automático. |
+| **Red del dinero** | Dibuja qué empresas y beneficiarios reciben más de cada organismo. |
+| **Ficha de empresa** | Reúne todo lo que ha recibido una empresa: contratos, subvenciones y encargos. |
+| **Ficha de órgano** | Enseña cómo contrata cada organismo frente a los demás y con qué presupuesto. |
+| **Presupuesto y contexto** | Recoge el presupuesto, los convenios y las plantillas de la Comunidad. |
+| **Asistente de IA** | Responde preguntas en lenguaje natural con los datos, la consulta usada y el enlace oficial. |
 
 ## Datos abiertos de la Comunidad de Madrid
 
-Los datos de la Comunidad son el núcleo del proyecto, no un complemento. Cada tabla guarda su `fuente`, su `url_origen` y su `fecha_descarga`, y la web enlaza cada cifra a su registro oficial.
+Cada tabla guarda su `fuente`, su `url_origen` y su `fecha_descarga`, y la web enlaza cada cifra a su registro oficial. Las fuentes utilizadas han sido las siguientes:
 
 | Fuente de la Comunidad de Madrid | Qué usamos | Dónde se ve |
 | --- | --- | --- |
@@ -52,13 +51,13 @@ Para completar la información de la Comunidad cruzamos además estas fuentes na
 
 **Calidad, privacidad y reutilización.** Los portales no comparten identificadores de órgano, y el NIF es lo único que permite unirlos; lo documentamos en [`docs/02-fuentes-datos.md`](docs/02-fuentes-datos.md). No hay fichas de personas físicas: se seudonimizan y solo se muestran agregadas. Cada dato se reutiliza según las condiciones de su fuente, con cita y fecha. Los datos de subvenciones proceden de la Intervención General de la Administración del Estado, y ninguna administración patrocina el proyecto.
 
-## Qué tiene de nuevo
+## Qué tiene de nuevo (innovación)
 
 Contratos, subvenciones y convenios de la Comunidad se siguen **en una sola ficha por empresa**, unidos por su NIF. Cada señal de riesgo se explica en una frase, como «X de cada 100 contratos donde se pudo comprobar»: son indicadores de riesgo, no acusaciones. El asistente responde en lenguaje natural, enseña la consulta que ha usado y cita el registro oficial. Un modelo no supervisado señala además los contratos atípicos. Y el dinero se ve: cada contrato es una burbuja que se llena hasta lo gastado.
 
 ## Impacto
 
-**Social.** El dinero público se puede seguir sin conocer la jerga de la contratación ni unir ficheros a mano. Cualquiera puede ver qué recibe una empresa o cómo contrata su consejería.
+**Social.** No saber a dónde va nuestro dinero siempre ha sido un problema: esa incertidumbre genera desconfianza en las instituciones. Ojo Ciudadano quiere aportar transparencia y, con ella, confianza: cualquiera puede ver qué recibe una empresa o cómo contrata su consejería, con el enlace al documento oficial.
 
 **Económico.** La competencia en las licitaciones es lo que permite comparar precios. En los procedimientos abiertos donde se pudo comprobar, **39 de cada 100 recibieron una sola oferta**. Saber en qué organismos y mercados ocurre ayuda a la Administración a atraer más empresas, y a las pymes a encontrar mercados donde apenas hay competencia.
 

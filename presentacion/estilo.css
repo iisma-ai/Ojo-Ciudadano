@@ -113,6 +113,8 @@ body.quieto { cursor: none; }
 .p-fuente { font-size: 0.7em; color: rgba(190, 210, 240, 0.6); margin-top: 1.1em; line-height: 1.4; }
 .panel .sub { font-size: 0.72em; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(190, 215, 250, 0.7); margin: 1.2em 0 0.6em; }
 .panel p { font-size: 0.95em; line-height: 1.45; color: rgba(225, 236, 252, 0.9); margin: 0.6em 0; }
+/* frases sueltas en un panel (no en el chat): mas aire entre una y otra */
+.t.panel:not(.chat) .bloque + .bloque p { margin-top: 1.2em; }
 
 .kpis { display: flex; gap: 0.7em; }
 .kpi {

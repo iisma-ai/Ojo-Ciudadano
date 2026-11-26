@@ -252,13 +252,11 @@ const DIAPOSITIVAS = [
       { tipo: "foco", de: "atipico", zoom: 1.6, x: 1250, y: 420, paso: 2, hasta: 2 },
       {
         // x es el borde izquierdo del panel: acaba a la izquierda del atipico (en pantalla, x 1250)
-        tipo: "panel", x: 660, y: 420, ancho: 460, paso: 2, hasta: 2,
-        tam: 26,
+        tipo: "panel", x: 620, y: 420, ancho: 540, paso: 2, hasta: 2,
+        tam: 32,
         bloques: [
-          { senales: [
-            ["Aprende de las cifras", true],
-            ["Destaca lo que se sale de lo habitual", true],
-          ], titulo: "" },
+          { texto: "Aprende de las cifras" },
+          { texto: "Destaca lo que se sale de lo habitual" },
         ],
       },
       // paso 3: resumen; señales a un lado, atípicos al otro y debajo que no son acusaciones

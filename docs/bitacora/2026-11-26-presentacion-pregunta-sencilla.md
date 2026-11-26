@@ -46,7 +46,8 @@
 - **Diapositiva 6, paso del atípico:** panel solo con dos puntos, «Aprende de las cifras» y «Destaca lo que se sale de
   lo habitual», a la izquierda de la burbuja del atípico. La `x` de un panel es su borde izquierdo: el primer intento
   (x 620, ancho 640) llegaba hasta la burbuja. En `escena3d.js`, una lista de señales con `titulo: ""` ya no pinta la
-  cabecera «Señales».
+  cabecera «Señales». Después, a petición de Isma, las dos frases van como texto suelto, sin puntos ni cabecera,
+  a 32 en lugar de 26 y con más espacio entre ellas (regla nueva en `estilo.css`, solo para paneles que no son el chat).
 - `presentacion/README.md`: actualizadas las filas de las escenas 4, 6 y 7.
 - **Guion de Isma (diapositivas 4 a 7)** reescrito en la conversación con la estructura que pidió: de dónde viene y a
   dónde va el dinero, el volumen de los datos, las señales y los atípicos (Isolation Forest), el asistente

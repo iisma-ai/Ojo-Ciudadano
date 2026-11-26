@@ -1262,3 +1262,15 @@ Plantilla:
 - **Alternativas consideradas:** afinar las palabras clave de las preparadas (no garantiza que una pregunta propia llegue al modelo); preguntar a la persona cuál quiere (un paso más en cada pregunta).
 - **Consecuencias:** más consultas al modelo, así que más gasto de saldo de OpenRouter y antes se llega al límite de 5 seguidas (D-057). Las respuestas a preguntas tecleadas ya no salen con la animación de las preparadas, salvo cuando la preparada hace de reserva.
 
+## D-066 · Licencia MIT para el código y la documentación
+
+- **Fecha:** 2026-11-26
+- **Estado:** Aceptada (Ignacio: «añade el fichero license»).
+- **Autor:** Claude (agente), a petición de Ignacio
+- **Contexto:** el repositorio no tenía licencia. En un proyecto de transparencia que pide reutilizar sus datos y su metodología, sin licencia nadie puede reutilizar el código legalmente, y un jurado lo echa en falta.
+- **Decisión:**
+  - Fichero `LICENSE` con licencia MIT para el código y la documentación, a nombre del «Equipo Ojo Ciudadano (DataMad 2026)».
+  - Una nota en el propio fichero aclara que los datos no están cubiertos: son de sus fuentes oficiales y se reutilizan según sus condiciones (`docs/02-fuentes-datos.md`).
+  - Sección «Licencia» en el README y campo `license` en `pyproject.toml`.
+- **Alternativas consideradas:** EUPL-1.2 (la de la Comisión Europea, habitual en software público, pero con copyleft, que complica reutilizar el código en otros proyectos); Apache-2.0 (más larga, sin ventaja clara para un proyecto de este tamaño).
+- **Consecuencias:** cualquiera puede reutilizar y adaptar el código citando la autoría. Si el equipo prefiere otra licencia, basta con cambiar `LICENSE` y esta decisión.

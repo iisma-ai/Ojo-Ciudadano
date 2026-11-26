@@ -15,6 +15,7 @@ tamaños y los colores se calculan aquí, con las mismas escalas que `red.mapa`.
 """
 
 import math
+import urllib.parse
 
 import streamlit as st
 
@@ -578,29 +579,29 @@ DEDO = (
     "31 0-.59.13-.79.33l-.79.8 4.94 4.94c.27.27.65.44 1.06.44h6.79c.75 0 1.33-.55 1.4"
     "4-1.28l.75-5.27c.01-.07.02-.14.02-.2 0-.62-.38-1.16-.91-1.38z"
 )
-PISTA_PULSAR = """
+# El SVG va dentro de un <img>: `st.html` limpia el HTML y borra las etiquetas <svg> sueltas.
+# La animación vive en el propio SVG, que también respeta «reducir movimiento».
+_SVG_PISTA = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
 <style>
-.ocb-pista { display: flex; justify-content: center; padding: 28px 0; opacity: .55; }
-.ocb-pista svg { width: 34px; height: 34px; overflow: visible; }
-.ocb-pista .dedo { transform-origin: 12px 14px; animation: ocb-toque 2.4s ease-in-out infinite; }
-.ocb-pista .onda { fill: none; stroke: #9FCBFF; stroke-width: 1.2; opacity: 0;
-  transform-origin: 10px 6px; animation: ocb-onda 2.4s ease-out infinite; }
-@keyframes ocb-toque { 0%, 55%, 100% { transform: translateY(0) scale(1); }
+.dedo { transform-origin: 12px 14px; animation: toque 2.4s ease-in-out infinite; }
+.onda { fill: none; stroke: #9FCBFF; stroke-width: 1.2; opacity: 0;
+  transform-origin: 10px 6px; animation: onda 2.4s ease-out infinite; }
+@keyframes toque { 0%, 55%, 100% { transform: translateY(0) scale(1); }
   30% { transform: translateY(2px) scale(.94); } }
-@keyframes ocb-onda { 0%, 25% { opacity: 0; transform: scale(.4); }
+@keyframes onda { 0%, 25% { opacity: 0; transform: scale(.4); }
   35% { opacity: .9; } 70%, 100% { opacity: 0; transform: scale(1.6); } }
-@media (prefers-reduced-motion: reduce) {
-  .ocb-pista .dedo, .ocb-pista .onda { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .dedo, .onda { animation: none; } }
 </style>
-<div class="ocb-pista" role="img" aria-label="Pulsa una burbuja del mapa para ver su ficha">
-  <svg viewBox="0 0 24 24" aria-hidden="true">
-    <circle class="onda" cx="10" cy="6" r="4"/>
-    <path class="dedo" fill="#9FB3CC" d="{DEDO}"/>
-  </svg>
-</div>
-"""
+<circle class="onda" cx="10" cy="6" r="4"/>
+<path class="dedo" fill="#9FB3CC" d="{DEDO}"/>
+</svg>"""
 
 
 def pista_pulsar() -> None:
     """Pinta el dedo discreto que invita a pulsar una burbuja del mapa."""
-    st.html(PISTA_PULSAR.replace("{DEDO}", DEDO))
+    svg = urllib.parse.quote(_SVG_PISTA.replace("{DEDO}", DEDO))
+    st.html(
+        '<div style="display:flex;justify-content:center;padding:28px 0;opacity:.55">'
+        f'<img src="data:image/svg+xml,{svg}" width="34" height="34" '
+        'alt="Pulsa una burbuja del mapa para ver su ficha"></div>'
+    )

@@ -17,3 +17,9 @@
 ## Siguiente paso
 
 - Revisarlo en la web local y, si gusta, integrar el PR a `main`.
+
+## Corrección: el dedo no se veía
+
+- `st.html` limpia el HTML con DOMPurify en modo «solo HTML» y borra las etiquetas `<svg>`
+  sueltas; la caja desaparecía pero no salía nada. Ahora el SVG (con su animación dentro) va
+  como `<img src="data:image/svg+xml,...">`, que sí pasa el filtro.

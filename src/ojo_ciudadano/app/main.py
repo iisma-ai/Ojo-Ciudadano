@@ -71,9 +71,9 @@ SECCIONES = {
     "Preguntar": [ASISTENTE],
 }
 PRINCIPALES = [INICIO, DINERO, REVISAR, ASISTENTE]  # los botones de la barra
-# «Explorar» solo lleva lo que no está en la barra. Atípicos no tiene botón arriba: va aquí para
-# que se pueda llegar a ella.
-EXPLORAR = [*SECCIONES["Explorar"], ATIPICOS]
+# «Explorar» solo lleva lo que no está en la barra. Atípicos no tiene botón arriba: va aquí, en
+# segunda posición tras la red del dinero, para que se pueda llegar a ella.
+EXPLORAR = [MAPA, ATIPICOS, CONTEXTO, EMPRESA, ORGANO, AVISO]
 
 
 def intro() -> None:

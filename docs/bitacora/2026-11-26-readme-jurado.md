@@ -30,3 +30,12 @@ Contratos: 1.387.606 en `contrato`, de 131 organismos. Hay 496 tests en verde.
 ## Equipo: dos personas
 
 Ignacio ha confirmado que el equipo son dos personas, Ismael El Harrak El Harraq e Ignacio Vallejo Garach. Donde ponía «4 personas» ahora pone 2, con los nombres completos: README, `LICENSE`, `CLAUDE.md`, `01-vision.md`, `07-riesgos.md`, `decisions.md` (contextos de D-001, D-008, D-009, D-011, la congelación del esquema y D-066) y `08-plan.md`. En el plan, la tabla de responsables numera ahora «líneas» de trabajo y no «personas». Las bitácoras antiguas no se tocan porque son historia. Cuando hablan de «la persona 4», se refieren al número de línea del plan.
+
+## README más breve (rama `docs/readme-breve`, pendiente de que Ignacio diga cuándo se integra)
+
+A petición de Ignacio:
+- Arriba, «Abrir la página web aquí» en grande y, debajo, el enlace.
+- Fuera la nota de DataMad y los apartados «En 30 segundos» (queda solo su primer párrafo como introducción), «Probarla en 2 minutos», «Cómo responde a cada criterio», «Indicadores de riesgo, no acusaciones» y «Para quién».
+- Resumidos en un párrafo los apartados de calidad, privacidad y reutilización de los datos, «Qué tiene de nuevo» y «Viabilidad».
+- Como desaparece el apartado de indicadores, la aclaración «son indicadores de riesgo, no acusaciones» pasa a «Qué tiene de nuevo» (regla 4 de `CLAUDE.md`).
+- Segunda ronda: en «Qué hace» se quita la pantalla Inicio, cada pantalla queda en una frase y «Asistente» pasa a llamarse «Asistente de IA». La sección de datos abiertos presenta la tabla con «Las fuentes utilizadas han sido las siguientes». «Qué tiene de nuevo» lleva «(innovación)» en el título. El impacto social habla de la desconfianza que genera no saber a dónde va el dinero.

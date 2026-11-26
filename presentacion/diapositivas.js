@@ -245,11 +245,6 @@ const DIAPOSITIVAS = [
           ], titulo: "" },
         ],
       },
-      // paso 3: resumen; señales a un lado, atípicos al otro y debajo que no son acusaciones
-      { tipo: "niebla", fuerza: 0.45, paso: 3 },
-      { tipo: "texto", x: 560, y: 470, texto: "Señales", tam: 72, clase: "titulo", paso: 3 },
-      { tipo: "texto", x: 1360, y: 470, texto: "Atípicos", tam: 72, clase: "titulo", paso: 3 },
-      { tipo: "texto", x: 960, y: 720, texto: "No son acusaciones", tam: 44, clase: "subtitulo", paso: 3 },
     ],
   },
 

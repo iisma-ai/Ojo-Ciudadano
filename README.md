@@ -53,7 +53,7 @@ Para completar la información de la Comunidad cruzamos además estas fuentes na
 
 ## Qué tiene de nuevo (innovación)
 
-Hasta ahora, para saber cuánto dinero público recibe una empresa había que buscar en varios portales, descargar ficheros y cruzarlos a mano. Con Ojo Ciudadano basta con escribir su nombre: aparecen juntos sus contratos, sus subvenciones y sus convenios. Además, la plataforma avisa de lo que conviene mirar con más atención, como un contrato al que solo se presentó una empresa, y lo explica con palabras sencillas. Son indicadores de riesgo, no acusaciones. También se le puede preguntar a un asistente de IA como se le preguntaría a una persona («¿qué organismo gastó más en 2025?»), y responde con los datos y el enlace al documento oficial para comprobarlo.
+Hasta ahora, para saber cuánto dinero público recibe una empresa había que buscar en varios portales, descargar ficheros y cruzarlos a mano. Con Ojo Ciudadano basta con escribir su nombre: aparecen juntos sus contratos, sus subvenciones y sus encargos. Además, la plataforma avisa de lo que conviene mirar con más atención, como un contrato al que solo se presentó una empresa, y lo explica con palabras sencillas. Son indicadores de riesgo, no acusaciones. También se le puede preguntar a un asistente de IA como se le preguntaría a una persona («¿qué organismo gastó más en 2025?»), y responde con los datos y el enlace al documento oficial para comprobarlo.
 
 ## Impacto
 

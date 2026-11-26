@@ -42,7 +42,6 @@ pestanas = st.tabs(
         "Personal",
         "Convenios",
         "Registros",
-        "Encargos a medios propios",
         "Recursos ante el Tribunal",
     ]
 )
@@ -236,48 +235,8 @@ with pestanas[4]:
         fuente(actual["url_origen"], actual["fecha_descarga"])
 
 
-# --- Encargos a medios propios (D-028) ---
-with pestanas[5]:
-    st.info(textos.AVISO_ENCARGOS, icon=":material/info:")
-    encargos = df.resumen_encargos(con)
-    if not encargos:
-        st.write(
-            "Los encargos a medios propios no están disponibles todavía en esta versión de la web."
-        )
-    else:
-        anios = st.columns(len(encargos["por_anio"]))
-        for columna, a in zip(anios, encargos["por_anio"], strict=True):
-            columna.metric(
-                str(a["anio"]),
-                textos.millones(a["importe"]),
-                help=f"{textos.numero(a['n_encargos'])} encargos publicados ese año, por "
-                f"{textos.euros(a['importe'], 'con IVA')}.",
-            )
-        for titulo, clave, campo in (
-            ("A qué entidades", "por_medio_propio", "medio_propio"),
-            ("Qué organismos encargan más", "por_organo", "organo"),
-        ):
-            st.markdown(f"**{titulo}**")
-            st.dataframe(
-                [
-                    {
-                        "Entidad" if campo == "medio_propio" else "Organismo": f[campo],
-                        "Encargos": f["n_encargos"],
-                        "Importe (con IVA)": textos.euros(f["importe"], "con IVA"),
-                    }
-                    for f in encargos[clave]
-                ],
-                hide_index=True,
-                width="stretch",
-            )
-        fuente(
-            "https://contratos-publicos.comunidad.madrid/contratos",
-            encargos["fecha_descarga"],
-            "Portal de la Contratación Pública de la Comunidad de Madrid",
-        )
-
 # --- Recursos ante el Tribunal (D-029) ---
-with pestanas[6]:
+with pestanas[5]:
     st.info(textos.AVISO_RECURSOS, icon=":material/info:")
     recursos = df.resumen_recursos(con)
     if not recursos:

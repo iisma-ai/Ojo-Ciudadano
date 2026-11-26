@@ -66,15 +66,17 @@ solos, en bucle y sin sonido, dentro de la burbuja.
 
 ## Versión para el jurado (`jurado.html`)
 
-Tres diapositivas, como piden las bases de DataMad 2026, con más texto: el jurado la lee sola, sin
-quien presente. Mismo motor (`escena3d.js`) y mismos tipos de elemento; el contenido está en
-`diapositivas-jurado.js` y sus estilos en `jurado.css`.
+Para leer sin quien presente, con más texto. Mismo motor (`escena3d.js`) y mismos tipos de
+elemento; el contenido está en `diapositivas-jurado.js`, sus estilos en `jurado.css` y la captura
+de la web en `capturas/`. Cada diapositiva aparece entera de una vez. Las bases piden tres
+diapositivas como máximo; la cuarta (la captura) se añadió a petición de Isma.
 
 | # | Escena | Qué cuenta |
 | --- | --- | --- |
 | 1 | En la roca, sobre el mar, con el ojo | Nombre del proyecto, integrantes y la propuesta: que cualquier ciudadano vea a dónde va su dinero |
-| 2 | Salto al agua; el mar turbio se aclara con la luz del ojo | El problema y los datos: primero los conjuntos del Catálogo de Datos Abiertos de la Comunidad, con enlace, y después las fuentes de contratos y subvenciones |
-| 3 | Más abajo, entre muchas burbujas | Qué hacemos con los datos (unión, seis indicadores, aprendizaje automático), el agente de Ojo Ciudadano, utilidad, impacto y viabilidad, y el QR y los enlaces a la web y al código |
+| 2 | Salto al agua; el ojo ilumina el mar | El problema y los datos a la vez: primero los conjuntos del Catálogo de Datos Abiertos de la Comunidad, con enlace, y después las fuentes de contratos y subvenciones |
+| 3 | Más abajo, entre muchas burbujas | Qué hacemos con los datos (unión, señales de riesgo, aprendizaje automático y el agente, en un solo bloque) y utilidad, impacto y viabilidad |
+| 4 | El ojo nos lleva a ver la web | Captura de la página de inicio, el enlace, el QR y el enlace al código |
 
 Se abre igual que la otra, servida desde la raíz del repositorio:
 `http://127.0.0.1:8600/presentacion/jurado.html`. Los enlaces se pueden pulsar (se abren en otra

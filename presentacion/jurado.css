@@ -38,3 +38,15 @@
 /* Llamada final bajo el QR */
 .qr-texto a { display: block; }
 .qr-texto small { display: block; font-size: 0.62em; letter-spacing: 0.06em; text-transform: none; color: #8fb8ff; margin-top: 0.5em; }
+
+/* Captura de la web en un panel de cristal (diapositiva 4) */
+.t.panel.captura-web { padding: 1.1em 1.1em 1em; }
+.captura-web .p-etiqueta { margin: 0 0 0.7em 0.3em; }
+.captura-web p { margin: 0; }
+.captura-web img { display: block; width: 100%; border-radius: 0.9em; border: 1px solid rgba(170, 210, 255, 0.22);
+  box-shadow: 0 18px 50px rgba(0, 6, 20, 0.6); }
+.captura-web a:hover img { border-color: rgba(143, 184, 255, 0.6); }
+
+/* El motor envuelve cada capsula en un span: si lleva enlace, la capsula es el enlace */
+.chips span:has(> a) { padding: 0; background: none; border: none; }
+.chips span > a { display: inline-block; }

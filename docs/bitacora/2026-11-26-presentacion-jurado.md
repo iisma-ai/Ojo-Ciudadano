@@ -18,6 +18,18 @@
   estilos propios, y un clic sobre un enlace abre su página en lugar de pasar de diapositiva.
 - `presentacion/README.md`: sección de la versión para el jurado.
 
+## Cambios tras verla (a petición de Isma)
+
+- **Diapositiva 2:** fuera el paso turbio con «Públicos. Pero no accesibles.». Del salto se pasa directamente a la
+  escena iluminada, y el problema y los datos aparecen a la vez, con la misma animación de entrada de los paneles.
+- **Diapositiva 3:** todo a la vez y resumido. Las señales, el aprendizaje automático y el agente van en un solo
+  bloque, sin la lista de los seis indicadores; fuera el chat de los helicópteros. Utilidad, impacto y viabilidad
+  **sin decir que la web ya está en marcha** (Isma no quiere divulgarlo todavía): fuera «Ya está en marcha, con
+  datos reales» y lo de que se actualiza sola.
+- **Diapositiva 4, nueva:** el ojo acompaña hasta una captura de la página de inicio de la web pública
+  (`capturas/web-inicio.jpg`, tomada con Chrome el 26-nov), con el enlace, el QR y el enlace al código al lado.
+  Las bases piden tres diapositivas como máximo: se avisó a Isma y se añadió igualmente.
+
 ## Pendiente
 
 - **Verla en el navegador.** Desde esta sesión Chrome no llega al servidor local, así que no se ha comprobado el

@@ -1,13 +1,15 @@
 /* CONTENIDO DE LA PRESENTACION PARA EL JURADO (jurado.html)
  *
- * Tres diapositivas, como piden las bases de DataMad 2026, con mas texto que la de la exposicion
- * (index.html): el jurado la lee solo, sin quien presente. Usa el mismo motor (escena3d.js) y
- * los mismos tipos de elemento; estan explicados al principio de diapositivas.js. Escenario de
- * 1920 x 1080. Cada diapositiva tiene varios pasos (una pulsacion cada uno).
+ * Para leer sin quien presente, con mas texto que la de la exposicion (index.html). Usa el mismo
+ * motor (escena3d.js) y los mismos tipos de elemento, explicados al principio de diapositivas.js.
+ * Escenario de 1920 x 1080. Cada diapositiva aparece entera de una vez (un solo paso). Las bases
+ * piden tres diapositivas como maximo; la cuarta (la captura de la web) la pidio Isma.
  *
  *   1. En la roca, sobre el mar: el ojo, el nombre del proyecto, los integrantes y la propuesta.
- *   2. Salto al agua: el mar se aclara con la luz del ojo; el problema y los datos, con enlaces.
- *   3. Mas abajo: que hacemos con los datos, que conseguimos y el enlace para probarlo.
+ *   2. Salto al agua: el ojo ilumina el mar; el problema y los datos, con enlaces, a la vez.
+ *   3. Mas abajo: que hacemos con los datos (señales, aprendizaje automatico y agente) y
+ *      utilidad, impacto y viabilidad, a la vez.
+ *   4. El ojo nos lleva a ver la web: una captura, el enlace y el QR.
  *
  * Cifras de la base de datos (16-nov-2026; subvenciones, 24-nov) y del README del proyecto.
  */
@@ -62,6 +64,12 @@ const FONDO = (() => {
   return Array.from({ length: 44 }, () => [60 + azar() * 1800, 60 + azar() * 960, 8 + azar() * 20, azar()]);
 })();
 
+// Burbujas alrededor de la captura de la web (diapositiva 4): x, y, r, llenado
+const MARCO_WEB = [
+  [60, 140, 30, 0.6], [330, 90, 22, 0.4], [880, 80, 26, 0.75], [1240, 120, 20, 0.5],
+  [90, 1000, 24, 0.7], [520, 1030, 18, 0.45], [1000, 1010, 26, 0.8], [1860, 980, 30, 0.55], [1880, 330, 22, 0.35],
+];
+
 const DIAPOSITIVAS = [
   // 1. En la roca, sobre el mar: el ojo, el proyecto, los integrantes y la propuesta
   {
@@ -84,22 +92,18 @@ const DIAPOSITIVAS = [
     ],
   },
 
-  // 2. Salto al agua: el mar esta turbio; el ojo lo ilumina y se ven el problema y los datos
+  // 2. Salto al agua: el ojo ilumina el mar y se ven a la vez el problema y los datos
   {
     id: "problema",
     profundidad: 0.45,
     ojo: { x: 960, y: 170, escala: 0.8, mira: { x: 960, y: 620 } },
     elementos: [
-      // paso 0: turbio, no se ve lo que hay
-      { tipo: "niebla", paso: 0, hasta: 0 },
-      { tipo: "texto", x: 960, y: 560, texto: "Públicos. Pero no accesibles.", tam: 76, clase: "titulo", paso: 0, hasta: 0 },
-      // paso 1: el ojo ilumina; aparecen los datos (burbujas) y el problema
-      { tipo: "luz", paso: 1 },
+      { tipo: "luz", paso: 0 },
       ...BURBUJAS_DATOS.map(([x, y, r, llenado, etiqueta], i) => ({
-        tipo: "burbuja", id: `d${i}`, x, y, r, llenado, etiqueta, tono: i % 3 ? "agua" : "azul", paso: 1,
+        tipo: "burbuja", id: `d${i}`, x, y, r, llenado, etiqueta, tono: i % 3 ? "agua" : "azul", paso: 0,
       })),
       {
-        tipo: "panel", clase: "lectura", x: 90, y: 600, ancho: 820, tam: 21, paso: 1,
+        tipo: "panel", clase: "lectura", x: 90, y: 600, ancho: 820, tam: 21, paso: 0,
         etiqueta: "El problema",
         titulo: "El gasto es público, pero no se ve",
         bloques: [
@@ -112,9 +116,9 @@ const DIAPOSITIVAS = [
           ], titulo: "Lo que necesita la ciudadanía" },
         ],
       },
-      // paso 2: los datos que usamos, con sus enlaces; primero el catalogo de datos abiertos
+      // los datos que usamos, con sus enlaces; primero el catalogo de datos abiertos
       {
-        tipo: "panel", clase: "lectura", x: 990, y: 590, ancho: 840, tam: 17, paso: 2,
+        tipo: "panel", clase: "lectura", x: 990, y: 590, ancho: 840, tam: 17, paso: 0,
         etiqueta: "Los datos",
         titulo: "Catálogo de Datos Abiertos de la Comunidad de Madrid",
         bloques: [
@@ -124,85 +128,66 @@ const DIAPOSITIVAS = [
           { texto: "<b>Contratos y subvenciones, registro a registro</b> (el catálogo los publica solo agregados):" },
           { chips: FUENTES_REGISTRO.map(([nombre, url]) => enlace(url, nombre)) },
         ],
-        fuente: "1.354.441 contratos de enero de 2023 a septiembre de 2026 y 872.821 concesiones de subvenciones. Descargas del 16 al 24 de noviembre de 2026; cada cifra de la web enlaza a su registro oficial.",
+        fuente: "1.354.441 contratos de enero de 2023 a septiembre de 2026 y 872.821 concesiones de subvenciones. Descargas del 16 al 24 de noviembre de 2026; cada cifra enlaza a su registro oficial.",
       },
     ],
   },
 
-  // 3. Mas abajo: que hacemos con los datos, que conseguimos y el enlace para probarlo
+  // 3. Mas abajo: que hacemos con los datos y para que sirve, todo a la vez
   {
     id: "resultados",
     profundidad: 0.8,
-    ojo: { x: 1700, y: 150, escala: 0.7, mira: { x: 900, y: 560 } },
+    ojo: { x: 960, y: 120, escala: 0.6, mira: { x: 960, y: 600 } },
     elementos: [
       ...FONDO.map(([x, y, r, llenado], i) => ({
         tipo: "burbuja", id: `f${i}`, x, y, r, llenado, tono: i % 5 === 0 ? "ambar" : i % 3 ? "agua" : "azul", paso: 0,
       })),
-      // paso 0: los datos unidos y las señales, con el modelo de aprendizaje automatico
       {
-        tipo: "panel", clase: "lectura", x: 90, y: 560, ancho: 820, tam: 19, paso: 0, hasta: 0,
-        etiqueta: "Los resultados · 1",
-        titulo: "Unimos, limpiamos y relacionamos",
+        tipo: "panel", clase: "lectura", x: 90, y: 590, ancho: 860, tam: 20, paso: 0,
+        etiqueta: "Los resultados",
+        titulo: "Qué hacemos con los datos",
         bloques: [
           { kpis: [["1.354.441", "contratos"], ["872.821", "subvenciones"], ["132", "organismos"]] },
-          { texto: "Juntamos las licitaciones de la Plataforma de Contratación, las del portal regional y los contratos menores; quitamos duplicados, normalizamos los NIF y unimos a cada organismo con sus empresas, sus subvenciones, su presupuesto y los registros del catálogo." },
-          { texto: "Así se puede seguir el dinero en un <b>mapa</b> (de dónde viene y a dónde va), en la <b>red del dinero</b> de cada organismo y en la <b>ficha</b> de cada empresa y cada órgano." },
+          { texto: "Unimos las licitaciones de la Plataforma de Contratación, las del portal regional y los contratos menores; quitamos duplicados, normalizamos los NIF y relacionamos a cada organismo con sus empresas, sus subvenciones, su presupuesto y los registros del catálogo." },
+          { senales: [
+            ["Señales de riesgo", true, "Seis indicadores con metodología abierta comparan cada contrato con otros parecidos y señalan dónde mirar primero."],
+            ["Aprendizaje automático", true, "Un modelo no supervisado (Isolation Forest) destaca los contratos más atípicos frente a sus pares."],
+            ["El agente de Ojo Ciudadano", true, "Responde en lenguaje natural, consulta los datos en modo de solo lectura y cita la fuente oficial de cada cifra."],
+          ], titulo: "Del dato a la respuesta" },
+          { texto: "<b>No son acusaciones:</b> indican dónde mirar, siempre con el enlace al expediente oficial." },
         ],
         fuente: "Contratos de enero de 2023 a septiembre de 2026. Subvenciones de enero de 2023 a noviembre de 2026 (BDNS).",
       },
       {
-        tipo: "panel", clase: "lectura", x: 990, y: 600, ancho: 840, tam: 19, paso: 0, hasta: 0,
-        etiqueta: "Los resultados · 2",
-        titulo: "Señales de riesgo y aprendizaje automático",
+        tipo: "panel", clase: "lectura", x: 1030, y: 590, ancho: 800, tam: 20, paso: 0,
+        etiqueta: "Para qué sirve",
+        titulo: "Utilidad, impacto y viabilidad",
         bloques: [
-          { senales: [
-            ["Licitador único", true], ["Sin publicidad o por emergencia", true], ["Posible fraccionamiento", true],
-            ["Concentración de proveedores", true], ["Sobrecostes por modificaciones", true], ["Bajas anormales o nulas", true],
-          ], titulo: "Seis indicadores, con SQL abierto" },
-          { texto: "Cada contrato se compara con otros del mismo tipo, siguiendo la guía de <i>red flags</i> de la Open Contracting Partnership. Además, un modelo de <b>aprendizaje automático no supervisado</b> (Isolation Forest) marca el 1 % de contratos más atípicos frente a sus pares." },
-          { texto: "<b>No son acusaciones:</b> indican dónde mirar primero, y cada alerta enlaza al expediente oficial." },
-        ],
-      },
-      // paso 1: el agente de Ojo Ciudadano responde una pregunta de alguien que no sabe del tema
-      {
-        // cifras de la busqueda por palabras en los titulos (asistente/texto.py, «helicoptero», base del 16-nov)
-        tipo: "chat", x: 90, y: 560, ancho: 860, paso: 1, hasta: 1,
-        pregunta: "Oye, ¿es verdad que la Comunidad de Madrid tiene helicópteros?",
-        respuesta: [
-          { texto: "Sí. Hay 12 contratos que hablan de helicópteros: los usan los servicios de emergencia para rescates, para apagar incendios y para la asistencia sanitaria del SUMMA 112." },
-          { kpis: [["52,8 M€", "4 licitaciones · sin IVA"], ["2,6 M€", "8 contratos · con IVA"]] },
-          { texto: "Las dos cifras no se suman: una va sin IVA y la otra con IVA." },
-          { chips: ["Plataforma de Contratación del Sector Público · 16-nov-2026", "Portal de la Contratación Pública de la Comunidad de Madrid · 16-nov-2026"] },
-        ],
-      },
-      {
-        tipo: "panel", clase: "lectura", x: 1030, y: 560, ancho: 800, tam: 20, paso: 1, hasta: 1,
-        etiqueta: "Los resultados · 3",
-        titulo: "El agente de Ojo Ciudadano",
-        bloques: [
-          { texto: "Responde en lenguaje natural sobre el gasto público de la Comunidad. Convierte la pregunta en consultas SQL de <b>solo lectura</b> sobre nuestra base, busca en el catálogo de datos abiertos y lee los pliegos y las resoluciones del Tribunal de Contratación." },
-          { senales: [
-            ["Cada cifra con su fuente oficial y su fecha", true],
-            ["Enseña cómo ha llegado a la respuesta", true],
-            ["Solo lee los datos y solo habla del gasto público", true],
-          ], titulo: "" },
-        ],
-      },
-      // paso 2: utilidad, impacto y viabilidad, y la invitacion a probarlo
-      {
-        tipo: "panel", clase: "lectura", x: 90, y: 560, ancho: 980, tam: 19, paso: 2,
-        etiqueta: "Utilidad, impacto y viabilidad",
-        titulo: "Ya está en marcha, con datos reales",
-        bloques: [
-          { texto: "<b>Utilidad.</b> Periodistas de datos, ONG, órganos de control como la Cámara de Cuentas, la propia Administración, las empresas y cualquier ciudadano ven en minutos lo que antes exigía días de descargas y cruces." },
+          { texto: "<b>Utilidad.</b> Periodistas de datos, ONG, órganos de control como la Cámara de Cuentas, la propia Administración, las empresas y cualquier ciudadano ven en minutos lo que hoy exige días de descargas y cruces." },
           { texto: "<b>Impacto.</b> Más control ciudadano del gasto, con metodología abierta: señala dónde hay más riesgo y menos transparencia, sin acusar a nadie, y siempre con el enlace al documento oficial." },
-          { texto: "<b>Viabilidad.</b> Solo usa datos públicos y reutilizables, el código es abierto (licencia MIT) y la web se actualiza sola. Funciona en un ordenador con Docker detrás de la red de Cloudflare, con un coste bajo. La Plataforma de Contratación reúne también a otras administraciones, así que el método se puede llevar a ellas." },
-          { chips: [enlace(WEB, `Web: ${sinProtocolo(WEB)}`), enlace(REPOSITORIO, `Código: ${sinProtocolo(REPOSITORIO)}`)] },
+          { texto: "<b>Viabilidad.</b> Solo usa datos públicos y reutilizables, y el código es abierto (licencia MIT). Se despliega con pocos recursos: un servidor con Docker y una red de distribución gratuita. Como la Plataforma de Contratación reúne también a otras administraciones, el método se puede extender a ellas." },
         ],
       },
+    ],
+  },
+
+  // 4. El ojo nos acompaña a ver la web: una captura, el enlace y el QR
+  {
+    id: "web",
+    profundidad: 0.55,
+    ojo: { x: 1560, y: 130, escala: 0.7, mira: { x: 640, y: 560 } },
+    elementos: [
+      ...MARCO_WEB.map(([x, y, r, llenado], i) => ({
+        tipo: "burbuja", id: `w${i}`, x, y, r, llenado, tono: i % 2 ? "agua" : "azul", paso: 0,
+      })),
       {
-        tipo: "qr", x: 1260, y: 540, ancho: 460, url: WEB, paso: 2,
-        texto: `${enlace(WEB, "Pruébalo tú")}<small>${sinProtocolo(WEB)} · sin instalar nada</small>`,
+        tipo: "panel", clase: "captura-web", x: 70, y: 560, ancho: 1180, tam: 20, paso: 0,
+        etiqueta: "Así se ve Ojo Ciudadano",
+        bloques: [{ texto: enlace(WEB, '<img src="capturas/web-inicio.jpg" alt="Página de inicio de Ojo Ciudadano">') }],
+      },
+      {
+        tipo: "qr", x: 1350, y: 580, ancho: 460, url: WEB, paso: 0,
+        texto: `${enlace(WEB, "Pruébalo tú")}<small>${enlace(WEB, sinProtocolo(WEB))}</small><small>${enlace(REPOSITORIO, `Código: ${sinProtocolo(REPOSITORIO)}`)}</small>`,
       },
     ],
   },

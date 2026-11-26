@@ -139,8 +139,8 @@ const DIAPOSITIVAS = [
     elementos: [
       { tipo: "niebla", paso: 0 },
       // paso 2: la frase baja un poco y se encoge para dejar sitio a la pregunta, que sale justo encima
-      { tipo: "texto", x: 960, y: 540, texto: "Públicos. Pero no accesibles.", tam: 76, clase: "titulo", paso: 1, luego: { paso: 2, dy: 50, escala: 0.8 } },
-      { tipo: "texto", x: 960, y: 492, texto: "¿A dónde va el dinero?", tam: 76, clase: "titulo", paso: 2 },
+      { tipo: "texto", x: 960, y: 540, texto: "Públicos. Pero no accesibles.", tam: 76, clase: "titulo", paso: 1, luego: { paso: 2, dy: 70, escala: 0.78 } },
+      { tipo: "texto", x: 960, y: 478, texto: "¿A dónde va el dinero?", tam: 124, clase: "titulo impacto", paso: 2 },
     ],
   },
 

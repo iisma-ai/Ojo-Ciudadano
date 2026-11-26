@@ -19,7 +19,7 @@
   <a href="https://ojo-ciudadano.iismael.workers.dev/presentacion/"><strong>Presentación de la exposición</strong></a>
 </p>
 <p align="center">
-  Ignacio Vallejo Garach · Ismael El Harrak El Harraq
+  Ignacio Vallejo Garach · Ismael El Harrak
 </p>
 <p align="center">
   <a href="https://github.com/iisma-ai/Ojo-Ciudadano/actions/workflows/tests.yml"><img src="https://github.com/iisma-ai/Ojo-Ciudadano/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
@@ -143,4 +143,4 @@ El código y la documentación se publican con licencia [MIT](LICENSE). Los dato
 Dos personas, para DataMad 2026:
 
 - **Ignacio Vallejo Garach**: subvenciones, indicadores de concentración y bajas, puntuación, interfaz y asistente.
-- **Ismael El Harrak El Harraq**: ingesta de contratos, motor de indicadores, detección de anomalías, despliegue y presentación.
+- **Ismael El Harrak**: ingesta de contratos, motor de indicadores, detección de anomalías, despliegue y presentación.

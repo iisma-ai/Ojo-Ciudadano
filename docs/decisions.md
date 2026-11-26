@@ -288,7 +288,7 @@ Plantilla:
   - Privacidad: solo NIF de persona jurídica en los registros; en convenios, solo firmantes con forma de entidad (D-007).
   - Fuera de la ampliación (decisión explícita): datos de otras administraciones (ayuntamientos), cualquier dato con identidad de personas y lo listado en [12-datos-cm.md](12-datos-cm.md).
 - **Alternativas consideradas:** Más fuentes estatales o europeas (TED repite PLACSP y no son de la Comunidad). Parsear los 103 Excel de planes de medios (mucho esfuerzo, poco valor). Guardar las series en una tabla por conjunto de datos (más tablas que mantener; la tabla larga `serie_cm` basta).
-- **Consecuencias:** Nuevo [12-datos-cm.md](12-datos-cm.md). Pantalla «Presupuesto y contexto», bloque de presupuesto en la ficha de órgano, registros en la ficha de empresa y tablas nuevas en el asistente. Pie de la interfaz con las dos fuentes nuevas. [02-fuentes-datos.md](02-fuentes-datos.md) y el plan actualizados. **Todo el equipo debe bajar los datos antes de seguir** ([LO-PRIMERO.md](LO-PRIMERO.md)).
+- **Consecuencias:** Nuevo [12-datos-cm.md](12-datos-cm.md). Pantalla «Presupuesto y contexto», bloque de presupuesto en la ficha de órgano, registros en la ficha de empresa y tablas nuevas en el asistente. Pie de la interfaz con las dos fuentes nuevas. [02-fuentes-datos.md](02-fuentes-datos.md) y el plan actualizados. **Todo el equipo debe bajar los datos antes de seguir** ([12-datos-cm.md](12-datos-cm.md)).
 
 ## D-025 · Buscadores con autocompletado y más filtros en las pantallas de señales
 - **Fecha:** 2026-11-23
@@ -1274,3 +1274,17 @@ Plantilla:
   - Sección «Licencia» en el README y campo `license` en `pyproject.toml`.
 - **Alternativas consideradas:** EUPL-1.2 (la de la Comisión Europea, habitual en software público, pero con copyleft, que complica reutilizar el código en otros proyectos); Apache-2.0 (más larga, sin ventaja clara para un proyecto de este tamaño).
 - **Consecuencias:** cualquiera puede reutilizar y adaptar el código citando la autoría. Si el equipo prefiere otra licencia, basta con cambiar `LICENSE` y esta decisión.
+
+## D-067 · README orientado a los criterios del jurado y tests en GitHub Actions
+
+- **Fecha:** 2026-11-26
+- **Estado:** Aceptada (Ignacio: «incluye todo lo que me has escrito en el readme»).
+- **Autor:** Claude (agente), a petición de Ignacio
+- **Contexto:** el jurado tiene unos 5 minutos para deliberar, y en ese tiempo también abre la web. Hasta ahora el README describía el proyecto, pero no dejaba ver a simple vista cómo responde a cada criterio de DataMad (datos abiertos de la Comunidad, originalidad, impacto, viabilidad, reproducibilidad y presentación).
+- **Decisión:**
+  - El README empieza con «En 30 segundos», «Probarla en 2 minutos» y una tabla «Cómo responde a cada criterio» que enlaza a sus secciones: datos abiertos de la Comunidad con enlaces, qué tiene de nuevo, impacto, viabilidad, reproducibilidad y presentación.
+  - Las cifras de las señales son las de la base del 24-nov y se calculan igual que en la web («de cada 100 contratos donde se pudo comprobar»). No se dan importes agregados para no mezclar bases con y sin IVA.
+  - Se añade `.github/workflows/tests.yml` (`uv sync --locked`, `ruff check` y `pytest`) y su insignia en el README, para demostrar la reproducibilidad sin instalar nada.
+  - Se borra `docs/LO-PRIMERO.md` y su sección de `CLAUDE.md`. Era una tarea interna del 23-nov que ya está cumplida en el despliegue, y para un lector externo daba imagen de proyecto a medias.
+- **Alternativas consideradas:** dejar el README como estaba y explicar los criterios solo en la presentación (el jurado puede leer el README sin ver la presentación); añadir código nuevo a la web (descartado: desde el 25-nov no se añaden funciones).
+- **Consecuencias:** ningún cambio en la aplicación ni en los datos. Si el workflow falla en GitHub, la insignia sale en rojo: hay que mirarlo nada más subirlo.

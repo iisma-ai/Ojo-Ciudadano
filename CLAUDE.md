@@ -4,10 +4,6 @@ Plataforma de transparencia del gasto público de la Comunidad de Madrid para **
 
 **Entrega: 26 de noviembre de 2026.** Equipo de 4 personas. Cada día cuenta: prioriza lo que está en el plan.
 
-## Lo primero hoy (23-nov-2026)
-
-**Antes de cualquier otra tarea, lee y haz [`docs/LO-PRIMERO.md`](docs/LO-PRIMERO.md)**: hay que bajar y cargar los datos nuevos de la Comunidad de Madrid (`uv run python -m ojo_ciudadano.modelo.contexto`) y confirmarlo en el contador de ese fichero. Cuando confirmen dos personas, ese fichero y esta sección se borran.
-
 ## Lo que debes hacer SIEMPRE
 
 0. **Sincroniza antes de nada.** Somos 4 personas (y sus agentes) trabajando a la vez: lo que tienes en local puede estar viejo. Al empezar y antes de cada tarea nueva, trae los cambios del remoto y mira qué han hecho los demás (ver «Trabajo en equipo con git»).

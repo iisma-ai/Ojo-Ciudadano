@@ -64,13 +64,10 @@ with pestanas[0]:
         st.caption(
             "Gasto reconocido (obligaciones reconocidas) por consejería, presupuestos liquidados."
         )
-        st.plotly_chart(
-            gc.barras_horizontales(
-                [f["consejeria"] for f in filas],
-                [f["obligaciones"] or 0 for f in filas],
-            ),
-            config=gc.GRAFICO_CONFIG,
-            width="stretch",
+        gc.pintar_barras(
+            "gasto_consejerias",
+            [f["consejeria"] for f in filas],
+            [f["obligaciones"] or 0 for f in filas],
         )
         fuente(filas[0]["url_origen"], filas[0]["fecha_descarga"])
         with st.expander("Ver la tabla con contratos y subvenciones de cada consejería"):
@@ -113,13 +110,10 @@ with pestanas[1]:
         ingresos = dc.ingresos_por_capitulo(con, gi[-1]["anio"])
         if ingresos:
             st.subheader(f"De dónde vienen los ingresos presupuestados en {gi[-1]['anio']}")
-            st.plotly_chart(
-                gc.barras_horizontales(
-                    [i["capitulo"].capitalize() for i in ingresos],
-                    [i["importe"] for i in ingresos],
-                ),
-                config=gc.GRAFICO_CONFIG,
-                width="stretch",
+            gc.pintar_barras(
+                "ingresos",
+                [i["capitulo"].capitalize() for i in ingresos],
+                [i["importe"] for i in ingresos],
             )
             fuente(ingresos[0]["url_origen"], ingresos[0]["fecha_descarga"])
 
@@ -137,28 +131,22 @@ with pestanas[2]:
                 else "personal en estas áreas."
             )
         )
-        st.plotly_chart(
-            gc.barras_horizontales(
-                [a["concepto"].replace("Personal al servicio de ", "") for a in areas],
-                [a["personas"] for a in areas],
-                formato=lambda v: textos.numero(v),
-            ),
-            config=gc.GRAFICO_CONFIG,
-            width="stretch",
+        gc.pintar_barras(
+            "personal",
+            [a["concepto"].replace("Personal al servicio de ", "") for a in areas],
+            [a["personas"] for a in areas],
+            formato=lambda v: textos.numero(v),
         )
         fuente(personal[0]["url_origen"], personal[0]["fecha_descarga"])
     plantilla = dc.plantilla(con)
     if plantilla:
         st.subheader("Puestos de la relación de puestos de trabajo (funcionarios)")
         st.caption("Solo recuentos por organismo; no hay datos de personas.")
-        st.plotly_chart(
-            gc.barras_horizontales(
-                [p["organismo"].capitalize() for p in plantilla[:15]],
-                [p["n_puestos"] for p in plantilla[:15]],
-                formato=lambda v: textos.numero(v),
-            ),
-            config=gc.GRAFICO_CONFIG,
-            width="stretch",
+        gc.pintar_barras(
+            "plantilla",
+            [p["organismo"].capitalize() for p in plantilla[:15]],
+            [p["n_puestos"] for p in plantilla[:15]],
+            formato=lambda v: textos.numero(v),
         )
         fuente(plantilla[0]["url_origen"], plantilla[0]["fecha_descarga"])
 

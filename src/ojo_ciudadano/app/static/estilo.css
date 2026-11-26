@@ -648,3 +648,17 @@ div[class*="st-key-cajasenal_"][class*="st-key-cajasenal_"] {
   [data-testid="stExpanderDetails"] [data-testid="stPlotlyChart"],
   [class*="st-key-grafico-atipico-"] { animation: none; }
 }
+
+/* Cierra el `@media (max-width: 640px)` que se abre en el selector «A dónde va / De dónde
+   viene» y nunca se cerró: todo lo de en medio solo se aplica en el móvil. Se cierra aquí, al
+   final, para no cambiar cómo se ve hoy en el ordenador. */
+}
+
+/* Gráficas de barras con dos versiones (graficos_contexto.pintar_barras): la de siempre en el
+   ordenador y otra con nombres más cortos en el móvil. Solo se ve una. */
+@media (min-width: 640px) {
+  [class*="st-key-oc_movil_"] { display: none !important; }
+}
+@media (max-width: 639.98px) {
+  [class*="st-key-oc_escritorio_"] { display: none !important; }
+}

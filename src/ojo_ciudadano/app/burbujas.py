@@ -23,7 +23,7 @@ from ojo_ciudadano.app import red
 CSS = """
 .ocb-mapa { position: relative; width: 100%; font-family: Outfit, sans-serif; }
 .ocb-mapa canvas { display: block; width: 100%; height: 100%;
-  -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+  -webkit-tap-highlight-color: transparent; }
 .ocb-tip { position: absolute; pointer-events: none; z-index: 5; max-width: 300px;
   padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.45; color: #E7ECF3;
   background: rgba(8, 30, 50, 0.94); border: 1px solid rgba(170, 225, 255, 0.22);
@@ -34,15 +34,13 @@ CSS = """
 
 JS = r"""
 const TAU = Math.PI * 2;
-const MOVIL = 640; // por debajo de este ancho, la forma de móvil
-const POR_PAGINA = 6; // burbujas por vista en el móvil
-const MAS = '__ver_mas';
-// Pantalla táctil (móvil, tableta): ni «pasar por encima» ni aro de la burbuja tocada. Se mira
-// la pantalla y el último toque, que vale para todos los mapas (el de la consejería abierta es
-// otro mapa nuevo y no ha visto el toque).
-const pantallaTactil = () =>
-  matchMedia('(hover: none)').matches || matchMedia('(pointer: coarse)').matches;
-const tactil = () => window.__ocTactil ?? pantallaTactil();
+
+// Pantalla pequeña (móvil): forma propia, más abajo. Se mira la pantalla, no el hueco del mapa,
+// para que en un portátil se vea siempre el mapa de siempre.
+const esMovil = () => window.innerWidth < 640;
+// Pantalla táctil: sin «pasar por encima» ni aro de la burbuja tocada (el iPhone simula un ratón
+// parado donde se toca y la burbuja se quedaba marcada).
+const tactil = () => matchMedia('(hover: none)').matches || matchMedia('(pointer: coarse)').matches;
 
 function mezcla(hex, otro, t) {
   const a = parseInt(hex.slice(1), 16), b = parseInt(otro.slice(1), 16);
@@ -73,10 +71,9 @@ function crear(raiz) {
   function ajustar() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     s.ancho = caja.clientWidth;
-    s.movil = s.ancho > 0 && s.ancho < MOVIL;
+    s.movil = esMovil();
     if (s.datos) {
-      // en el móvil el alto sale del ancho; en pantalla grande, el que pide Python
-      const alto = s.movil ? anilloMovil().alto : s.datos.alto;
+      const alto = s.movil ? geomMovil().alto : s.datos.alto;
       if (caja.style.height !== `${alto}px`) caja.style.height = `${alto}px`;
     }
     s.alto = caja.clientHeight;
@@ -87,46 +84,54 @@ function crear(raiz) {
     if (quieto()) dibujar(performance.now());
   }
 
-  // Móvil: el centro y sus burbujas directas en un óvalo, de POR_PAGINA en POR_PAGINA. El
-  // resto se ve pulsando «Ver más»; lo que cuelga de cada una, pulsándola.
-  function anilloMovil() {
-    const rx = Math.max(s.ancho / 2 - 66, 80);
-    const ry = Math.max(rx * 1.55, 190);
-    const cy = ry + 66;
+  // ---- Móvil: el centro y solo sus burbujas directas (las consejerías), todas, en un óvalo alto
+  // y repartidas a la misma distancia. Lo que cuelga de cada una se ve al pulsarla.
+  function directos() {
+    const { nodos: ns, enlaces } = s.datos;
+    const centro = ns.find((n) => n.centro) || ns[0];
+    const ids = new Set(enlaces.filter((e) => e[0] === centro.id).map((e) => e[1]));
+    return [centro, ns.filter((n) => ids.has(n.id))];
+  }
+
+  const perimetro = (a, b) => Math.PI * (3 * (a + b) - Math.sqrt((3 * a + b) * (a + 3 * b)));
+
+  function geomMovil() {
+    const n = directos()[1].length;
+    const rx = Math.max(s.ancho / 2 - 62, 80);
+    let ry = rx * 1.3;
+    while (perimetro(rx, ry) < n * 112 && ry < 3000) ry += 10;
+    const cy = ry + 52;
     return { rx, ry, cy, alto: Math.round(cy + ry + 112) };
   }
 
   function colocarMovil() {
-    const { nodos: ns, enlaces } = s.datos;
-    const centro = ns.find((n) => n.centro) || ns[0];
-    const directos = new Set(enlaces.filter((e) => e[0] === centro.id).map((e) => e[1]));
-    const hijos = ns.filter((n) => directos.has(n.id)).sort((a, b) => b.r - a.r);
-    const paginas = Math.max(1, Math.ceil(hijos.length / POR_PAGINA));
-    s.pag = (s.pag || 0) % paginas;
-    s.paginas = paginas;
-    const lista = hijos.slice(s.pag * POR_PAGINA, (s.pag + 1) * POR_PAGINA);
-    if (paginas > 1) {
-      const quedan = hijos.length - (s.pag + 1) * POR_PAGINA;
-      lista.push({
-        id: MAS, mas: true, r: 0, color: '#3D8BFD', llenado: null, centro: false, grupo: 'ent',
-        lineas: quedan > 0 ? [`Ver ${quedan} más`] : ['Volver a', 'las primeras'], titulo: [],
-      });
-    }
-    // tamaños legibles en el móvil: los hijos entre 13 y 34 px, en el mismo orden que arriba
-    const rs = lista.filter((n) => !n.mas).map((n) => n.r);
-    const rmin = Math.min(...rs), rmax = Math.max(...rs);
-    const radio = (n) => n.mas ? 22 : rmax > rmin ? 13 + (21 * (n.r - rmin)) / (rmax - rmin) : 26;
-    const { rx, ry, cy } = anilloMovil();
+    const [centro, hijos] = directos();
+    const { rx, ry, cy } = geomMovil();
     const cx = s.ancho / 2;
+    // puntos del óvalo desde arriba, en el sentido del reloj, y la distancia recorrida
+    const M = 720, pts = [], acum = [0];
+    for (let i = 0; i <= M; i++) {
+      const t = -Math.PI / 2 + (i * TAU) / M;
+      pts.push([cx + rx * Math.cos(t), cy + ry * Math.sin(t)]);
+      if (!i) continue;
+      const [a, b] = [pts[i - 1], pts[i]];
+      acum.push(acum[i - 1] + Math.hypot(b[0] - a[0], b[1] - a[1]));
+    }
+    const total = acum[M];
+    const rs = hijos.map((n) => n.r);
+    const rmin = Math.min(...rs), rmax = Math.max(...rs);
+    const radio = (r) => (rmax > rmin ? 13 + (21 * (r - rmin)) / (rmax - rmin) : 24);
     const previos = new Map(s.nodos.map((n) => [n.id, n]));
     const zoom = (id) => previos.get(id)?.zoom ?? 1;
-    s.k = 0.62;
+    s.k = 0.6;
     s.nodos = [{ ...centro, px: cx, py: cy, pr: 44, fase: 0, zoom: zoom(centro.id) }];
-    lista.forEach((n, i) => {
-      const ang = -Math.PI / 2 + (i * TAU) / lista.length;
+    let j = 0;
+    hijos.forEach((n, i) => {
+      const objetivo = (total * i) / hijos.length;
+      while (j < M && acum[j] < objetivo) j++;
       s.nodos.push({
-        ...n, px: cx + rx * Math.cos(ang), py: cy + ry * Math.sin(ang), pr: radio(n),
-        fase: (i * 2.399) % TAU, zoom: zoom(n.id),
+        ...n, px: pts[j][0], py: pts[j][1], pr: radio(n.r), fase: (i * 2.399) % TAU,
+        zoom: zoom(n.id),
       });
     });
     s.enlaces = s.nodos.slice(1).map((n) => [s.nodos[0], n]);
@@ -255,13 +260,36 @@ function crear(raiz) {
     g.shadowColor = 'rgba(2, 12, 24, 0.95)';
     g.shadowBlur = 6;
     let yy = y + r + 8;
-    const tam = n.centro ? 15 : n.grupo === 'ent' || s.movil ? 12.5 : 11;
-    const lineas = s.movil && !n.centro ? estrechar(n.lineas) : n.lineas;
-    lineas.forEach((l, i) => {
-      const cifra = i === lineas.length - 1 && /€$/.test(l);
+    if (s.movil) return etiquetaMovil(n, x, yy);
+    const tam = n.centro ? 15 : n.grupo === 'ent' ? 12.5 : 11;
+    n.lineas.forEach((l, i) => {
+      const cifra = i === n.lineas.length - 1 && /€$/.test(l);
       g.font = `${cifra ? 500 : 600} ${tam}px Outfit, sans-serif`;
       g.fillStyle = cifra ? '#9FCBFF' : '#E7ECF3';
-      // que ninguna línea se salga por los lados del lienzo
+      g.fillText(l, x, yy);
+      yy += tam + 3;
+    });
+    g.shadowBlur = 0;
+  }
+
+  // móvil: el nombre en líneas cortas y sin salirse por los lados
+  function etiquetaMovil(n, x, yy) {
+    let lineas = n.lineas;
+    const cifra = lineas.length > 1 && /€$/.test(lineas[lineas.length - 1]);
+    if (!n.centro) {
+      const salida = [];
+      for (const p of (cifra ? lineas.slice(0, -1) : lineas).join(' ').split(/\s+/)) {
+        const junta = salida.length ? `${salida[salida.length - 1]} ${p}` : '';
+        if (junta && junta.length <= 13) salida[salida.length - 1] = junta;
+        else salida.push(p);
+      }
+      lineas = cifra ? [...salida, lineas[lineas.length - 1]] : salida;
+    }
+    const tam = n.centro ? 15 : 12;
+    lineas.forEach((l, i) => {
+      const esCifra = cifra && i === lineas.length - 1;
+      g.font = `${esCifra ? 500 : 600} ${tam}px Outfit, sans-serif`;
+      g.fillStyle = esCifra ? '#9FCBFF' : '#E7ECF3';
       const media = g.measureText(l).width / 2;
       g.fillText(l, Math.min(Math.max(x, media + 4), s.ancho - media - 4), yy);
       yy += tam + 3;
@@ -269,48 +297,12 @@ function crear(raiz) {
     g.shadowBlur = 0;
   }
 
-  // en el móvil, el nombre en líneas más cortas (la cifra, aparte, como estaba)
-  function estrechar(lineas) {
-    const cifra = lineas.length > 1 && /€$/.test(lineas[lineas.length - 1]);
-    const palabras = (cifra ? lineas.slice(0, -1) : lineas).join(' ').split(/\s+/);
-    const salida = [];
-    for (const p of palabras) {
-      const ultima = salida[salida.length - 1];
-      const junta = ultima === undefined ? '' : `${ultima} ${p}`;
-      if (junta && junta.length <= 13) salida[salida.length - 1] = junta;
-      else salida.push(p);
-    }
-    return cifra ? [...salida, lineas[lineas.length - 1]] : salida;
-  }
-
-  // el botón «Ver más» del móvil: un círculo de trazo discontinuo con una flecha
-  function botonMas(x, y, r) {
-    g.beginPath(); g.arc(x, y, r, 0, TAU);
-    g.fillStyle = 'rgba(61, 139, 253, 0.22)';
-    g.fill();
-    g.setLineDash([4, 4]);
-    g.strokeStyle = 'rgba(156, 199, 255, 0.85)';
-    g.lineWidth = 1.5;
-    g.stroke();
-    g.setLineDash([]);
-    g.beginPath();
-    g.moveTo(x - r * 0.12, y - r * 0.32);
-    g.lineTo(x + r * 0.22, y);
-    g.lineTo(x - r * 0.12, y + r * 0.32);
-    g.strokeStyle = '#E7ECF3'; g.lineWidth = 2.2; g.lineCap = 'round'; g.lineJoin = 'round';
-    g.stroke();
-  }
-
   function aviso() {
-    if (!s.movil) return;
     g.textAlign = 'center';
     g.textBaseline = 'top';
     g.font = '500 12.5px Outfit, sans-serif';
     g.fillStyle = '#9FB3CC';
-    const texto = s.paginas > 1
-      ? `Vista ${s.pag + 1} de ${s.paginas} · pulsa «Ver más» para el resto`
-      : 'Pulsa una burbuja para abrirla';
-    g.fillText(texto, s.ancho / 2, 6);
+    g.fillText('Pulsa una burbuja para ver más', s.ancho / 2, 4);
   }
 
   function dibujar(t) {
@@ -352,14 +344,13 @@ function crear(raiz) {
       const [x, y] = pos.get(n.id);
       const r = n.pr * n.zoom * (0.6 + 0.4 * crecer);
       const nivel = (n.llenado == null ? 0.93 : n.llenado) * crecer;
-      if (n.mas) botonMas(x, y, r);
-      else burbuja(n, x, y, r, nivel, t, mueve);
+      burbuja(n, x, y, r, nivel, t, mueve);
     }
     for (const n of orden) {
       const [x, y] = pos.get(n.id);
       etiqueta(n, x, y, n.pr * n.zoom);
     }
-    aviso();
+    if (s.movil) aviso();
   }
 
   function bucle(t) {
@@ -379,21 +370,8 @@ function crear(raiz) {
     }
     return [mejor, x, y];
   }
-  // Con el dedo no hay «pasar por encima»: el móvil (iPhone sobre todo) simula un ratón en el
-  // punto tocado y la burbuja se quedaba agrandada, con su cuadro y su aro de seleccionada. Solo
-  // el ratón de verdad hace todo eso.
-  lienzo.addEventListener('pointerdown', (ev) => {
-    window.__ocTactil = ev.pointerType !== 'mouse';
-    if (tactil()) olvidarEncima();
-  });
-  function olvidarEncima() {
-    s.encima = null;
-    tip.style.opacity = 0;
-    if (quieto()) dibujar(performance.now());
-  }
-  lienzo.addEventListener('pointermove', (ev) => {
-    if (ev.pointerType !== 'mouse') return;
-    window.__ocTactil = false;
+  lienzo.addEventListener('mousemove', (ev) => {
+    if (tactil()) return;
     const [n, x, y] = bajo(ev);
     s.encima = n ? n.id : null;
     lienzo.style.cursor = n ? 'pointer' : 'default';
@@ -411,18 +389,12 @@ function crear(raiz) {
     }
     if (quieto()) dibujar(performance.now());
   });
-  lienzo.addEventListener('pointerleave', olvidarEncima);
+  lienzo.addEventListener('mouseleave', () => {
+    s.encima = null; tip.style.opacity = 0;
+    if (quieto()) dibujar(performance.now());
+  });
   lienzo.addEventListener('click', (ev) => {
     const [n] = bajo(ev);
-    if (n && n.mas) {
-      // siguiente grupo de burbujas, sin volver a Python
-      s.pag = (s.pag + 1) % s.paginas;
-      s.inicio = performance.now();
-      colocar();
-      if (quieto()) dibujar(performance.now());
-      return;
-    }
-    if (tactil()) olvidarEncima();
     if (!n || !s.avisar) return;
     s.sel = n.id;
     s.avisar(n.id);
@@ -447,12 +419,13 @@ export default function (component) {
   s.avisar = (id) => setTriggerValue('clic', id);
   const forma = data.nodos.map((n) => [n.id, n.x, n.y, n.r, n.llenado]);
   const firma = JSON.stringify([forma, data.alto]);
+  if (!esMovil()) s.caja.style.height = `${data.alto}px`;
   s.sel = data.seleccionado;
   if (s.firma !== firma) {
     const nuevo = !s.firma || s.datos?.nodos.length !== data.nodos.length;
     s.firma = firma;
     s.datos = data;
-    if (nuevo) { s.inicio = performance.now(); s.pag = 0; }
+    if (nuevo) s.inicio = performance.now();
     s.ajustar();
   } else {
     s.datos = data;

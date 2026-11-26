@@ -143,10 +143,7 @@ def leyenda_burbujas(vista: str, liquidado: bool, niveles: int) -> str:
             "(orden de magnitud: son fuentes distintas). "
         )
     if niveles == 2:
-        texto += (
-            "Las pequeñas son sus contratos más grandes del año (en el móvil, se ven al "
-            "pulsar la consejería). "
-        )
+        texto += "Las pequeñas son sus contratos más grandes del año. "
     return texto + (
         "Pasa el ratón por una burbuja para ver sus cifras. Pulsa una consejería para ponerla "
         "en el centro con todos sus contratos, y un contrato para ver su ficha."
@@ -889,11 +886,10 @@ if liquidado:
         st.html(gasto_por_consejeria(entidades))
         sin_gastar = [e for e in entidades if e["sin_gastar"]]
         st.markdown("**Dinero sin gastar**")
-        st.plotly_chart(
-            graficos_contexto.barras_horizontales(
-                [e["entidad"] for e in sin_gastar], [e["sin_gastar"] for e in sin_gastar]
-            ),
-            config=graficos_contexto.GRAFICO_CONFIG,
+        graficos_contexto.pintar_barras(
+            "sin_gastar",
+            [e["entidad"] for e in sin_gastar],
+            [e["sin_gastar"] for e in sin_gastar],
         )
 # la tabla de todas las consejerías, en las dos formas del mapa
 with st.expander("Todas las consejerías, en una tabla", icon=":material/table:"):

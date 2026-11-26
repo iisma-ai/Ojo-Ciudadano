@@ -5,6 +5,7 @@ de herramientas y una frase en texto con cada gráfico (la pone la pantalla).
 """
 
 import plotly.graph_objects as go
+import streamlit as st
 
 from ojo_ciudadano.app.graficos import AZUL, GRIS, GRIS_CLARO, _tema, color_categorico, partir
 from ojo_ciudadano.app.graficos import CONFIG as GRAFICO_CONFIG  # noqa: F401 (lo usa la pantalla)
@@ -12,15 +13,20 @@ from ojo_ciudadano.app.textos import euros
 
 
 def barras_horizontales(
-    etiquetas: list[str], valores: list[float], formato=euros, color: str = AZUL, nombre: str = ""
+    etiquetas: list[str],
+    valores: list[float],
+    formato=euros,
+    color: str = AZUL,
+    nombre: str = "",
+    movil: bool = False,
 ) -> go.Figure:
-    """Barras horizontales ordenadas de mayor a menor (la mayor arriba)."""
+    """Barras horizontales ordenadas de mayor a menor (la mayor arriba). `movil`: nombres en
+    líneas más cortas y más sitio para la cifra, para pantallas estrechas."""
     pares = sorted(zip(etiquetas, valores, strict=True), key=lambda p: p[1])
     figura = go.Figure(
         go.Bar(
             x=[p[1] for p in pares],
-            # nombres en líneas cortas: en el móvil, si no, se comen la barra o se cortan
-            y=[partir(p[0], 28) for p in pares],
+            y=[partir(p[0], 28 if movil else 34) for p in pares],
             orientation="h",
             marker={"color": color},
             text=[formato(p[1]) for p in pares],
@@ -30,10 +36,26 @@ def barras_horizontales(
         )
     )
     figura.update_xaxes(visible=False)
-    figura.update_yaxes(type="category", automargin=True)
-    figura = _tema(figura, alto=max(220, 48 * len(pares) + 40))
-    figura.update_layout(margin={"l": 10, "r": 120, "t": 10, "b": 10}, title=nombre or None)
+    if movil:
+        figura.update_yaxes(type="category", automargin=True)
+    else:
+        figura.update_yaxes(type="category")
+    figura = _tema(figura, alto=max(220, (48 if movil else 34) * len(pares) + 40))
+    derecha = 120 if movil else 90
+    figura.update_layout(margin={"l": 10, "r": derecha, "t": 10, "b": 10}, title=nombre or None)
     return figura
+
+
+def pintar_barras(clave: str, etiquetas: list[str], valores: list[float], **opciones) -> None:
+    """Dibuja las barras dos veces: la de siempre para el ordenador y otra para el móvil. Solo
+    se ve una, según el ancho de la pantalla (estilo.css: `oc_escritorio_` y `oc_movil_`)."""
+    for movil in (False, True):
+        with st.container(key=f"oc_{'movil' if movil else 'escritorio'}_{clave}"):
+            st.plotly_chart(
+                barras_horizontales(etiquetas, valores, movil=movil, **opciones),
+                config=GRAFICO_CONFIG,
+                width="stretch",
+            )
 
 
 def ejecucion_organo(filas: list[dict]) -> go.Figure:

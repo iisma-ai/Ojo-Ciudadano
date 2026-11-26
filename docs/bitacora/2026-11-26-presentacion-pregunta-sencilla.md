@@ -43,6 +43,9 @@
 - **Diapositiva 6, señales y atípicos** (a petición de Isma), en cuatro pasos: 0) solo burbujas, algunas en ámbar,
   sin texto; 1) «6 señales» con las tres cifras de cada 100; 2) el contrato atípico; 3) resumen con «Señales» a un
   lado, «Atípicos» al otro y debajo «No son acusaciones». Fuera el título «Señales, no acusaciones».
+- **Diapositiva 6, paso del atípico:** panel «Contratos atípicos» (Isolation Forest) con dos puntos: «Aprende de las
+  cifras» (importe, ofertas, rebaja y cuota de cada contrato) y «Destaca lo que se sale de lo habitual» (frente a los
+  contratos parecidos). Son las variables de `anomalias/deteccion.py`.
 - `presentacion/README.md`: actualizadas las filas de las escenas 4, 6 y 7.
 - **Guion de Isma (diapositivas 4 a 7)** reescrito en la conversación con la estructura que pidió: de dónde viene y a
   dónde va el dinero, el volumen de los datos, las señales y los atípicos (Isolation Forest), el asistente

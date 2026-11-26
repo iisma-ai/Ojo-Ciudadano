@@ -250,6 +250,18 @@ const DIAPOSITIVAS = [
       // paso 2: un contrato que se separa de los de su grupo (buscador de atipicos)
       { tipo: "burbuja", id: "atipico", x: 1700, y: 250, r: 34, llenado: 0.9, etiqueta: "Atípico", tono: "ambar", paso: 2 },
       { tipo: "foco", de: "atipico", zoom: 1.6, x: 1250, y: 420, paso: 2, hasta: 2 },
+      {
+        tipo: "panel", x: 620, y: 540, ancho: 640, paso: 2, hasta: 2,
+        tam: 26,
+        etiqueta: "Aprendizaje automático · Isolation Forest",
+        titulo: "Contratos atípicos",
+        bloques: [
+          { senales: [
+            ["Aprende de las cifras", true, "Importe, ofertas, rebaja y cuota de cada contrato"],
+            ["Destaca lo que se sale de lo habitual", true, "Frente a los contratos parecidos"],
+          ], titulo: "Cómo funciona" },
+        ],
+      },
       // paso 3: resumen; señales a un lado, atípicos al otro y debajo que no son acusaciones
       { tipo: "niebla", fuerza: 0.45, paso: 3 },
       { tipo: "texto", x: 560, y: 470, texto: "Señales", tam: 72, clase: "titulo", paso: 3 },

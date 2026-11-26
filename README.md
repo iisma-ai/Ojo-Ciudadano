@@ -195,7 +195,7 @@ El código y la documentación se publican con licencia [MIT](LICENSE). Los dato
 
 ## Equipo
 
-Proyecto de DataMad 2026.
+Dos personas, para DataMad 2026:
 
-- **Ignacio**: subvenciones, indicadores de concentración y bajas, puntuación, interfaz y asistente.
-- **Ismael**: ingesta de contratos, motor de indicadores, detección de anomalías, despliegue y presentación.
+- **Ignacio Vallejo Garach**: subvenciones, indicadores de concentración y bajas, puntuación, interfaz y asistente.
+- **Ismael El Harrak El Harraq**: ingesta de contratos, motor de indicadores, detección de anomalías, despliegue y presentación.

@@ -26,3 +26,7 @@ Contratos: 1.387.606 en `contrato`, de 131 organismos. Hay 496 tests en verde.
 
 - Comprobar que la insignia de GitHub Actions sale en verde después del merge.
 - Completar los nombres y apellidos del equipo en el README si se quiere.
+
+## Equipo: dos personas
+
+Ignacio ha confirmado que el equipo son dos personas, Ismael El Harrak El Harraq e Ignacio Vallejo Garach. Donde ponía «4 personas» ahora pone 2, con los nombres completos: README, `LICENSE`, `CLAUDE.md`, `01-vision.md`, `07-riesgos.md`, `decisions.md` (contextos de D-001, D-008, D-009, D-011, la congelación del esquema y D-066) y `08-plan.md`. En el plan, la tabla de responsables numera ahora «líneas» de trabajo y no «personas». Las bitácoras antiguas no se tocan porque son historia. Cuando hablan de «la persona 4», se refieren al número de línea del plan.

@@ -435,7 +435,8 @@ function bloque(b) {
     return `<div class="puntos-fila"><div class="puntos">${puntos}</div><div class="puntos-txt"><b>${b.puntos.valor}</b><span>${b.puntos.texto}</span></div></div>`;
   }
   if (b.senales)
-    return `<div class="sub">${b.titulo || "Señales"}</div>` + b.senales
+    // titulo "" deja la lista sin cabecera
+    return (b.titulo === "" ? "" : `<div class="sub">${b.titulo || "Señales"}</div>`) + b.senales
       .map(([nombre, activa, txt]) => `<div class="senal ${activa ? "activa" : ""}"><i></i><div><b>${nombre}</b>${txt ? `<span>${txt}</span>` : ""}</div></div>`)
       .join("");
   if (b.filas) return b.filas.map(([a, c]) => `<div class="fila"><span>${a}</span><b>${c}</b></div>`).join("");

@@ -251,15 +251,14 @@ const DIAPOSITIVAS = [
       { tipo: "burbuja", id: "atipico", x: 1700, y: 250, r: 34, llenado: 0.9, etiqueta: "Atípico", tono: "ambar", paso: 2 },
       { tipo: "foco", de: "atipico", zoom: 1.6, x: 1250, y: 420, paso: 2, hasta: 2 },
       {
-        tipo: "panel", x: 620, y: 540, ancho: 640, paso: 2, hasta: 2,
+        // x es el borde izquierdo del panel: acaba a la izquierda del atipico (en pantalla, x 1250)
+        tipo: "panel", x: 660, y: 420, ancho: 460, paso: 2, hasta: 2,
         tam: 26,
-        etiqueta: "Aprendizaje automático · Isolation Forest",
-        titulo: "Contratos atípicos",
         bloques: [
           { senales: [
-            ["Aprende de las cifras", true, "Importe, ofertas, rebaja y cuota de cada contrato"],
-            ["Destaca lo que se sale de lo habitual", true, "Frente a los contratos parecidos"],
-          ], titulo: "Cómo funciona" },
+            ["Aprende de las cifras", true],
+            ["Destaca lo que se sale de lo habitual", true],
+          ], titulo: "" },
         ],
       },
       // paso 3: resumen; señales a un lado, atípicos al otro y debajo que no son acusaciones

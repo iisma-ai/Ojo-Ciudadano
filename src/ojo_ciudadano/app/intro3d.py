@@ -3,7 +3,7 @@
 Usa el mismo código que la presentación (`presentacion/ojo3d.js`, bola de cristal con refracción,
 iris de luz y pupila, y `presentacion/agua.js` para el entorno de reflejos y el color del agua)
 con Three.js y la misma iluminación y tono de imagen que la presentación. El ojo es la fuente de
-luz. En 3 s aparece, se acerca un poco y sube alejándose hasta cerca del borde de arriba, donde
+luz. En 3 s aparece, se acerca un poco y sube alejándose hasta casi el borde de arriba, donde
 se desvanece poco a poco (así también se ve en el móvil); al apartarse, se enciende un brillo en
 su pupila y de ahí, no del contorno del cristal, salen los rayos de luz hacia donde mira, sobre
 la página. La página empieza muy oscura y se aclara desde el centro hacia los bordes.
@@ -323,16 +323,19 @@ async function arrancar(data, capa, empezar) {
       lienzo.remove();
       return;
     }
-    // aparece (0-0,9 s), se acerca (0,9-1,5 s) y sube alejándose hasta cerca del borde de
-    // arriba (1,4-2,4 s); allí se desvanece poco a poco (1,95-3 s)
+    // aparece (0-0,9 s), se acerca (0,9-1,5 s), sube alejándose (1,4-2,4 s) y sigue subiendo
+    // despacio hasta casi el borde de arriba (2-3 s), mientras se desvanece poco a poco
     const aparece = tramo(t, 0, 0.9), acerca = tramo(t, 0.9, 1.5);
     const sube = tramo(t, 1.4, 2.4);  // sube suave y llega arriba hacia 2,4 s
+    const deriva = tramo(t, 2.0, 3.0);  // y sigue subiendo hasta casi el borde
     const enciende = tramo(t, 1.3, 2.2), abre = tramo(t, 1.45, 2.75), apaga = tramo(t, 2.55, 3.0);
     ojo.grupo.scale.setScalar(0.47 * (0.75 + 0.25 * aparece));  // algo más pequeño
-    // aparece y, ya arriba, se desvanece poco a poco (de 1,95 a 3 s) con su luz; con el
-    // mismo reloj que el movimiento, para que se vea cómo se va apagando
-    lienzo.style.opacity = (tramo(t, 0, 0.35) * (1 - tramo(t, 1.95, 3.0))).toFixed(3);
-    ojo.grupo.position.set(0, 1.75 * sube, 1.1 * acerca - 3.1 * sube);  // visible sobre el título
+    // aparece y se desvanece con su luz de 1,9 a 3 s, con una curva que empieza muy suave: casi
+    // todo el desvanecimiento llega cuando ya está más arriba. Con el mismo reloj que el
+    // movimiento, para que se vea cómo se va apagando
+    const desvanece = tramo(t, 1.9, 3.0);
+    lienzo.style.opacity = (tramo(t, 0, 0.35) * (1 - desvanece * desvanece)).toFixed(3);
+    ojo.grupo.position.set(0, 1.75 * sube + 0.8 * deriva, 1.1 * acerca - 3.1 * sube);
     mirada.copy(alEspectador).lerp(alaPagina, tramo(t, 1.3, 2.3));  // mira hacia la página
     ojo.dilatar(1 + 0.35 * enciende);
     // el halo crece poco a poco con la luz de la página, sin encenderse de golpe

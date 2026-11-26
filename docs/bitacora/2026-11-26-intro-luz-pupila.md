@@ -23,6 +23,9 @@
   lugar de 11, más anchos y más tenues (intensidad 0,12 en lugar de 0,26), con un perfil de campana a los lados
   (sin borde) y una variación suave a lo largo, de modo que se solapan y se leen como una sola luz. El cono sube de
   0,5 a 0,62 para que la página siga igual de iluminada.
+- **El ojo sube más y se desvanece más poco a poco** (a petición de Isma): tras subir (1,4-2,4 s) sigue subiendo
+  despacio hasta casi el borde de arriba (2-3 s). El desvanecimiento va de 1,9 a 3 s con una curva cuadrática, que
+  empieza muy suave: casi todo llega cuando el ojo ya está más arriba. La entrada sigue durando 3 s.
 - Se probó primero animar el radio del degradado con `@property`; se descartó porque repinta en cada cuadro y rompe
   la regla de la intro.
 

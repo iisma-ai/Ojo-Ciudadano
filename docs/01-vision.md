@@ -6,7 +6,7 @@ Una plataforma que **sigue el dinero público de la Comunidad de Madrid desde ca
 
 - Es viable para DataMad 2026 si se acota a **contratos y subvenciones**: esos datos existen en formato reutilizable (CSV del Portal de la Contratación Pública con modificaciones y prórrogas, feeds diarios de PLACSP y API REST de la BDNS).
 - **No prometemos detectar corrupción.** Prometemos señalar dónde hay más riesgo y menos transparencia, con cada alerta enlazada a su documento de origen, para que periodistas, auditores y ciudadanos sepan dónde mirar primero.
-- Plazo: la competición **cierra el 26 de noviembre de 2026**. Equipo de **4 personas**, 11 días de trabajo.
+- Plazo: la competición **cierra el 26 de noviembre de 2026**. Equipo de **2 personas** (Ismael El Harrak El Harraq e Ignacio Vallejo Garach), 11 días de trabajo.
 
 ## Transparencia formal frente a transparencia real
 

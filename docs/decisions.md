@@ -30,7 +30,7 @@ Plantilla:
 - **Fecha:** 2026-11-15
 - **Estado:** Aceptada
 - **Autor:** Propuesta inicial (El Harrak)
-- **Contexto:** 11 días y 4 personas para DataMad 2026. Seguir «cada euro» desde el presupuesto no es posible con los datos disponibles.
+- **Contexto:** 11 días y 2 personas para DataMad 2026. Seguir «cada euro» desde el presupuesto no es posible con los datos disponibles.
 - **Decisión:** El MVP cubre **contratos** (núcleo) y **subvenciones** de los órganos de la Comunidad de Madrid. Presupuesto y altos cargos son contexto, mostrados por separado.
 - **Alternativas consideradas:** Incluir trazabilidad partida → contrato (los datos no lo permiten); incluir ayuntamientos y otras administraciones (alcance excesivo, queda tras el datatón).
 - **Consecuencias:** Ver [02-fuentes-datos.md](02-fuentes-datos.md) y [08-plan.md](08-plan.md). Las subvenciones son el 4.º recorte de la lista.
@@ -93,7 +93,7 @@ Plantilla:
 - **Fecha:** 2026-11-15
 - **Estado:** Aceptada
 - **Autor:** Claude (agente), a petición de El Harrak
-- **Contexto:** 4 personas deben tener el mismo entorno desde el primer día.
+- **Contexto:** Las 2 personas del equipo deben tener el mismo entorno desde el primer día.
 - **Decisión:** **uv** gestiona Python (3.12, fijado en `.python-version`), dependencias (`pyproject.toml` + `uv.lock`, ambos versionados) y ejecución (`uv run`). No se usa `pip install` directamente. Calidad: `ruff` (lint/formato) y `pytest`.
 - **Alternativas consideradas:** pip + requirements.txt, Poetry, conda.
 - **Consecuencias:** Instalar = `uv sync`. Añadir dependencia = `uv add <paquete>` (o `uv add --dev`). Las dependencias del asistente se añaden al cerrar D-010.
@@ -102,7 +102,7 @@ Plantilla:
 - **Fecha:** 2026-11-15
 - **Estado:** Aceptada
 - **Autor:** Claude (agente), a petición de El Harrak
-- **Contexto:** Colaboran 4 personas y varios agentes de IA en sesiones cortas. Sin memoria escrita, se repite trabajo y el plan se diluye.
+- **Contexto:** Colaboran 2 personas y varios agentes de IA en sesiones cortas. Sin memoria escrita, se repite trabajo y el plan se diluye.
 - **Decisión:** `docs/` es la memoria del proyecto: plan ([08-plan.md](08-plan.md)), decisiones (este fichero), preguntas abiertas y bitácora por sesión (`docs/bitacora/`). `CLAUDE.md` obliga a los agentes a leerla, respetar el plan y documentar todo lo que hacen. Se añaden skills, comandos y subagentes en `.claude/`. El documento de propuesta original queda fuera del repo (en `.gitignore`); su contenido está en `docs/`.
 - **Alternativas consideradas:** Wiki de GitHub (fuera del flujo de los agentes), un único documento largo (conflictos de merge).
 - **Consecuencias:** Cada sesión termina con entrada en la bitácora (`/cerrar-sesion`).
@@ -139,7 +139,7 @@ Plantilla:
 - **Fecha:** 2026-11-15
 - **Estado:** Propuesta
 - **Autor:** Claude (agente)
-- **Contexto:** Evitar discusiones de estilo con 4 personas trabajando en paralelo.
+- **Contexto:** Evitar discusiones de estilo con 2 personas trabajando en paralelo.
 - **Decisión:** Documentación, interfaz, mensajes de commit y comentarios en **español**. Identificadores de código en inglés salvo términos del dominio sin traducción clara (`organo`, `adjudicatario`, `cpv`, `expediente`), que se documentan en el glosario. Nombres de tablas y columnas de DuckDB en español y `snake_case`. Una rama por tarea (`feat/…`, `fix/…`, `docs/…`) y PR a `main`. Los commits no incluyen a Claude como co-autor.
   - **Ampliación (2026-11-17, a petición de El Harrak):** como trabajan varias personas a la vez, se sincroniza, se hace commit y se sube a menudo. Al empezar y antes de cada tarea: `git fetch`, revisar qué han subido los demás e integrarlo. Durante el trabajo: commits pequeños, push de la rama tras cada commit y `git merge origin/main` antes de subir (merge y no rebase en ramas ya subidas, porque nunca se fuerza el push). Ramas de menos de un día. Al cerrar, nada se queda solo en local (commit `wip:` si está a medias). Push a `main` solo si la persona lo pide. Mensajes de commit con prefijo (`feat:`, `fix:`, `docs:`, `wip:`…).
 - **Alternativas consideradas:** Todo en inglés (alejaría el código del dominio y del jurado). Para git: rebase sobre `main` (historial más limpio, pero obliga a forzar el push en ramas ya subidas); commit solo al final de la sesión (más conflictos y trabajo invisible para el resto).
@@ -194,7 +194,7 @@ Plantilla:
 - **Fecha:** 2026-11-19
 - **Estado:** Aceptada (El Harrak, 2026-11-19)
 - **Autor:** Claude (agente), trabajando con El Harrak
-- **Contexto:** El plan fijaba el congelado del esquema para H1 (17-nov). Existe una propuesta (`sql/esquema/001_tablas.sql`) con la que ya se cargaron 1,37 M de contratos y sobre la que se construyen los indicadores. Sin congelarlo, las cuatro personas trabajan sobre una base que puede cambiar. (Citada antes como D-015 en la bitácora del 17-nov; renumerada porque D-015 y D-016 se usaron en la rama de indicadores.)
+- **Contexto:** El plan fijaba el congelado del esquema para H1 (17-nov). Existe una propuesta (`sql/esquema/001_tablas.sql`) con la que ya se cargaron 1,37 M de contratos y sobre la que se construyen los indicadores. Sin congelarlo, las dos personas trabajan sobre una base que puede cambiar. (Citada antes como D-015 en la bitácora del 17-nov; renumerada porque D-015 y D-016 se usaron en la rama de indicadores.)
 - **Decisión:** Se congela la versión 1 del esquema tal como está en `001_tablas.sql`. Se permiten **ampliaciones aditivas** (tablas o columnas nuevas, p. ej. subvenciones) en ficheros nuevos `002_…sql`, avisando al equipo. Cambiar o borrar columnas existentes requiere una decisión nueva.
 - **Alternativas consideradas:** Seguir sin congelar (bloquea el trabajo en paralelo); congelar sin permitir ampliaciones (obligaría a una decisión para incorporar la BDNS).
 - **Consecuencias:** Al aceptarla, H1 pasa a cumplido en 08. Falta la parte de subvenciones, que irá en una ampliación aditiva.
@@ -288,7 +288,7 @@ Plantilla:
   - Privacidad: solo NIF de persona jurídica en los registros; en convenios, solo firmantes con forma de entidad (D-007).
   - Fuera de la ampliación (decisión explícita): datos de otras administraciones (ayuntamientos), cualquier dato con identidad de personas y lo listado en [12-datos-cm.md](12-datos-cm.md).
 - **Alternativas consideradas:** Más fuentes estatales o europeas (TED repite PLACSP y no son de la Comunidad). Parsear los 103 Excel de planes de medios (mucho esfuerzo, poco valor). Guardar las series en una tabla por conjunto de datos (más tablas que mantener; la tabla larga `serie_cm` basta).
-- **Consecuencias:** Nuevo [12-datos-cm.md](12-datos-cm.md). Pantalla «Presupuesto y contexto», bloque de presupuesto en la ficha de órgano, registros en la ficha de empresa y tablas nuevas en el asistente. Pie de la interfaz con las dos fuentes nuevas. [02-fuentes-datos.md](02-fuentes-datos.md) y el plan actualizados. **Todo el equipo debe bajar los datos antes de seguir** ([LO-PRIMERO.md](LO-PRIMERO.md)).
+- **Consecuencias:** Nuevo [12-datos-cm.md](12-datos-cm.md). Pantalla «Presupuesto y contexto», bloque de presupuesto en la ficha de órgano, registros en la ficha de empresa y tablas nuevas en el asistente. Pie de la interfaz con las dos fuentes nuevas. [02-fuentes-datos.md](02-fuentes-datos.md) y el plan actualizados. **Todo el equipo debe bajar los datos antes de seguir** ([12-datos-cm.md](12-datos-cm.md)).
 
 ## D-025 · Buscadores con autocompletado y más filtros en las pantallas de señales
 - **Fecha:** 2026-11-23
@@ -1269,8 +1269,22 @@ Plantilla:
 - **Autor:** Claude (agente), a petición de Ignacio
 - **Contexto:** el repositorio no tenía licencia. En un proyecto de transparencia que pide reutilizar sus datos y su metodología, sin licencia nadie puede reutilizar el código legalmente, y un jurado lo echa en falta.
 - **Decisión:**
-  - Fichero `LICENSE` con licencia MIT para el código y la documentación, a nombre del «Equipo Ojo Ciudadano (DataMad 2026)».
+  - Fichero `LICENSE` con licencia MIT para el código y la documentación, a nombre de Ismael El Harrak El Harraq e Ignacio Vallejo Garach (actualizado el 26-nov: el equipo son esas dos personas).
   - Una nota en el propio fichero aclara que los datos no están cubiertos: son de sus fuentes oficiales y se reutilizan según sus condiciones (`docs/02-fuentes-datos.md`).
   - Sección «Licencia» en el README y campo `license` en `pyproject.toml`.
 - **Alternativas consideradas:** EUPL-1.2 (la de la Comisión Europea, habitual en software público, pero con copyleft, que complica reutilizar el código en otros proyectos); Apache-2.0 (más larga, sin ventaja clara para un proyecto de este tamaño).
 - **Consecuencias:** cualquiera puede reutilizar y adaptar el código citando la autoría. Si el equipo prefiere otra licencia, basta con cambiar `LICENSE` y esta decisión.
+
+## D-067 · README orientado a los criterios del jurado y tests en GitHub Actions
+
+- **Fecha:** 2026-11-26
+- **Estado:** Aceptada (Ignacio: «incluye todo lo que me has escrito en el readme»).
+- **Autor:** Claude (agente), a petición de Ignacio
+- **Contexto:** el jurado tiene unos 5 minutos para deliberar, y en ese tiempo también abre la web. Hasta ahora el README describía el proyecto, pero no dejaba ver a simple vista cómo responde a cada criterio de DataMad (datos abiertos de la Comunidad, originalidad, impacto, viabilidad, reproducibilidad y presentación).
+- **Decisión:**
+  - El README empieza con «En 30 segundos», «Probarla en 2 minutos» y una tabla «Cómo responde a cada criterio» que enlaza a sus secciones: datos abiertos de la Comunidad con enlaces, qué tiene de nuevo, impacto, viabilidad, reproducibilidad y presentación.
+  - Las cifras de las señales son las de la base del 24-nov y se calculan igual que en la web («de cada 100 contratos donde se pudo comprobar»). No se dan importes agregados para no mezclar bases con y sin IVA.
+  - Se añade `.github/workflows/tests.yml` (`uv sync --locked`, `ruff check` y `pytest`) y su insignia en el README, para demostrar la reproducibilidad sin instalar nada.
+  - Se borra `docs/LO-PRIMERO.md` y su sección de `CLAUDE.md`. Era una tarea interna del 23-nov que ya está cumplida en el despliegue, y para un lector externo daba imagen de proyecto a medias.
+- **Alternativas consideradas:** dejar el README como estaba y explicar los criterios solo en la presentación (el jurado puede leer el README sin ver la presentación); añadir código nuevo a la web (descartado: desde el 25-nov no se añaden funciones).
+- **Consecuencias:** ningún cambio en la aplicación ni en los datos. Si el workflow falla en GitHub, la insignia sale en rojo: hay que mirarlo nada más subirlo.

@@ -255,8 +255,11 @@ const DIAPOSITIVAS = [
         tipo: "panel", x: 620, y: 420, ancho: 540, paso: 2, hasta: 2,
         tam: 32,
         bloques: [
-          { texto: "Aprende de las cifras" },
-          { texto: "Destaca lo que se sale de lo habitual" },
+          // puntos ambar luminosos (senal activa); titulo vacio: sin cabecera «Señales»
+          { senales: [
+            ["Aprende de las cifras", true],
+            ["Destaca lo que se sale de lo habitual", true],
+          ], titulo: "" },
         ],
       },
       // paso 3: resumen; señales a un lado, atípicos al otro y debajo que no son acusaciones

@@ -115,6 +115,7 @@ body.quieto { cursor: none; }
 .panel p { font-size: 0.95em; line-height: 1.45; color: rgba(225, 236, 252, 0.9); margin: 0.6em 0; }
 /* frases sueltas en un panel (no en el chat): mas aire entre una y otra */
 .t.panel:not(.chat) .bloque + .bloque p { margin-top: 1.2em; }
+.t.panel:not(.chat) .senal + .senal { margin-top: 1.2em; }
 
 .kpis { display: flex; gap: 0.7em; }
 .kpi {

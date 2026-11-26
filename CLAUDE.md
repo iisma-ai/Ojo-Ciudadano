@@ -2,11 +2,11 @@
 
 Plataforma de transparencia del gasto público de la Comunidad de Madrid para **DataMad 2026**. Sigue el dinero de cada órgano a cada empresa (contratos y subvenciones), calcula **indicadores de riesgo** y permite investigarlo en lenguaje natural con citas.
 
-**Entrega: 26 de noviembre de 2026.** Equipo de 4 personas. Cada día cuenta: prioriza lo que está en el plan.
+**Entrega: 26 de noviembre de 2026.** Equipo de 2 personas: Ismael El Harrak El Harraq e Ignacio Vallejo Garach. Cada día cuenta: prioriza lo que está en el plan.
 
 ## Lo que debes hacer SIEMPRE
 
-0. **Sincroniza antes de nada.** Somos 4 personas (y sus agentes) trabajando a la vez: lo que tienes en local puede estar viejo. Al empezar y antes de cada tarea nueva, trae los cambios del remoto y mira qué han hecho los demás (ver «Trabajo en equipo con git»).
+0. **Sincroniza antes de nada.** Somos 2 personas (y sus agentes) trabajando a la vez: lo que tienes en local puede estar viejo. Al empezar y antes de cada tarea nueva, trae los cambios del remoto y mira qué han hecho los demás (ver «Trabajo en equipo con git»).
 1. **Lee antes de actuar.** Después de sincronizar, lee `docs/08-plan.md`, `docs/decisions.md` y las entradas más recientes de `docs/bitacora/` (o ejecuta `/estado`). Lee además el documento temático de lo que vayas a tocar (ver índice en `docs/README.md`).
 2. **Respeta el plan.** `docs/08-plan.md` y `docs/decisions.md` mandan en la medida de lo posible. No amplíes alcance, no cambies tecnología ni metodología por tu cuenta. Si algo obliga a desviarse:
    - díselo a la persona con la que trabajas **antes** de hacerlo,

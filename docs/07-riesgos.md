@@ -20,7 +20,7 @@
 | K-14 | Técnico | La demo falla en directo (API caída, latencia, coste) | Media | Alto | Respuestas de demo cacheadas; vídeo de respaldo; modelo alternativo configurado |
 | K-15 | Reputacional | Percepción partidista: la competición la organiza la propia Comunidad | Media | Medio | Enfoque en procesos y métricas comparables entre órganos, no en personas ni partidos; presentarlo como herramienta de mejora |
 | K-16 | Reputacional | Usuarios que interpretan una alerta como prueba | Alta | Medio | Textos de ayuda en cada alerta: qué significa y qué no |
-| K-17 | Proyecto | Alcance excesivo para 11 días y 4 personas | Alta | Alto | MVP congelado el día 2; lista de recortes priorizada (ver [08-plan.md](08-plan.md)) |
+| K-17 | Proyecto | Alcance excesivo para 11 días y 2 personas | Alta | Alto | MVP congelado el día 2; lista de recortes priorizada (ver [08-plan.md](08-plan.md)) |
 | K-18 | Proyecto | El pipeline de datos bloquea al resto del equipo | Media | Alto | Muestra de datos limpia y esquema fijado el 17-nov para trabajar en paralelo |
 | K-19 | Proyecto | El jurado lo ve parecido a Civio o a Gobierto | Media | Medio | Remarcar lo nuevo: ámbito regional, indicadores de riesgo y consulta en lenguaje natural con citas |
 

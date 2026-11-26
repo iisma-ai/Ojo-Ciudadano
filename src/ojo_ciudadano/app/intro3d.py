@@ -218,8 +218,10 @@ async function arrancar(data, capa, empezar) {
   // El ojo da luz hacia fuera (cono y haces), pero por dentro se ve como en la presentación:
   // sin núcleo ni destello pintados encima del iris. Solo un halo suave por detrás del cristal,
   // que el propio cristal tapa, así que se ve alrededor y no dentro.
-  const aura = crearBrillo(THREE, 0x8cc8ff, 1.6);
-  aura.malla.scale.setScalar(4.2);
+  // más grande, más tenue y con caída más lenta: se funde con el fondo y no se ve como un aro
+  // alrededor del cristal
+  const aura = crearBrillo(THREE, 0x8cc8ff, 2.8);
+  aura.malla.scale.setScalar(7);
   aura.malla.position.z = -1.2;
   aura.malla.material.depthTest = true;
   aura.malla.renderOrder = -2;
@@ -331,7 +333,7 @@ async function arrancar(data, capa, empezar) {
     mirada.copy(alEspectador).lerp(alaPagina, tramo(t, 1.3, 2.3));  // mira hacia la página
     ojo.dilatar(1 + 0.35 * enciende);
     // el halo crece poco a poco con la luz de la página, sin encenderse de golpe
-    aura.uniforms.uI.value = 0.24 * tramo(t, 0.3, 2.4);
+    aura.uniforms.uI.value = 0.11 * tramo(t, 0.3, 2.4);
     // la luz, desde la pupila y en la dirección de la mirada: empieza estrecha y se abre a los
     // lados (la mirada del cuadro anterior: el giro se suaviza y no se nota el desfase)
     ojo.grupo.updateMatrixWorld();

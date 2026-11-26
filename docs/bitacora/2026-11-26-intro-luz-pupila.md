@@ -15,6 +15,10 @@
   en el centro, que se agranda (`scale` de 1 a 16) y se desvanece al final. Sigue siendo solo `transform` y
   `opacity`, como exige `tests/app/test_intro.py` (D-043, D-044). El haz de CSS que baja desde arriba queda más
   tenue (opacidad máxima 0,5), para que la luz principal salga del centro.
+- **Halo más difuso** (a petición de Isma, tras verlo): el halo de detrás del cristal se veía como un aro de luz
+  alrededor del ojo. Pasa a ser más grande (escala 7 en lugar de 4,2), más tenue (0,11 en lugar de 0,24) y con una
+  caída más lenta, para que se funda con el fondo. El halo de CSS del centro (`.oc-intro-luz`) también se suaviza
+  y se extiende más.
 - Se probó primero animar el radio del degradado con `@property`; se descartó porque repinta en cada cuadro y rompe
   la regla de la intro.
 

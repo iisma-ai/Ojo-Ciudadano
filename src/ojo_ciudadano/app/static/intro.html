@@ -49,17 +49,17 @@
 
 /* luz alrededor del ojo cuando se acerca (en el centro) */
 .oc-intro-luz { position: absolute; inset: -25%; will-change: transform, opacity;
-  background: radial-gradient(circle at 50% 50%, rgba(175, 230, 255, .3) 0,
-    rgba(120, 190, 255, .18) 6vmax, rgba(80, 160, 250, .08) 13vmax, rgba(56, 150, 240, .03) 21vmax,
-    transparent 30vmax);
+  background: radial-gradient(circle at 50% 50%, rgba(175, 230, 255, .16) 0,
+    rgba(120, 190, 255, .1) 9vmax, rgba(80, 160, 250, .05) 19vmax, rgba(56, 150, 240, .02) 30vmax,
+    transparent 42vmax);
   opacity: 0; transform: scale(.6); }
 .en-marcha .oc-intro-luz { animation: oc-intro-luz 3s ease-in-out forwards; }
 /* el halo crece poco a poco, al ritmo con que se aclara la página (que se desvela del 42 % al
    100 %), sin encenderse de golpe; se apaga al final, cuando la página ya tiene su propia luz */
 @keyframes oc-intro-luz {
   0%, 10% { opacity: 0; transform: scale(.7); }
-  42% { opacity: .3; transform: scale(.85); }
-  80% { opacity: .75; transform: scale(1.1); }
+  42% { opacity: .2; transform: scale(.85); }
+  80% { opacity: .5; transform: scale(1.1); }
   100% { opacity: 0; transform: scale(1.25); } }
 
 /* luz del núcleo: el ojo, ya arriba, la enciende y baja sobre la página (como los rayos del

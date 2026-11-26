@@ -8,10 +8,13 @@
   tamaño 32, la posición (x 620, ancho 540) y la lista sigue sin cabecera «Señales» (`titulo: ""`).
 - `estilo.css`: la separación mayor entre las dos frases ahora también se aplica a las señales de los paneles que no
   son el chat (`.senal + .senal`).
+- **Diapositiva 8, QR:** `DATOS.urlApp` pasa a ser `https://ojo-ciudadano.iismael.workers.dev/`, la dirección real de la web (no la de D-056). El QR lo
+  genera la propia página con `qrcode-generator` dentro del panel de cristal con el logo; ya no sale el hueco.
 
 ## Pendiente
 
 - Verlo en el navegador: desde esta sesión no se pudo arrancar el servidor local.
+- Escanear el QR con un móvil en el proyector de la demo.
 
 ## Siguiente paso
 

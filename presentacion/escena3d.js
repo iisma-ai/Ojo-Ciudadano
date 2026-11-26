@@ -469,7 +469,8 @@ function crearPanel(e, i) {
   let k = 0;
   for (const b of e.bloques || []) h += `<div class="bloque" style="--i:${k++}">${bloque(b)}</div>`;
   if (e.fuente) h += `<div class="bloque p-fuente" style="--i:${k}">${e.fuente}</div>`;
-  return { tipo: "panel", i, dom: etiquetaHtml(h, "panel"), fijo: { x: e.x, y: e.y, ancho: e.ancho || 560 }, tam: e.tam || 18 };
+  // `clase` anade estilos propios al panel (p. ej. la presentacion del jurado)
+  return { tipo: "panel", i, dom: etiquetaHtml(h, `panel ${e.clase || ""}`), fijo: { x: e.x, y: e.y, ancho: e.ancho || 560 }, tam: e.tam || 18 };
 }
 
 function crearChat(e, i) {
@@ -646,7 +647,11 @@ window.addEventListener("keydown", (ev) => {
     else document.documentElement.requestFullscreen();
   }
 });
-window.addEventListener("click", (ev) => (ev.clientX < window.innerWidth * 0.2 ? anterior() : siguiente()));
+window.addEventListener("click", (ev) => {
+  if (ev.target.closest && ev.target.closest("a")) return; // un enlace abre su pagina, no pasa de diapositiva
+  if (ev.clientX < window.innerWidth * 0.2) anterior();
+  else siguiente();
+});
 let toqueX = null;
 window.addEventListener("touchstart", (ev) => (toqueX = ev.touches[0].clientX), { passive: true });
 window.addEventListener("touchend", (ev) => {

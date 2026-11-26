@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ojo Ciudadano · Presentación para el jurado de DataMad 2026</title>
+  <link rel="icon" href="../src/ojo_ciudadano/app/static/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilo.css">
+  <link rel="stylesheet" href="jurado.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <!-- Version para el jurado: tres diapositivas, mas texto, para leer sin quien presente.
+       Mismo motor que index.html (escena3d.js); el contenido esta en diapositivas-jurado.js. -->
+  <canvas id="lienzo"></canvas>
+  <div id="capa"></div>
+  <div id="progreso" aria-hidden="true"></div>
+  <div id="ayuda">Flecha derecha o clic para avanzar · F pantalla completa</div>
+  <div id="cortina"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+  <script src="diapositivas-jurado.js"></script>
+  <script type="module" src="escena3d.js"></script>
+</body>
+</html>

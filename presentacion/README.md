@@ -63,3 +63,20 @@ objeto `DATOS`. El resto de ficheros es el motor y no hace falta tocarlo:
 Las burbujas de tipo `captura` están vacías. Guarda las imágenes o vídeos (`.png`, `.jpg`, `.mp4`, `.webm`) en
 `presentacion/media/` y pon la ruta en `src`, por ejemplo `src: "media/mapa.mp4"`. Los vídeos se reproducen
 solos, en bucle y sin sonido, dentro de la burbuja.
+
+## Versión para el jurado (`jurado.html`)
+
+Tres diapositivas, como piden las bases de DataMad 2026, con más texto: el jurado la lee sola, sin
+quien presente. Mismo motor (`escena3d.js`) y mismos tipos de elemento; el contenido está en
+`diapositivas-jurado.js` y sus estilos en `jurado.css`.
+
+| # | Escena | Qué cuenta |
+| --- | --- | --- |
+| 1 | En la roca, sobre el mar, con el ojo | Nombre del proyecto, integrantes y la propuesta: que cualquier ciudadano vea a dónde va su dinero |
+| 2 | Salto al agua; el mar turbio se aclara con la luz del ojo | El problema y los datos: primero los conjuntos del Catálogo de Datos Abiertos de la Comunidad, con enlace, y después las fuentes de contratos y subvenciones |
+| 3 | Más abajo, entre muchas burbujas | Qué hacemos con los datos (unión, seis indicadores, aprendizaje automático), el agente de Ojo Ciudadano, utilidad, impacto y viabilidad, y el QR y los enlaces a la web y al código |
+
+Se abre igual que la otra, servida desde la raíz del repositorio:
+`http://127.0.0.1:8600/presentacion/jurado.html`. Los enlaces se pueden pulsar (se abren en otra
+pestaña); un clic en cualquier otro sitio pasa de paso.
+

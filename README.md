@@ -124,6 +124,10 @@ Antes de escribir código, lee:
 
 Toda la documentación está en [`docs/`](docs/README.md). Documentamos todo lo que hacemos en [`docs/bitacora/`](docs/bitacora/).
 
+## Licencia
+
+El código y la documentación se publican con licencia [MIT](LICENSE). Los datos no forman parte del repositorio: pertenecen a sus fuentes oficiales y se reutilizan según las condiciones de cada una (ver «Datos»).
+
 ## Equipo
 
 Equipo de 4 personas para DataMad 2026.

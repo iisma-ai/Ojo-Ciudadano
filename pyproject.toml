@@ -4,6 +4,8 @@ version = "0.1.0"
 description = "Plataforma de transparencia del gasto público de la Comunidad de Madrid: sigue el dinero de cada órgano a cada empresa, calcula indicadores de riesgo y permite investigarlo en lenguaje natural."
 readme = "README.md"
 requires-python = ">=3.12"
+license = "MIT"
+license-files = ["LICENSE"]
 dependencies = [
     "duckdb>=1.1",
     "polars>=1.10",

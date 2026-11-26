@@ -12,10 +12,14 @@
 ## Pendiente (de la revisión como jurado)
 
 - Diapositiva 6: decir «de cada 100 licitaciones» / «de cada 100 menores» en las cifras de señales.
-- Fichero `LICENSE`.
+- ~~Fichero `LICENSE`~~: hecho (D-066).
 - Una captura o GIF de la web en el README.
 - Borrar `docs/LO-PRIMERO.md` y la sección «Lo primero hoy» de `CLAUDE.md` si ya se confirmó la carga.
 
 ## Siguiente paso
 
 Integrar esta rama en `main` antes de la entrega.
+
+## Añadido después: licencia (D-066)
+
+- Fichero `LICENSE` con licencia MIT para el código y la documentación, con una nota de que los datos siguen las condiciones de sus fuentes. Sección «Licencia» en el README y `license` en `pyproject.toml`. Rama `chore/licencia`.

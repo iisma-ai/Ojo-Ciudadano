@@ -34,6 +34,19 @@
   hacemos con los datos» (periodo de los datos y fechas de descarga). Los enlaces a las fuentes siguen en el panel
   de los datos.
 
+## Fusión con `feat/presentacion-publico-donde-va`
+
+- Isma pidió juntar esta rama con la de cambios menores de la presentación de la exposición («¿A dónde va el
+  dinero?» en la diapositiva 2, fuera la de tecnologías, y la opción `luego` de los textos en el motor), sin
+  llevarlas a `main` todavía. Fusionada en `feat/presentacion-jurado` **sin conflictos**.
+- Comprobado tras la fusión:
+  - las dos ramas tocaban `escena3d.js` y `README.md`, pero en zonas distintas; el motor fusionado conserva los tres
+    cambios (`luego` en los textos, `clase` en los paneles, clic sobre enlaces) y su sintaxis es correcta;
+  - `diapositivas.js` (9 diapositivas, usa `luego`, no usa `clase`) y `diapositivas-jurado.js` (4 diapositivas, usa
+    `clase`, no usa `luego`) se cargan bien: cada una usa solo opciones nuevas que la otra no necesita;
+  - `origin/main` no toca `presentacion/` y la rama se fusionaría con él sin conflictos.
+- No se ha podido ver en el navegador desde esta sesión.
+
 ## Pendiente
 
 - **Verla en el navegador.** Desde esta sesión Chrome no llega al servidor local, así que no se ha comprobado el

@@ -566,3 +566,41 @@ def vista_previa(
             )
             enlaces.append((id_ent, id_con))
     return nodos, enlaces, destinos
+
+
+# Dedo que da un toque suave en bucle: sustituye a la caja «Pulsa una burbuja» junto al mapa.
+# Solo el icono, pequeño y tenue; quieto con «reducir movimiento». SVG propio (D-022).
+# Icono «touch_app» de Material Symbols (licencia Apache 2.0), en SVG propio
+DEDO = (
+    "M9 11.24V7.5a2.5 2.5 0 0 1 5 0v3.74c1.21-.81 2-2.18 2-3.74C16 5.01 13.99 3 11.5 "
+    "3S7 5.01 7 7.5c0 1.56.79 2.93 2 3.74zm9.84 4.63-4.54-2.26c-.17-.07-.35-.11-.54-."
+    "11H13v-6c0-.83-.67-1.5-1.5-1.5S10 6.67 10 7.5v10.74c-3.6-.76-3.54-.75-3.67-.75-."
+    "31 0-.59.13-.79.33l-.79.8 4.94 4.94c.27.27.65.44 1.06.44h6.79c.75 0 1.33-.55 1.4"
+    "4-1.28l.75-5.27c.01-.07.02-.14.02-.2 0-.62-.38-1.16-.91-1.38z"
+)
+PISTA_PULSAR = """
+<style>
+.ocb-pista { display: flex; justify-content: center; padding: 28px 0; opacity: .55; }
+.ocb-pista svg { width: 34px; height: 34px; overflow: visible; }
+.ocb-pista .dedo { transform-origin: 12px 14px; animation: ocb-toque 2.4s ease-in-out infinite; }
+.ocb-pista .onda { fill: none; stroke: #9FCBFF; stroke-width: 1.2; opacity: 0;
+  transform-origin: 10px 6px; animation: ocb-onda 2.4s ease-out infinite; }
+@keyframes ocb-toque { 0%, 55%, 100% { transform: translateY(0) scale(1); }
+  30% { transform: translateY(2px) scale(.94); } }
+@keyframes ocb-onda { 0%, 25% { opacity: 0; transform: scale(.4); }
+  35% { opacity: .9; } 70%, 100% { opacity: 0; transform: scale(1.6); } }
+@media (prefers-reduced-motion: reduce) {
+  .ocb-pista .dedo, .ocb-pista .onda { animation: none; } }
+</style>
+<div class="ocb-pista" role="img" aria-label="Pulsa una burbuja del mapa para ver su ficha">
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <circle class="onda" cx="10" cy="6" r="4"/>
+    <path class="dedo" fill="#9FB3CC" d="{DEDO}"/>
+  </svg>
+</div>
+"""
+
+
+def pista_pulsar() -> None:
+    """Pinta el dedo discreto que invita a pulsar una burbuja del mapa."""
+    st.html(PISTA_PULSAR.replace("{DEDO}", DEDO))

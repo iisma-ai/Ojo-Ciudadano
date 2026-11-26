@@ -870,11 +870,7 @@ with derecha:
     if not marcado and ampliada is not None:
         marcado = ("ent", ampliada)
     if not marcado:
-        st.info(
-            "Pulsa una burbuja del mapa y aquí verás su ficha: cuánto dinero tiene, cuánto ha "
-            "gastado y, si es un contrato, cómo se contrató y cuántas ofertas hubo.",
-            icon=":material/touch_app:",
-        )
+        mapa_burbujas.pista_pulsar()
     else:
         _ficha(con, marcado, entidades, datos_anio, ampliada is not None)
 

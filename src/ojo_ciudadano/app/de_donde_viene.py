@@ -366,11 +366,7 @@ def pintar(con, anio: int, poblacion: dict | None) -> None:
         if elegida in entradas or elegida == CENTRO:
             ficha(elegida, ingresos, entradas, habitantes)
         else:
-            st.info(
-                "Pulsa una burbuja del mapa y aquí verás qué es ese ingreso, cuánto entró y "
-                "cuánto supone de cada 100 €.",
-                icon=":material/touch_app:",
-            )
+            mapa_burbujas.pista_pulsar()
         if saldo < 0:
             caja_sistema(entradas, saldo, ingresos, datos_contexto.sistema_financiacion(con, anio))
 

@@ -7,7 +7,7 @@ latencia el día de la entrega. No es un despliegue para siempre.
 ## Cómo está montado
 
 ```
-Visitante ──> https://ojo-ciudadano.pages.dev        portada (Cloudflare Pages, gratis)
+Visitante ──> https://ojo-ciudadano.iismael.workers.dev   portada (Cloudflare, gratis)
                 │  comprueba qué servidor responde y lo muestra a pantalla completa
                 └──> https://oc-origen.sourcia.solutions   túnel de Cloudflare «ojo-ciudadano»
                         └──> ordenador fijo, Docker:
@@ -20,7 +20,7 @@ Visitante ──> https://ojo-ciudadano.pages.dev        portada (Cloudflare Pag
   orden, abre el primero que responde (`/_stcore/health`), lo vigila cada 20 s y, si falla dos
   veces seguidas, avisa y salta al siguiente o reintenta sola. Conserva la ruta del enlace
   (`/empresa?empresa=…` abre esa ficha). La barra del navegador muestra siempre
-  `ojo-ciudadano.pages.dev`.
+  `ojo-ciudadano.iismael.workers.dev`.
 - **Servidor** (`despliegue/`): la app entera en un contenedor, con los datos en un volumen de
   Docker (en Windows es mucho más rápido que leer la base desde una carpeta de Windows). El túnel
   es propio de Ojo Ciudadano: no comparte nada con otros proyectos del mismo ordenador.
@@ -74,7 +74,12 @@ powershell -ExecutionPolicy Bypass -File despliegue\estado.ps1
 `estado.ps1` debe decir «OK» desde este ordenador y desde internet
 (`https://oc-origen.sourcia.solutions`).
 
-### 3. Portada en Cloudflare Pages (panel web, 10 min)
+### 3. Portada en Cloudflare (panel web, 10 min)
+
+> **Dirección pública final: `https://ojo-ciudadano.iismael.workers.dev/`.** La portada quedó publicada en Cloudflare Workers, no en
+> Pages: la dirección `ojo-ciudadano.pages.dev` que aparecía antes no existe. Los pasos de abajo son
+> los del plan original con Pages; el resultado (el contenido de `portada/` publicado con cada push
+> a `main`) es el mismo.
 
 1. Panel de Cloudflare → **Workers & Pages → Create → Pages → Connect to Git** → autoriza
    GitHub y elige `iisma-ai/Ojo-Ciudadano`.
@@ -82,7 +87,7 @@ powershell -ExecutionPolicy Bypass -File despliegue\estado.ps1
    y la dirección cambia en consecuencia). Production branch: **`main`**.
 3. Framework preset: **None** · Build command: **vacío** · Build output directory:
    **`portada`** → **Save and Deploy**.
-4. Abre `https://ojo-ciudadano.pages.dev` (o la que te haya dado).
+4. Abre la dirección que te haya dado Cloudflare. La de la entrega es `https://ojo-ciudadano.iismael.workers.dev/`.
 
 ### 4. Blindar el ordenador para mañana
 

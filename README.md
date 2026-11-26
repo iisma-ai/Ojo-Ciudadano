@@ -11,7 +11,11 @@
 
 Ojo Ciudadano es una plataforma de transparencia del gasto público: une contratos y subvenciones de la Comunidad de Madrid, calcula **indicadores de riesgo** con metodología abierta y permite investigarlo todo **en lenguaje natural**, con cada cifra enlazada a su documento oficial.
 
-> Proyecto presentado a **[DataMad 2026](https://www.comunidad.madrid/node/120258)**. Estado (21-nov): datos, indicadores, las cuatro pantallas, contratos atípicos y preguntas guiadas funcionando con datos reales; el asistente de texto libre está en desarrollo. Entrega el 26 de noviembre de 2026.
+<p align="center">
+  <a href="https://ojo-ciudadano.iismael.workers.dev/"><strong>Abrir la web: ojo-ciudadano.iismael.workers.dev</strong></a>
+</p>
+
+> Proyecto presentado a **[DataMad 2026](https://www.comunidad.madrid/node/120258)**. **Estado (26-nov-2026, entrega):** la web está publicada y funciona con datos reales: más de 1,35 millones de contratos y 872.821 concesiones de subvenciones de 2023 a 2026, 132 organismos, seis indicadores de riesgo, contratos atípicos y un asistente que responde en lenguaje natural con su fuente. No hace falta instalar nada para probarla.
 
 ---
 
@@ -23,15 +27,19 @@ Saber qué empresas reciben más dinero de una consejería, o si esa consejería
 
 ## Qué hace Ojo Ciudadano
 
-| | |
+Todo está en la web: [ojo-ciudadano.iismael.workers.dev](https://ojo-ciudadano.iismael.workers.dev/).
+
+| Pantalla | Qué enseña |
 | --- | --- |
-| **Mapa general** | La Comunidad y sus consejerías en un mapa de nodos arrastrable: dinero disponible, gastado y sin gastar, y los contratos de cada una. |
-| **Mapa del dinero** | Flujos órgano → empresa y órgano → beneficiario, por año, tipo de contrato y procedimiento. |
-| **Ficha de empresa** | Todo lo que ha recibido un NIF: contratos, menores, prórrogas, modificaciones y subvenciones. |
-| **Ficha de órgano** | Cómo contrata cada consejería u organismo, comparado con los demás. |
-| **Panel de alertas** | Contratos ordenados por puntuación de riesgo, con el motivo de cada alerta. |
-| **Contratos atípicos** | Contratos que se alejan de otros similares según un modelo de aprendizaje automático no supervisado, con las cifras que los alejan. Señal experimental, aparte de los indicadores. |
-| **Asistente de investigación** | Hoy, preguntas guiadas con consultas verificadas. En desarrollo: pregunta en lenguaje natural («¿qué empresas acumulan más contratos menores en Sanidad en 2025?») y recibe la respuesta con la consulta usada y el enlace a cada registro. |
+| **Inicio** | Un buscador único de empresas y organismos, las grandes cifras y las seis señales explicadas como «X de cada 100 contratos donde se pudo comprobar». |
+| **Mapa del dinero** | Dos vistas. **¿A dónde va?**: la Comunidad, sus consejerías y sus contratos como burbujas que se llenan hasta lo gastado, y lo que toca a cada habitante. **¿De dónde viene?**: los ingresos por capítulo, el sistema de financiación y las ayudas de la UE. |
+| **Contratos a revisar** | Contratos ordenados por número de señales, con el motivo de cada una en una frase y el enlace al expediente oficial. |
+| **Contratos atípicos** | Contratos que se alejan de otros parecidos según un modelo de aprendizaje automático no supervisado, con las cifras que los alejan. Es una señal experimental, aparte de los indicadores. |
+| **Red del dinero** | De cada organismo a las empresas y beneficiarios que más reciben, por año, tipo de contrato y procedimiento. |
+| **Ficha de empresa** | Todo lo que ha recibido un NIF: contratos, menores, prórrogas, modificaciones, subvenciones, encargos y registros públicos. |
+| **Ficha de órgano** | Cómo contrata cada consejería u organismo frente a los demás, su presupuesto y sus principales empresas. |
+| **Presupuesto y contexto** | Presupuesto por consejería, series presupuestarias, convenios y plantillas de la Comunidad. |
+| **Asistente** | Preguntas en lenguaje natural («¿qué organismos adjudicaron más importe en 2025?», «¿la Comunidad tiene helicópteros?»). Responde con la consulta usada, los datos y el enlace a cada registro, y busca también en el catálogo de datos abiertos, en los pliegos y en las resoluciones del Tribunal de Contratación. Solo lee los datos y solo responde sobre el gasto público de la Comunidad. |
 
 ## Indicadores de riesgo, no acusaciones
 
@@ -56,7 +64,9 @@ Solo fuentes públicas y reutilizables:
 - [Plataforma de Contratación del Sector Público (PLACSP)](https://www.hacienda.gob.es/es-ES/GobiernoAbierto/Datos%20Abiertos/Paginas/LicitacionesAgregacion.aspx)
 - [Base de Datos Nacional de Subvenciones (BDNS)](https://www.infosubvenciones.es)
 - [Portal de Transparencia de la Comunidad de Madrid](https://www.comunidad.madrid/transparencia)
-- Catálogo de Datos Abiertos de la Comunidad de Madrid
+- Catálogo de Datos Abiertos de la Comunidad de Madrid (presupuesto, convenios, registros y plantillas)
+- Tribunal Administrativo de Contratación Pública de la Comunidad de Madrid (recursos y resoluciones)
+- INE (habitantes, para las cifras por persona) e INVENTE (entes del sector público)
 
 **Privacidad:** no se crean fichas de personas físicas. Ojo Ciudadano seudonimiza sus identificadores y solo las muestra agregadas.
 
@@ -68,9 +78,13 @@ Periodistas de datos y ONG de vigilancia · órganos de control y Cámara de Cue
 
 ## Tecnología
 
-Python · [uv](https://docs.astral.sh/uv/) · polars · DuckDB · Streamlit · un asistente LLM con texto a SQL y búsqueda documental con citas.
+Python · [uv](https://docs.astral.sh/uv/) · polars · DuckDB · Streamlit · Plotly · Three.js · scikit-learn (Isolation Forest) · un asistente LLM por OpenRouter con texto a SQL de solo lectura y búsqueda documental (BM25) con citas.
+
+La web pública es [ojo-ciudadano.iismael.workers.dev](https://ojo-ciudadano.iismael.workers.dev/): una portada en Cloudflare que abre la aplicación de Streamlit, servida con Docker y un túnel de Cloudflare, y que se actualiza sola con cada cambio en `main`. Detalle en [`docs/15-despliegue.md`](docs/15-despliegue.md).
 
 ## Empezar
+
+Para probarla no hace falta instalar nada: abre [ojo-ciudadano.iismael.workers.dev](https://ojo-ciudadano.iismael.workers.dev/). Para ejecutarla en tu ordenador:
 
 ```bash
 # Requisito: uv (https://docs.astral.sh/uv/getting-started/installation/)
@@ -90,7 +104,13 @@ uv run python -m ojo_ciudadano.ingesta.bdns
 uv run python -m ojo_ciudadano.modelo.carga
 uv run python -m ojo_ciudadano.indicadores.ejecutor
 uv run python -m ojo_ciudadano.anomalias.deteccion
-# 3. Interfaz:
+# 3. Contexto de la Comunidad, nombres de los CPV, entes públicos y búsqueda del asistente:
+uv run python -m ojo_ciudadano.modelo.contexto
+uv run python -m ojo_ciudadano.ingesta.cpv
+uv run python -m ojo_ciudadano.ingesta.invente
+uv run python -m ojo_ciudadano.asistente.texto
+uv run python -m ojo_ciudadano.asistente.catalogo
+# 4. Interfaz (el asistente necesita OPENROUTER_API_KEY en .env; plantilla en .env.example):
 uv run streamlit run src/ojo_ciudadano/app/main.py
 ```
 
